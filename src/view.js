@@ -67,16 +67,37 @@ const Input = (() => {
   addEventListener('pointerup', e => { if (shootTouch === e.pointerId) shootTouch = null; if (passTouch === e.pointerId) passTouch = null; });
   addEventListener('pointercancel', e => { if (shootTouch === e.pointerId) shootTouch = null; if (passTouch === e.pointerId) passTouch = null; });
 
+  // Mando (Xbox/PlayStation/genérico, mapeo estándar): A pase · X tiro (mantener) · B profundidad · Y técnica · RB regate
+  // LB cambiar jugador · LT cambiar técnica · RT esprint · Start pausa · stick izquierdo o cruceta para moverte
+  const GP = { 0: 'A', 1: 'B', 3: 'tech', 5: 'dribble', 4: 'switch', 6: 'techNext' };
+  let gpPrev = [], gpState = { x: 0, y: 0, sprint: false, shoot: false, pass: false };
+  addEventListener('gamepadconnected', e => { try { UI.toast('🎮 Mando conectado: ' + (e.gamepad.id || '').split('(')[0].trim().slice(0, 30), 2200); } catch (_) {} document.body.classList.add('gamepad'); });
+  addEventListener('gamepaddisconnected', () => { try { UI.toast('Mando desconectado', 1600); } catch (_) {} if (![...(navigator.getGamepads ? navigator.getGamepads() : [])].some(Boolean)) document.body.classList.remove('gamepad'); });
+  function pollPad() {
+    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+    const g = [...pads].find(p => p && p.connected);
+    gpState = { x: 0, y: 0, sprint: false, shoot: false, pass: false };
+    if (!g) return;
+    const b = i => !!(g.buttons[i] && (g.buttons[i].pressed || g.buttons[i].value > 0.5));
+    let x = g.axes[0] || 0, y = g.axes[1] || 0;
+    if (Math.hypot(x, y) < 0.18) x = y = 0;
+    if (b(14)) x = -1; if (b(15)) x = 1; if (b(12)) y = -1; if (b(13)) y = 1;
+    gpState = { x, y, sprint: b(7), shoot: b(2), pass: b(0) };
+    for (const i in GP) if (b(i) && !gpPrev[i]) pressed.add(GP[i]);
+    if (b(9) && !gpPrev[9]) App.togglePause();
+    gpPrev = g.buttons.map((_, i) => b(i));
+  }
   function read() {
+    pollPad();
     let x = 0, y = 0;
     if (keys.has('ArrowLeft') || keys.has('KeyA')) x -= 1;
     if (keys.has('ArrowRight') || keys.has('KeyD')) x += 1;
     if (keys.has('ArrowUp') || keys.has('KeyW')) y -= 1;
     if (keys.has('ArrowDown') || keys.has('KeyS')) y += 1;
     if (x || y) { const l = Math.hypot(x, y); x /= l; y /= l; }
-    x += joy.x; y += joy.y;
-    const out = { move: { x, y }, sprint: keys.has('ShiftLeft') || keys.has('ShiftRight'),
-      shootHeld: keys.has('KeyL') || shootTouch !== null, passHeld: keys.has('KeyJ') || passTouch !== null, pressed: new Set(pressed) };
+    x += joy.x + gpState.x; y += joy.y + gpState.y;
+    const out = { move: { x, y }, sprint: keys.has('ShiftLeft') || keys.has('ShiftRight') || gpState.sprint,
+      shootHeld: keys.has('KeyL') || shootTouch !== null || gpState.shoot, passHeld: keys.has('KeyJ') || passTouch !== null || gpState.pass, pressed: new Set(pressed) };
     pressed.clear();
     return out;
   }

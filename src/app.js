@@ -13,7 +13,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.24.1';
+const VERSION = '0.25.0';
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
@@ -1416,7 +1416,8 @@ const App = (() => {
       ${opts('Cambio automático de jugador', 'autoSwitch', [[1, 'Sí'], [0, 'No']])}
       <h3>Controles</h3>
       ${opts('Botones en pantalla', 'controls', [['auto', 'Auto'], ['tactil', 'Siempre'], ['teclado', 'Nunca (PC)']])}
-      <p class="keys"><b>Móvil:</b> joystick a la izquierda (a tope = esprint). Mantén Pase para un pase fuerte y usa Regate para un recorte rápido sin técnica. Para cambiar de jugador apunta con el joystick y pulsa Cambiar (también cambia solo al ir a por el balón).<br>
+      <p class="keys"><b>Mando:</b> stick o cruceta para moverte · RT esprint · A pase (mantén = fuerte) · X tiro (mantén) · B profundidad / entrada · Y supertécnica · LT cambiar técnica · RB regate · LB cambiar jugador · Start pausa.<br>
+      <b>Móvil:</b> joystick a la izquierda (a tope = esprint). Mantén Pase para un pase fuerte y usa Regate para un recorte rápido sin técnica. Para cambiar de jugador apunta con el joystick y pulsa Cambiar (también cambia solo al ir a por el balón).<br>
       <b>PC:</b> WASD/flechas · Shift esprint · J pase (mantén = pase fuerte) o entrada · K profundidad · I regate · L tiro (mantener) · Espacio técnica · Q cambiar · P pausa</p>
       <h3>Sonido</h3>
       <div class="grid2"><button class="ghost" id="sm" aria-pressed="${c.music}">Música: ${c.music ? 'sí' : 'no'}</button><button class="ghost" id="se" aria-pressed="${c.sfx}">Efectos: ${c.sfx ? 'sí' : 'no'}</button></div>
