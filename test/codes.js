@@ -1,0 +1,17 @@
+const fs = require('fs'), vm = require('vm');
+const S = '/home/claude/inazuma/src/';
+const store = {};
+const ctx = { console, Math, JSON, Object, Array, Set, Map, Date, localStorage: { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => delete store[k] } };
+ctx.GAME = JSON.parse(fs.readFileSync('/home/claude/inazuma/pub/gamedata.json', 'utf8'));
+ctx.Sprites = { refOf: pd => ({ file: 'c00.png', row: 0 }) };
+vm.createContext(ctx);
+vm.runInContext(fs.readFileSync(S + 'logic.js', 'utf8') + '\n' + fs.readFileSync(S + 'run.js', 'utf8') + '\n' + fs.readFileSync(S + 'career.js', 'utf8') + '\nProfile.load();this.Profile=Profile;this.Gacha=Gacha;this.Career=Career;this.GIFT_CODES=GIFT_CODES;this.PLAYER=PLAYER;', ctx);
+const { Profile, Gacha, Career, GIFT_CODES, PLAYER } = ctx;
+for (const k of Object.keys(GIFT_CODES)) console.log(k, Profile.redeem(k).msg);
+console.log('repetido:', Profile.redeem('mundial').msg);
+console.log('tiradas:', Gacha.pull(5, { banner: 1 }).map(r => r.tier).join(','));
+const c = Career.create(13, 'Prueba');
+const ab = Career.abroadList('Unicorn'); console.log('Unicorn fichables', ab.length, ab.slice(0, 4).map(p => p.name + ' ' + Career.abroadPrice(p.id)).join(' · '));
+console.log('libres sin extranjeros:', Career.marketList().libres.every(id => !PLAYER(id).abroad));
+c.money = 99999; console.log(Career.sign(ab[0].id, Career.abroadPrice(ab[0].id)).msg, '→ ya no está:', !Career.abroadList('Unicorn').some(p => p.id === ab[0].id));
+console.log('PESCADINHA:', Profile.redeem('pescadinha').msg, '· tiene a Kappa:', !!Profile.data.coll[39001], PLAYER(39001).name);
