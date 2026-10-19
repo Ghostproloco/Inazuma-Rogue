@@ -13,7 +13,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.25.0';
+const VERSION = '0.26.0';
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
@@ -95,7 +95,7 @@ const App = (() => {
     $('mCareer').onclick = () => renderCareer();
     $('mSpecial').onclick = () => { if (!busy()) renderSpecials(); };
     $('mChain').onclick = () => { if (!done) return UI.toast('Completa la Etapa 1 de la Historia'); if (!busy()) renderChains(); };
-    $('mInf').onclick = () => { if (!done) return UI.toast('Completa la Etapa 1 de la Historia'); if (!busy()) newDraft('infinite', {}); };
+    $('mInf').onclick = () => { if (!done) return UI.toast('Completa la Etapa 1 de la Historia'); if (!busy()) { newDraft('infinite', {}); tutorial('infinite'); } };
     $('mGacha').onclick = renderGacha; $('mTeam').onclick = () => renderTeam();
     $('mGift').onclick = renderGift;
     $('mSaves').onclick = () => renderSaves(renderMenu);
@@ -104,6 +104,28 @@ const App = (() => {
   }
 
   const mini = keys => `<span class="mini">${keys.map(k => Sprites.crest(crestOf(k))).join('')}</span>`;
+  /* ---------- Tutoriales: se enseñan la primera vez que entras en cada modo (y con el botón ❓) ---------- */
+  const TUTS = {
+    story: ['Historia', 'Recorre los torneos del 1, 2 y 3 con tu equipo. Es <b>roguelite</b>: tienes vidas ♥, tras cada victoria eliges una mejora (técnica, habilidad o fichaje temporal) y todo eso se pierde al acabar el intento. Completar una etapa la deja superada para siempre y abre más modos.'],
+    special: ['Equipos especiales', 'Un solo partido, sin segundas oportunidades. Si ganas, <b>su estrella se une a tu plantilla</b> (o sube una ★ si ya la tenías).'],
+    chains: ['Cadenas', 'Varios partidos seguidos <b>sin recuperar vidas</b>. Al completarla: Rayo Raimon, tickets, monedas y la estrella del último rival. La primera vez, una técnica legendaria. Sin perder vidas, 💎 extra. Medallas 🥉🥈🥇 al repetirlas.'],
+    infinite: ['Infinito', 'Oleadas de rivales cada vez más fuertes hasta que te quedes sin vidas. Cada 5 oleadas, un jefe. Intenta batir tu récord.'],
+    gacha: ['Gacha', 'Gasta tickets para tirar: gira la manivela de la máquina y abre las cápsulas. Probabilidades: común 60 %, rara 28 %, épica 10 %, legendaria 2 % (cada 10 tiradas sin épica, la siguiente lo es seguro). Los repetidos suben estrellas a tu jugador.'],
+    team: ['Plantilla', '<b>Mi equipo</b>: elige formación y quién juega (a portería solo porteros). <b>Jugadores</b>: busca y entrena (monedas) o usa Rayos Raimon para subir estrellas. <b>Técnicas</b>: equipa las supertécnicas.'],
+    career: ['Modo Carrera', 'Eres el mánager de un instituto: 3 divisiones, Copa y playoffs. Cada semana haz una actividad (entrenar, ojear…), juega o simula el partido y ficha (también a jugadores del extranjero). Tus titulares <b>suben o bajan</b> según su rendimiento. Cuida la fama: si llega a 0, cierran el club. Cada 3 temporadas, <b>el Mundial</b>.'],
+    wc: ['El Mundial', 'Eres el seleccionador de Inazuma Japón. Convoca a <b>10 jugadores</b> (dos equipos de 5) y elige qué 5 juegan cada partido. Grupo de 4 (pasan 2), semifinal y final, con penaltis si hay empate.'],
+  };
+  function tutorial(key, force) {
+    const T = TUTS[key]; settings.tuts = settings.tuts || {};
+    if (!T || (settings.tuts[key] && !force)) return;
+    settings.tuts[key] = 1; saveSettings();
+    const d = document.createElement('div'); d.className = 'tutbox';
+    d.innerHTML = `<div class="tutin"><h2>❓ ${T[0]}</h2><p>${T[1]}</p><button class="cta">¡Entendido!</button></div>`;
+    d.querySelector('button').onclick = () => d.remove();
+    document.body.appendChild(d);
+  }
+  const tutBtn = key => `<button class="ghost mini tutq" data-tut="${key}">❓ Cómo funciona</button>`;
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-tut]'); if (b) tutorial(b.dataset.tut, true); });
   function renderStory() {
     const P = Profile.data;
     screen(`${top('Historia')}${wallet()}
@@ -117,6 +139,7 @@ const App = (() => {
       if (!st.available || !Profile.unlocked({ stage: st })) return UI.toast(st.note);
       newDraft('story', { diff: 'medio', stage: st.key });
     });
+    tutorial('story'); if (!$('tutq-story')) body.insertAdjacentHTML('beforeend', `<p class="note" id="tutq-story">${tutBtn('story')}</p>`);
     $('back').onclick = renderMenu;
   }
   function renderSpecials() {
@@ -134,6 +157,7 @@ const App = (() => {
       b.onclick = () => { if (!open) return UI.toast('Aún bloqueado'); newDraft('special', { team: t.key }); };
       $('sp').appendChild(b);
     });
+    tutorial('special'); if (!$('tutq-special')) body.insertAdjacentHTML('beforeend', `<p class="note" id="tutq-special">${tutBtn('special')}</p>`);
     $('back').onclick = renderMenu;
   }
   function renderChains() {
@@ -148,6 +172,7 @@ const App = (() => {
       if (!Profile.unlocked({ chain: c })) return UI.toast('Se abre al completar la Etapa 2');
       newDraft('chain', { chain: c.key });
     });
+    tutorial('chains'); if (!$('tutq-chains')) body.insertAdjacentHTML('beforeend', `<p class="note" id="tutq-chains">${tutBtn('chains')}</p>`);
     $('back').onclick = renderMenu;
   }
 
@@ -186,6 +211,7 @@ const App = (() => {
     });
     const go = n => { if (P.tickets < n) return; P.tickets -= n; Profile.save(); renderMachine(Gacha.pull(n, { banner: B.id }), B.id, renderGacha); };
     $('g1').onclick = () => go(1); $('g10').onclick = () => go(10); $('back').onclick = renderMenu;
+    tutorial('gacha'); if (!$('tutq-gacha')) body.insertAdjacentHTML('beforeend', `<p class="note" id="tutq-gacha">${tutBtn('gacha')}</p>`);
   }
   // Carta de un resultado del gacha (jugador o técnica legendaria)
   function makeCard(r) {
@@ -510,6 +536,7 @@ const App = (() => {
       pfWire(body, drawList, renderTeam); drawList();
     }
     body.querySelectorAll('#tt button').forEach(b => b.onclick = () => { teamTab = b.dataset.t; renderTeam(); });
+    tutorial('team'); if (!$('tutq-team')) body.insertAdjacentHTML('beforeend', `<p class="note" id="tutq-team">${tutBtn('team')}</p>`);
     $('back').onclick = renderMenu;
   }
   function renderPlayer(id) {
@@ -794,6 +821,7 @@ const App = (() => {
     if (!c) return renderCareerNew();
     if (c.over) return renderCareerOver();
     if (c.wc) return renderWC();
+    tutorial('career');
     const nm = Career.nextMatch(), d = Career.myDiv(), mgr = PLAYER(c.manager), wt = Career.weekType();
     const act = (k, A) => `<button class="ghost big act-${k}" data-act="${k}">${A.name}<small>${A.desc}</small></button>`;
     const kindTxt = !nm ? '' : nm.type === 'liga' ? `Jornada ${nm.j + 1}` : nm.type === 'copa' ? `Copa · ${CUP_ROUND[nm.round]}` : nm.type === 'semi' ? 'Playoff · semifinal' : 'Playoff · ¡FINAL!';
@@ -913,7 +941,7 @@ const App = (() => {
   const wcCrest = k => k === 'JP' ? '<img class="ccrest" src="ui/crest3016.png" alt="">' : `<img class="ccrest" src="ui/crest${crestOf(k)}.png" alt="">`;
   const wcName = k => k === 'JP' ? 'Inazuma Japón' : k;
   function renderWC(last) {
-    const c = Career.data, w = c.wc;
+    const c = Career.data, w = c.wc; tutorial('wc');
     if (w.state === 'call') {
       const cands = Career.wcCandidates(), sel = new Set(w.pick || []);
       screen(`${top('Mundial · Convocatoria', 'cBack', 'Club')}
@@ -1420,7 +1448,8 @@ const App = (() => {
       <b>Móvil:</b> joystick a la izquierda (a tope = esprint). Mantén Pase para un pase fuerte y usa Regate para un recorte rápido sin técnica. Para cambiar de jugador apunta con el joystick y pulsa Cambiar (también cambia solo al ir a por el balón).<br>
       <b>PC:</b> WASD/flechas · Shift esprint · J pase (mantén = pase fuerte) o entrada · K profundidad · I regate · L tiro (mantener) · Espacio técnica · Q cambiar · P pausa</p>
       <h3>Sonido</h3>
-      <div class="grid2"><button class="ghost" id="sm" aria-pressed="${c.music}">Música: ${c.music ? 'sí' : 'no'}</button><button class="ghost" id="se" aria-pressed="${c.sfx}">Efectos: ${c.sfx ? 'sí' : 'no'}</button></div>
+      <div class="mixer"><label>🎵 Música <b id="mvT">${Math.round((c.music ? c.mv ?? 1 : 0) * 100)} %</b><input type="range" id="mvR" min="0" max="100" step="5" value="${Math.round((c.music ? c.mv ?? 1 : 0) * 100)}"></label>
+        <label>🔊 Efectos <b id="svT">${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)} %</b><input type="range" id="svR" min="0" max="100" step="5" value="${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)}"></label></div>
       <p class="note">La música sale de tus archivos del Inazuma 1 y 2, reconstruida desde las partituras del juego. Los nombres son los de la colección de música del Inazuma 2.</p>
       ${opts('Intro al abrir el juego', 'intro', [[1, 'Sí'], [0, 'No']])}
       <button class="ghost" id="seeIntro">▶ Ver la intro</button>
@@ -1436,8 +1465,9 @@ const App = (() => {
       <p class="note">Inazuma Rogue v${VERSION} · fan game gratuito y no oficial. Inazuma Eleven es de Level-5.</p>`);
     bindOpts(settings, k => { saveSettings(); if (k === 'controls') Controls.apply(); });
     if ($('toDev')) $('toDev').onclick = () => { Sound.stop(0.2); renderDev(); };
-    $('sm').onclick = () => { Sound.setMusic(!c.music); renderSettings(); };
-    $('se').onclick = () => { Sound.setSfx(!c.sfx); renderSettings(); };
+    $('mvR').oninput = e => { const v = +e.target.value / 100; Sound.setVol('music', v); $('mvT').textContent = e.target.value + ' %'; };
+    $('svR').oninput = e => { const v = +e.target.value / 100; Sound.setVol('sfx', v); $('svT').textContent = e.target.value + ' %'; };
+    $('svR').onchange = () => Sound.sfx('click');
     body.querySelectorAll('select[data-role]').forEach(s => { s.value = c.roles[s.dataset.role] ?? ''; s.onchange = () => Sound.setRole(s.dataset.role, s.value); });
     $('seeIntro').onclick = () => { Sound.stop(0.2); playIntro(renderSettings); };
     $('tt1').onclick = () => { Sound.setTeamThemes(true); renderSettings(); };

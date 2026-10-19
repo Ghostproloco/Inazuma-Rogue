@@ -81,6 +81,10 @@ img,.pix,.crest{image-rendering:pixelated}
 .act.fire::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
   background:conic-gradient(rgba(0,0,0,.62) calc(var(--cd,0) * 360deg),transparent 0)}
 .act.off{opacity:.35}
+.tutbox{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+.tutin{max-width:360px;background:var(--navy);border:3px solid var(--ink);box-shadow:0 0 0 3px var(--yellow);padding:14px;display:flex;flex-direction:column;gap:10px;color:var(--chalk)}
+.tutin p{font-size:15px;line-height:1.4;margin:0}
+.mixer{display:flex;flex-direction:column;gap:8px}.mixer label{display:flex;flex-direction:column;gap:4px;font-size:16px}.mixer input{width:100%}
 body.gamepad #pad,body.gamepad #stick{display:none!important}
 .act.s5::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;background:conic-gradient(rgba(0,0,0,.62) calc(var(--cd,0) * 360deg),transparent 0)}
 .act.s5.cool{opacity:.7}

@@ -161,8 +161,8 @@ const Sound = (() => {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     ctx = new AC();
-    musicGain = ctx.createGain(); musicGain.gain.value = cfg.music ? 0.55 : 0; musicGain.connect(ctx.destination);
-    sfxGain = ctx.createGain(); sfxGain.gain.value = cfg.sfx ? 0.7 : 0; sfxGain.connect(ctx.destination);
+    musicGain = ctx.createGain(); musicGain.gain.value = cfg.music ? 0.55 * (cfg.mv ?? 1) : 0; musicGain.connect(ctx.destination);
+    sfxGain = ctx.createGain(); sfxGain.gain.value = cfg.sfx ? 0.7 * (cfg.sv ?? 1) : 0; sfxGain.connect(ctx.destination);
   }
   function load(key) {
     if (buffers[key]) return buffers[key];
@@ -244,10 +244,12 @@ const Sound = (() => {
   };
   function sfx(name) { if (ctx && cfg.sfx && FX[name]) { try { FX[name](); } catch (_) {} } }
 
-  function setMusic(on) { cfg.music = on; saveCfg(); if (musicGain) musicGain.gain.value = on ? 0.55 : 0; }
-  function setSfx(on) { cfg.sfx = on; saveCfg(); if (sfxGain) sfxGain.gain.value = on ? 0.7 : 0; }
+  function setMusic(on) { cfg.music = on; saveCfg(); if (musicGain) musicGain.gain.value = on ? 0.55 * (cfg.mv ?? 1) : 0; }
+  function setSfx(on) { cfg.sfx = on; saveCfg(); if (sfxGain) sfxGain.gain.value = on ? 0.7 * (cfg.sv ?? 1) : 0; }
+  // Mezclador: volumen de 0 a 1 para música y efectos
+  function setVol(kind, v) { if (kind === 'music') { cfg.mv = v; setMusic(v > 0); } else { cfg.sv = v; setSfx(v > 0); } }
   function setRole(role, key) { cfg.roles[role] = key; saveCfg(); }
   function setTeamThemes(on) { cfg.teamThemes = on; saveCfg(); }
   function preview(key) { unlock(); play(key, { restart: true, once: true }); }
-  return { unlock, music, jingle, sfx, stop, cfg, setMusic, setSfx, setRole, setTeamThemes, preview, DEF_ROLES, current: () => curKey };
+  return { unlock, music, jingle, sfx, stop, cfg, setMusic, setSfx, setVol, setRole, setTeamThemes, preview, DEF_ROLES, current: () => curKey };
 })();
