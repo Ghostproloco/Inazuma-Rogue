@@ -38,8 +38,8 @@ const HW_LEGENDS = [
     if (L.extra) { const t = Object.values(GAME.techniques).find(x => x.name === L.extra && x.id < 30000); if (t && !moves.some(m => m[0] === t.id)) moves.unshift([t.id, 1]); }
     reg(Object.assign({}, b, { id: L.id, full: b.full + ' (Halloween)', rarity: 'legendaria', ie, ie0: undefined, moves, gacha: false, banner: null, halloween: true }), true);
   }
-  // Ray Dark: solo como mánager (su retrato es el escudo de los Emperadores Oscuros); no entra en las listas de jugadores
-  reg({ id: RAY_DARK, name: 'Ray Dark', full: 'Ray Dark', role: 'MED', elem: 'neutro', rarity: 'legendaria', crestFace: 41, ie: { tiro: 50, control: 50, defensa: 50, rapidez: 50, fisico: 50, aguante: 50 }, moves: [], gacha: false, halloween: true });
+  // Ray Dark: solo como mánager (retrato propio: juego/ui/raydark.png); no entra en las listas de jugadores
+  reg({ id: RAY_DARK, name: 'Ray Dark', full: 'Ray Dark', role: 'MED', elem: 'neutro', rarity: 'legendaria', faceImg: 'ui/raydark.png', ie: { tiro: 50, control: 50, defensa: 50, rapidez: 50, fisico: 50, aguante: 50 }, moves: [], gacha: false, halloween: true });
 })();
 
 const Halloween = {

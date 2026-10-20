@@ -25,7 +25,7 @@ modo Carrera (mánager) y Mundial. Pensado sobre todo para **móvil en vertical*
 ## 3. Rama `halloween` (v0.31.1) — PENDIENTE DE APROBAR
 - Commits sobre `main` (3512e6e): arreglos de la nube traídos de la 0.34 y el evento de Halloween.
 - Si solo tienes el zip: copia `src/`, `test/`, `tools/`, `build.py`, `README.md` y `TRASPASO.md` encima del repo (rama `main`), ejecuta `python3 build.py` y listo
-  (`juego/gamedata.json` no cambia; no hay imágenes nuevas).
+  (`juego/gamedata.json` no cambia; imagen nueva: `juego/ui/raydark.png`, incluida en el zip).
 - Cuando Fran apruebe: `git checkout main && git merge halloween && git push` (GitHub Pages se actualiza solo). **Fecha: 23 oct 2026.**
 - Artefacto de prueba (privado, cuenta de Fran actual): «Inazuma Rogue Beta». Ahí las **cuentas en la nube están desactivadas**
   (los artefactos no pueden cargar Firebase). Para publicarlo se quita el `<!doctype html>` y se vacía `apiKey`.
@@ -54,8 +54,8 @@ Cómo está hecho:
   chispas naranjas y niebla que se mece). Modo `api.mode = 'hwboss'`; pantalla final `renderBossEnd`.
 - **Retos** (`Halloween.RETOS`): Exorcista (ganar al jefe) · Truco o trato (20 tiradas) · Coleccionista de sustos (un legendario de Halloween).
   Premios en caramelos y tickets. Al recoger los 3 → `Profile.data.hw.ray = true`.
-- **Ray Dark** (`RAY_DARK = 996100`, en `career.js`): solo existe como mánager (no está en `GAME.players`). No tiene sprite en el juego, así que su
-  retrato es el **escudo de los Emperadores Oscuros** (`crestFace: 41`, `mgrFace` en `app.js`). `Career.incomeMul()` = 1.1 con él: patrocinio,
+- **Ray Dark** (`RAY_DARK = 996100`, en `career.js`): solo existe como mánager (no está en `GAME.players`). No está en las hojas de sprites: su
+  retrato (64×64, del juego, lo pasó Fran) es `juego/ui/raydark.png` (`faceImg`, `mgrFace` en `app.js`). **Va en el zip.** `Career.incomeMul()` = 1.1 con él: patrocinio,
   taquilla, premios de liga/Copa y del Mundial. Se queda para siempre una vez desbloqueado.
 - **Estado** en el perfil: `Profile.data.hw = { candy, pulls, pity, daily, boss, bossWins, matches, retos, legends, ray }` (va a la nube con el perfil).
 - **Menú**: botón 🎃 Halloween con punto naranja si hay regalo o reto por recoger; ambiente con borde naranja, panel morado, calabazas, murciélagos y niebla suave (CSS `.hwtheme`, `.hwfx`).

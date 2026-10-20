@@ -50,10 +50,10 @@ const App = (() => {
   const top = (title, id = 'back', label = TX('Volver')) => `<div class="top"><button class="ghost back" id="${id}">◀ ${label}</button><h2>${title}</h2></div>`;
   const bottom = html => `<div class="bottom">${html}</div>`;
   const face = (ref, size) => Sprites.face(ref, size);
-  // Cara del mánager (Ray Dark no tiene sprite: se usa el escudo de los Emperadores Oscuros)
+  // Cara del mánager (Ray Dark no está en las hojas de sprites: tiene su retrato en ui/raydark.png)
   function mgrFace(id, size) {
     const pd = PLAYER(id);
-    if (pd && pd.crestFace) { const i = document.createElement('img'); i.src = `ui/crest${pd.crestFace}.png`; i.alt = ''; i.width = i.height = size; i.className = 'mgrcrest'; return i; }
+    if (pd && pd.faceImg) { const i = document.createElement('img'); i.src = pd.faceImg; i.alt = ''; i.width = i.height = size; i.className = 'mgrcrest pix'; return i; }
     return face(Sprites.refOf(pd), size);
   }
   function wallet() { const P = Profile.data; return `<div class="runbar"><span>🪙 ${P.coins}</span><span>🎟️ ${P.tickets}</span><span title="${TX('Rayos Raimon')}">⚡ ${P.rayos}</span><span>👥 ${Profile.ids().length}</span></div>`; }
