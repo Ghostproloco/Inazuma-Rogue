@@ -24,7 +24,7 @@ const App = (() => {
   try { Object.assign(settings, JSON.parse(localStorage.getItem('inazuma-ajustes') || '{}')); } catch (_) {}
   const saveSettings = () => { try { localStorage.setItem('inazuma-ajustes', JSON.stringify(settings)); } catch (_) {} };
   Profile.load();
-  Halloween.forced = !!settings.hwForce;
+  Halloween.forced = Halloween.forced || !!settings.hwForce;   // la beta lo trae encendido de serie
 
   const api = { match: null, matchSheet: null, running: false, scene: null, mode: null, run: Run.load(), settings, pick: null, draft: null };
   const body = $('screenBody');
