@@ -19,20 +19,22 @@ Para navegador (móvil en vertical y PC).
 - `build.py` · junta `src/` y los datos en `juego/index.html`.
 - `juego/` · el juego listo para jugar (index.html, sprites, música, escudos).
 - `test/` · pruebas automáticas (Node.js).
-## Cuentas y guardado en la nube (Supabase)
+## Cuentas y guardado en la nube (Firebase)
 El juego guarda la partida en el móvil y, si el jugador tiene cuenta, también en la nube (se sube sola cada vez que cambia).
-Para activarlo, una sola vez:
+Se puede entrar con **Google** o con **usuario y contraseña**. Para activarlo, una sola vez:
 
-1. Entra en https://supabase.com, crea una cuenta gratuita y pulsa **New project** (nombre: `inazuma-rogue`, región: la más cercana; apunta la contraseña de la base de datos aunque el juego no la usa).
-2. **Authentication → Sign In / Providers → Email**: deja **Email** activado y **desactiva «Confirm email»** (las cuentas usan nombre de usuario, no se envían correos). Guarda.
-3. **SQL Editor → New query**: pega todo el contenido de `supabase.sql` y pulsa **Run**. Debe salir «Success».
-4. **Project Settings → API** (o **API Keys**): copia la **Project URL** y la clave pública (**anon public** o **publishable**).
-5. Pégalas en `src/cloud-config.js`, ejecuta `python3 build.py` y sube el juego.
+1. https://console.firebase.google.com → **Crear un proyecto** (`inazuma-rogue`, sin Google Analytics).
+2. **Authentication → Comenzar → Método de inicio de sesión**: activa **Correo electrónico/contraseña** y **Google**.
+   En **Configuración → Dominios autorizados**, añade `franmndezzzz.github.io`.
+3. **Firestore Database → Crear base de datos** (ubicación en Europa, modo producción).
+   En la pestaña **Reglas**, pega el contenido de `firestore.rules` y pulsa **Publicar**.
+4. **⚙️ Configuración del proyecto → Tus apps → Web (`</>`)**: registra la app y copia `apiKey`, `authDomain`, `projectId` y `appId` en `src/cloud-config.js`.
+5. `python3 build.py` y sube el juego.
 
 Notas:
-- La clave pública puede ir en el juego: las reglas de `supabase.sql` hacen que cada uno solo vea su partida. **Nunca** pongas la `service_role` ni la `secret`.
-- Sin correo no hay «he olvidado mi contraseña». Si alguien la pierde, puedes cambiársela en **Authentication → Users** (el usuario `fran` aparece como `fran@jugadores.inazumarogue.app`).
-- Si dejas `src/cloud-config.js` vacío, el juego funciona igual que antes, sin cuentas.
+- Esos datos son públicos por diseño; lo que protege las partidas son las reglas de `firestore.rules` (cada uno solo ve la suya).
+- Usuario y contraseña no tiene «he olvidado mi contraseña». Si alguien la pierde, puedes cambiarla en **Authentication → Usuarios** (el usuario `fran` aparece como `fran@jugadores.inazumarogue.app`). Con Google no hay contraseña que olvidar.
+- Si dejas `src/cloud-config.js` vacío, el juego funciona igual que antes, sin cuentas (y no descarga Firebase).
 - Si dos dispositivos tienen partidas distintas, el juego pregunta cuál conservar y guarda la otra como copia en el móvil.
 
 ## Traer la partida de la versión antigua

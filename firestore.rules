@@ -1,0 +1,16 @@
+rules_version = '2';
+// Inazuma Rogue · reglas de la base de datos
+// Pégalas en Firebase → Firestore Database → Reglas → Publicar.
+// Cada jugador solo puede leer y guardar SU partida, y cada guardado
+// tiene que ser la versión siguiente (así dos móviles no se pisan).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /saves/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+                    && request.resource.data.rev == 1;
+      allow update: if request.auth != null && request.auth.uid == uid
+                    && request.resource.data.rev == resource.data.rev + 1;
+    }
+  }
+}

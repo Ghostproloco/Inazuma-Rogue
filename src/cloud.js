@@ -1,8 +1,10 @@
 /* =====================================================================
-   NUBE: cuentas con usuario y contraseña y guardado de la partida.
-   Usa Supabase (Auth + una tabla «saves») mediante su API web, sin
-   librerías. La partida es la misma de siempre (las claves de
-   localStorage de SAVE_KEYS); aquí solo se sube y se baja entera.
+   NUBE: cuentas (Google o usuario y contraseña) y guardado de la partida.
+   Usa Firebase: Authentication para las cuentas y Firestore para guardar
+   (un documento por jugador en «saves/{uid}»). La librería de Firebase
+   solo se descarga si src/cloud-config.js está rellenado.
+   La partida es la misma de siempre (las claves de localStorage de
+   SAVE_KEYS); aquí solo se sube y se baja entera.
 
    Cómo decide qué partida manda (rev = número de versión en la nube):
    - Nube sin cambios desde la última vez y móvil con cambios → se sube.
@@ -16,18 +18,19 @@ const SAVE_KEYS = ['inazuma-perfil', 'inazuma-carrera', 'inazuma-ajustes', 'inaz
 const Cloud = (() => {
   const META_KEY = 'inazuma-cuenta';
   const EMAIL_DOMAIN = 'jugadores.inazumarogue.app';   // el usuario «fran» se guarda como fran@jugadores… (no se envía ningún correo)
+  const FB_VERSION = '10.12.2';
   const CFG = (typeof CLOUD_CONFIG !== 'undefined' && CLOUD_CONFIG) || {};
-  const BASE = String(CFG.url || '').replace(/\/+$/, ''), KEY = CFG.key || '';
   const PUSH_DELAY = 3000;      // espera tras un cambio antes de subir (agrupa varios guardados)
-  const TIMEOUT = 12000;
+  const TIMEOUT = 15000;
+  const MAX_RAW = 700000;       // por encima, la partida se guarda comprimida (Firestore admite 1 MB por documento)
 
   /* ---------- Datos de la cuenta en este dispositivo ---------- */
+  const origSet = Storage.prototype.setItem, origRemove = Storage.prototype.removeItem;
   let meta = {};
   try { meta = JSON.parse(localStorage.getItem(META_KEY) || '{}') || {}; } catch (_) { meta = {}; }
   const saveMeta = () => { try { origSet.call(localStorage, META_KEY, JSON.stringify(meta)); } catch (_) {} };
 
   /* ---------- Partida local ---------- */
-  const origSet = Storage.prototype.setItem, origRemove = Storage.prototype.removeItem;
   let applying = false;
   function snapshot() { const o = {}; SAVE_KEYS.forEach(k => { try { const v = localStorage.getItem(k); if (v != null) o[k] = v; } catch (_) {} }); return o; }
   function restore(o) {
@@ -63,49 +66,56 @@ const Cloud = (() => {
   const state = { status: 'idle', msg: '', lastOk: meta.lastOk || 0, conflict: null };
   const listeners = new Set();
   function setStatus(status, msg) { state.status = status; state.msg = msg || ''; listeners.forEach(f => { try { f(state); } catch (_) {} }); }
+  const EXPIRED_MSG = 'Tu sesión se ha cerrado. Vuelve a entrar para seguir guardando en la nube.';
 
-  /* ---------- Llamadas a Supabase ---------- */
-  const enabled = () => !!(BASE && KEY);
-  const loggedIn = () => !!(meta.uid && meta.rt);
+  /* ---------- Firebase (se carga solo si hace falta) ---------- */
+  const enabled = () => !!(CFG.apiKey && CFG.projectId);
+  const loggedIn = () => !!meta.uid;
   const user = () => meta.user || null;
-  async function req(path, { method = 'GET', body, token, prefer, keepalive } = {}) {
-    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    const t = ctrl ? setTimeout(() => ctrl.abort(), TIMEOUT) : 0;
-    const headers = { apikey: KEY, 'Content-Type': 'application/json' };
-    if (token) headers.Authorization = 'Bearer ' + token;   // sin sesión basta «apikey» (vale la clave anon o la publishable)
-    if (prefer) headers.Prefer = prefer;
-    try {
-      const r = await fetch(BASE + path, { method, headers, body: body == null ? undefined : JSON.stringify(body), signal: ctrl ? ctrl.signal : undefined, keepalive: !!keepalive });
-      const txt = await r.text(); let json = null; try { json = txt ? JSON.parse(txt) : null; } catch (_) {}
-      return { ok: r.ok, status: r.status, json };
-    } catch (e) { return { ok: false, status: 0, json: null, offline: true }; }
-    finally { if (t) clearTimeout(t); }
+  let app = null, auth = null, db = null, readyP = null, signingOut = false;
+  function loadScript(src) {
+    return new Promise((ok, ko) => { const s = document.createElement('script'); s.src = src; s.async = false; s.onload = ok; s.onerror = () => ko(new Error('no carga ' + src)); document.head.appendChild(s); });
   }
-  function keepSession(j, username) {
-    meta.at = j.access_token; meta.rt = j.refresh_token;
-    meta.exp = Date.now() + ((j.expires_in || 3600) - 60) * 1000;
-    if (j.user && j.user.id) meta.uid = j.user.id;
-    if (username) meta.user = username;
-    meta.expired = false; saveMeta();
+  function ready() {
+    if (!enabled()) return Promise.resolve(false);
+    if (!readyP) readyP = (async () => {
+      if (typeof firebase === 'undefined') {
+        const B = 'https://www.gstatic.com/firebasejs/' + FB_VERSION + '/';
+        await loadScript(B + 'firebase-app-compat.js');
+        await Promise.all([loadScript(B + 'firebase-auth-compat.js'), loadScript(B + 'firebase-firestore-compat.js')]);
+      }
+      app = firebase.apps && firebase.apps.length ? firebase.app() : firebase.initializeApp(CFG);
+      auth = app.auth(); db = app.firestore();
+      // Vuelta de un inicio con Google por redirección (cuando el navegador no deja abrir ventanas)
+      if (meta.redirect) {
+        try { const r = await auth.getRedirectResult(); if (r && r.user) startSession(r.user, nameOf(r.user), 'google'); } catch (_) {}
+        meta.redirect = false; saveMeta();
+      }
+      await new Promise(res => { const off = auth.onAuthStateChanged(() => { off(); res(); }); });
+      watchAuth();
+      return true;
+    })().catch(() => { readyP = null; return false; });
+    return readyP;
   }
-  async function token() {
-    if (!loggedIn()) return null;
-    if (meta.at && Date.now() < meta.exp) return meta.at;
-    const r = await req('/auth/v1/token?grant_type=refresh_token', { method: 'POST', body: { refresh_token: meta.rt } });
-    if (r.ok && r.json && r.json.access_token) { keepSession(r.json); return meta.at; }
-    if (r.offline || r.status >= 500) return null;               // sin conexión: se reintenta luego
-    meta.expired = true; meta.at = null; saveMeta();             // sesión caducada: hay que volver a entrar
-    setStatus('expired', 'Tu sesión ha caducado. Vuelve a iniciar sesión para seguir guardando en la nube.');
-    return null;
+  // Si Firebase cierra la sesión por su cuenta (cuenta borrada, contraseña cambiada…), se avisa
+  function watchAuth() {
+    const check = u => {
+      if (!meta.uid || signingOut) return;
+      if (!u || u.uid !== meta.uid) { if (!meta.expired) { meta.expired = true; saveMeta(); setStatus('expired', EXPIRED_MSG); } }
+      else if (meta.expired) { meta.expired = false; saveMeta(); }
+    };
+    auth.onAuthStateChanged(check); check(auth.currentUser);
   }
-  async function api(path, opts = {}) {
-    let tk = await token(); if (!tk) return { ok: false, status: 0, offline: !meta.expired, expired: !!meta.expired };
-    let r = await req(path, Object.assign({}, opts, { token: tk }));
-    if (r.status === 401) { meta.exp = 0; tk = await token(); if (!tk) return { ok: false, status: 401, expired: true }; r = await req(path, Object.assign({}, opts, { token: tk })); }
-    return r;
+  const withTimeout = p => Promise.race([p, new Promise((_, ko) => setTimeout(() => ko({ code: 'timeout' }), TIMEOUT))]);
+  const ref = () => db.collection('saves').doc(meta.uid);
+  function errOf(e) {
+    const c = String((e && e.code) || '');
+    if (c === 'timeout' || c === 'unavailable' || c.includes('network') || c === 'deadline-exceeded') return { offline: true, code: c };
+    if (c === 'permission-denied' || c === 'unauthenticated') { if (!auth || !auth.currentUser) return { expired: true, code: c }; }
+    return { code: c || 'desconocido' };
   }
 
-  /* ---------- Usuario y contraseña ---------- */
+  /* ---------- Cuentas ---------- */
   const cleanUser = u => String(u || '').trim().toLowerCase();
   function checkUser(u) {
     if (u.length < 3 || u.length > 16) return 'El nombre de usuario debe tener entre 3 y 16 letras o números.';
@@ -113,41 +123,59 @@ const Cloud = (() => {
     return '';
   }
   const emailOf = u => u + '@' + EMAIL_DOMAIN;
-  function authError(r, signup) {
-    if (r.offline) return 'No hay conexión. Prueba otra vez cuando tengas internet.';
-    const j = r.json || {}, m = String(j.msg || j.message || j.error_description || j.error || '').toLowerCase(), code = String(j.error_code || j.code || '');
-    if (code === 'user_already_exists' || m.includes('already registered') || m.includes('already exists')) return 'Ese nombre de usuario ya está cogido. Prueba con otro.';
-    if (code === 'invalid_credentials' || m.includes('invalid login')) return 'Usuario o contraseña incorrectos.';
-    if (code === 'weak_password' || m.includes('password')) return 'La contraseña es demasiado corta o débil (mínimo 6 caracteres).';
-    if (code === 'email_not_confirmed' || m.includes('not confirmed')) return 'La cuenta está pendiente de confirmar. (Hay que desactivar «Confirm email» en Supabase.)';
-    if (r.status === 429 || m.includes('rate limit')) return 'Demasiados intentos seguidos. Espera un poco y vuelve a probar.';
-    return (signup ? 'No se ha podido crear la cuenta' : 'No se ha podido entrar') + ' (error ' + (r.status || '?') + ').';
+  const nameOf = u => String(u.displayName || (u.email || '').split('@')[0] || 'jugador').slice(0, 24);
+  function authError(e, signup) {
+    const c = String((e && e.code) || '');
+    if (c === 'auth/email-already-in-use') return 'Ese nombre de usuario ya está cogido. Prueba con otro.';
+    if (c === 'auth/invalid-credential' || c === 'auth/wrong-password' || c === 'auth/user-not-found' || c === 'auth/invalid-login-credentials') return 'Usuario o contraseña incorrectos.';
+    if (c === 'auth/weak-password') return 'La contraseña es demasiado corta (mínimo 6 caracteres).';
+    if (c === 'auth/too-many-requests') return 'Demasiados intentos seguidos. Espera un poco y vuelve a probar.';
+    if (c === 'auth/network-request-failed') return 'No hay conexión. Prueba otra vez cuando tengas internet.';
+    if (c === 'auth/user-disabled') return 'Esta cuenta está desactivada.';
+    if (c === 'auth/unauthorized-domain') return 'Esta web no está autorizada en Firebase (Authentication → Configuración → Dominios autorizados).';
+    if (c === 'auth/operation-not-allowed') return 'Esta forma de entrar no está activada en Firebase (Authentication → Método de inicio de sesión).';
+    if (c === 'auth/account-exists-with-different-credential') return 'Ya hay una cuenta con ese correo de otra forma.';
+    return (signup ? 'No se ha podido crear la cuenta' : 'No se ha podido entrar') + (c ? ' (' + c.replace('auth/', '') + ').' : '.');
   }
+  const offlineMsg = 'No se puede conectar con el servidor de cuentas. Comprueba tu internet.';
   async function signUp(username, password) {
     if (!enabled()) return { ok: false, msg: 'Las cuentas aún no están activadas en esta versión del juego.' };
     const u = cleanUser(username), bad = checkUser(u); if (bad) return { ok: false, msg: bad };
     if (String(password || '').length < 6) return { ok: false, msg: 'La contraseña debe tener al menos 6 caracteres.' };
-    const r = await req('/auth/v1/signup', { method: 'POST', body: { email: emailOf(u), password, data: { username: u } } });
-    if (!r.ok) return { ok: false, msg: authError(r, true) };
-    if (!r.json || !r.json.access_token) {
-      // Supabase devuelve un usuario sin sesión si sigue activo «Confirm email», o uno falso si el nombre ya existía
-      const login = await req('/auth/v1/token?grant_type=password', { method: 'POST', body: { email: emailOf(u), password } });
-      if (!login.ok || !login.json || !login.json.access_token) return { ok: false, msg: login.json && /not confirmed/i.test(JSON.stringify(login.json)) ? authError(login, true) : 'Ese nombre de usuario ya está cogido. Prueba con otro.' };
-      return startSession(login.json, u);
-    }
-    return startSession(r.json, u);
+    if (!await ready()) return { ok: false, msg: offlineMsg };
+    try {
+      const c = await auth.createUserWithEmailAndPassword(emailOf(u), password);
+      try { await c.user.updateProfile({ displayName: u }); } catch (_) {}
+      return startSession(c.user, u, 'password');
+    } catch (e) { return { ok: false, msg: authError(e, true) }; }
   }
   async function signIn(username, password) {
     if (!enabled()) return { ok: false, msg: 'Las cuentas aún no están activadas en esta versión del juego.' };
     const u = cleanUser(username); if (!u || !password) return { ok: false, msg: 'Escribe tu usuario y tu contraseña.' };
-    const r = await req('/auth/v1/token?grant_type=password', { method: 'POST', body: { email: emailOf(u), password } });
-    if (!r.ok || !r.json || !r.json.access_token) return { ok: false, msg: authError(r, false) };
-    return startSession(r.json, u);
+    if (!await ready()) return { ok: false, msg: offlineMsg };
+    try { const c = await auth.signInWithEmailAndPassword(emailOf(u), password); return startSession(c.user, u, 'password'); }
+    catch (e) { return { ok: false, msg: authError(e, false) }; }
   }
-  function startSession(j, u) {
-    const sameUser = meta.uid && j.user && j.user.id === meta.uid;
-    if (!sameUser) { meta.owner = null; meta.rev = null; meta.hash = null; }   // otra cuenta: lo que haya en el móvil aún no es suyo
-    keepSession(j, u);
+  async function signInGoogle() {
+    if (!enabled()) return { ok: false, msg: 'Las cuentas aún no están activadas en esta versión del juego.' };
+    if (!await ready()) return { ok: false, msg: offlineMsg };
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    try { const r = await auth.signInWithPopup(provider); return startSession(r.user, nameOf(r.user), 'google'); }
+    catch (e) {
+      const c = String((e && e.code) || '');
+      if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request' || c === 'auth/user-cancelled') return { ok: false, msg: '' };
+      if (c === 'auth/popup-blocked' || c === 'auth/operation-not-supported-in-this-environment' || c === 'auth/web-storage-unsupported') {
+        meta.redirect = true; saveMeta();
+        try { await auth.signInWithRedirect(provider); return { ok: false, redirect: true, msg: 'Abriendo Google…' }; }
+        catch (e2) { meta.redirect = false; saveMeta(); return { ok: false, msg: authError(e2, false) }; }
+      }
+      return { ok: false, msg: authError(e, false) };
+    }
+  }
+  function startSession(fbUser, name, via) {
+    if (meta.uid !== fbUser.uid) { meta.owner = null; meta.rev = null; meta.hash = null; }   // otra cuenta: lo que haya en el móvil aún no es suyo
+    meta.uid = fbUser.uid; meta.user = name; meta.via = via; meta.expired = false; saveMeta();
     return { ok: true };
   }
   // Cerrar sesión: sube lo último y deja el móvil limpio para que otro pueda entrar.
@@ -156,25 +184,50 @@ const Cloud = (() => {
       const r = await push(true);
       if (r !== 'uploaded' && r !== 'same') return { ok: false, msg: r === 'conflict' ? 'Hay otra versión de tu partida en la nube. Resuélvelo antes de salir.' : 'No se ha podido subir tu última partida (¿sin conexión?).' };
     }
-    if (meta.at) req('/auth/v1/logout', { method: 'POST', token: meta.at });
+    signingOut = true;
+    try { if (await ready()) await auth.signOut(); } catch (_) {}
+    signingOut = false;
     const guest = meta.guest; meta = { guest }; saveMeta();
     if (!keepLocal) { applying = true; try { ['inazuma-perfil', 'inazuma-carrera', 'inazuma-run3'].forEach(k => { try { origRemove.call(localStorage, k); } catch (_) {} }); } finally { applying = false; } }
-    state.lastOk = 0; setStatus('idle');
+    state.lastOk = 0; state.conflict = null; setStatus('idle');
     return { ok: true };
   }
 
+  /* ---------- Empaquetar la partida para Firestore ---------- */
+  async function gz(str) {
+    const cs = new CompressionStream('gzip'), buf = new Uint8Array(await new Response(new Blob([str]).stream().pipeThrough(cs)).arrayBuffer());
+    let s = ''; for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+    return btoa(s);
+  }
+  async function ungz(b64) {
+    const bin = atob(b64), buf = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    return new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  }
+  async function packData(data) {
+    const json = JSON.stringify(data);
+    if (json.length < MAX_RAW || typeof CompressionStream === 'undefined') return { data, z: null };
+    return { data: null, z: await gz(json) };
+  }
+  async function rowOf(d) {
+    const x = d.data() || {};
+    let data = x.data || {};
+    if (x.z) { try { data = JSON.parse(await ungz(x.z)); } catch (_) { data = {}; } }
+    const t = x.updatedAt && x.updatedAt.toDate ? x.updatedAt.toDate() : null;
+    return { rev: x.rev || 0, data, updated_at: t ? t.toISOString() : null };
+  }
+
   /* ---------- Subir y bajar ---------- */
-  const COLS = 'rev,data,updated_at';
   async function fetchCloud() {
-    const r = await api('/rest/v1/saves?user_id=eq.' + encodeURIComponent(meta.uid) + '&select=' + COLS);
-    if (!r.ok) return { error: r };
-    return { row: Array.isArray(r.json) && r.json[0] ? r.json[0] : null };
+    if (!await ready()) return { error: { offline: true } };
+    if (!auth.currentUser || auth.currentUser.uid !== meta.uid) return { error: { expired: true } };
+    try { const d = await withTimeout(ref().get({ source: 'server' })); return { row: d.exists ? await rowOf(d) : null }; }
+    catch (e) { return { error: errOf(e) }; }
   }
   function synced(rev, data) { meta.owner = meta.uid; meta.rev = rev; meta.hash = hash(data); meta.lastOk = state.lastOk = Date.now(); saveMeta(); }
   function failStatus(r) {
-    if (r && r.expired) setStatus('expired', 'Tu sesión ha caducado. Vuelve a iniciar sesión para seguir guardando en la nube.');
-    else if (r && (r.offline || r.status === 0)) setStatus('offline', 'Sin conexión: se guardará en la nube cuando vuelva internet.');
-    else setStatus('error', 'Error al guardar en la nube (' + ((r && r.status) || '?') + '). Se reintentará.');
+    if (r && r.expired) { meta.expired = true; saveMeta(); setStatus('expired', EXPIRED_MSG); }
+    else if (r && r.offline) setStatus('offline', 'Sin conexión: se guardará en la nube cuando vuelva internet.');
+    else setStatus('error', 'Error al guardar en la nube (' + ((r && r.code) || '?') + '). Se reintentará.');
   }
   // Sube la partida del móvil. «overRev» = pisar a propósito esa versión de la nube (cuando el jugador elige la del móvil).
   let pushing = null, again = false;
@@ -186,28 +239,31 @@ const Cloud = (() => {
       const data = snapshot(), h = hash(data);
       if (meta.owner === meta.uid && h === meta.hash && overRev == null) { setStatus('ok'); return 'same'; }
       if (!hasProgress(data) && meta.owner !== meta.uid && overRev == null) return 'same';   // no subir una partida vacía a una cuenta nueva
+      if (!await ready()) { failStatus({ offline: true }); return 'error'; }
+      if (!auth.currentUser || auth.currentUser.uid !== meta.uid) { failStatus({ expired: true }); return 'error'; }
       setStatus('saving');
-      const base = overRev != null ? overRev : meta.owner === meta.uid ? meta.rev : null;
-      let r;
-      if (base == null || base === 0) {
-        r = await api('/rest/v1/saves', { method: 'POST', body: { user_id: meta.uid, username: meta.user, data, rev: 1 }, prefer: 'return=representation' });
-        if (r.status === 409) { const c = await fetchCloud(); if (c.row) return conflict(c.row); }
-      } else {
-        r = await api('/rest/v1/saves?user_id=eq.' + encodeURIComponent(meta.uid) + '&rev=eq.' + base, { method: 'PATCH', body: { data, rev: base + 1, username: meta.user }, prefer: 'return=representation' });
-        if (r.ok && Array.isArray(r.json) && !r.json.length) { const c = await fetchCloud(); if (c.row) return conflict(c.row); if (c.error) { failStatus(c.error); return 'error'; } }
-      }
-      if (!r.ok) { failStatus(r); return 'error'; }
-      const row = Array.isArray(r.json) ? r.json[0] : r.json;
-      synced(row && row.rev != null ? row.rev : (base || 0) + 1, data); setStatus('ok');
+      const base = overRev != null ? overRev : meta.owner === meta.uid ? (meta.rev || 0) : 0;
+      const packed = await packData(data);
+      let res;
+      try {
+        res = await withTimeout(db.runTransaction(async tx => {
+          const d = await tx.get(ref()), cur = d.exists ? (d.data().rev || 0) : 0;
+          if (cur !== base) return { conflict: true };
+          tx.set(ref(), { username: meta.user || '', rev: base + 1, data: packed.data, z: packed.z, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+          return { rev: base + 1 };
+        }));
+      } catch (e) { failStatus(errOf(e)); return 'error'; }
+      if (res.conflict) { const c = await fetchCloud(); if (c.row) return conflict(c.row); failStatus(c.error); return 'error'; }
+      synced(res.rev, data); setStatus('ok');
       return 'uploaded';
     })();
     pushing = run;
-    let res; try { res = await run; } finally { pushing = null; }
-    if (again) { again = false; if (res === 'uploaded' || res === 'same') schedule(); }
-    return res;
+    let r; try { r = await run; } finally { pushing = null; }
+    if (again) { again = false; if (r === 'uploaded' || r === 'same') schedule(); }
+    return r;
   }
   let timer = 0;
-  function schedule() { clearTimeout(timer); timer = setTimeout(() => push(), PUSH_DELAY); }
+  function schedule() { clearTimeout(timer); timer = setTimeout(() => { timer = 0; push(); }, PUSH_DELAY); }
   function touch() { if (enabled() && loggedIn() && !meta.expired) schedule(); }
   function conflict(row) {
     const local = snapshot();
@@ -218,11 +274,13 @@ const Cloud = (() => {
   // Al arrancar o al iniciar sesión: decide si subir, bajar o preguntar.
   // Devuelve 'off' | 'offline' | 'expired' | 'error' | 'same' | 'uploaded' | 'downloaded' | 'conflict'
   async function sync() {
-    if (!enabled() || !loggedIn()) return 'off';
-    if (meta.expired) { setStatus('expired', 'Tu sesión ha caducado. Vuelve a iniciar sesión para seguir guardando en la nube.'); return 'expired'; }
+    if (!enabled()) return 'off';
+    if (!await ready()) { if (loggedIn()) setStatus('offline', 'Sin conexión: se guardará en la nube cuando vuelva internet.'); return loggedIn() ? 'offline' : 'off'; }
+    if (!loggedIn()) return 'off';
+    if (meta.expired) { setStatus('expired', EXPIRED_MSG); return 'expired'; }
     setStatus('saving');
     const c = await fetchCloud();
-    if (c.error) { failStatus(c.error); return c.error.expired ? 'expired' : c.error.offline || !c.error.status ? 'offline' : 'error'; }
+    if (c.error) { failStatus(c.error); return c.error.expired ? 'expired' : c.error.offline ? 'offline' : 'error'; }
     const local = snapshot(), mine = meta.owner === meta.uid;
     const localChanged = !mine || hash(local) !== meta.hash;
     if (!c.row) {   // cuenta sin partida en la nube: se sube la del móvil (si hay algo)
@@ -230,8 +288,8 @@ const Cloud = (() => {
       return push(true, 0);
     }
     const cloudChanged = !mine || c.row.rev !== meta.rev;
-    if (!cloudChanged) { if (localChanged) return push(true); setStatus('ok'); synced(c.row.rev, local); return 'same'; }
-    if (!localChanged || !hasProgress(local) || (mine && hash(local) === hash(c.row.data || {}))) { useCloud(c.row); return 'downloaded'; }
+    if (!cloudChanged) { if (localChanged) return push(true); synced(c.row.rev, local); setStatus('ok'); return 'same'; }
+    if (!localChanged || !hasProgress(local) || hash(local) === hash(c.row.data || {})) { useCloud(c.row); return 'downloaded'; }
     return conflict(c.row);
   }
   function useCloud(row) { restore(row.data || {}); synced(row.rev, row.data || {}); state.conflict = null; setStatus('ok'); }
@@ -240,19 +298,19 @@ const Cloud = (() => {
     const C = state.conflict; if (!C) return 'same';
     if (choice === 'cloud') { useCloud(C.cloud); return 'downloaded'; }
     state.conflict = null;
-    const r = await push(true, C.cloud.rev);
-    return r;
+    return push(true, C.cloud.rev);
   }
 
   // Al salir del juego o cambiar de app: subir ya lo pendiente
   if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && timer) { clearTimeout(timer); timer = 0; push(true); } });
-  if (typeof window !== 'undefined') window.addEventListener('online', () => { if (loggedIn() && state.status === 'offline') push(true); });
+  if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('online', () => { if (loggedIn() && state.status === 'offline') push(true); });
 
   // Partida de invitado: recuerda que ya eligió no crear cuenta (para no insistir)
   const guestChosen = () => !!meta.guest;
   function chooseGuest() { meta.guest = true; saveMeta(); }
 
-  return { SAVE_KEYS, enabled, loggedIn, user, expired: () => !!meta.expired, state, onChange: f => (listeners.add(f), () => listeners.delete(f)),
-    signUp, signIn, signOut, sync, push, resolve, snapshot, restore, describe, hasProgress, guestChosen, chooseGuest, checkUser, cleanUser,
+  return { SAVE_KEYS, enabled, ready, loggedIn, user, via: () => meta.via || '', expired: () => !!meta.expired, pendingRedirect: () => !!meta.redirect,
+    state, onChange: f => (listeners.add(f), () => listeners.delete(f)),
+    signUp, signIn, signInGoogle, signOut, sync, push, resolve, snapshot, restore, describe, hasProgress, guestChosen, chooseGuest, checkUser, cleanUser,
     _meta: () => meta };
 })();

@@ -1,13 +1,15 @@
 /* =====================================================================
-   CONFIGURACIÓN DE LAS CUENTAS (Supabase)
-   Pega aquí los dos datos de tu proyecto de Supabase:
-   Project Settings → API → «Project URL» y la clave pública
-   («anon public», o «publishable» en los proyectos nuevos).
-   La clave anon es pública a propósito: lo que protege los datos son las
-   reglas (RLS) de supabase.sql. NUNCA pongas aquí la clave «service_role» ni la «secret».
+   CONFIGURACIÓN DE LAS CUENTAS (Firebase)
+   Pega aquí los datos de tu app web de Firebase:
+   Consola de Firebase → ⚙️ Configuración del proyecto → General →
+   «Tus apps» → la app web → «firebaseConfig».
+   Estos datos son públicos a propósito (van en cualquier web que use
+   Firebase): lo que protege las partidas son las reglas de firestore.rules.
    Si los dejas vacíos, el juego funciona igual, pero sin cuentas.
    ===================================================================== */
 const CLOUD_CONFIG = {
-  url: '',   // ej.: 'https://abcdefghijkl.supabase.co'
-  key: '',   // ej.: 'sb_publishable_…' o 'eyJhbGciOi…'
+  apiKey: '',       // ej.: 'AIzaSy…'
+  authDomain: '',   // ej.: 'inazuma-rogue.firebaseapp.com'
+  projectId: '',    // ej.: 'inazuma-rogue'
+  appId: '',        // ej.: '1:1234567890:web:abc123…'
 };
