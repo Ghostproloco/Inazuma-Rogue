@@ -184,7 +184,7 @@ const Career = {
     return DIV_FACTOR[this.divOf(key)] * ((CAREER_DIFF[c.diff] || CAREER_DIFF.normal).mul) * (c.goal && champ >= 0 ? 1 + 0.03 * Math.min(10, c.history.length - champ - 1) : 1);   // en modo infinito los rivales mejoran
   },
   clubTeam(key, progress = 0.5) {
-    const c = this.data, f = this.aiFactor(key);
+    const c = this.data, f = this.aiFactor(key), T = TEAM(key), kit = T && (T.kit || T.kitAuto);
     const nTech = 1 + Math.floor(Math.min(1, progress) * 2.99);
     const order = { POR: 0, DEF: 1, MED: 2, DEL: 3 };
     const mem = c.clubs[key].slice().sort((a, b) => order[a.role] - order[b.role]);
@@ -195,7 +195,7 @@ const Career = {
       const sig = signatureTech(pd); if (sig != null && !techs.includes(sig)) techs[0] = sig;
       const gkt = keeperTech(pd, techs); if (gkt != null) techs.unshift(gkt);
       return Object.assign(buildMatchPlayer(m.id, m.role, k => Math.round(pd.ie[k] * f), techs, [], 5 + i, pos[i]),
-        { sprite: m.file ? { file: m.file, row: m.row } : Sprites.refOf(pd) });
+        { sprite: m.file ? { file: m.file, row: m.row } : Object.assign(Sprites.refOf(pd), m.role !== 'POR' && kit ? { kit } : {}) });   // los fichados por el club, con su equipación
     }) };
   },
   matchDiff() {

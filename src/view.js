@@ -20,7 +20,7 @@ const Input = (() => {
   const keys = new Set(), pressed = new Set();
   const joy = { x: 0, y: 0, id: null, ox: 0, oy: 0 };
   let shootTouch = null;
-  const R = 52;
+  const R = 36;   // recorrido del joystick (px)
   const shell = document.getElementById('shell'), touch = document.getElementById('touch');
   const stick = document.getElementById('stick'), knob = document.getElementById('knob');
   const KEYMAP = { KeyJ: 'A', KeyK: 'B', Space: 'tech', KeyQ: 'switch', KeyI: 'dribble', KeyU: 'techNext' };
@@ -119,7 +119,7 @@ const Pad = (() => {
       { label: 'Pase', sub: 'mantén', cls: 's2', action: 'A', holdPass: true },
       { label: 'Técnica', cls: 's3 fire', action: 'tech', tech: true },
       { label: '⇄', cls: 's6 tnext', action: 'techNext' },
-      { label: 'Profun-<br>didad', cls: 's4', action: 'B' },
+      { label: 'Profund.', cls: 's4', action: 'B' },
       { label: 'Regate', cls: 's5', action: 'dribble' },
     ],
     gk: [
@@ -149,7 +149,7 @@ const Pad = (() => {
     SETS[m].forEach(b => {
       const el = document.createElement('button');
       el.className = 'act ' + b.cls;
-      el.innerHTML = b.label + (b.sub ? `<small>${b.sub}</small>` : '') + (b.tech ? '<small class="tn"></small>' : '');
+      el.innerHTML = (b.tech ? `<span class="tt">${b.label}</span>` : b.label) + (b.sub ? `<small>${b.sub}</small>` : '') + (b.tech ? '<small class="tn"></small>' : '');
       el.addEventListener('pointerdown', e => {
         e.preventDefault(); el.classList.add('down');
         if (b.hold) { Input.holdShoot(true, e.pointerId); try { el.setPointerCapture(e.pointerId); } catch (_) {} }
