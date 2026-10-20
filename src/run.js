@@ -172,7 +172,7 @@ function buildMatchPlayer(id, role, stat, techs, passives, row, pos) {
   return m;
 }
 
-// Equipo rival: factor = fuerza (1 = sus estadísticas máximas del juego); progress decide cuántas técnicas trae
+// Equipo rival: factor = fuerza (1 = sus estadísticas máximas del juego; también puede ser una función por jugador); progress decide cuántas técnicas trae
 function rivalTeam(teamKey, factor, progress) {
   const t = TEAM(teamKey);
   const nTech = 1 + Math.floor(Math.min(1, progress) * 2.99);
@@ -184,7 +184,7 @@ function rivalTeam(teamKey, factor, progress) {
     let techs = pd.moves.slice().sort((a, b) => a[1] - b[1]).map(x => x[0]).filter(id => TECH(id)).slice(0, nTech);
     const sig = signatureTech(pd); if (sig != null && !techs.includes(sig)) techs[0] = sig;
     const gkt = keeperTech(pd, techs); if (gkt != null) techs.unshift(gkt);
-    return Object.assign(buildMatchPlayer(m.id, m.role, k => Math.round(pd.ie[k] * factor), techs, [], 5 + i, pos[i]),
+    return Object.assign(buildMatchPlayer(m.id, m.role, k => Math.round(pd.ie[k] * (typeof factor === 'function' ? factor(pd) : factor)), techs, [], 5 + i, pos[i]),
       { sprite: Object.assign({ file: m.file, row: m.row }, t.kit && m.role !== 'POR' ? { kit: t.kit } : {}) });
   }) };
 }

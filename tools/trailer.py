@@ -1,5 +1,7 @@
 # Graba el mini tráiler (tools/trailer.js) como vídeo vertical 1080×1920 con la música de la intro.
 # Uso: python3 tools/trailer.py en|es salida.mp4
+# Otro tráiler: TRAILER_JS=tools/trailer_pyn.js TRAILER_MUSIC=op2 TRAILER_SHOTS=carpeta_capturas python3 tools/trailer.py es salida.mp4
+#   (las capturas se sirven en la página como tshots/NOMBRE.png)
 # Cómo: la página va 5 veces más lenta y se hacen capturas nítidas continuamente; luego ffmpeg
 # las junta a velocidad normal. Necesita Playwright con Chromium y ffmpeg.
 import asyncio, os, shutil, subprocess, sys, tempfile, time
@@ -9,6 +11,9 @@ GAME = os.path.join(ROOT, 'juego')
 PHASER = os.environ.get('PHASER_JS', '')        # ruta local a phaser.min.js (si no hay red)
 CHROME = os.environ.get('CHROME', '/opt/pw-browsers/chromium-1194/chrome-linux/chrome')
 SLOW = 6
+TJS = os.path.join(ROOT, os.environ.get('TRAILER_JS', 'tools/trailer.js'))
+MUSIC = os.environ.get('TRAILER_MUSIC', 'op00')
+SHOTS = os.environ.get('TRAILER_SHOTS', '')
 lang, out = sys.argv[1], os.path.abspath(sys.argv[2])
 
 async def serve(route):
@@ -16,6 +21,7 @@ async def serve(route):
     if 'cdnjs' in u and PHASER: return await route.fulfill(path=PHASER, content_type='application/javascript')
     if 'fonts.' in u: return await route.abort()
     path = u.split('game.test/', 1)[1].split('#')[0].split('?')[0] or 'index.html'
+    if path.startswith('tshots/') and SHOTS: return await route.fulfill(path=os.path.join(SHOTS, path[7:]))
     try: return await route.fulfill(path=os.path.join(GAME, path))
     except Exception: return await route.fulfill(status=404, body='')
 
@@ -28,7 +34,10 @@ async def main():
         pg = await ctx.new_page(); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.add_init_script(f"localStorage.setItem('inazuma-ajustes', JSON.stringify({{intro:0}}));localStorage.setItem('inazuma-idioma','{lang}');localStorage.setItem('inazuma-cuenta', JSON.stringify({{guest:true}}));localStorage.setItem('inazuma-sonido', JSON.stringify({{music:false,sfx:false}}))")
         await pg.goto('https://game.test/', wait_until='load'); await pg.wait_for_timeout(2500)
-        await pg.evaluate("Promise.all(['bg_title','ill05','bg_team','ill23','logo_rogue'].map(n=>new Promise(r=>{const i=new Image();i.onload=i.onerror=r;i.src='ui/'+n+'.png'})))")
+        await pg.evaluate("Promise.all(['bg_title','ill05','bg_team','ill23','logo_rogue','crest3','raydark','../sprites/fhw'].map(n=>new Promise(r=>{const i=new Image();i.onload=i.onerror=r;i.src='ui/'+n+'.png'})))")
+        if SHOTS:   # precarga las capturas para que no aparezcan a medias
+            names = [f for f in os.listdir(SHOTS) if f.endswith('.png')]
+            await pg.evaluate("names => Promise.all(names.map(n => new Promise(r => { const i = new Image(); i.onload = i.onerror = r; i.src = 'tshots/' + n; (window.__tshots = window.__tshots || []).push(i); })))", names)
         cdp = await ctx.new_cdp_session(pg)
         await cdp.send('Animation.enable'); await cdp.send('Animation.setPlaybackRate', {'playbackRate': 1 / SLOW})
         await pg.evaluate(f"window.__trailerLang='{lang}';window.__trailerSlow={SLOW}")
@@ -43,7 +52,7 @@ async def main():
         cdp.on('Page.screencastFrame', lambda ev: asyncio.ensure_future(on_frame(ev)))
         await cdp.send('Page.startScreencast', {'format': 'jpeg', 'quality': 92, 'maxWidth': 1080, 'maxHeight': 1920, 'everyNthFrame': 1})
         await pg.wait_for_timeout(300)
-        await pg.add_script_tag(path=os.path.join(ROOT, 'tools', 'trailer.js'))
+        await pg.add_script_tag(path=TJS)
         t_start = time.time()
         await pg.wait_for_function('window.__trailerDone === true', timeout=600000, polling=500)
         await pg.wait_for_timeout(300)
@@ -62,7 +71,7 @@ async def main():
             L.write(f"file '{f}'\nduration {max(0.001, nxt - t):.4f}\n")
         L.write(f"file '{frames[-1][0]}'\n")
     dur = frames[-1][1] + 0.5
-    music = os.path.join(GAME, 'audio', 'op00.mp3')
+    music = os.path.join(GAME, 'audio', MUSIC + '.mp3')
     cmd = ['ffmpeg', '-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', lst, '-i', music, '-t', f'{dur:.2f}',
            '-map', '0:v', '-map', '1:a', '-vf', 'fps=30,scale=1080:1920:flags=lanczos,format=yuv420p', '-c:v', 'libx264', '-preset', 'slow', '-crf', '18',
            '-af', f'afade=t=in:d=0.3,afade=t=out:st={max(0, dur - 2):.2f}:d=2', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', out]

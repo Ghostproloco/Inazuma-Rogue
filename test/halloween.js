@@ -25,7 +25,7 @@ for (const L of HW_LEGENDS) {
   const p = PLAYER(L.id), b = PLAYER(L.base), avg = ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + p.ie[k], 0) / 5;
   ok(p && p.rarity === 'legendaria' && p.gacha === false && p.cs[0] === b.cs[0] && avg > 88 && avg < 96, p.full + ' · media ' + avg.toFixed(1));
 }
-ok(PLAYER(30037 + 0) && PLAYER(996001).moves.some(m => ctx.GAME.techniques[m[0]].name === 'Tiro fantasma'), 'Johan Tassman tiene Tiro fantasma');
+ok(HW_LEGENDS.every((L, i) => PLAYER(L.id).hwFace === i) && PLAYER(996001).moves.some(m => ctx.GAME.techniques[m[0]].name === 'Tiro fantasma'), 'Johan Tassman tiene Tiro fantasma');
 ok(PLAYER(RAY_DARK) && !ctx.GAME.players.some(p => p.id === RAY_DARK), 'Ray Dark existe solo como mánager (no sale en listas ni gachas)');
 ok(!Gacha.pull(50, {}).some(r => r.id >= 996000), 'el gacha normal no da jugadores de Halloween');
 
@@ -40,7 +40,11 @@ ok(H.candy === 60, 'saldo correcto (' + H.candy + ')');
 console.log('4. Partido jefe');
 const B = Halloween.bossTeam();
 const avgB = B.players.reduce((t, p) => t + (p.kick + p.control + p.defense + p.body) / 4, 0) / B.players.length;
-ok(B.players.length === 5 && avgB > 80, 'Ocultismo jefe: 5 jugadores, media ' + avgB.toFixed(1));
+const ieAvg = mp => { const pd = PLAYER(mp.id); return ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + Math.round(pd.ie[k] * 1), 0) / 5; };
+const statAvg = mp => (mp.kick + mp.control + mp.defense + mp.body) / 4;
+ok(B.players.length === 5 && avgB > 75 && avgB < 95, 'Ocultismo jefe: 5 jugadores, media en el campo ' + avgB.toFixed(1));
+const tas = B.players.find(p => p.key === 44), rest = B.players.filter(p => p.key !== 44);
+ok(tas && statAvg(tas) > Math.max(...rest.map(statAvg)), 'Tassman es el más fuerte (' + statAvg(tas).toFixed(1) + ' frente a ' + rest.map(p => statAvg(p).toFixed(0)).join('/') + ')');
 ok(Halloween.bossResult(false) === 0, 'perder no da premio');
 ok(Halloween.bossResult(true) === 60 && Halloween.bossResult(true) === 0, 'ganar: +60 una vez al día');
 setDay('2026-10-26'); ok(Halloween.bossResult(true) === 60, 'al día siguiente, otra vez +60');
@@ -52,7 +56,7 @@ console.log('5. Sobre Calabaza');
 const pool = Halloween.pool();
 ok(pool.legendaria.length === 5 && pool.epica.length > 20 && pool.rara.length > 50 && pool.comun.length > 100, `bote: ${pool.legendaria.length} leg · ${pool.epica.length} ép · ${pool.rara.length} raras · ${pool.comun.length} comunes`);
 H.candy = 10; ok(Halloween.pull(1) === null && H.candy === 10, 'sin caramelos suficientes no tira ni cobra');
-H.candy = 30 * 3000; H.pity = 0;
+H.candy = 15 * 3000; H.pity = 0;
 const cnt = { comun: 0, rara: 0, epica: 0, legendaria: 0 }; let maxGap = 0, gap = 0, bad = 0;
 for (let i = 0; i < 300; i++) for (const r of Halloween.pull(10)) {
   cnt[r.tier]++; const p = PLAYER(r.id);
@@ -60,7 +64,7 @@ for (let i = 0; i < 300; i++) for (const r of Halloween.pull(10)) {
   if (r.tier === 'legendaria') { maxGap = Math.max(maxGap, gap); gap = 0; } else gap++;
 }
 ok(bad === 0, 'cada resultado es un jugador válido de su rareza');
-ok(H.candy === 0, 'cada tirada cuesta 30 caramelos');
+ok(H.candy === 0, 'cada tirada cuesta 15 caramelos (×10 = 150)');
 const pc = t => (cnt[t] / 30).toFixed(1);
 ok(Math.abs(cnt.comun / 30 - 50) < 4 && Math.abs(cnt.rara / 30 - 32) < 4 && Math.abs(cnt.epica / 30 - 15) < 3 && cnt.legendaria / 30 > 2.5 && cnt.legendaria / 30 < 5.5,
   `probabilidades: ${pc('comun')} % común · ${pc('rara')} % rara · ${pc('epica')} % épica · ${pc('legendaria')} % legendaria`);

@@ -10,7 +10,8 @@ const Sprites = (() => {
     i.src = 'sprites/' + file + (file.includes('?') ? '' : '?v=4');   // ?v=3: hojas actualizadas (Inazuma 2)
   }));
   const collFile = pd => 'c' + String(pd.cs[0]).padStart(2, '0') + '.png';
-  const refOf = pd => ({ file: collFile(pd), row: pd.cs[1] });
+  // hwFace: retrato de miedo de los legendarios de Halloween (sprites/fhw.png, hecho con tools/hw_faces.py)
+  const refOf = pd => Object.assign({ file: collFile(pd), row: pd.cs[1] }, pd.hwFace != null ? { ff: 'fhw.png', fr: pd.hwFace } : {});
   // Dibuja el primer fotograma (de frente) de un jugador en un <canvas>
   function portrait(ref, scale = 2) {
     const c = document.createElement('canvas');
@@ -63,8 +64,9 @@ const Sprites = (() => {
     const c = document.createElement('canvas');
     c.width = 64; c.height = 64; c.className = 'pix';
     c.style.width = c.style.height = size + 'px';
-    const file = ref.file.replace(/^c/, 'f').replace(/^r/, 'q') + '?v=4';   // ?v=3: caras actualizadas, evita la copia vieja guardada
-    img(file).then(i => c.getContext('2d').drawImage(i, 0, ref.row * 64, 64, 64, 0, 0, 64, 64)).catch(() => {});
+    const file = ref.ff ? ref.ff + '?v=1' : ref.file.replace(/^c/, 'f').replace(/^r/, 'q') + '?v=4';   // ?v=3: caras actualizadas, evita la copia vieja guardada
+    const row = ref.ff ? ref.fr : ref.row;
+    img(file).then(i => c.getContext('2d').drawImage(i, 0, row * 64, 64, 64, 0, 0, 64, 64)).catch(() => {});
     return c;
   }
   const crest = id => `<img class="crest" src="ui/crest${id || 1}.png" alt="" width="40" height="40">`;

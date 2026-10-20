@@ -14,8 +14,9 @@
    ===================================================================== */
 const HW_START = '2026-10-23', HW_END = '2026-11-03';   // ambos incluidos (hora del dispositivo)
 const HW_BANNER = 66;
-const HW_PRICE = 30, HW_PITY = 40;
+const HW_PRICE = 15, HW_PITY = 40;
 const HW_RATES = [['legendaria', 3], ['epica', 15], ['rara', 32], ['comun', 50]];
+const HW_BOSS_AVG = 85, HW_BOSS_STAR = 93;   // media del Ocultismo jefe y de su estrella (Tassman)
 const HW_DAILY = 20, HW_BOSS = 60, HW_MATCH = 5, HW_WIN = 10;
 
 // Legendarios exclusivos: versión Halloween de jugadores reales (mismo aspecto, stats de legendario)
@@ -30,14 +31,14 @@ const HW_LEGENDS = [
   if (typeof GAME === 'undefined') return;
   const reg = (p, list) => { if (PBY[p.id]) return; if (list) GAME.players.push(p); PBY[p.id] = p; };
   const KEYS = ['tiro', 'control', 'defensa', 'rapidez', 'fisico'];
-  for (const L of HW_LEGENDS) {
-    const b = PLAYER(L.base); if (!b) continue;
+  HW_LEGENDS.forEach((L, i) => {
+    const b = PLAYER(L.base); if (!b) return;
     const mean = KEYS.reduce((t, k) => t + b.ie[k], 0) / KEYS.length, f = 93 / mean, ie = {};
     for (const k in b.ie) ie[k] = Math.min(99, Math.round(b.ie[k] * f));
     const moves = (b.moves || []).map(m => m.slice());
     if (L.extra) { const t = Object.values(GAME.techniques).find(x => x.name === L.extra && x.id < 30000); if (t && !moves.some(m => m[0] === t.id)) moves.unshift([t.id, 1]); }
-    reg(Object.assign({}, b, { id: L.id, full: b.full + ' (Halloween)', rarity: 'legendaria', ie, ie0: undefined, moves, gacha: false, banner: null, halloween: true }), true);
-  }
+    reg(Object.assign({}, b, { id: L.id, full: b.full + ' (Halloween)', rarity: 'legendaria', ie, ie0: undefined, moves, gacha: false, banner: null, halloween: true, hwFace: i }), true);
+  });
   // Ray Dark: solo como mánager (retrato propio: juego/ui/raydark.png); no entra en las listas de jugadores
   reg({ id: RAY_DARK, name: 'Ray Dark', full: 'Ray Dark', role: 'MED', elem: 'neutro', rarity: 'legendaria', faceImg: 'ui/raydark.png', ie: { tiro: 50, control: 50, defensa: 50, rapidez: 50, fisico: 50, aguante: 50 }, moves: [], gacha: false, halloween: true });
 })();
@@ -72,8 +73,11 @@ const Halloween = {
     if (won) { H.bossWins++; if (H.boss !== this.today()) { H.boss = this.today(); n = HW_BOSS; H.candy += n; } }
     Profile.save(); return n;
   },
-  // Rival jefe: el Instituto Ocultismo muy reforzado, en campo nocturno con niebla
-  bossTeam() { return rivalTeam('Occult', 1.3, 1); },
+  // Rival jefe: el Instituto Ocultismo con media 85 (Johan Tassman, 93 como su legendario), en campo nocturno con niebla
+  bossTeam() {
+    const mean = pd => ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + pd.ie[k], 0) / 5;
+    return rivalTeam('Occult', pd => (pd.id === 44 ? HW_BOSS_STAR : HW_BOSS_AVG) / mean(pd), 1);
+  },
 
   /* ---------- Sobre Calabaza ---------- */
   pool() {

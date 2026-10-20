@@ -384,11 +384,11 @@ const App = (() => {
     const H = Halloween.data(), gift = H.daily !== Halloween.today(), n = Halloween.pending();
     return `<button class="mode hwmode" id="mHw"><span class="cicon">🎃</span><span class="mt"><b>${TX('Halloween')}${gift || n ? ' <i class="hwdot"></i>' : ''}</b><small>${TX('Sobre Calabaza, partido jefe y retos')} · 🍬 ${H.candy}${gift ? ' · ' + TX('🎁 regalo') : ''}</small></span></button>`;
   }
-  // Calabazas, murciélagos y niebla suave detrás de la pantalla
+  // Calabazas y niebla suave
   function hwDecor() {
     const sc = $('screen'); sc.classList.add('hwtheme');
     sc.insertAdjacentHTML('afterbegin', `<div class="hwfx" aria-hidden="true"><i class="fog f1"></i><i class="fog f2"></i><i class="fog f3"></i>
-      <span class="pk p1">🎃</span><span class="pk p2">🎃</span><span class="pk p3">🎃</span><span class="bat b1">🦇</span><span class="bat b2">🦇</span></div>`);
+      <span class="pk p1">🎃</span><span class="pk p2">🎃</span></div>`);
   }
   function renderHalloween() {
     if (!Halloween.active()) return renderMenu();

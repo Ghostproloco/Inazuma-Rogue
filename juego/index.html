@@ -311,16 +311,13 @@ select option{color:#111;font-family:system-ui}
 .hwfx .f1{top:12%}.hwfx .f2{top:48%;animation-duration:24s;animation-delay:-6s}.hwfx .f3{bottom:-4%;animation-duration:20s;animation-delay:-12s}
 @keyframes hwfog{from{transform:translateX(-8%)}to{transform:translateX(8%)}}
 .hwfx .pk{position:absolute;top:2px;font-size:26px;filter:drop-shadow(0 0 8px rgba(255,138,26,.7));animation:hwglow 2.6s ease-in-out infinite alternate}
-.hwfx .p1{left:2px}.hwfx .p2{right:2px;font-size:22px;animation-delay:-1s}.hwfx .p3{display:none}
+.hwfx .p1{left:2px}.hwfx .p2{right:2px;font-size:22px;animation-delay:-1s}
 @keyframes hwglow{from{filter:drop-shadow(0 0 4px rgba(255,138,26,.4))}to{filter:drop-shadow(0 0 12px rgba(255,138,26,.9))}}
-.hwfx .bat{position:absolute;top:150px;font-size:20px;opacity:.75;animation:hwbat 14s linear infinite}
-.hwfx .b2{top:420px;font-size:16px;animation-duration:19s;animation-delay:-8s}
-@keyframes hwbat{0%{transform:translate(-40px,0)}25%{transform:translate(25vw,-14px)}50%{transform:translate(50vw,8px)}75%{transform:translate(75vw,-10px)}100%{transform:translate(105vw,0)}}
 @media (prefers-reduced-motion:reduce){.hwfx *{animation:none!important}}
 .hwbar span:last-child{color:#ffa23a}
 .hwlegs{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
 .hwleg{display:flex;flex-direction:column;align-items:center;width:72px;padding:4px;background:rgba(10,4,20,.55);border:2px solid #ffcc22;text-align:center}
-.hwleg small{font-size:10px;line-height:1.1}.hwleg canvas{filter:grayscale(.6) brightness(.7)}.hwleg.own canvas{filter:none}.hwleg.own{box-shadow:0 0 8px #ffcc22}
+.hwleg small{font-size:10px;line-height:1.1}.hwleg canvas{filter:grayscale(.3) brightness(.8)}.hwleg.own canvas{filter:none}.hwleg.own{box-shadow:0 0 8px #ffcc22}
 .hwretos{display:flex;flex-direction:column;gap:6px}
 .hwreto{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:6px 8px;background:rgba(10,4,20,.5);border:2px solid #5a2a7a}
 .hwreto div{display:flex;flex-direction:column;gap:2px}.hwreto small{font-size:12px}.hwreto b{color:#ffa23a;font-weight:400}
@@ -1901,7 +1898,8 @@ const Sprites = (() => {
     i.src = 'sprites/' + file + (file.includes('?') ? '' : '?v=4');   // ?v=3: hojas actualizadas (Inazuma 2)
   }));
   const collFile = pd => 'c' + String(pd.cs[0]).padStart(2, '0') + '.png';
-  const refOf = pd => ({ file: collFile(pd), row: pd.cs[1] });
+  // hwFace: retrato de miedo de los legendarios de Halloween (sprites/fhw.png, hecho con tools/hw_faces.py)
+  const refOf = pd => Object.assign({ file: collFile(pd), row: pd.cs[1] }, pd.hwFace != null ? { ff: 'fhw.png', fr: pd.hwFace } : {});
   // Dibuja el primer fotograma (de frente) de un jugador en un <canvas>
   function portrait(ref, scale = 2) {
     const c = document.createElement('canvas');
@@ -1954,8 +1952,9 @@ const Sprites = (() => {
     const c = document.createElement('canvas');
     c.width = 64; c.height = 64; c.className = 'pix';
     c.style.width = c.style.height = size + 'px';
-    const file = ref.file.replace(/^c/, 'f').replace(/^r/, 'q') + '?v=4';   // ?v=3: caras actualizadas, evita la copia vieja guardada
-    img(file).then(i => c.getContext('2d').drawImage(i, 0, ref.row * 64, 64, 64, 0, 0, 64, 64)).catch(() => {});
+    const file = ref.ff ? ref.ff + '?v=1' : ref.file.replace(/^c/, 'f').replace(/^r/, 'q') + '?v=4';   // ?v=3: caras actualizadas, evita la copia vieja guardada
+    const row = ref.ff ? ref.fr : ref.row;
+    img(file).then(i => c.getContext('2d').drawImage(i, 0, row * 64, 64, 64, 0, 0, 64, 64)).catch(() => {});
     return c;
   }
   const crest = id => `<img class="crest" src="ui/crest${id || 1}.png" alt="" width="40" height="40">`;
@@ -3303,7 +3302,7 @@ function buildMatchPlayer(id, role, stat, techs, passives, row, pos) {
   return m;
 }
 
-// Equipo rival: factor = fuerza (1 = sus estadísticas máximas del juego); progress decide cuántas técnicas trae
+// Equipo rival: factor = fuerza (1 = sus estadísticas máximas del juego; también puede ser una función por jugador); progress decide cuántas técnicas trae
 function rivalTeam(teamKey, factor, progress) {
   const t = TEAM(teamKey);
   const nTech = 1 + Math.floor(Math.min(1, progress) * 2.99);
@@ -3315,7 +3314,7 @@ function rivalTeam(teamKey, factor, progress) {
     let techs = pd.moves.slice().sort((a, b) => a[1] - b[1]).map(x => x[0]).filter(id => TECH(id)).slice(0, nTech);
     const sig = signatureTech(pd); if (sig != null && !techs.includes(sig)) techs[0] = sig;
     const gkt = keeperTech(pd, techs); if (gkt != null) techs.unshift(gkt);
-    return Object.assign(buildMatchPlayer(m.id, m.role, k => Math.round(pd.ie[k] * factor), techs, [], 5 + i, pos[i]),
+    return Object.assign(buildMatchPlayer(m.id, m.role, k => Math.round(pd.ie[k] * (typeof factor === 'function' ? factor(pd) : factor)), techs, [], 5 + i, pos[i]),
       { sprite: Object.assign({ file: m.file, row: m.row }, t.kit && m.role !== 'POR' ? { kit: t.kit } : {}) });
   }) };
 }
@@ -4495,8 +4494,9 @@ const Career = {
    ===================================================================== */
 const HW_START = '2026-10-23', HW_END = '2026-11-03';   // ambos incluidos (hora del dispositivo)
 const HW_BANNER = 66;
-const HW_PRICE = 30, HW_PITY = 40;
+const HW_PRICE = 15, HW_PITY = 40;
 const HW_RATES = [['legendaria', 3], ['epica', 15], ['rara', 32], ['comun', 50]];
+const HW_BOSS_AVG = 85, HW_BOSS_STAR = 93;   // media del Ocultismo jefe y de su estrella (Tassman)
 const HW_DAILY = 20, HW_BOSS = 60, HW_MATCH = 5, HW_WIN = 10;
 
 // Legendarios exclusivos: versión Halloween de jugadores reales (mismo aspecto, stats de legendario)
@@ -4511,14 +4511,14 @@ const HW_LEGENDS = [
   if (typeof GAME === 'undefined') return;
   const reg = (p, list) => { if (PBY[p.id]) return; if (list) GAME.players.push(p); PBY[p.id] = p; };
   const KEYS = ['tiro', 'control', 'defensa', 'rapidez', 'fisico'];
-  for (const L of HW_LEGENDS) {
-    const b = PLAYER(L.base); if (!b) continue;
+  HW_LEGENDS.forEach((L, i) => {
+    const b = PLAYER(L.base); if (!b) return;
     const mean = KEYS.reduce((t, k) => t + b.ie[k], 0) / KEYS.length, f = 93 / mean, ie = {};
     for (const k in b.ie) ie[k] = Math.min(99, Math.round(b.ie[k] * f));
     const moves = (b.moves || []).map(m => m.slice());
     if (L.extra) { const t = Object.values(GAME.techniques).find(x => x.name === L.extra && x.id < 30000); if (t && !moves.some(m => m[0] === t.id)) moves.unshift([t.id, 1]); }
-    reg(Object.assign({}, b, { id: L.id, full: b.full + ' (Halloween)', rarity: 'legendaria', ie, ie0: undefined, moves, gacha: false, banner: null, halloween: true }), true);
-  }
+    reg(Object.assign({}, b, { id: L.id, full: b.full + ' (Halloween)', rarity: 'legendaria', ie, ie0: undefined, moves, gacha: false, banner: null, halloween: true, hwFace: i }), true);
+  });
   // Ray Dark: solo como mánager (retrato propio: juego/ui/raydark.png); no entra en las listas de jugadores
   reg({ id: RAY_DARK, name: 'Ray Dark', full: 'Ray Dark', role: 'MED', elem: 'neutro', rarity: 'legendaria', faceImg: 'ui/raydark.png', ie: { tiro: 50, control: 50, defensa: 50, rapidez: 50, fisico: 50, aguante: 50 }, moves: [], gacha: false, halloween: true });
 })();
@@ -4553,8 +4553,11 @@ const Halloween = {
     if (won) { H.bossWins++; if (H.boss !== this.today()) { H.boss = this.today(); n = HW_BOSS; H.candy += n; } }
     Profile.save(); return n;
   },
-  // Rival jefe: el Instituto Ocultismo muy reforzado, en campo nocturno con niebla
-  bossTeam() { return rivalTeam('Occult', 1.3, 1); },
+  // Rival jefe: el Instituto Ocultismo con media 85 (Johan Tassman, 93 como su legendario), en campo nocturno con niebla
+  bossTeam() {
+    const mean = pd => ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + pd.ie[k], 0) / 5;
+    return rivalTeam('Occult', pd => (pd.id === 44 ? HW_BOSS_STAR : HW_BOSS_AVG) / mean(pd), 1);
+  },
 
   /* ---------- Sobre Calabaza ---------- */
   pool() {
@@ -6830,11 +6833,11 @@ const App = (() => {
     const H = Halloween.data(), gift = H.daily !== Halloween.today(), n = Halloween.pending();
     return `<button class="mode hwmode" id="mHw"><span class="cicon">🎃</span><span class="mt"><b>${TX('Halloween')}${gift || n ? ' <i class="hwdot"></i>' : ''}</b><small>${TX('Sobre Calabaza, partido jefe y retos')} · 🍬 ${H.candy}${gift ? ' · ' + TX('🎁 regalo') : ''}</small></span></button>`;
   }
-  // Calabazas, murciélagos y niebla suave detrás de la pantalla
+  // Calabazas y niebla suave
   function hwDecor() {
     const sc = $('screen'); sc.classList.add('hwtheme');
     sc.insertAdjacentHTML('afterbegin', `<div class="hwfx" aria-hidden="true"><i class="fog f1"></i><i class="fog f2"></i><i class="fog f3"></i>
-      <span class="pk p1">🎃</span><span class="pk p2">🎃</span><span class="pk p3">🎃</span><span class="bat b1">🦇</span><span class="bat b2">🦇</span></div>`);
+      <span class="pk p1">🎃</span><span class="pk p2">🎃</span></div>`);
   }
   function renderHalloween() {
     if (!Halloween.active()) return renderMenu();

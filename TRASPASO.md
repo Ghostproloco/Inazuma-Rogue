@@ -25,7 +25,7 @@ modo Carrera (mánager) y Mundial. Pensado sobre todo para **móvil en vertical*
 ## 3. Rama `halloween` (v0.31.1) — PENDIENTE DE APROBAR
 - Commits sobre `main` (3512e6e): arreglos de la nube traídos de la 0.34 y el evento de Halloween.
 - Si solo tienes el zip: copia `src/`, `test/`, `tools/`, `build.py`, `README.md` y `TRASPASO.md` encima del repo (rama `main`), ejecuta `python3 build.py` y listo
-  (`juego/gamedata.json` no cambia; imagen nueva: `juego/ui/raydark.png`, incluida en el zip).
+  (`juego/gamedata.json` no cambia; imágenes nuevas: `juego/ui/raydark.png` y `juego/sprites/fhw.png`, incluidas en el zip).
 - Cuando Fran apruebe: `git checkout main && git merge halloween && git push` (GitHub Pages se actualiza solo). **Fecha: 23 oct 2026.**
 - Artefacto de prueba (privado, cuenta de Fran actual): «Inazuma Rogue Beta». Ahí las **cuentas en la nube están desactivadas**
   (los artefactos no pueden cargar Firebase). Para publicarlo se quita el `<!doctype html>` y se vacía `apiKey`.
@@ -38,7 +38,7 @@ modo Carrera (mánager) y Mundial. Pensado sobre todo para **móvil en vertical*
 | Fechas | Activo solo del **23 oct al 3 nov (incluidos)**, por la fecha del dispositivo (`HW_START`, `HW_END`). Fuera de fechas no se ve nada |
 | Base | Solo sobre la 0.31 (no la 0.34) |
 | Legendarios exclusivos | Los 5: **Johan Tassman, Nathan Jones** (Ocultismo) y **Destra, Hebimos, Bash Lancer** (demonios) |
-| Sobre Calabaza | **30 🍬** por tirada · legendario 3 % · épica 15 % · rara 32 % · común 50 % · legendario asegurado a las **40** |
+| Sobre Calabaza | **15 🍬** por tirada (**150** la ×10) · legendario 3 % · épica 15 % · rara 32 % · común 50 % · legendario asegurado a las **40** |
 | Caramelos 🍬 | +5 por partido en cualquier modo (+10 más si ganas; rendirse no da) · +20 regalo diario · +60 al ganar al jefe (1 vez al día) · retos |
 | Logros | **3 retos dentro de la pantalla del evento** (la 0.31 no tiene sistema de logros) |
 | Equipación | No. En su lugar: al completar los 3 retos, **Ray Dark** se puede elegir como mánager en el Modo Carrera, con **+10 % de ingresos** |
@@ -48,9 +48,12 @@ Cómo está hecho:
 - **Legendarios** (ids 996001–996005): copias de los originales (30037, 36, 32025, 32018, 32001) con el mismo aspecto, rareza legendaria y
   estadísticas escaladas a ~93 de media; Johan Tassman con Tiro fantasma. `gacha: false` y `halloween: true` → no salen en el gacha normal.
   Se registran **siempre** (también fuera de fechas), así que quien los consiga los conserva. En las cartas salen con 🎃; en la ficha, «(Halloween)».
+  **Retratos de miedo** (pedido de Fran): color apagado y caracterización — Tassman fantasma, Nathan Jones con la máscara ensangrentada,
+  Destra con maquillaje de zombi, Hebimos con cicatrices, Bash Lancer vampiro. Están en `juego/sprites/fhw.png` (una fila de 64 px por jugador),
+  generados con `python3 tools/hw_faces.py`; el jugador lleva `hwFace` y `Sprites.refOf/face` usan esa hoja solo para el retrato (en el partido, sprite normal).
 - **Bote del Sobre Calabaza** (`Halloween.pool()`): los 5 legendarios + jugadores con sprite del gacha «Villanos» (banner 3) y del Ocultismo
   (66 épicas, 131 raras, 534 comunes). Usa la máquina de gachapón normal en naranja y morado con el escudo del Ocultismo (`HW_BANNER = 66`).
-- **Partido jefe**: Ocultismo con `rivalTeam('Occult', 1.3, 1)` (media ~90) en el campo nuevo `niebla` (`view.js`: noche con velo morado,
+- **Partido jefe**: Ocultismo con **media 85** y Johan Tassman con **93** (como su legendario): `rivalTeam` acepta ahora un factor por jugador (`HW_BOSS_AVG`, `HW_BOSS_STAR`), en el campo nuevo `niebla` (`view.js`: noche con velo morado,
   chispas naranjas y niebla que se mece). Modo `api.mode = 'hwboss'`; pantalla final `renderBossEnd`.
 - **Retos** (`Halloween.RETOS`): Exorcista (ganar al jefe) · Truco o trato (20 tiradas) · Coleccionista de sustos (un legendario de Halloween).
   Premios en caramelos y tickets. Al recoger los 3 → `Profile.data.hw.ray = true`.
@@ -58,7 +61,7 @@ Cómo está hecho:
   retrato (64×64, del juego, lo pasó Fran) es `juego/ui/raydark.png` (`faceImg`, `mgrFace` en `app.js`). **Va en el zip.** `Career.incomeMul()` = 1.1 con él: patrocinio,
   taquilla, premios de liga/Copa y del Mundial. Se queda para siempre una vez desbloqueado.
 - **Estado** en el perfil: `Profile.data.hw = { candy, pulls, pity, daily, boss, bossWins, matches, retos, legends, ray }` (va a la nube con el perfil).
-- **Menú**: botón 🎃 Halloween con punto naranja si hay regalo o reto por recoger; ambiente con borde naranja, panel morado, calabazas, murciélagos y niebla suave (CSS `.hwtheme`, `.hwfx`).
+- **Menú**: botón 🎃 Halloween con punto naranja si hay regalo o reto por recoger; ambiente con borde naranja, panel morado, calabazas y niebla suave (sin murciélagos, pedido de Fran) (CSS `.hwtheme`, `.hwfx`).
 - **Modo desarrollador** (20 toques en la versión) → sección Halloween: forzar el evento fuera de fechas (`settings.hwForce`), +300 caramelos, completar retos, reiniciar el evento.
 - Pruebas: `test/halloween.js` (fechas, caramelos, bote y probabilidades en 3000 tiradas, garantía de 40, jefe, retos, +10 % de Ray Dark).
   Recorrido en el navegador (ES y EN) sin errores: menú, evento, tirada ×10, partido jefe, retos, Ray Dark en la Carrera.
@@ -72,6 +75,8 @@ Cómo está hecho:
   `node tools/i18n_sync.js missing` lista los que faltan; `node tools/i18n_sync.js add archivo.txt` los añade (`"clave"|traducción`).
   Si creas un archivo nuevo en `src/`, añádelo a las listas de `tools/i18n_sync.js` y `test/i18n.js`.
 - Tráiler vertical: `python3 tools/trailer.py es salida.mp4` (Playwright + ffmpeg; textos en `tools/trailer.js`).
+  Tráiler de Halloween (solo español, música «La sombra negra», el tema de Ray Dark):
+  `TRAILER_JS=tools/trailer_hw.js TRAILER_MUSIC=e204 TRAILER_SHOTS=<capturas 1170×2532: 01_menu, 02_evento, 04_cartas, 05_jefe, 07_retos, 08_ray> python3 tools/trailer.py es salida.mp4`.
 
 ## 5. Cuentas y nube (Firebase) — ya configurado
 - Proyecto Firebase `inazuma-rogue`. Datos públicos en `src/cloud-config.js` (son públicos por diseño; **nunca** compartir claves secretas/service account).
