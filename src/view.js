@@ -299,6 +299,7 @@ const FIELDS = {
   nieve:     { runoff: 0xb8c8d4, a: 0xd8e6ef, b: 0xe6f0f6, line: 0x5a7fa0, bg: '#9fb3c2', amb: { tex: 'spark', tint: [0xffffff], up: false, n: 1.4 } },
   acero:     { runoff: 0x2a2e34, a: 0x3d5a40, b: 0x456446, line: 0xe0e6ec, bg: '#181b1f', dark: 0.12, stands: 0xb0b8c4 },
   cielo:     { runoff: 0xd8c890, a: 0x7fbf6a, b: 0x8ccc76, line: 0xfff6c8, bg: '#c9b878', amb: { tex: 'spark', tint: [0xfff2a0, 0xffffff], up: true, n: 0.8 } },
+  niebla:    { runoff: 0x161026, a: 0x22402f, b: 0x284a35, line: 0xe2d4ff, bg: '#0b0714', dark: 0.3, tint: 0x14062a, stands: 0x9a7ab8, fog: true, amb: { tex: 'spark', tint: [0xff8a1a, 0xffc04a, 0xb07aff], up: true, n: 0.45 } },
   volcan:    { runoff: 0x2a120c, a: 0x4a2a1c, b: 0x55311f, line: 0xffb070, bg: '#160806', dark: 0.18, stands: 0xc8907a, amb: { tex: 'spark', tint: [0xff7a1a, 0xffc23a, 0xe8361a], up: true, n: 1.6 } },
 };
 // Gradas: cuatro texturas (una por lado) con la valla de publicidad y el público en pixel art
@@ -477,6 +478,7 @@ class MatchScene extends Phaser.Scene {
     (this.pitch || []).forEach(o => o.destroy());
     if (this.amb) { this.amb.destroy(); this.amb = null; }
     if (this.shade) { this.shade.destroy(); this.shade = null; }
+    if (this.fog) { this.fog.forEach(o => { this.tweens.killTweensOf(o); o.destroy(); }); this.fog = null; }
     this.pitch = drawPitch(this, Logic.FIELD, theme);
     const T = FIELDS[theme] || FIELDS.normal, cam = this.cameras.main;
     if (T.amb) {
@@ -488,6 +490,21 @@ class MatchScene extends Phaser.Scene {
     }
     if (T.dark || T.tint) {   // velo de color para noche, atardecer, volcán…
       this.shade = this.add.rectangle(0, 0, 4000, 4000, T.tint || 0x000820, T.dark || 0.12).setOrigin(0).setScrollFactor(0).setDepth(3900);
+    }
+    if (T.fog) {   // niebla suave: nubes grandes y difusas que se mecen despacio por encima del campo
+      if (!this.textures.exists('fogpuff')) {
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+        for (let i = 14; i > 0; i--) { g.fillStyle(0xd8d0f0, 0.045); g.fillCircle(64, 64, i * 4.5); }
+        g.generateTexture('fogpuff', 128, 128); g.destroy();
+      }
+      const w = cam.width || 400, h = cam.height || 800;
+      this.fog = [];
+      for (let i = 0; i < 8; i++) {
+        const o = this.add.image(Math.random() * w, (i + 0.5) * h / 8, 'fogpuff').setScrollFactor(0).setDepth(3950)
+          .setScale(3 + Math.random() * 2.5, 1.4 + Math.random()).setAlpha(0.5 + Math.random() * 0.3);
+        this.tweens.add({ targets: o, x: o.x + (i % 2 ? -1 : 1) * (120 + Math.random() * 120), alpha: o.alpha * 0.55, duration: 7000 + Math.random() * 7000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+        this.fog.push(o);
+      }
     }
   }
   bind(s, sheet) {

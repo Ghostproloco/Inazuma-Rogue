@@ -26,6 +26,7 @@ const CUP_ROUND = [TX('Dieciseisavos'), TX('Octavos'), TX('Cuartos'), TX('Semifi
 const CAREER_DIFF = { facil: { name: TX('Fácil'), mul: 0.93, shift: -1 }, normal: { name: TX('Normal'), mul: 1, shift: 0 }, dificil: { name: TX('Difícil'), mul: 1.07, shift: 1 } };
 const HOF_KEY = 'inazuma-salon';
 const MANAGERS = [13, 14, 15, 212, 21440];      // Nelly, Celia, Silvia, Seymour Hillman (1 y 2)
+const RAY_DARK = 996100;   // mánager de Halloween (se desbloquea con los retos del evento): +10 % de ingresos
 const SQUAD_MAX = 12, SQUAD_MIN = 7;
 const LAST_YEAR = 6;   // los jugadores se gradúan (se van) al acabar 6º curso
 const YEAR_GROWTH = 1; // puntos que sube cada stat al pasar de curso
@@ -103,6 +104,7 @@ const Career = {
   },
 
   /* ---------- Crear ---------- */
+  incomeMul() { return this.data && this.data.manager === RAY_DARK ? 1.1 : 1; },   // pasiva de Ray Dark
   create(manager, school, diff = 'normal') {
     const c = this.data = { v: 2, diff, manager, school: school || TX('Instituto Inazuma'), season: 1, week: 1, fame: 25, money: 300, forma: 100,
       squad: [], formation: '1-2-1-1', lineup: null, tactic: 'equilibrada', divs: JSON.parse(JSON.stringify(CAREER_START)),
@@ -407,6 +409,7 @@ const Career = {
       out.fame = won ? (nm.ko ? 7 : 5) : draw ? 1 : (nm.type === 'copa' ? -1 : nm.ko ? -2 : -4);
       if (out.cupWinner === YOU) { out.fame += 12; out.money += DIV_PRIZE[1]; out.tickets = 10; Profile.data.tickets += 10; Profile.save(); }
       out.money += Math.round(won ? tk : draw ? tk * 0.5 : tk * 0.25);
+      out.money = Math.round(out.money * this.incomeMul());
       c.fame = Math.max(0, Math.min(100, c.fame + out.fame)); c.money += out.money;
       c.forma = Math.max(10, c.forma - Math.max(4, 10 - c.fac.spa * 2) + extraForma);
       // Rendimiento: los titulares suben o bajan según el resultado, sus goles y (porteros) los goles recibidos
@@ -448,7 +451,7 @@ const Career = {
     c.poDone = false;
     c.vencido = null;
     // Ingresos semanales por patrocinio
-    c.money += Math.round((8 + c.fame * 0.5) * DIV_SPONSOR[this.myDiv()]);
+    c.money += Math.round((8 + c.fame * 0.5) * DIV_SPONSOR[this.myDiv()] * this.incomeMul());
     c.scout = (c.scout || []).filter(s => s.until > c.week + 1);
     if (c.week < WEEKS) {
       c.week++;
@@ -477,6 +480,7 @@ const Career = {
     c.divs[3] = c.divs[3].filter(k => !up3.includes(k)).concat(down2);
     sum.table = table[d]; sum.po = c.po[d] || null;
     sum.promoted = { 1: up2, 2: up3 }; sum.relegated = { 1: down1, 2: down2 };
+    sum.money = Math.round(sum.money * this.incomeMul());
     c.fame = Math.max(c.season === 1 ? 10 : 0, Math.min(100, c.fame + sum.fame)); c.money += sum.money;   // tras el primer año, al menos 10 de fama
     c.history.push({ season: c.season, div: d, pos, champion: sum.champion, up: sum.moves.includes('up'), down: sum.moves.includes('down'), cup: sum.cupWinner === YOU, cupRound: c.cup ? c.cup.rounds.length : 0 });
     // Premios para el gacha: tickets por cada logro de la temporada
@@ -758,7 +762,7 @@ const Career = {
       } else { w.state = won ? 'champion' : 'out'; w.place = won ? 'campeón' : 'final'; msg = won ? TX('¡Campeones del mundo!') : TX('Subcampeones del mundo'); }
     }
     if (w.state === 'out' || w.state === 'champion') {
-      const R = { campeón: [20, 2500, 15], final: [10, 1200, 8], semi: [5, 600, 4], grupo: [0, 200, 1] }[w.place];
+      const R = { campeón: [20, 2500, 15], final: [10, 1200, 8], semi: [5, 600, 4], grupo: [0, 200, 1] }[w.place].slice(); R[1] = Math.round(R[1] * this.incomeMul());
       c.fame = Math.min(100, c.fame + R[0]); c.money += R[1]; Profile.data.tickets += R[2]; Profile.save();
       w.reward = { fame: R[0], money: R[1], tickets: R[2] };
       if (w.place === 'campeón') c.titles.push({ season: w.season, name: TX('Mundial con Inazuma Japón') });

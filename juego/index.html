@@ -297,6 +297,35 @@ select option{color:#111;font-family:system-ui}
 .cmgrs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .cmgr{display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(10,18,48,.55);border:2px solid var(--ink);padding:6px;color:var(--chalk);font:12px var(--font-ui);cursor:pointer;width:96px}
 .cmgr.sel{box-shadow:0 0 0 3px var(--yellow)}
+.cmgr small{font-size:10px;color:#ffb44a}.cmgr.ray{background:rgba(40,10,40,.75)}.cmgr img.mgrcrest{width:64px;height:64px;image-rendering:pixelated}
+.chead img.mgrcrest{width:40px;height:40px}
+/* ---------- Halloween ---------- */
+.mode.hwmode{background:linear-gradient(90deg,#3a1458,#5a1f2a);box-shadow:0 0 0 2px #ff8a1a,0 0 14px rgba(255,138,26,.35)}
+.mode.hwmode b{color:#ffa23a}
+.hwdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff5a2a;box-shadow:0 0 6px #ff8a1a;vertical-align:middle;margin-left:4px}
+#screen.hwtheme{background-color:#1a0a26}
+#screen.hwtheme .card{position:relative;z-index:1;background:linear-gradient(rgba(42,16,62,.93),rgba(26,10,40,.93));box-shadow:0 0 0 2px #ff8a1a,0 6px 0 4px rgba(0,0,0,.4)}
+#screen.hwtheme .card h2,#screen.hwtheme .card h3{color:#ffa23a}
+.hwfx{position:absolute;left:0;right:0;top:0;height:100%;pointer-events:none;z-index:2;overflow:hidden}
+.hwfx .fog{position:absolute;left:-30%;width:160%;height:28%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(225,215,250,.13),transparent 70%);filter:blur(6px);animation:hwfog 18s ease-in-out infinite alternate}
+.hwfx .f1{top:12%}.hwfx .f2{top:48%;animation-duration:24s;animation-delay:-6s}.hwfx .f3{bottom:-4%;animation-duration:20s;animation-delay:-12s}
+@keyframes hwfog{from{transform:translateX(-8%)}to{transform:translateX(8%)}}
+.hwfx .pk{position:absolute;top:2px;font-size:26px;filter:drop-shadow(0 0 8px rgba(255,138,26,.7));animation:hwglow 2.6s ease-in-out infinite alternate}
+.hwfx .p1{left:2px}.hwfx .p2{right:2px;font-size:22px;animation-delay:-1s}.hwfx .p3{display:none}
+@keyframes hwglow{from{filter:drop-shadow(0 0 4px rgba(255,138,26,.4))}to{filter:drop-shadow(0 0 12px rgba(255,138,26,.9))}}
+.hwfx .bat{position:absolute;top:150px;font-size:20px;opacity:.75;animation:hwbat 14s linear infinite}
+.hwfx .b2{top:420px;font-size:16px;animation-duration:19s;animation-delay:-8s}
+@keyframes hwbat{0%{transform:translate(-40px,0)}25%{transform:translate(25vw,-14px)}50%{transform:translate(50vw,8px)}75%{transform:translate(75vw,-10px)}100%{transform:translate(105vw,0)}}
+@media (prefers-reduced-motion:reduce){.hwfx *{animation:none!important}}
+.hwbar span:last-child{color:#ffa23a}
+.hwlegs{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.hwleg{display:flex;flex-direction:column;align-items:center;width:72px;padding:4px;background:rgba(10,4,20,.55);border:2px solid #ffcc22;text-align:center}
+.hwleg small{font-size:10px;line-height:1.1}.hwleg canvas{filter:grayscale(.6) brightness(.7)}.hwleg.own canvas{filter:none}.hwleg.own{box-shadow:0 0 8px #ffcc22}
+.hwretos{display:flex;flex-direction:column;gap:6px}
+.hwreto{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:6px 8px;background:rgba(10,4,20,.5);border:2px solid #5a2a7a}
+.hwreto div{display:flex;flex-direction:column;gap:2px}.hwreto small{font-size:12px}.hwreto b{color:#ffa23a;font-weight:400}
+.hwreto .cta{width:auto;padding:6px 10px;font-size:14px}.hwreto.ready{border-color:#ff8a1a}.hwreto.got{opacity:.7}
+.hwok{font-size:24px;color:#6fe06f}
 .csquad{display:flex;flex-direction:column;gap:6px}
 .cpl{display:flex;gap:8px;align-items:center;text-align:left;background:rgba(31,46,104,.8);border:2px solid var(--ink);padding:5px;color:var(--chalk);font:14px var(--font-ui);cursor:pointer}
 .cpl.sel{box-shadow:0 0 0 2px var(--yellow)}.cpl b{font-weight:normal;color:var(--gold)}.cpl small{font-size:12px}.cpl .cst{display:block;font-size:12px;opacity:.9}.cpl .cst b{color:#fff}
@@ -646,12 +675,14 @@ const EN_TEXT = {
   '(pen.': '(pen.',
   '(récord:': '(record:',
   '(sin ti)': '(without you)',
+  ').': '")."',
   '). Se reintentará.': '). It will try again.',
   '). Vende o libera a alguien.': '). Sell or release someone.',
   '). ¿Le haces hueco?': '). Will you make room?',
   '); con 5 estrellas, o una técnica repetida, dan monedas.': '); at 5 stars, or with a duplicate technique, they give coins.',
   '+1 estrella sin necesitar repetidos (tienes ': '+1 star without needing duplicates (you have ',
   '+1 extra en cada entrenamiento por nivel': '+1 extra on each training session per level',
+  '+10 % de ingresos': '"+10% income"',
   '+10 Rayos': '+10 Bolts',
   '+10 Rayos Raimon': '+10 Raimon Bolts',
   '+10 a las técnicas de bloqueo': '+10 to block techniques',
@@ -662,6 +693,7 @@ const EN_TEXT = {
   '+1000 tickets': '+1000 tickets',
   '+25 % de taquilla por nivel': '+25% gate money per level',
   '+3 por mejora; el límite sube con las estrellas': '+3 per upgrade; the limit goes up with stars',
+  '+300 caramelos': '"+300 candies"',
   '+4 de tiro y control': '+4 shot and control',
   '+6 % de velocidad': '+6% speed',
   '+6 de defensa': '+6 defence',
@@ -762,9 +794,11 @@ const EN_TEXT = {
   'Campo de la jungla': 'Jungle pitch',
   'Campo nevado': 'Snowy pitch',
   'Campo nocturno': 'Night pitch',
+  'Campo nocturno con niebla': '"Foggy night pitch"',
   'Campo volcánico': 'Volcano pitch',
   'Canjeados': 'Redeemed',
   'Canjear': 'Redeem',
+  'Caramelos: +5 por partido en cualquier modo (+10 más si ganas), +20 de regalo cada día, +60 al ganar al Ocultismo jefe y los retos. El evento dura hasta el 3 de noviembre; los jugadores que consigas son tuyos para siempre.': '"Candies: +5 per match in any mode (+10 more if you win), +20 daily gift, +60 for beating the Occult boss and the challenges. The event runs until 3 November; any players you get are yours forever."',
   'Cargando tu partida de la nube…': 'Loading your save from the cloud…',
   'Cargando tu partida…': 'Loading your save…',
   'Cargando…': 'Loading…',
@@ -778,6 +812,7 @@ const EN_TEXT = {
   'Cerrojo': 'Lockdown',
   'Clasificación': 'Standings',
   'Club': 'Club',
+  'Coleccionista de sustos': '"Fright Collector"',
   'Colección': 'Collection',
   'Colección completa': 'Full collection',
   'Color de fondo': 'Background colour',
@@ -787,9 +822,11 @@ const EN_TEXT = {
   'Completa la Etapa 2': 'Complete Stage 2',
   'Completa la Etapa 3': 'Complete Stage 3',
   'Completa la Fase 1 de la Etapa 3': 'Complete Phase 1 of Stage 3',
+  'Completa los 3 retos y': '"Complete the 3 challenges and"',
   'Completa tu equipo en Plantilla': 'Complete your team in Squad',
   'Completada ✓ · puedes repetirla': 'Completed ✓ · you can replay it',
   'Completar las cadenas': 'Complete the chains',
+  'Completar los retos': '"Complete the challenges"',
   'Completar todas las etapas': 'Complete every stage',
   'Comprobando tu partida…': 'Checking your save…',
   'Comprobar': 'Check',
@@ -798,6 +835,7 @@ const EN_TEXT = {
   'Con botón': 'With button',
   'Con una cuenta tu partida se guarda en la nube y la recuperas en cualquier móvil u ordenador.': 'With an account your save is stored in the cloud and you can get it back on any phone or computer.',
   'Con usuario y contraseña, apúntala: como no usamos correo,': 'With a username and password, write it down: since we don\'t use email,',
+  'Consigue un legendario de Halloween': '"Get a Halloween legendary"',
   'Continuar': 'Continue',
   'Continuar con Google': 'Continue with Google',
   'Continuar:': 'Continue:',
@@ -866,6 +904,7 @@ const EN_TEXT = {
   'División · puesto': 'Division · position',
   'Duración del partido': 'Match length',
   'El Mundial': 'The World Cup',
+  'El Ocultismo te ha asustado…': '"Occult gave you a fright…"',
   'El astro del balón - Versión para piano': 'The Football Star - Piano Version',
   'El bosque del monte Fuji': 'The Mount Fuji Forest',
   'El centro de entrenamiento Osakaland': 'The Osakaland Training Centre',
@@ -880,6 +919,7 @@ const EN_TEXT = {
   'El poder del Raimon': 'The Power of Raimon',
   'El portero legendario': 'The Legendary Goalkeeper',
   'El portero rival la atrapa': 'The rival goalkeeper catches it',
+  'El premio del jefe ya lo cobraste hoy.': '"You already claimed today\'s boss prize."',
   'El primero que marque, gana': 'First to score wins',
   'El regreso del Royal': 'The Return of Royal',
   'El óvalo - Estadio': 'The Oval - Stadium',
@@ -976,7 +1016,11 @@ const EN_TEXT = {
   'Etapa 3 · Fase 2 · el Mundial': 'Stage 3 · Phase 2 · the World Cup',
   'Etapas 1, 2 y 3 completadas': 'Stages 1, 2 and 3 completed',
   'Etapas 1, 2 y 3 completadas ✓': 'Stages 1, 2 and 3 completed ✓',
+  'Evento de Halloween forzado': '"Halloween event forced on"',
+  'Evento de Halloween según la fecha': '"Halloween event follows the date"',
+  'Evento reiniciado': '"Event reset"',
   'Evolución': 'Evolution',
+  'Exorcista': '"Exorcist"',
   'Faltan ': 'Missing ',
   'Faltan jugadores': 'Not enough players',
   'Fama': 'Fame',
@@ -1009,6 +1053,7 @@ const EN_TEXT = {
   'Fútbol 5 contra 5': '5-a-side football',
   'Gacha': 'Gacha',
   'Gana': 'Win',
+  'Gana al Ocultismo jefe': '"Beat the Occult boss"',
   'Gasta tickets para tirar: gira la manivela de la máquina y abre las cápsulas. Probabilidades: común 60 %, rara 28 %, épica 10 %, legendaria 2 % (cada 10 tiradas sin épica, la siguiente lo es seguro). Los repetidos suben estrellas a tu jugador.': 'Spend tickets to pull: turn the machine\'s crank and open the capsules. Odds: common 60%, rare 28%, epic 10%, legendary 2% (after 10 pulls without an epic, the next one is guaranteed). Duplicates add stars to your player.',
   'Gira de la Caravana': 'Caravan Tour',
   'Gira la manivela con el dedo ↻': 'Turn the crank with your finger ↻',
@@ -1023,15 +1068,18 @@ const EN_TEXT = {
   'Guardando…': 'Saving…',
   'Guardar': 'Save',
   'Guardar en la nube': 'Save to the cloud',
+  'Gánale: +60 🍬 (una vez al día)': '"Beat them: +60 🍬 (once a day)"',
   'Géminis - El balón negro': 'Gemini - The Black Ball',
   'Génesis - El equipo G': 'Genesis - Team G',
   'Génesis - Los superhumanos': 'Genesis - The Superhumans',
   'Habilidad': 'Skill',
+  'Halloween': '"Halloween"',
   'Has completado la carrera. Tu club entra en el salón de la fama… y puedes seguir jugando temporadas para siempre (los rivales mejoran cada año).': 'You\'ve completed the career. Your club enters the hall of fame… and you can keep playing seasons forever (rivals get better every year).',
   'Has ganado': 'You won',
   'Has llegado a la oleada': 'You reached wave',
   'Hay dos versiones distintas de tu partida.': 'There are two different versions of your save.',
   'Hay otra versión de tu partida en la nube. Resuélvelo antes de salir.': 'There\'s another version of your save in the cloud. Sort it out before leaving.',
+  'Haz 20 tiradas del Sobre Calabaza': '"Do 20 Pumpkin Pack pulls"',
   'Haz clic o pulsa una tecla': 'Click or press a key',
   'Haz tu oferta.': 'Make your offer.',
   'Haz una oferta a otro club. Sus estrellas cuestan más, y a los clubes de divisiones superiores no les gusta vender a uno de abajo. Si te pasas de tacaño, cortan la negociación hasta la semana siguiente.': 'Make an offer to another club. Their stars cost more, and clubs from higher divisions don\'t like selling to one below. If you\'re too stingy, they end the negotiation until next week.',
@@ -1051,6 +1099,7 @@ const EN_TEXT = {
   'Iniciar sesión': 'Log in',
   'Inicio': 'Start',
   'Instituto Inazuma': 'Inazuma School',
+  'Instituto Ocultismo': '"Occult"',
   'Intro': 'Intro',
   'Intro al abrir el juego': 'Intro when opening the game',
   'Invasión Alius': 'Alius Invasion',
@@ -1099,6 +1148,7 @@ const EN_TEXT = {
   'Las técnicas, habilidades y fichajes se pierden al acabar; monedas, tickets y Rayos se quedan.': 'Techniques, skills and signings are lost when it ends; coins, tickets and Bolts stay.',
   'Las técnicas, habilidades y fichajes temporales se pierden.': 'Techniques, skills and temporary signings are lost.',
   'Legendaria': 'Legendary',
+  'Legendario 3 % · Épica 15 % · Rara 32 % · Común 50 %. Legendario asegurado a las': '"Legendary 3% · Epic 15% · Rare 32% · Common 50%. Legendary guaranteed after"',
   'Legendario asegurado': 'Guaranteed legendary',
   'Legendarios de verdad': 'True legendaries',
   'Leyendo el código…': 'Reading the code…',
@@ -1157,6 +1207,7 @@ const EN_TEXT = {
   'Ninguno de tus jugadores es de ': 'None of your players are ',
   'Ningún jugador coincide con la búsqueda.': 'No player matches the search.',
   'Ningún jugador coincide. Prueba con otro nombre o quita filtros (✕).': 'No player matches. Try another name or clear the filters (✕).',
+  'Nivel': '"Level"',
   'No': 'No',
   'No encuentro ningún código. Tiene que empezar por': 'I can\'t find any code. It has to start with',
   'No hay conexión. Prueba otra vez cuando tengas internet.': 'No connection. Try again when you have internet.',
@@ -1172,6 +1223,7 @@ const EN_TEXT = {
   'No se pudieron cargar los jugadores': 'The players couldn\'t be loaded',
   'No se puede conectar con el servidor de cuentas. Comprueba tu internet.': 'Can\'t connect to the account server. Check your internet.',
   'No tiene técnicas que aprender.': 'There are no techniques to learn.',
+  'No tienes caramelos suficientes': '"Not enough candies"',
   'No tienes dinero suficiente.': 'You don\'t have enough money.',
   'No tienes jugadores de este puesto. Toca «Todos».': 'You have no players in this position. Tap «All».',
   'No tienes tanto dinero.': 'You don\'t have that much money.',
@@ -1216,6 +1268,7 @@ const EN_TEXT = {
   'Partido 4': 'Match 4',
   'Partido 5': 'Match 5',
   'Partido de liga': 'League match',
+  'Partido jefe': '"Boss match"',
   'Partido rápido': 'Quick match',
   'Partido, controles y sonido': 'Match, controls and sound',
   'Partidos · Inazuma Eleven': 'Matches · Inazuma Eleven',
@@ -1244,8 +1297,10 @@ const EN_TEXT = {
   'Portero': 'Goalkeeper',
   'Portero+': 'Keeper+',
   'Practicar técnicas': 'Practise techniques',
+  'Premio de hoy ya cobrado (puedes repetir)': '"Today\'s prize already claimed (you can replay)"',
   'Premio del Mundial': 'World Cup prize',
   'Premio del equipo especial': 'Special team prize',
+  'Premio:': '"Prize:"',
   'Premios por completarla:': 'Rewards for completing it:',
   'Presión alta': 'High press',
   'Primera': 'First',
@@ -1261,6 +1316,7 @@ const EN_TEXT = {
   'Puede equipar sus propias técnicas y las técnicas legendarias del gacha de su elemento (': 'Can equip their own techniques and the gacha\'s legendary techniques of their element (',
   'Pueden aprender supertécnicas nuevas': 'Can learn new special moves',
   'Puesto:': 'Position:',
+  'Quedan': '"Ends in"',
   'Quitar filtros': 'Clear filters',
   'R. A. Redux - Supertécnicas milagrosas': 'R. A. Redux - Miraculous Special Moves',
   'Raimon en todas sus versiones, Inazuma Japón, los Veteranos y los amigos de Ciudad Inazuma': 'Raimon in all its versions, Inazuma Japan, the Veterans and friends from Inazuma Town',
@@ -1269,8 +1325,10 @@ const EN_TEXT = {
   'Rapidez+': 'Speed+',
   'Rara': 'Rare',
   'Rareza': 'Rarity',
+  'Ray Dark': '"Ray Dark"',
   'Rayos Raimon': 'Raimon Bolts',
   'Recobro': 'Recovery',
+  'Recoger': '"Claim"',
   'Recorre los torneos del 1, 2 y 3 con tu equipo. Es': 'Play through the tournaments of 1, 2 and 3 with your team. It\'s',
   'Recorrido:': 'Journey:',
   'Recupera aguante un 60 % más rápido': 'Recovers stamina 60% faster',
@@ -1279,10 +1337,13 @@ const EN_TEXT = {
   'Recursos': 'Resources',
   'Red de ojeadores': 'Scouting network',
   'Regate': 'Dribble',
+  'Reiniciar el evento': '"Reset the event"',
   'Rendirse (cuenta como derrota)': 'Give up (counts as a defeat)',
   'Repite la contraseña': 'Repeat the password',
   'Resultado:': 'Result:',
   'Resultados de la jornada ·': 'Matchday results ·',
+  'Retos': '"Challenges"',
+  'Retos completados: Ray Dark desbloqueado': '"Challenges done: Ray Dark unlocked"',
   'Revisa que es tu partida y toca': 'Check that it\'s your save and tap',
   'Ritmo rápido': 'Fast Pace',
   'Rival': 'Rival',
@@ -1332,6 +1393,9 @@ const EN_TEXT = {
   'Sin suplentes todavía: los fichajes temporales aparecen aquí.': 'No substitutes yet: temporary signings show up here.',
   'Sin técnica': 'No technique',
   'Sin técnicas': 'No techniques',
+  'Sobre Calabaza': '"Pumpkin Pack"',
+  'Sobre Calabaza, partido jefe y retos': '"Pumpkin Pack, boss match and challenges"',
+  'Solo jugadores villanos y de miedo, y 5 legendarios exclusivos de Halloween.': '"Only villains and spooky players, plus 5 exclusive Halloween legendaries."',
   'Sonido': 'Sound',
   'Su Majestad': 'His Majesty',
   'Su música': 'Their music',
@@ -1396,6 +1460,7 @@ const EN_TEXT = {
   'Traer mi partida': 'Bring my save',
   'Tres Rayos Raimon': 'Three Raimon Bolts',
   'Tres tiradas épicas o mejores': 'Three epic-or-better pulls',
+  'Truco o trato': '"Trick or Treat"',
   'Tu carrera se ha adaptado a las ligas de 10 equipos: la temporada actual empieza de nuevo (conservas plantilla, fama y dinero).': 'Your career has been adapted to 10-team leagues: the current season starts again (you keep your squad, fame and money).',
   'Tu club': 'Your club',
   'Tu club está eliminado.': 'Your club is knocked out.',
@@ -1451,11 +1516,13 @@ const EN_TEXT = {
   'Vender: un club paga el 70 % de su valor. Liberar: se va gratis (para hacer hueco). Mínimo': 'Sell: a club pays 70% of their value. Release: they leave for free (to make room). Minimum',
   'Ver resumen': 'See summary',
   'Ver técnicas del equipo': 'See team techniques',
+  'Versión jefe · campo nocturno con niebla': '"Boss version · foggy night pitch"',
   'Victoria': 'Win',
   'Victorias:': 'Wins:',
   'Viento': 'Wind',
   'Villanos': 'Villains',
   'Volver': 'Back',
+  'Volver a Halloween': '"Back to Halloween"',
   'Volver a la música de serie': 'Back to the default music',
   'Volver al club': 'Back to the club',
   'Vuelve a esta pestaña y toca': 'Come back to this tab and tap',
@@ -1479,6 +1546,8 @@ const EN_TEXT = {
   'balón': 'ball',
   'cambiar técnica': 'switch technique',
   'cambiar ·': 'switch ·',
+  'caramelos de Halloween': '"Halloween candies"',
+  'caramelos, retos y regalo': '"candies, challenges and gift"',
   'como mánager': 'as manager',
   'como seleccionador': 'as coach',
   'comunes ·': 'common ·',
@@ -1499,10 +1568,12 @@ const EN_TEXT = {
   'deja el club.': 'leaves the club.',
   'del juego (o en otro móvil sin cuenta), sigue estos pasos para traer tu partida aquí.': 'of the game (or on another device without an account), follow these steps to bring your save here.',
   'del juego, con un': 'from the game, with a',
+  'desbloquea a Ray Dark': '"unlocks Ray Dark"',
   'descenso': 'relegation',
   'despeje': 'clear',
   'después juegas el partido': 'then you play the match',
   'destaca (+1': 'stands out (+1',
+  'días': '"days"',
   'ej.: fran_10': 'e.g.: fran_10',
   'el Mundial': 'the World Cup',
   'el equipo especial Caos y la Etapa 3.': 'the special team Chaos and Stage 3.',
@@ -1569,6 +1640,7 @@ const EN_TEXT = {
   'playoff': 'playoff',
   'playoff ·': 'playoff ·',
   'por': 'for',
+  'por jugar': '"for playing"',
   'por la tercera plaza; los 3 últimos bajan. Ficha jugadores, mejora el club y gana la': 'for the third spot; the bottom 3 go down. Sign players, upgrade the club and win the',
   'portero asegurado': 'guaranteed goalkeeper',
   'profundidad ·': 'through ball ·',
@@ -1580,6 +1652,7 @@ const EN_TEXT = {
   'roguelite': 'roguelite',
   'saque largo ·': 'long kick ·',
   'se cansa y cierra la negociación hasta la semana que viene.': 'gets fed up and closes the negotiation until next week.',
+  'se podrá elegir como mánager en el Modo Carrera, con': '"can be picked as manager in Career Mode, with"',
   'se va al': 'moves to',
   'se vaya a otro instituto': 'go to another school',
   'según su rendimiento. Los jugadores se': 'depending on how they play. Players',
@@ -1600,6 +1673,7 @@ const EN_TEXT = {
   'tickets': 'tickets',
   'tickets para el gacha por tus logros de la temporada': 'tickets for the gacha for your achievements this season',
   'tiene una partida en la nube distinta de la de este móvil. Elige con cuál sigues. La otra se guarda como copia en este móvil (Cuenta → Opciones avanzadas), así que no se pierde.': 'has a save in the cloud that\'s different from the one on this device. Choose which one to continue with. The other one is kept as a copy on this device (Account → Advanced options), so nothing is lost.',
+  'tiradas (llevas': '"pulls (you\'re at"',
   'tiro (mantén) ·': 'shot (hold) ·',
   'titular': 'starter',
   'toca para cambiar': 'tap to change',
@@ -1616,6 +1690,7 @@ const EN_TEXT = {
   'una técnica legendaria y 10 🎟️ más.': 'a legendary technique and 10 more 🎟️.',
   'valor aprox. ': 'approx. value ',
   'vendido al': 'sold to',
+  'verlo fuera de fechas': '"see it outside its dates"',
   'versión antigua': 'old version',
   'vuelve a entrar': 'log in again',
   'y': 'and',
@@ -1647,6 +1722,7 @@ const EN_TEXT = {
   '¡Gol de oro!': 'Golden goal!',
   '¡Gol!': 'Goal!',
   '¡Hacia el infinito!': 'To infinity!',
+  '¡Has vencido al Ocultismo!': '"You beat Occult!"',
   '¡Hola, ': 'Hi, ',
   '¡La técnica supera al portero!': 'The technique beats the goalkeeper!',
   '¡Llega el Inazuma 3!': 'Inazuma 3 is here!',
@@ -1661,6 +1737,7 @@ const EN_TEXT = {
   '¡Partida traída! Crea una cuenta en 👤 Cuenta para tenerla siempre a salvo': 'Save brought over! Create an account in 👤 Account to keep it safe forever',
   '¡Pasáis a semifinales!': 'Through to the semi-finals!',
   '¡Regate!': 'Dribble!',
+  '¡Retos completados! Ray Dark ya se puede elegir como mánager en el Modo Carrera': '"Challenges done! Ray Dark can now be picked as manager in Career Mode"',
   '¡Robo!': 'Stolen!',
   '¡Se une a tu plantilla!': 'Joins your squad!',
   '¡Supertécnicas nuevas! ': 'New special moves! ',
@@ -1670,7 +1747,9 @@ const EN_TEXT = {
   '¡Ya están todas abiertas!': 'They\'re all open!',
   '¡oleada especial!': 'special wave!',
   '¡pasáis!': 'you\'re through!',
+  '¡premio del jefe!': '"boss prize!"',
   '¡tu club!': 'your club!',
+  '¡Último día!': '"Last day!"',
   '· Etapas completadas:': '· Stages completed:',
   '· Premio:': '· Prize:',
   '· Rapidez': '· Speed',
@@ -1733,6 +1812,7 @@ const EN_TEXT = {
   '⚽ Jugar': '⚽ Play',
   '✅ Equipada': '✅ Equipped',
   '✅ Partida encontrada': '✅ Save found',
+  '✓ Ray Dark ya es mánager en el Modo Carrera (+10 % de ingresos).': '"✓ Ray Dark is now a Career Mode manager (+10% income)."',
   '❓ Cómo funciona': '❓ How it works',
   '⬆️ A Primera:': '⬆️ To First:',
   '⬆️ A Segunda:': '⬆️ To Second:',
@@ -1749,6 +1829,10 @@ const EN_TEXT = {
   '🌱 Llega un juvenil': '🌱 A youngster arrives',
   '🌱 Llegan de la cantera:': '🌱 New from the academy:',
   '🎁 Código de regalo': '🎁 Gift code',
+  '🎁 Regalo diario:': '"🎁 Daily gift:"',
+  '🎁 regalo': '"🎁 gift"',
+  '🎃 Evento forzado: NO': '"🎃 Event forced: NO"',
+  '🎃 Evento forzado: SÍ': '"🎃 Event forced: YES"',
   '🎓 Se gradúan ({0}):': '🎓 Graduating ({0}):',
   '🎟️ para el gacha': '🎟️ for the gacha',
   '🎮 Mando conectado: ': '🎮 Controller connected: ',
@@ -3630,6 +3714,7 @@ const CUP_ROUND = [TX('Dieciseisavos'), TX('Octavos'), TX('Cuartos'), TX('Semifi
 const CAREER_DIFF = { facil: { name: TX('Fácil'), mul: 0.93, shift: -1 }, normal: { name: TX('Normal'), mul: 1, shift: 0 }, dificil: { name: TX('Difícil'), mul: 1.07, shift: 1 } };
 const HOF_KEY = 'inazuma-salon';
 const MANAGERS = [13, 14, 15, 212, 21440];      // Nelly, Celia, Silvia, Seymour Hillman (1 y 2)
+const RAY_DARK = 996100;   // mánager de Halloween (se desbloquea con los retos del evento): +10 % de ingresos
 const SQUAD_MAX = 12, SQUAD_MIN = 7;
 const LAST_YEAR = 6;   // los jugadores se gradúan (se van) al acabar 6º curso
 const YEAR_GROWTH = 1; // puntos que sube cada stat al pasar de curso
@@ -3707,6 +3792,7 @@ const Career = {
   },
 
   /* ---------- Crear ---------- */
+  incomeMul() { return this.data && this.data.manager === RAY_DARK ? 1.1 : 1; },   // pasiva de Ray Dark
   create(manager, school, diff = 'normal') {
     const c = this.data = { v: 2, diff, manager, school: school || TX('Instituto Inazuma'), season: 1, week: 1, fame: 25, money: 300, forma: 100,
       squad: [], formation: '1-2-1-1', lineup: null, tactic: 'equilibrada', divs: JSON.parse(JSON.stringify(CAREER_START)),
@@ -4011,6 +4097,7 @@ const Career = {
       out.fame = won ? (nm.ko ? 7 : 5) : draw ? 1 : (nm.type === 'copa' ? -1 : nm.ko ? -2 : -4);
       if (out.cupWinner === YOU) { out.fame += 12; out.money += DIV_PRIZE[1]; out.tickets = 10; Profile.data.tickets += 10; Profile.save(); }
       out.money += Math.round(won ? tk : draw ? tk * 0.5 : tk * 0.25);
+      out.money = Math.round(out.money * this.incomeMul());
       c.fame = Math.max(0, Math.min(100, c.fame + out.fame)); c.money += out.money;
       c.forma = Math.max(10, c.forma - Math.max(4, 10 - c.fac.spa * 2) + extraForma);
       // Rendimiento: los titulares suben o bajan según el resultado, sus goles y (porteros) los goles recibidos
@@ -4052,7 +4139,7 @@ const Career = {
     c.poDone = false;
     c.vencido = null;
     // Ingresos semanales por patrocinio
-    c.money += Math.round((8 + c.fame * 0.5) * DIV_SPONSOR[this.myDiv()]);
+    c.money += Math.round((8 + c.fame * 0.5) * DIV_SPONSOR[this.myDiv()] * this.incomeMul());
     c.scout = (c.scout || []).filter(s => s.until > c.week + 1);
     if (c.week < WEEKS) {
       c.week++;
@@ -4081,6 +4168,7 @@ const Career = {
     c.divs[3] = c.divs[3].filter(k => !up3.includes(k)).concat(down2);
     sum.table = table[d]; sum.po = c.po[d] || null;
     sum.promoted = { 1: up2, 2: up3 }; sum.relegated = { 1: down1, 2: down2 };
+    sum.money = Math.round(sum.money * this.incomeMul());
     c.fame = Math.max(c.season === 1 ? 10 : 0, Math.min(100, c.fame + sum.fame)); c.money += sum.money;   // tras el primer año, al menos 10 de fama
     c.history.push({ season: c.season, div: d, pos, champion: sum.champion, up: sum.moves.includes('up'), down: sum.moves.includes('down'), cup: sum.cupWinner === YOU, cupRound: c.cup ? c.cup.rounds.length : 0 });
     // Premios para el gacha: tickets por cada logro de la temporada
@@ -4362,7 +4450,7 @@ const Career = {
       } else { w.state = won ? 'champion' : 'out'; w.place = won ? 'campeón' : 'final'; msg = won ? TX('¡Campeones del mundo!') : TX('Subcampeones del mundo'); }
     }
     if (w.state === 'out' || w.state === 'champion') {
-      const R = { campeón: [20, 2500, 15], final: [10, 1200, 8], semi: [5, 600, 4], grupo: [0, 200, 1] }[w.place];
+      const R = { campeón: [20, 2500, 15], final: [10, 1200, 8], semi: [5, 600, 4], grupo: [0, 200, 1] }[w.place].slice(); R[1] = Math.round(R[1] * this.incomeMul());
       c.fame = Math.min(100, c.fame + R[0]); c.money += R[1]; Profile.data.tickets += R[2]; Profile.save();
       w.reward = { fame: R[0], money: R[1], tickets: R[2] };
       if (w.place === 'campeón') c.titles.push({ season: w.season, name: TX('Mundial con Inazuma Japón') });
@@ -4389,6 +4477,134 @@ const Career = {
     }) };
     return { A, B: this.clubTeam(nm.rival, Math.min(1, c.season / 3)) };
   },
+};
+
+/* =====================================================================
+   EVENTO DE HALLOWEEN (23 oct – 3 nov): todo fuera de los modos.
+   - Moneda 🍬 caramelos (perfil: Profile.data.hw): +5 por partido en
+     cualquier modo (+10 si ganas), +20 de regalo diario, +60 al ganar al
+     Ocultismo jefe (una vez al día) y los retos del evento.
+   - Sobre Calabaza: 30 🍬 por tirada; jugadores villanos/de miedo y
+     5 legendarios exclusivos (versiones Halloween, nuevos ids 996001…).
+     Legendario 3 % · épica 15 % · rara 32 % · común 50 %; legendario
+     asegurado a las 40 tiradas sin uno.
+   - 3 retos; al completarlos, Ray Dark se puede elegir como mánager en el
+     Modo Carrera (+10 % de ingresos).
+   - Fuera de fechas no se ve nada (salvo forzarlo en el modo desarrollador).
+   Los legendarios se registran siempre: si los consigues, son tuyos para siempre.
+   ===================================================================== */
+const HW_START = '2026-10-23', HW_END = '2026-11-03';   // ambos incluidos (hora del dispositivo)
+const HW_BANNER = 66;
+const HW_PRICE = 30, HW_PITY = 40;
+const HW_RATES = [['legendaria', 3], ['epica', 15], ['rara', 32], ['comun', 50]];
+const HW_DAILY = 20, HW_BOSS = 60, HW_MATCH = 5, HW_WIN = 10;
+
+// Legendarios exclusivos: versión Halloween de jugadores reales (mismo aspecto, stats de legendario)
+const HW_LEGENDS = [
+  { id: 996001, base: 30037, extra: 'Tiro fantasma' },   // Johan Tassman
+  { id: 996002, base: 36 },                              // Nathan Jones
+  { id: 996003, base: 32025 },                           // Destra
+  { id: 996004, base: 32018 },                           // Hebimos
+  { id: 996005, base: 32001 },                           // Bash Lancer
+];
+(function registerHalloween() {
+  if (typeof GAME === 'undefined') return;
+  const reg = (p, list) => { if (PBY[p.id]) return; if (list) GAME.players.push(p); PBY[p.id] = p; };
+  const KEYS = ['tiro', 'control', 'defensa', 'rapidez', 'fisico'];
+  for (const L of HW_LEGENDS) {
+    const b = PLAYER(L.base); if (!b) continue;
+    const mean = KEYS.reduce((t, k) => t + b.ie[k], 0) / KEYS.length, f = 93 / mean, ie = {};
+    for (const k in b.ie) ie[k] = Math.min(99, Math.round(b.ie[k] * f));
+    const moves = (b.moves || []).map(m => m.slice());
+    if (L.extra) { const t = Object.values(GAME.techniques).find(x => x.name === L.extra && x.id < 30000); if (t && !moves.some(m => m[0] === t.id)) moves.unshift([t.id, 1]); }
+    reg(Object.assign({}, b, { id: L.id, full: b.full + ' (Halloween)', rarity: 'legendaria', ie, ie0: undefined, moves, gacha: false, banner: null, halloween: true }), true);
+  }
+  // Ray Dark: solo como mánager (su retrato es el escudo de los Emperadores Oscuros); no entra en las listas de jugadores
+  reg({ id: RAY_DARK, name: 'Ray Dark', full: 'Ray Dark', role: 'MED', elem: 'neutro', rarity: 'legendaria', crestFace: 41, ie: { tiro: 50, control: 50, defensa: 50, rapidez: 50, fisico: 50, aguante: 50 }, moves: [], gacha: false, halloween: true });
+})();
+
+const Halloween = {
+  forced: false,   // (desarrollador) ver el evento fuera de fechas
+  today() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); },
+  active() { if (this.forced) return true; const t = this.today(); return t >= HW_START && t <= HW_END; },
+  daysLeft() { const end = new Date(HW_END + 'T23:59:59'); return Math.max(0, Math.ceil((end - new Date()) / 86400000)); },
+  data() {
+    const P = Profile.data;
+    const D = { candy: 0, pulls: 0, pity: 0, daily: null, boss: null, bossWins: 0, matches: 0, retos: {}, legends: 0, ray: false };
+    const H = P.hw = P.hw || {};
+    for (const k in D) if (H[k] === undefined) H[k] = D[k];
+    return H;
+  },
+  // Regalo diario (devuelve los caramelos dados o 0)
+  daily() {
+    if (!this.active()) return 0;
+    const H = this.data(), t = this.today(); if (H.daily === t) return 0;
+    H.daily = t; H.candy += HW_DAILY; Profile.save(); return HW_DAILY;
+  },
+  // Al acabar un partido de cualquier modo
+  matchPlayed(won) {
+    if (!this.active()) return 0;
+    const H = this.data(), n = HW_MATCH + (won ? HW_WIN : 0);
+    H.candy += n; H.matches++; Profile.save(); return n;
+  },
+  bossDone() { return this.data().boss === this.today(); },
+  bossResult(won) {
+    const H = this.data(); let n = 0;
+    if (won) { H.bossWins++; if (H.boss !== this.today()) { H.boss = this.today(); n = HW_BOSS; H.candy += n; } }
+    Profile.save(); return n;
+  },
+  // Rival jefe: el Instituto Ocultismo muy reforzado, en campo nocturno con niebla
+  bossTeam() { return rivalTeam('Occult', 1.3, 1); },
+
+  /* ---------- Sobre Calabaza ---------- */
+  pool() {
+    if (this._pool) return this._pool;
+    const occ = (TEAM('Occult') || { players: [] }).players.map(p => p.id);
+    const ok = p => p.cs && p.gacha !== false && !p.halloween && (p.banner === 3 || occ.includes(p.id));
+    const P = { legendaria: HW_LEGENDS.map(L => L.id).filter(id => PLAYER(id)) };
+    for (const t of ['epica', 'rara', 'comun']) P[t] = GAME.players.filter(p => ok(p) && p.rarity === t).map(p => p.id);
+    return (this._pool = P);
+  },
+  pull(n) {
+    const H = this.data(), P = Profile.data, pool = this.pool(), res = [];
+    if (H.candy < HW_PRICE * n) return null;
+    H.candy -= HW_PRICE * n;
+    for (let i = 0; i < n; i++) {
+      let tier = 'comun';
+      if (H.pity >= HW_PITY - 1) tier = 'legendaria';
+      else { let r = Math.random() * 100; for (const [t, w] of HW_RATES) { if (r < w) { tier = t; break; } r -= w; } }
+      H.pity = tier === 'legendaria' ? 0 : H.pity + 1;
+      const list = pool[tier].length ? pool[tier] : pool.epica;
+      res.push({ id: list[Math.floor(Math.random() * list.length)], tier });
+    }
+    for (const r of res) {   // igual que el gacha normal: nuevo, una estrella más o monedas
+      const o = P.coll[r.id];
+      if (!o) { P.coll[r.id] = { stars: 1, up: {} }; r.isNew = true; }
+      else if (o.stars < MAX_STARS) { o.stars++; r.star = o.stars; }
+      else { const c = RARITY[r.tier].dupCoins; P.coins += c; r.coins = c; }
+    }
+    H.pulls += n; H.legends = HW_LEGENDS.filter(L => P.coll[L.id]).length;
+    P.pulls = (P.pulls || 0) + n;
+    Profile.save();
+    return res;
+  },
+
+  /* ---------- Retos del evento ---------- */
+  RETOS: [
+    { id: 'boss', name: TX('Exorcista'), desc: TX('Gana al Ocultismo jefe'), goal: 1, val: H => H.bossWins, reward: { candy: 40, tickets: 5 } },
+    { id: 'pulls', name: TX('Truco o trato'), desc: TX('Haz 20 tiradas del Sobre Calabaza'), goal: 20, val: H => H.pulls, reward: { candy: 60, tickets: 8 } },
+    { id: 'legend', name: TX('Coleccionista de sustos'), desc: TX('Consigue un legendario de Halloween'), goal: 1, val: H => H.legends, reward: { candy: 80, tickets: 12 } },
+  ],
+  retoState(R) { const H = this.data(); return H.retos[R.id] ? 'got' : R.val(H) >= R.goal ? 'ready' : 'locked'; },
+  claim(id) {
+    const R = this.RETOS.find(x => x.id === id), H = this.data(); if (!R || this.retoState(R) !== 'ready') return null;
+    H.retos[id] = Date.now(); H.candy += R.reward.candy || 0; Profile.data.tickets += R.reward.tickets || 0;
+    const all = this.RETOS.every(x => H.retos[x.id]); if (all && !H.ray) H.ray = true;
+    Profile.save();
+    return { reward: R.reward, ray: all };
+  },
+  pending() { return this.active() ? this.RETOS.filter(R => this.retoState(R) === 'ready').length : 0; },
+  rayUnlocked() { return !!(Profile.data.hw && Profile.data.hw.ray); },
 };
 
 /* =====================================================================
@@ -4422,7 +4638,10 @@ const CLOUD_CONFIG = {
      ya tiene partida) → se pregunta al jugador. Nunca se borra nada
      sin preguntar.
    ===================================================================== */
-const SAVE_KEYS = ['inazuma-perfil', 'inazuma-carrera', 'inazuma-ajustes', 'inazuma-run3', 'inazuma-sonido'];
+const SAVE_KEYS = ['inazuma-perfil', 'inazuma-carrera', 'inazuma-ajustes', 'inazuma-run3', 'inazuma-sonido', 'inazuma-jugador'];
+// Progreso de verdad (lo que se compara para decidir si hay dos partidas distintas); ajustes y sonido son de cada dispositivo
+const PROGRESS_KEYS = ['inazuma-perfil', 'inazuma-carrera', 'inazuma-run3', 'inazuma-jugador'];
+const DEVICE_KEYS = ['inazuma-ajustes', 'inazuma-sonido'];
 
 const Cloud = (() => {
   const META_KEY = 'inazuma-cuenta';
@@ -4431,7 +4650,8 @@ const Cloud = (() => {
   const CFG = (typeof CLOUD_CONFIG !== 'undefined' && CLOUD_CONFIG) || {};
   const PUSH_DELAY = 3000;      // espera tras un cambio antes de subir (agrupa varios guardados)
   const TIMEOUT = 15000;
-  const MAX_RAW = 700000;       // por encima, la partida se guarda comprimida (Firestore admite 1 MB por documento)
+  const MAX_RAW = 500000;       // por encima, la partida se guarda comprimida (Firestore admite 1 MB por documento)
+  const RETRY = (typeof CLOUD_RETRY !== 'undefined' && CLOUD_RETRY) || [20000, 45000, 90000, 180000, 300000];   // reintentos tras un error (cada vez más espaciados)
 
   /* ---------- Datos de la cuenta en este dispositivo ---------- */
   const origSet = Storage.prototype.setItem, origRemove = Storage.prototype.removeItem;
@@ -4440,36 +4660,47 @@ const Cloud = (() => {
   const saveMeta = () => { try { origSet.call(localStorage, META_KEY, JSON.stringify(meta)); } catch (_) {} };
 
   /* ---------- Partida local ---------- */
-  let applying = false;
+  let applying = false, frozen = false;   // frozen: se va a recargar con la partida bajada; no dejar que nada la pise
   function snapshot() { const o = {}; SAVE_KEYS.forEach(k => { try { const v = localStorage.getItem(k); if (v != null) o[k] = v; } catch (_) {} }); return o; }
-  function restore(o) {
+  function restore(o, freeze) {
+    if (freeze) frozen = true;
     applying = true;
     try { SAVE_KEYS.forEach(k => { try { if (o && o[k] != null) origSet.call(localStorage, k, o[k]); else origRemove.call(localStorage, k); } catch (_) {} }); }
     finally { applying = false; }
   }
-  function hash(o) {   // huella corta de la partida para saber si ha cambiado
-    const s = SAVE_KEYS.map(k => k + '=' + (o && o[k] != null ? o[k] : '')).join('\\u0001');
+  function hash(o, keys = SAVE_KEYS) {   // huella corta de la partida para saber si ha cambiado
+    const s = keys.map(k => k + '=' + (o && o[k] != null ? o[k] : '')).join('\\u0001');
     let h1 = 0x811c9dc5, h2 = 0x1000193;
     for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = Math.imul(h2 ^ c, 2246822519); }
     return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36) + ':' + s.length;
   }
-  // ¿Hay progreso de verdad? (ya hizo la tirada de bienvenida o tiene Carrera)
+  const hashP = o => hash(o, PROGRESS_KEYS);   // solo el progreso
+  // ¿Hay progreso de verdad? (ya hizo la tirada de bienvenida o tiene Carrera o Carrera Jugador)
   function hasProgress(o) {
     try { const p = JSON.parse((o || {})['inazuma-perfil'] || 'null'); if (p && (p.firstDone || Object.keys(p.coll || {}).length)) return true; } catch (_) {}
-    return !!(o && o['inazuma-carrera']);
+    return !!(o && (o['inazuma-carrera'] || o['inazuma-jugador']));
   }
   function describe(o) {
     try {
       const p = JSON.parse(o['inazuma-perfil'] || '{}'), cr = o['inazuma-carrera'] ? JSON.parse(o['inazuma-carrera']) : null;
+      const pc = o['inazuma-jugador'] ? JSON.parse(o['inazuma-jugador']) : null;
       const st = p.story || {}, etapas = ['s1', 's2', 's3', 's4'].filter(k => st[k] && st[k].done).length;
+      const pcName = pc && pc.me ? ((typeof PLAYER === 'function' && PLAYER(pc.me.id)) || pc.me.pd || {}).name : '';
       return { players: Object.keys(p.coll || {}).length, tickets: p.tickets || 0, coins: p.coins || 0, wins: p.wins || 0, etapas,
-        career: cr ? (cr.school || TX('Carrera')) + TX(' · temporada ') + (cr.season || 1) : '' };
-    } catch (_) { return { players: 0, tickets: 0, coins: 0, wins: 0, etapas: 0, career: '' }; }
+        career: cr ? (cr.school || TX('Carrera')) + TX(' · temporada ') + (cr.season || 1) : '',
+        pcareer: pc && pc.me ? `${pcName || '?'} · ${pc.school || ''} · ${TX('Temporada')} ${pc.season || 1} · ${TX('Nivel')} ${pc.me.lv || 1}` : '' };
+    } catch (_) { return { players: 0, tickets: 0, coins: 0, wins: 0, etapas: 0, career: '', pcareer: '' }; }
   }
 
   /* ---------- Avisos de cambios: cualquier guardado del juego programa una subida ---------- */
-  Storage.prototype.setItem = function (k, v) { origSet.call(this, k, v); if (!applying && this === localStorage && SAVE_KEYS.includes(k)) touch(); };
-  Storage.prototype.removeItem = function (k) { origRemove.call(this, k); if (!applying && this === localStorage && SAVE_KEYS.includes(k)) touch(); };
+  Storage.prototype.setItem = function (k, v) {
+    if (frozen && this === localStorage && SAVE_KEYS.includes(k)) return;   // a punto de recargar con la partida de la nube
+    origSet.call(this, k, v); if (!applying && this === localStorage && SAVE_KEYS.includes(k)) touch();
+  };
+  Storage.prototype.removeItem = function (k) {
+    if (frozen && this === localStorage && SAVE_KEYS.includes(k)) return;
+    origRemove.call(this, k); if (!applying && this === localStorage && SAVE_KEYS.includes(k)) touch();
+  };
 
   /* ---------- Estado visible para la interfaz ---------- */
   const state = { status: 'idle', msg: '', lastOk: meta.lastOk || 0, conflict: null };
@@ -4597,7 +4828,8 @@ const Cloud = (() => {
     try { if (await ready()) await auth.signOut(); } catch (_) {}
     signingOut = false;
     const guest = meta.guest; meta = { guest }; saveMeta();
-    if (!keepLocal) { applying = true; try { ['inazuma-perfil', 'inazuma-carrera', 'inazuma-run3'].forEach(k => { try { origRemove.call(localStorage, k); } catch (_) {} }); } finally { applying = false; } }
+    if (!keepLocal) { applying = true; try { PROGRESS_KEYS.forEach(k => { try { origRemove.call(localStorage, k); } catch (_) {} }); } finally { applying = false; } }   // todo el progreso (también la Carrera Jugador)
+    clearTimeout(timer); timer = 0; clearTimeout(retryT); retryT = 0; tries = 0;
     state.lastOk = 0; state.conflict = null; setStatus('idle');
     return { ok: true };
   }
@@ -4632,17 +4864,26 @@ const Cloud = (() => {
     try { const d = await withTimeout(ref().get({ source: 'server' })); return { row: d.exists ? await rowOf(d) : null }; }
     catch (e) { return { error: errOf(e) }; }
   }
-  function synced(rev, data) { meta.owner = meta.uid; meta.rev = rev; meta.hash = hash(data); meta.lastOk = state.lastOk = Date.now(); saveMeta(); }
+  function synced(rev, data) { meta.owner = meta.uid; meta.rev = rev; meta.hash = hash(data); meta.phash = hashP(data); meta.lastOk = state.lastOk = Date.now(); tries = 0; saveMeta(); }
+  // Reintento automático tras un error o sin conexión (antes solo se reintentaba al volver a guardar algo)
+  let retryT = 0, tries = 0;
+  function retryLater() {
+    if (retryT || !loggedIn() || meta.expired) return;
+    const d = RETRY[Math.min(tries, RETRY.length - 1)]; tries++;
+    retryT = setTimeout(() => { retryT = 0; if (!state.conflict && !syncing) push(true); }, d);
+  }
   function failStatus(r) {
-    if (r && r.expired) { meta.expired = true; saveMeta(); setStatus('expired', EXPIRED_MSG); }
-    else if (r && r.offline) setStatus('offline', TX('Sin conexión: se guardará en la nube cuando vuelva internet.'));
+    if (r && r.expired) { meta.expired = true; saveMeta(); setStatus('expired', EXPIRED_MSG); return; }
+    if (r && r.offline) setStatus('offline', TX('Sin conexión: se guardará en la nube cuando vuelva internet.'));
     else setStatus('error', TX('Error al guardar en la nube (') + ((r && r.code) || '?') + TX('). Se reintentará.'));
+    retryLater();
   }
   // Sube la partida del móvil. «overRev» = pisar a propósito esa versión de la nube (cuando el jugador elige la del móvil).
-  let pushing = null, again = false;
+  let pushing = null, again = false, syncing = false;
   async function push(now, overRev) {
-    if (!enabled() || !loggedIn() || meta.expired) return 'off';
+    if (!enabled() || !loggedIn() || meta.expired || frozen) return 'off';
     if (state.conflict && overRev == null) return 'conflict';
+    if (syncing && overRev == null) { schedule(); return 'queued'; }   // primero se termina de comparar con la nube
     if (pushing) { again = true; await pushing; if (!now) return 'queued'; }
     const run = (async () => {
       const data = snapshot(), h = hash(data);
@@ -4683,6 +4924,10 @@ const Cloud = (() => {
   // Al arrancar o al iniciar sesión: decide si subir, bajar o preguntar.
   // Devuelve 'off' | 'offline' | 'expired' | 'error' | 'same' | 'uploaded' | 'downloaded' | 'conflict'
   async function sync() {
+    syncing = true;
+    try { return await syncNow(); } finally { syncing = false; }
+  }
+  async function syncNow() {
     if (!enabled()) return 'off';
     if (!await ready()) { if (loggedIn()) setStatus('offline', TX('Sin conexión: se guardará en la nube cuando vuelva internet.')); return loggedIn() ? 'offline' : 'off'; }
     if (!loggedIn()) return 'off';
@@ -4692,27 +4937,39 @@ const Cloud = (() => {
     if (c.error) { failStatus(c.error); return c.error.expired ? 'expired' : c.error.offline ? 'offline' : 'error'; }
     const local = snapshot(), mine = meta.owner === meta.uid;
     const localChanged = !mine || hash(local) !== meta.hash;
+    // ¿Ha cambiado el progreso del móvil? (cambiar solo ajustes o sonido no cuenta como «otra partida»)
+    const localProgChanged = !mine || (meta.phash ? hashP(local) !== meta.phash : localChanged);
     if (!c.row) {   // cuenta sin partida en la nube: se sube la del móvil (si hay algo)
-      if (!hasProgress(local)) { meta.owner = meta.uid; meta.rev = 0; meta.hash = hash(local); saveMeta(); setStatus('ok'); return 'same'; }
-      return push(true, 0);
+      if (!hasProgress(local)) { meta.owner = meta.uid; meta.rev = 0; meta.hash = hash(local); meta.phash = hashP(local); saveMeta(); setStatus('ok'); return 'same'; }
+      syncing = false; return push(true, 0);
     }
     const cloudChanged = !mine || c.row.rev !== meta.rev;
-    if (!cloudChanged) { if (localChanged) return push(true); synced(c.row.rev, local); setStatus('ok'); return 'same'; }
-    if (!localChanged || !hasProgress(local) || hash(local) === hash(c.row.data || {})) { useCloud(c.row); return 'downloaded'; }
+    if (!cloudChanged) { if (localChanged) { syncing = false; return push(true); } synced(c.row.rev, local); setStatus('ok'); return 'same'; }
+    const cloudData = c.row.data || {};
+    if (!localProgChanged || !hasProgress(local) || hashP(local) === hashP(cloudData)) {
+      // Mientras se comparaba, ¿se ha jugado en este móvil? Entonces no se pisa nada: se pregunta
+      if (hash(snapshot()) !== hash(local)) return conflict(c.row);
+      useCloud(c.row, local); return 'downloaded';
+    }
     return conflict(c.row);
   }
-  function useCloud(row) { restore(row.data || {}); synced(row.rev, row.data || {}); state.conflict = null; setStatus('ok'); }
+  // Baja la partida de la nube; ajustes y sonido de este dispositivo se conservan
+  function useCloud(row, keepFrom) {
+    const data = Object.assign({}, row.data || {});
+    if (keepFrom) DEVICE_KEYS.forEach(k => { if (keepFrom[k] != null) data[k] = keepFrom[k]; });
+    restore(data, true); synced(row.rev, row.data || {}); state.conflict = null; setStatus('ok');
+  }
   // El jugador resuelve el conflicto: 'cloud' (baja la de la nube) o 'local' (sube la del móvil encima)
   async function resolve(choice) {
     const C = state.conflict; if (!C) return 'same';
-    if (choice === 'cloud') { useCloud(C.cloud); return 'downloaded'; }
+    if (choice === 'cloud') { useCloud(C.cloud, snapshot()); return 'downloaded'; }
     state.conflict = null;
     return push(true, C.cloud.rev);
   }
 
   // Al salir del juego o cambiar de app: subir ya lo pendiente
   if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && timer) { clearTimeout(timer); timer = 0; push(true); } });
-  if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('online', () => { if (loggedIn() && state.status === 'offline') push(true); });
+  if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('online', () => { if (loggedIn() && (state.status === 'offline' || state.status === 'error')) { clearTimeout(retryT); retryT = 0; push(true); } });
 
   // Partida de invitado: recuerda que ya eligió no crear cuenta (para no insistir)
   const guestChosen = () => !!meta.guest;
@@ -4720,7 +4977,7 @@ const Cloud = (() => {
 
   return { SAVE_KEYS, enabled, ready, loggedIn, user, via: () => meta.via || '', expired: () => !!meta.expired, pendingRedirect: () => !!meta.redirect,
     state, onChange: f => (listeners.add(f), () => listeners.delete(f)),
-    signUp, signIn, signInGoogle, signOut, sync, push, resolve, snapshot, restore, describe, hasProgress, guestChosen, chooseGuest, checkUser, cleanUser,
+    signUp, signIn, signInGoogle, signOut, sync, push, resolve, snapshot, restore, describe, hasProgress, guestChosen, chooseGuest, checkUser, cleanUser, PROGRESS_KEYS,
     _meta: () => meta };
 })();
 
@@ -5025,6 +5282,7 @@ const FIELDS = {
   nieve:     { runoff: 0xb8c8d4, a: 0xd8e6ef, b: 0xe6f0f6, line: 0x5a7fa0, bg: '#9fb3c2', amb: { tex: 'spark', tint: [0xffffff], up: false, n: 1.4 } },
   acero:     { runoff: 0x2a2e34, a: 0x3d5a40, b: 0x456446, line: 0xe0e6ec, bg: '#181b1f', dark: 0.12, stands: 0xb0b8c4 },
   cielo:     { runoff: 0xd8c890, a: 0x7fbf6a, b: 0x8ccc76, line: 0xfff6c8, bg: '#c9b878', amb: { tex: 'spark', tint: [0xfff2a0, 0xffffff], up: true, n: 0.8 } },
+  niebla:    { runoff: 0x161026, a: 0x22402f, b: 0x284a35, line: 0xe2d4ff, bg: '#0b0714', dark: 0.3, tint: 0x14062a, stands: 0x9a7ab8, fog: true, amb: { tex: 'spark', tint: [0xff8a1a, 0xffc04a, 0xb07aff], up: true, n: 0.45 } },
   volcan:    { runoff: 0x2a120c, a: 0x4a2a1c, b: 0x55311f, line: 0xffb070, bg: '#160806', dark: 0.18, stands: 0xc8907a, amb: { tex: 'spark', tint: [0xff7a1a, 0xffc23a, 0xe8361a], up: true, n: 1.6 } },
 };
 // Gradas: cuatro texturas (una por lado) con la valla de publicidad y el público en pixel art
@@ -5203,6 +5461,7 @@ class MatchScene extends Phaser.Scene {
     (this.pitch || []).forEach(o => o.destroy());
     if (this.amb) { this.amb.destroy(); this.amb = null; }
     if (this.shade) { this.shade.destroy(); this.shade = null; }
+    if (this.fog) { this.fog.forEach(o => { this.tweens.killTweensOf(o); o.destroy(); }); this.fog = null; }
     this.pitch = drawPitch(this, Logic.FIELD, theme);
     const T = FIELDS[theme] || FIELDS.normal, cam = this.cameras.main;
     if (T.amb) {
@@ -5214,6 +5473,21 @@ class MatchScene extends Phaser.Scene {
     }
     if (T.dark || T.tint) {   // velo de color para noche, atardecer, volcán…
       this.shade = this.add.rectangle(0, 0, 4000, 4000, T.tint || 0x000820, T.dark || 0.12).setOrigin(0).setScrollFactor(0).setDepth(3900);
+    }
+    if (T.fog) {   // niebla suave: nubes grandes y difusas que se mecen despacio por encima del campo
+      if (!this.textures.exists('fogpuff')) {
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+        for (let i = 14; i > 0; i--) { g.fillStyle(0xd8d0f0, 0.045); g.fillCircle(64, 64, i * 4.5); }
+        g.generateTexture('fogpuff', 128, 128); g.destroy();
+      }
+      const w = cam.width || 400, h = cam.height || 800;
+      this.fog = [];
+      for (let i = 0; i < 8; i++) {
+        const o = this.add.image(Math.random() * w, (i + 0.5) * h / 8, 'fogpuff').setScrollFactor(0).setDepth(3950)
+          .setScale(3 + Math.random() * 2.5, 1.4 + Math.random()).setAlpha(0.5 + Math.random() * 0.3);
+        this.tweens.add({ targets: o, x: o.x + (i % 2 ? -1 : 1) * (120 + Math.random() * 120), alpha: o.alpha * 0.55, duration: 7000 + Math.random() * 7000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+        this.fog.push(o);
+      }
     }
   }
   bind(s, sheet) {
@@ -6181,7 +6455,7 @@ const ROLES4 = ['POR', 'DEF', 'MED', 'DEL'];
 const RAB = r => (I18N.en() ? { POR: 'GK', DEF: 'DF', MED: 'MF', DEL: 'FW' }[r] : null) || r;
 const yearTx = n => TX('{0}º curso', n);
 const ordTx = n => I18N.en() ? n + ([, 'st', 'nd', 'rd'][n % 100 > 10 && n % 100 < 14 ? 0 : n % 10] || 'th') : n + 'º';
-const FIELD_LABEL = { normal: TX('Campo clásico'), noche: TX('Campo nocturno'), jungla: TX('Campo de la jungla'), atardecer: TX('Campo al atardecer'), nieve: TX('Campo nevado'), acero: TX('Estadio de acero'), cielo: TX('Campo celestial'), volcan: TX('Campo volcánico') };
+const FIELD_LABEL = { normal: TX('Campo clásico'), noche: TX('Campo nocturno'), niebla: TX('Campo nocturno con niebla'), jungla: TX('Campo de la jungla'), atardecer: TX('Campo al atardecer'), nieve: TX('Campo nevado'), acero: TX('Estadio de acero'), cielo: TX('Campo celestial'), volcan: TX('Campo volcánico') };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const chip = e => `<span class="chip ${EL(e).css}">${ELEM_LABEL[e] || e}</span>`;
 const rchip = r => `<span class="rar ${r}">${RARITY[r].label}</span>`;
@@ -6189,13 +6463,14 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.31.0';
+const VERSION = '0.31.1';
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
   try { Object.assign(settings, JSON.parse(localStorage.getItem('inazuma-ajustes') || '{}')); } catch (_) {}
   const saveSettings = () => { try { localStorage.setItem('inazuma-ajustes', JSON.stringify(settings)); } catch (_) {} };
   Profile.load();
+  Halloween.forced = !!settings.hwForce;
 
   const api = { match: null, matchSheet: null, running: false, scene: null, mode: null, run: Run.load(), settings, pick: null, draft: null };
   const body = $('screenBody');
@@ -6210,6 +6485,7 @@ const App = (() => {
   // Fondo de cada pantalla: imágenes del juego (carpeta ui/); sin fondo = rayas azules del menú
   function screen(html, bg) {
     const sc = $('screen');
+    sc.classList.remove('hwtheme'); sc.querySelectorAll('.hwfx').forEach(x => x.remove());
     sc.classList.toggle('bg-cover', !!bg);
     sc.style.backgroundImage = bg ? `url("ui/${bg}.png")` : '';
     body.classList.toggle('cardbg-clear', !!bg);
@@ -6220,6 +6496,12 @@ const App = (() => {
   const top = (title, id = 'back', label = TX('Volver')) => `<div class="top"><button class="ghost back" id="${id}">◀ ${label}</button><h2>${title}</h2></div>`;
   const bottom = html => `<div class="bottom">${html}</div>`;
   const face = (ref, size) => Sprites.face(ref, size);
+  // Cara del mánager (Ray Dark no tiene sprite: se usa el escudo de los Emperadores Oscuros)
+  function mgrFace(id, size) {
+    const pd = PLAYER(id);
+    if (pd && pd.crestFace) { const i = document.createElement('img'); i.src = `ui/crest${pd.crestFace}.png`; i.alt = ''; i.width = i.height = size; i.className = 'mgrcrest'; return i; }
+    return face(Sprites.refOf(pd), size);
+  }
   function wallet() { const P = Profile.data; return `<div class="runbar"><span>🪙 ${P.coins}</span><span>🎟️ ${P.tickets}</span><span title="${TX('Rayos Raimon')}">⚡ ${P.rayos}</span><span>👥 ${Profile.ids().length}</span></div>`; }
   function opts(group, key, list, obj = settings) {
     return `<div class="group"><label>${group}</label><div class="opts">${list.map(([v, t]) =>
@@ -6245,6 +6527,7 @@ const App = (() => {
     const P = Profile.data, r = api.run && api.run.state !== 'over' ? api.run : null;
     const done = P.story.s1.done;
     screen(`<div class="title"><img class="logo" id="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>${TX('5 contra 5 · roguelite')}</span></div>${wallet()}
+      ${Halloween.active() ? hwMenuBtn() : ''}
       ${r ? `<button class="cta" id="mContinue">${TX('Continuar:')} ${esc(r.name)}<small>${TX('Partido')} ${r.index + 1}${r.kind === 'infinite' ? '' : TX(' de ') + r.schedule.length} · ${'♥'.repeat(r.lives)}</small></button>` : ''}
       <div class="modes">
         <button class="mode" id="mCareer"><span class="cicon">🏆</span><span class="mt"><b>${TX('Modo Carrera')}</b><small>${Career.data && !Career.data.over ? TX('Temporada ') + Career.data.season + ' · ' + DIV_NAME[Career.myDiv()] + TX(' · semana ') + Career.data.week : TX('Eres el mánager: 3 divisiones y ascensos')}</small></span></button>
@@ -6281,6 +6564,7 @@ const App = (() => {
     $('mSaves').onclick = () => renderAccount(renderMenu);
     body.querySelector('[data-cloudline]').onclick = () => renderAccount(renderMenu);
     $('mQuick').onclick = startQuick; $('mSound').onclick = renderSettings;
+    if ($('mHw')) { $('mHw').onclick = renderHalloween; hwDecor(); }
     Sound.music('menu');
   }
 
@@ -6415,7 +6699,7 @@ const App = (() => {
     }
     const pd = PLAYER(r.id);
     c.appendChild(face(Sprites.refOf(pd), 80));
-    c.insertAdjacentHTML('beforeend', `<div class="gname">${esc(pd.name)}</div><div class="gmeta">${rchip(r.tier)}<span>${RAB(pd.role)}</span>${chip(pd.elem)}</div>
+    c.insertAdjacentHTML('beforeend', `<div class="gname">${pd.halloween ? '🎃' : ''}${esc(pd.name)}</div><div class="gmeta">${rchip(r.tier)}<span>${RAB(pd.role)}</span>${chip(pd.elem)}</div>
       <div class="gtag">${r.isNew ? 'NUEVO' : r.coins ? '+' + r.coins + ' 🪙' : '★ ' + r.star}</div>`);
     return c;
   }
@@ -6431,7 +6715,7 @@ const App = (() => {
   }
 
   /* ---------- Máquina de gachapón ---------- */
-  const MACHINE_COLORS = { 1: ['#e8c21a', '#1f4fc0'], 2: ['#2a5fd0', '#e8e8f0'], 3: ['#5a1a8a', '#e01a4a'], 4: ['#b8742a', '#f2e6c0'] };
+  const MACHINE_COLORS = { 1: ['#e8c21a', '#1f4fc0'], 2: ['#2a5fd0', '#e8e8f0'], 3: ['#5a1a8a', '#e01a4a'], 4: ['#b8742a', '#f2e6c0'], [HW_BANNER]: ['#ff7a1a', '#6a2aa8'] };
   const CAP_COLORS = { comun: '#b8bcc8', rara: '#3f8fff', epica: '#a24cff', legendaria: '#ffcc22' };
   function drawMachine(cv, st) {
     const g = cv.getContext('2d'), [c1, c2] = st.colors;
@@ -6469,7 +6753,7 @@ const App = (() => {
     g.fillStyle = '#10183a'; g.fillRect(16, 122, 64, 6);
   }
   function renderMachine(res, bannerId, done, title) {
-    const B = BANNERS.find(b => b.id === bannerId) || BANNERS[0];
+    const B = BANNERS.find(b => b.id === bannerId) || (bannerId === HW_BANNER ? { name: TX('Sobre Calabaza'), crest: 3 } : BANNERS[0]);
     screen(`<h2>${esc(title || B.name)}</h2>
       <div class="gmach"><canvas id="mc" width="96" height="128"></canvas><div class="gm-hint" id="mHint">${Controls.pc() ? TX('Arrastra la manivela en círculo (o pulsa Espacio)') : TX('Gira la manivela con el dedo ↻')}</div></div>
       <div class="caps" id="caps"></div>
@@ -6537,6 +6821,75 @@ const App = (() => {
     $('mAll').onclick = async () => { $('mAll').hidden = true; for (const el of [...caps.querySelectorAll('.cap')]) { const it = items[[...caps.children].indexOf(el)]; await openCap(it, el); await new Promise(r => setTimeout(r, 120)); } };
     $('mSkip').onclick = () => { alive = false; cancelAnimationFrame(raf); removeEventListener('keydown', key); renderReveal(res, done, title || TX('¡Nuevos jugadores!')); };
     $('mOk').onclick = () => { alive = false; cancelAnimationFrame(raf); removeEventListener('keydown', key); done(); };
+  }
+
+  /* =====================================================================
+     EVENTO DE HALLOWEEN (pantalla propia, fuera de los modos)
+     ===================================================================== */
+  function hwMenuBtn() {
+    const H = Halloween.data(), gift = H.daily !== Halloween.today(), n = Halloween.pending();
+    return `<button class="mode hwmode" id="mHw"><span class="cicon">🎃</span><span class="mt"><b>${TX('Halloween')}${gift || n ? ' <i class="hwdot"></i>' : ''}</b><small>${TX('Sobre Calabaza, partido jefe y retos')} · 🍬 ${H.candy}${gift ? ' · ' + TX('🎁 regalo') : ''}</small></span></button>`;
+  }
+  // Calabazas, murciélagos y niebla suave detrás de la pantalla
+  function hwDecor() {
+    const sc = $('screen'); sc.classList.add('hwtheme');
+    sc.insertAdjacentHTML('afterbegin', `<div class="hwfx" aria-hidden="true"><i class="fog f1"></i><i class="fog f2"></i><i class="fog f3"></i>
+      <span class="pk p1">🎃</span><span class="pk p2">🎃</span><span class="pk p3">🎃</span><span class="bat b1">🦇</span><span class="bat b2">🦇</span></div>`);
+  }
+  function renderHalloween() {
+    if (!Halloween.active()) return renderMenu();
+    const gift = Halloween.daily(), H = Halloween.data(), d = Halloween.daysLeft();
+    const legs = HW_LEGENDS.map(L => PLAYER(L.id)).filter(Boolean);
+    const retos = Halloween.RETOS.map(R => {
+      const st = Halloween.retoState(R), v = Math.min(R.goal, R.val(H));
+      return `<div class="hwreto ${st}"><div><b>${R.name}</b><small>${R.desc} · ${v}/${R.goal}</small><small>${TX('Premio:')} ${R.reward.candy} 🍬 · ${R.reward.tickets} 🎟️</small></div>
+        ${st === 'got' ? '<span class="hwok">✓</span>' : `<button class="cta" data-reto="${R.id}" ${st === 'ready' ? '' : 'disabled'}>${TX('Recoger')}</button>`}</div>`;
+    }).join('');
+    screen(`${top('🎃 ' + TX('Halloween'))}
+      <div class="runbar hwbar"><span>🍬 ${H.candy}</span><span>🎟️ ${Profile.data.tickets}</span><span>${d <= 1 ? TX('¡Último día!') : TX('Quedan') + ' ' + d + ' ' + TX('días')}</span></div>
+      <h3>${TX('Sobre Calabaza')}</h3>
+      <div class="hwlegs" id="hwLegs"></div>
+      <p class="note">${TX('Solo jugadores villanos y de miedo, y 5 legendarios exclusivos de Halloween.')}<br>
+        ${TX('Legendario 3 % · Épica 15 % · Rara 32 % · Común 50 %. Legendario asegurado a las')} ${HW_PITY} ${TX('tiradas (llevas')} ${H.pity}${TX(').')}</p>
+      <div class="grid2"><button class="cta" id="hw1" ${H.candy < HW_PRICE ? 'disabled' : ''}>${TX('Tirar ×1')}<small>${HW_PRICE} 🍬</small></button><button class="cta" id="hw10" ${H.candy < HW_PRICE * 10 ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${HW_PRICE * 10} 🍬</small></button></div>
+      <h3>${TX('Partido jefe')}</h3>
+      <button class="mode hwmode" id="hwBoss">${Sprites.crest(3)}<span class="mt"><b>${TX('Instituto Ocultismo')}</b><small>${TX('Versión jefe · campo nocturno con niebla')}<br>${Halloween.bossDone() ? TX('Premio de hoy ya cobrado (puedes repetir)') : TX('Gánale: +60 🍬 (una vez al día)')}</small></span></button>
+      <h3>${TX('Retos')}</h3>
+      <div class="hwretos">${retos}</div>
+      <p class="note">${Halloween.rayUnlocked() ? '<b>' + TX('✓ Ray Dark ya es mánager en el Modo Carrera (+10 % de ingresos).') + '</b>' : TX('Completa los 3 retos y') + ' <b>' + TX('Ray Dark') + '</b> ' + TX('se podrá elegir como mánager en el Modo Carrera, con') + ' <b>' + TX('+10 % de ingresos') + '</b>.'}</p>
+      <p class="note">${TX('Caramelos: +5 por partido en cualquier modo (+10 más si ganas), +20 de regalo cada día, +60 al ganar al Ocultismo jefe y los retos. El evento dura hasta el 3 de noviembre; los jugadores que consigas son tuyos para siempre.')}</p>`, 'bg_title');
+    hwDecor();
+    legs.forEach(p => { const w = document.createElement('div'); w.className = 'hwleg' + (Profile.data.coll[p.id] ? ' own' : ''); w.appendChild(face(Sprites.refOf(p), 48)); w.insertAdjacentHTML('beforeend', `<small>${esc(p.full.replace(/ \(Halloween\)$/, ''))}</small>`); $('hwLegs').appendChild(w); });
+    const go = n => { const res = Halloween.pull(n); if (!res) return UI.toast(TX('No tienes caramelos suficientes')); renderMachine(res, HW_BANNER, renderHalloween, TX('Sobre Calabaza')); };
+    $('hw1').onclick = () => go(1); $('hw10').onclick = () => go(10);
+    $('hwBoss').onclick = startBoss;
+    body.querySelectorAll('[data-reto]').forEach(b => b.onclick = () => {
+      const r = Halloween.claim(b.dataset.reto); if (!r) return;
+      Sound.sfx('reveal'); renderHalloween();
+      UI.toast(r.ray ? TX('¡Retos completados! Ray Dark ya se puede elegir como mánager en el Modo Carrera') : '+' + r.reward.candy + ' 🍬 · +' + r.reward.tickets + ' 🎟️', 3200);
+    });
+    $('back').onclick = renderMenu;
+    if (gift) setTimeout(() => UI.toast(TX('🎁 Regalo diario:') + ' +' + gift + ' 🍬', 2400), 300);
+    Sound.music('menu');
+  }
+  function startBoss() {
+    if (api.run && api.run.state !== 'over') return UI.toast(TX('Termina o abandona la partida en curso'));
+    const T = savedTeam(), F = FORMATIONS[T.formation], pos = layout(F.roles), L = T.ids;
+    if (L.some(x => x == null)) return UI.toast(TX('Completa tu equipo en Plantilla'));
+    api.mode = 'hwboss';
+    const A = { name: TX('Tu equipo'), players: L.map((id, i) => {
+      const pd = PLAYER(id);
+      return Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: Sprites.refOf(pd) });
+    }) };
+    startMatch({ A, B: Halloween.bossTeam() }, false, 'niebla', 'match', 'Occult');
+  }
+  function renderBossEnd(s, candy, bonus) {
+    const a = s.score.A, b = s.score.B;
+    screen(`<img class="finimg" src="ui/fin.png" alt="${TX('Fin del partido')}"><h2>${a > b ? TX('¡Has vencido al Ocultismo!') : a < b ? TX('El Ocultismo te ha asustado…') : TX('Empate')}</h2>
+      ${scoreLine(s)}
+      <p class="note">${candy ? '+' + candy + ' 🍬 ' + TX('por jugar') : ''}${bonus ? '<br><b>+' + bonus + ' 🍬 ' + TX('¡premio del jefe!') + '</b>' : a > b ? '<br>' + TX('El premio del jefe ya lo cobraste hoy.') : ''}</p>
+      <button class="cta" id="again">${TX('Volver a Halloween')}</button><button class="ghost" id="toMenu">${TX('Menú')}</button>`, a > b ? 'ill27' : a < b ? 'ill15' : 'ill28');
+    $('again').onclick = renderHalloween; $('toMenu').onclick = renderMenu;
   }
 
   /* ---------- Plantilla, entrenamiento y Rayos ---------- */
@@ -6840,9 +7193,10 @@ const App = (() => {
       $('pResume').onclick = () => api.togglePause();
       if ($('pWin')) $('pWin').onclick = () => { const m = api.match; m.score.A = m.score.B + 1; m.time = 0.01; m.golden = false; api.togglePause(); };
       $('pQuit').onclick = () => {
+        api.match.quit = true;   // rendirse no da caramelos
         if (api.mode === 'run') { api.match.over = true; api.match.result = 'loss'; api.matchEnded(api.match); }
         else if (api.mode === 'career' || api.mode === 'wc') { const m = api.match; m.over = true; m.score.A = 0; m.score.B = Math.max(3, m.score.B); m.result = 'loss'; api.matchEnded(m); }
-        else { api.match.over = true; renderMenu(); }
+        else { api.match.over = true; Sound.stop(0.3); api.mode === 'hwboss' ? renderHalloween() : renderMenu(); }
       };
       show('pause');
     } else { show(null); api.running = true; }
@@ -6851,7 +7205,11 @@ const App = (() => {
     api.running = false;
     setTimeout(() => {
       Sound.stop(0.6);
-      if (api.mode === 'wc') { const r = Career.wcResult(s.score.A, s.score.B); Sound.jingle(r.gA > r.gB || (r.pens && r.pens[0] > r.pens[1]) ? 'win' : r.gA === r.gB && !r.pens ? null : 'lose'); renderWC(r); }
+      // Halloween: caramelos por jugar en cualquier modo (+5, +10 más si ganas)
+      const candy = s.quit ? 0 : Halloween.matchPlayed(s.score.A > s.score.B);
+      if (candy && api.mode !== 'hwboss') setTimeout(() => UI.toast('+' + candy + ' 🍬 ' + TX('caramelos de Halloween'), 2200), 500);
+      if (api.mode === 'hwboss') { const won = s.score.A > s.score.B, bonus = Halloween.bossResult(won); Sound.jingle(won ? 'win' : s.score.A < s.score.B ? 'lose' : null); renderBossEnd(s, candy, bonus); }
+      else if (api.mode === 'wc') { const r = Career.wcResult(s.score.A, s.score.B); Sound.jingle(r.gA > r.gB || (r.pens && r.pens[0] > r.pens[1]) ? 'win' : r.gA === r.gB && !r.pens ? null : 'lose'); renderWC(r); }
       else if (api.mode === 'career') {
         const nm = Career.nextMatch();
         const pens = nm && nm.ko && s.score.A === s.score.B ? Career.penalties(Career.myRating(), Career.rating(nm.rival)) : null;
@@ -7015,7 +7373,7 @@ const App = (() => {
     const act = (k, A) => `<button class="ghost big act-${k}" data-act="${k}">${A.name}<small>${A.desc}</small></button>`;
     const kindTxt = !nm ? '' : nm.type === 'liga' ? `${TX('Jornada')} ${nm.j + 1}` : nm.type === 'copa' ? `${TX('Copa ·')} ${CUP_ROUND[nm.round]}` : nm.type === 'semi' ? TX('Playoff · semifinal') : TX('Playoff · ¡FINAL!');
     const cupTxt = !c.cup ? TX('La Copa empieza la temporada que viene') : c.cup.winner ? (c.cup.winner === YOU ? TX('¡Campeones de Copa!') : TX('Campeón de Copa: ') + Career.teamName(c.cup.winner)) : c.cup.out ? TX('Eliminados de la Copa: se juega sin ti') : TX('Siguiente ronda: ') + CUP_ROUND[c.cup.round];
-    const sponsor = Math.round((8 + c.fame * 0.5) * DIV_SPONSOR[d]);
+    const sponsor = Math.round((8 + c.fame * 0.5) * DIV_SPONSOR[d] * Career.incomeMul());
     screen(`${top(TX('Modo Carrera'))}
       ${c.migrated ? '<p class="note cmsg">' + TX('Tu carrera se ha adaptado a las ligas de 10 equipos: la temporada actual empieza de nuevo (conservas plantilla, fama y dinero).') + '</p>' : ''}
       <div class="chead"><img class="ccrest big" src="${myCrestUrl()}" alt=""><span id="cMgr"></span><div><b>${esc(c.school)}</b><small>${TX('Mánager:')} ${esc(mgr.name)} ${TX('· Temporada')} ${c.season}${c.goal ? TX(' · ★ Campeón de Primera') : ''}</small></div></div>
@@ -7036,7 +7394,7 @@ const App = (() => {
         <button class="ghost" id="cHall">${TX('🏛️ Salón de la fama')}</button><button class="ghost" id="cSave">${TX('💾 Guardar')}</button></div>
       <button class="ghost" id="cQuit">${TX('Abandonar carrera')}</button>`, 'bg_green');
     c.migrated = false;
-    $('cMgr').appendChild(face(Sprites.refOf(mgr), 40));
+    $('cMgr').appendChild(mgrFace(c.manager, 40));
     const after = msg => {
       if (Career.nextMatch()) return renderCareerPre(msg);
       const wt0 = Career.weekType(), wasPO = /^P/.test(wt0);
@@ -7116,9 +7474,9 @@ const App = (() => {
     body.querySelectorAll('[data-diff]').forEach(b => b.onclick = () => { diff = b.dataset.diff; body.querySelectorAll('[data-diff]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
     if ($('cHall')) $('cHall').onclick = () => renderHall(renderCareerNew);
     const box = $('cMgrs');
-    MANAGERS.filter(id => PLAYER(id)).forEach(id => {
-      const b = document.createElement('button'); b.className = 'cmgr' + (id === pick ? ' sel' : '');
-      b.appendChild(face(Sprites.refOf(PLAYER(id)), 64)); b.insertAdjacentHTML('beforeend', `<span>${esc(PLAYER(id).name)}</span>`);
+    [...MANAGERS, ...(Halloween.rayUnlocked() ? [RAY_DARK] : [])].filter(id => PLAYER(id)).forEach(id => {
+      const b = document.createElement('button'); b.className = 'cmgr' + (id === pick ? ' sel' : '') + (id === RAY_DARK ? ' ray' : '');
+      b.appendChild(mgrFace(id, 64)); b.insertAdjacentHTML('beforeend', `<span>${esc(PLAYER(id).name)}</span>${id === RAY_DARK ? `<small>${TX('+10 % de ingresos')}</small>` : ''}`);
       b.onclick = () => { pick = id; box.querySelectorAll('.cmgr').forEach(x => x.classList.toggle('sel', x === b)); Sound.sfx('click'); };
       box.appendChild(b);
     });
@@ -7982,6 +8340,9 @@ const App = (() => {
         ${b('dWC', TX('🌍 Empezar el Mundial'), 'ahora mismo')}${b('dSeason', TX('Terminar temporada'), TX('simula lo que queda'))}
         ${b('dDiv1', TX('Subir a Primera'), TX('la temporada empieza de nuevo'))}${b('dDiv3', TX('Bajar a Tercera'), TX('la temporada empieza de nuevo'))}</div>`
         : `<p class="note">${TX('No hay ninguna carrera empezada.')}</p><div class="grid2">${b('dNewCar', TX('Crear carrera rápida'), TX('normal, con Nelly'))}</div>`}
+      <h3>${TX('Halloween')}</h3>
+      <div class="grid2">${b('dHwOn', settings.hwForce ? TX('🎃 Evento forzado: SÍ') : TX('🎃 Evento forzado: NO'), TX('verlo fuera de fechas'))}${b('dHwCandy', TX('+300 caramelos'))}
+        ${b('dHwRetos', TX('Completar los retos'), TX('desbloquea a Ray Dark'))}${b('dHwReset', TX('Reiniciar el evento'), TX('caramelos, retos y regalo'))}</div>
       <h3>${TX('Modo')}</h3>
       <div class="grid2">${b('dOff', TX('Salir del modo'), 'desarrollador')}</div>
       <h3>${TX('Partido')}</h3>
@@ -8019,6 +8380,10 @@ const App = (() => {
       $('dSign').onclick = () => renderDevSign();
     } else $('dNewCar').onclick = () => { Career.create(13, TX('Instituto Inazuma')); done(TX('Carrera creada')); };
     $('dRun').onclick = () => { Run.clear(); api.run = null; done(TX('Partida en curso borrada')); };
+    $('dHwOn').onclick = () => { settings.hwForce = !settings.hwForce; Halloween.forced = settings.hwForce; saveSettings(); done(settings.hwForce ? TX('Evento de Halloween forzado') : TX('Evento de Halloween según la fecha')); };
+    $('dHwCandy').onclick = () => { Halloween.data().candy += 300; done(TX('+300 caramelos')); };
+    $('dHwRetos').onclick = () => { const H = Halloween.data(); Halloween.RETOS.forEach(R => { H.retos[R.id] = Date.now(); }); H.ray = true; done(TX('Retos completados: Ray Dark desbloqueado')); };
+    $('dHwReset').onclick = () => { delete P.hw; Halloween.data(); done(TX('Evento reiniciado')); };
     let resetArm = false;
     $('dReset').onclick = () => {
       if (!resetArm) { resetArm = true; $('dReset').firstChild.textContent = TX('¿Seguro? Toca otra vez'); return; }

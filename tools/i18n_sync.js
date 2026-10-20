@@ -6,7 +6,7 @@ const fs = require('fs'), path = require('path');
 const S = path.join(__dirname, '..', 'src') + '/';
 const KEY = /TXn?\(\s*(?:[^,()']+,\s*)?'((?:[^'\\]|\\.)*)'/g;
 const used = new Set();
-for (const f of ['app.js', 'view.js', 'logic.js', 'run.js', 'career.js', 'cloud.js', 'media.js', 'techfx.js']) {
+for (const f of ['app.js', 'view.js', 'logic.js', 'run.js', 'career.js', 'event.js', 'cloud.js', 'media.js', 'techfx.js']) {
   const src = fs.readFileSync(S + f, 'utf8'); let m; while ((m = KEY.exec(src))) used.add(eval("'" + m[1] + "'"));
 }
 const enSrc = fs.readFileSync(S + 'en.js', 'utf8');

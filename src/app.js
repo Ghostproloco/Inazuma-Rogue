@@ -9,7 +9,7 @@ const ROLES4 = ['POR', 'DEF', 'MED', 'DEL'];
 const RAB = r => (I18N.en() ? { POR: 'GK', DEF: 'DF', MED: 'MF', DEL: 'FW' }[r] : null) || r;
 const yearTx = n => TX('{0}º curso', n);
 const ordTx = n => I18N.en() ? n + ([, 'st', 'nd', 'rd'][n % 100 > 10 && n % 100 < 14 ? 0 : n % 10] || 'th') : n + 'º';
-const FIELD_LABEL = { normal: TX('Campo clásico'), noche: TX('Campo nocturno'), jungla: TX('Campo de la jungla'), atardecer: TX('Campo al atardecer'), nieve: TX('Campo nevado'), acero: TX('Estadio de acero'), cielo: TX('Campo celestial'), volcan: TX('Campo volcánico') };
+const FIELD_LABEL = { normal: TX('Campo clásico'), noche: TX('Campo nocturno'), niebla: TX('Campo nocturno con niebla'), jungla: TX('Campo de la jungla'), atardecer: TX('Campo al atardecer'), nieve: TX('Campo nevado'), acero: TX('Estadio de acero'), cielo: TX('Campo celestial'), volcan: TX('Campo volcánico') };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const chip = e => `<span class="chip ${EL(e).css}">${ELEM_LABEL[e] || e}</span>`;
 const rchip = r => `<span class="rar ${r}">${RARITY[r].label}</span>`;
@@ -17,13 +17,14 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.31.0';
+const VERSION = '0.31.1';
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
   try { Object.assign(settings, JSON.parse(localStorage.getItem('inazuma-ajustes') || '{}')); } catch (_) {}
   const saveSettings = () => { try { localStorage.setItem('inazuma-ajustes', JSON.stringify(settings)); } catch (_) {} };
   Profile.load();
+  Halloween.forced = !!settings.hwForce;
 
   const api = { match: null, matchSheet: null, running: false, scene: null, mode: null, run: Run.load(), settings, pick: null, draft: null };
   const body = $('screenBody');
@@ -38,6 +39,7 @@ const App = (() => {
   // Fondo de cada pantalla: imágenes del juego (carpeta ui/); sin fondo = rayas azules del menú
   function screen(html, bg) {
     const sc = $('screen');
+    sc.classList.remove('hwtheme'); sc.querySelectorAll('.hwfx').forEach(x => x.remove());
     sc.classList.toggle('bg-cover', !!bg);
     sc.style.backgroundImage = bg ? `url("ui/${bg}.png")` : '';
     body.classList.toggle('cardbg-clear', !!bg);
@@ -48,6 +50,12 @@ const App = (() => {
   const top = (title, id = 'back', label = TX('Volver')) => `<div class="top"><button class="ghost back" id="${id}">◀ ${label}</button><h2>${title}</h2></div>`;
   const bottom = html => `<div class="bottom">${html}</div>`;
   const face = (ref, size) => Sprites.face(ref, size);
+  // Cara del mánager (Ray Dark no tiene sprite: se usa el escudo de los Emperadores Oscuros)
+  function mgrFace(id, size) {
+    const pd = PLAYER(id);
+    if (pd && pd.crestFace) { const i = document.createElement('img'); i.src = `ui/crest${pd.crestFace}.png`; i.alt = ''; i.width = i.height = size; i.className = 'mgrcrest'; return i; }
+    return face(Sprites.refOf(pd), size);
+  }
   function wallet() { const P = Profile.data; return `<div class="runbar"><span>🪙 ${P.coins}</span><span>🎟️ ${P.tickets}</span><span title="${TX('Rayos Raimon')}">⚡ ${P.rayos}</span><span>👥 ${Profile.ids().length}</span></div>`; }
   function opts(group, key, list, obj = settings) {
     return `<div class="group"><label>${group}</label><div class="opts">${list.map(([v, t]) =>
@@ -73,6 +81,7 @@ const App = (() => {
     const P = Profile.data, r = api.run && api.run.state !== 'over' ? api.run : null;
     const done = P.story.s1.done;
     screen(`<div class="title"><img class="logo" id="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>${TX('5 contra 5 · roguelite')}</span></div>${wallet()}
+      ${Halloween.active() ? hwMenuBtn() : ''}
       ${r ? `<button class="cta" id="mContinue">${TX('Continuar:')} ${esc(r.name)}<small>${TX('Partido')} ${r.index + 1}${r.kind === 'infinite' ? '' : TX(' de ') + r.schedule.length} · ${'♥'.repeat(r.lives)}</small></button>` : ''}
       <div class="modes">
         <button class="mode" id="mCareer"><span class="cicon">🏆</span><span class="mt"><b>${TX('Modo Carrera')}</b><small>${Career.data && !Career.data.over ? TX('Temporada ') + Career.data.season + ' · ' + DIV_NAME[Career.myDiv()] + TX(' · semana ') + Career.data.week : TX('Eres el mánager: 3 divisiones y ascensos')}</small></span></button>
@@ -109,6 +118,7 @@ const App = (() => {
     $('mSaves').onclick = () => renderAccount(renderMenu);
     body.querySelector('[data-cloudline]').onclick = () => renderAccount(renderMenu);
     $('mQuick').onclick = startQuick; $('mSound').onclick = renderSettings;
+    if ($('mHw')) { $('mHw').onclick = renderHalloween; hwDecor(); }
     Sound.music('menu');
   }
 
@@ -243,7 +253,7 @@ const App = (() => {
     }
     const pd = PLAYER(r.id);
     c.appendChild(face(Sprites.refOf(pd), 80));
-    c.insertAdjacentHTML('beforeend', `<div class="gname">${esc(pd.name)}</div><div class="gmeta">${rchip(r.tier)}<span>${RAB(pd.role)}</span>${chip(pd.elem)}</div>
+    c.insertAdjacentHTML('beforeend', `<div class="gname">${pd.halloween ? '🎃' : ''}${esc(pd.name)}</div><div class="gmeta">${rchip(r.tier)}<span>${RAB(pd.role)}</span>${chip(pd.elem)}</div>
       <div class="gtag">${r.isNew ? 'NUEVO' : r.coins ? '+' + r.coins + ' 🪙' : '★ ' + r.star}</div>`);
     return c;
   }
@@ -259,7 +269,7 @@ const App = (() => {
   }
 
   /* ---------- Máquina de gachapón ---------- */
-  const MACHINE_COLORS = { 1: ['#e8c21a', '#1f4fc0'], 2: ['#2a5fd0', '#e8e8f0'], 3: ['#5a1a8a', '#e01a4a'], 4: ['#b8742a', '#f2e6c0'] };
+  const MACHINE_COLORS = { 1: ['#e8c21a', '#1f4fc0'], 2: ['#2a5fd0', '#e8e8f0'], 3: ['#5a1a8a', '#e01a4a'], 4: ['#b8742a', '#f2e6c0'], [HW_BANNER]: ['#ff7a1a', '#6a2aa8'] };
   const CAP_COLORS = { comun: '#b8bcc8', rara: '#3f8fff', epica: '#a24cff', legendaria: '#ffcc22' };
   function drawMachine(cv, st) {
     const g = cv.getContext('2d'), [c1, c2] = st.colors;
@@ -297,7 +307,7 @@ const App = (() => {
     g.fillStyle = '#10183a'; g.fillRect(16, 122, 64, 6);
   }
   function renderMachine(res, bannerId, done, title) {
-    const B = BANNERS.find(b => b.id === bannerId) || BANNERS[0];
+    const B = BANNERS.find(b => b.id === bannerId) || (bannerId === HW_BANNER ? { name: TX('Sobre Calabaza'), crest: 3 } : BANNERS[0]);
     screen(`<h2>${esc(title || B.name)}</h2>
       <div class="gmach"><canvas id="mc" width="96" height="128"></canvas><div class="gm-hint" id="mHint">${Controls.pc() ? TX('Arrastra la manivela en círculo (o pulsa Espacio)') : TX('Gira la manivela con el dedo ↻')}</div></div>
       <div class="caps" id="caps"></div>
@@ -365,6 +375,75 @@ const App = (() => {
     $('mAll').onclick = async () => { $('mAll').hidden = true; for (const el of [...caps.querySelectorAll('.cap')]) { const it = items[[...caps.children].indexOf(el)]; await openCap(it, el); await new Promise(r => setTimeout(r, 120)); } };
     $('mSkip').onclick = () => { alive = false; cancelAnimationFrame(raf); removeEventListener('keydown', key); renderReveal(res, done, title || TX('¡Nuevos jugadores!')); };
     $('mOk').onclick = () => { alive = false; cancelAnimationFrame(raf); removeEventListener('keydown', key); done(); };
+  }
+
+  /* =====================================================================
+     EVENTO DE HALLOWEEN (pantalla propia, fuera de los modos)
+     ===================================================================== */
+  function hwMenuBtn() {
+    const H = Halloween.data(), gift = H.daily !== Halloween.today(), n = Halloween.pending();
+    return `<button class="mode hwmode" id="mHw"><span class="cicon">🎃</span><span class="mt"><b>${TX('Halloween')}${gift || n ? ' <i class="hwdot"></i>' : ''}</b><small>${TX('Sobre Calabaza, partido jefe y retos')} · 🍬 ${H.candy}${gift ? ' · ' + TX('🎁 regalo') : ''}</small></span></button>`;
+  }
+  // Calabazas, murciélagos y niebla suave detrás de la pantalla
+  function hwDecor() {
+    const sc = $('screen'); sc.classList.add('hwtheme');
+    sc.insertAdjacentHTML('afterbegin', `<div class="hwfx" aria-hidden="true"><i class="fog f1"></i><i class="fog f2"></i><i class="fog f3"></i>
+      <span class="pk p1">🎃</span><span class="pk p2">🎃</span><span class="pk p3">🎃</span><span class="bat b1">🦇</span><span class="bat b2">🦇</span></div>`);
+  }
+  function renderHalloween() {
+    if (!Halloween.active()) return renderMenu();
+    const gift = Halloween.daily(), H = Halloween.data(), d = Halloween.daysLeft();
+    const legs = HW_LEGENDS.map(L => PLAYER(L.id)).filter(Boolean);
+    const retos = Halloween.RETOS.map(R => {
+      const st = Halloween.retoState(R), v = Math.min(R.goal, R.val(H));
+      return `<div class="hwreto ${st}"><div><b>${R.name}</b><small>${R.desc} · ${v}/${R.goal}</small><small>${TX('Premio:')} ${R.reward.candy} 🍬 · ${R.reward.tickets} 🎟️</small></div>
+        ${st === 'got' ? '<span class="hwok">✓</span>' : `<button class="cta" data-reto="${R.id}" ${st === 'ready' ? '' : 'disabled'}>${TX('Recoger')}</button>`}</div>`;
+    }).join('');
+    screen(`${top('🎃 ' + TX('Halloween'))}
+      <div class="runbar hwbar"><span>🍬 ${H.candy}</span><span>🎟️ ${Profile.data.tickets}</span><span>${d <= 1 ? TX('¡Último día!') : TX('Quedan') + ' ' + d + ' ' + TX('días')}</span></div>
+      <h3>${TX('Sobre Calabaza')}</h3>
+      <div class="hwlegs" id="hwLegs"></div>
+      <p class="note">${TX('Solo jugadores villanos y de miedo, y 5 legendarios exclusivos de Halloween.')}<br>
+        ${TX('Legendario 3 % · Épica 15 % · Rara 32 % · Común 50 %. Legendario asegurado a las')} ${HW_PITY} ${TX('tiradas (llevas')} ${H.pity}${TX(').')}</p>
+      <div class="grid2"><button class="cta" id="hw1" ${H.candy < HW_PRICE ? 'disabled' : ''}>${TX('Tirar ×1')}<small>${HW_PRICE} 🍬</small></button><button class="cta" id="hw10" ${H.candy < HW_PRICE * 10 ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${HW_PRICE * 10} 🍬</small></button></div>
+      <h3>${TX('Partido jefe')}</h3>
+      <button class="mode hwmode" id="hwBoss">${Sprites.crest(3)}<span class="mt"><b>${TX('Instituto Ocultismo')}</b><small>${TX('Versión jefe · campo nocturno con niebla')}<br>${Halloween.bossDone() ? TX('Premio de hoy ya cobrado (puedes repetir)') : TX('Gánale: +60 🍬 (una vez al día)')}</small></span></button>
+      <h3>${TX('Retos')}</h3>
+      <div class="hwretos">${retos}</div>
+      <p class="note">${Halloween.rayUnlocked() ? '<b>' + TX('✓ Ray Dark ya es mánager en el Modo Carrera (+10 % de ingresos).') + '</b>' : TX('Completa los 3 retos y') + ' <b>' + TX('Ray Dark') + '</b> ' + TX('se podrá elegir como mánager en el Modo Carrera, con') + ' <b>' + TX('+10 % de ingresos') + '</b>.'}</p>
+      <p class="note">${TX('Caramelos: +5 por partido en cualquier modo (+10 más si ganas), +20 de regalo cada día, +60 al ganar al Ocultismo jefe y los retos. El evento dura hasta el 3 de noviembre; los jugadores que consigas son tuyos para siempre.')}</p>`, 'bg_title');
+    hwDecor();
+    legs.forEach(p => { const w = document.createElement('div'); w.className = 'hwleg' + (Profile.data.coll[p.id] ? ' own' : ''); w.appendChild(face(Sprites.refOf(p), 48)); w.insertAdjacentHTML('beforeend', `<small>${esc(p.full.replace(/ \(Halloween\)$/, ''))}</small>`); $('hwLegs').appendChild(w); });
+    const go = n => { const res = Halloween.pull(n); if (!res) return UI.toast(TX('No tienes caramelos suficientes')); renderMachine(res, HW_BANNER, renderHalloween, TX('Sobre Calabaza')); };
+    $('hw1').onclick = () => go(1); $('hw10').onclick = () => go(10);
+    $('hwBoss').onclick = startBoss;
+    body.querySelectorAll('[data-reto]').forEach(b => b.onclick = () => {
+      const r = Halloween.claim(b.dataset.reto); if (!r) return;
+      Sound.sfx('reveal'); renderHalloween();
+      UI.toast(r.ray ? TX('¡Retos completados! Ray Dark ya se puede elegir como mánager en el Modo Carrera') : '+' + r.reward.candy + ' 🍬 · +' + r.reward.tickets + ' 🎟️', 3200);
+    });
+    $('back').onclick = renderMenu;
+    if (gift) setTimeout(() => UI.toast(TX('🎁 Regalo diario:') + ' +' + gift + ' 🍬', 2400), 300);
+    Sound.music('menu');
+  }
+  function startBoss() {
+    if (api.run && api.run.state !== 'over') return UI.toast(TX('Termina o abandona la partida en curso'));
+    const T = savedTeam(), F = FORMATIONS[T.formation], pos = layout(F.roles), L = T.ids;
+    if (L.some(x => x == null)) return UI.toast(TX('Completa tu equipo en Plantilla'));
+    api.mode = 'hwboss';
+    const A = { name: TX('Tu equipo'), players: L.map((id, i) => {
+      const pd = PLAYER(id);
+      return Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: Sprites.refOf(pd) });
+    }) };
+    startMatch({ A, B: Halloween.bossTeam() }, false, 'niebla', 'match', 'Occult');
+  }
+  function renderBossEnd(s, candy, bonus) {
+    const a = s.score.A, b = s.score.B;
+    screen(`<img class="finimg" src="ui/fin.png" alt="${TX('Fin del partido')}"><h2>${a > b ? TX('¡Has vencido al Ocultismo!') : a < b ? TX('El Ocultismo te ha asustado…') : TX('Empate')}</h2>
+      ${scoreLine(s)}
+      <p class="note">${candy ? '+' + candy + ' 🍬 ' + TX('por jugar') : ''}${bonus ? '<br><b>+' + bonus + ' 🍬 ' + TX('¡premio del jefe!') + '</b>' : a > b ? '<br>' + TX('El premio del jefe ya lo cobraste hoy.') : ''}</p>
+      <button class="cta" id="again">${TX('Volver a Halloween')}</button><button class="ghost" id="toMenu">${TX('Menú')}</button>`, a > b ? 'ill27' : a < b ? 'ill15' : 'ill28');
+    $('again').onclick = renderHalloween; $('toMenu').onclick = renderMenu;
   }
 
   /* ---------- Plantilla, entrenamiento y Rayos ---------- */
@@ -668,9 +747,10 @@ const App = (() => {
       $('pResume').onclick = () => api.togglePause();
       if ($('pWin')) $('pWin').onclick = () => { const m = api.match; m.score.A = m.score.B + 1; m.time = 0.01; m.golden = false; api.togglePause(); };
       $('pQuit').onclick = () => {
+        api.match.quit = true;   // rendirse no da caramelos
         if (api.mode === 'run') { api.match.over = true; api.match.result = 'loss'; api.matchEnded(api.match); }
         else if (api.mode === 'career' || api.mode === 'wc') { const m = api.match; m.over = true; m.score.A = 0; m.score.B = Math.max(3, m.score.B); m.result = 'loss'; api.matchEnded(m); }
-        else { api.match.over = true; renderMenu(); }
+        else { api.match.over = true; Sound.stop(0.3); api.mode === 'hwboss' ? renderHalloween() : renderMenu(); }
       };
       show('pause');
     } else { show(null); api.running = true; }
@@ -679,7 +759,11 @@ const App = (() => {
     api.running = false;
     setTimeout(() => {
       Sound.stop(0.6);
-      if (api.mode === 'wc') { const r = Career.wcResult(s.score.A, s.score.B); Sound.jingle(r.gA > r.gB || (r.pens && r.pens[0] > r.pens[1]) ? 'win' : r.gA === r.gB && !r.pens ? null : 'lose'); renderWC(r); }
+      // Halloween: caramelos por jugar en cualquier modo (+5, +10 más si ganas)
+      const candy = s.quit ? 0 : Halloween.matchPlayed(s.score.A > s.score.B);
+      if (candy && api.mode !== 'hwboss') setTimeout(() => UI.toast('+' + candy + ' 🍬 ' + TX('caramelos de Halloween'), 2200), 500);
+      if (api.mode === 'hwboss') { const won = s.score.A > s.score.B, bonus = Halloween.bossResult(won); Sound.jingle(won ? 'win' : s.score.A < s.score.B ? 'lose' : null); renderBossEnd(s, candy, bonus); }
+      else if (api.mode === 'wc') { const r = Career.wcResult(s.score.A, s.score.B); Sound.jingle(r.gA > r.gB || (r.pens && r.pens[0] > r.pens[1]) ? 'win' : r.gA === r.gB && !r.pens ? null : 'lose'); renderWC(r); }
       else if (api.mode === 'career') {
         const nm = Career.nextMatch();
         const pens = nm && nm.ko && s.score.A === s.score.B ? Career.penalties(Career.myRating(), Career.rating(nm.rival)) : null;
@@ -843,7 +927,7 @@ const App = (() => {
     const act = (k, A) => `<button class="ghost big act-${k}" data-act="${k}">${A.name}<small>${A.desc}</small></button>`;
     const kindTxt = !nm ? '' : nm.type === 'liga' ? `${TX('Jornada')} ${nm.j + 1}` : nm.type === 'copa' ? `${TX('Copa ·')} ${CUP_ROUND[nm.round]}` : nm.type === 'semi' ? TX('Playoff · semifinal') : TX('Playoff · ¡FINAL!');
     const cupTxt = !c.cup ? TX('La Copa empieza la temporada que viene') : c.cup.winner ? (c.cup.winner === YOU ? TX('¡Campeones de Copa!') : TX('Campeón de Copa: ') + Career.teamName(c.cup.winner)) : c.cup.out ? TX('Eliminados de la Copa: se juega sin ti') : TX('Siguiente ronda: ') + CUP_ROUND[c.cup.round];
-    const sponsor = Math.round((8 + c.fame * 0.5) * DIV_SPONSOR[d]);
+    const sponsor = Math.round((8 + c.fame * 0.5) * DIV_SPONSOR[d] * Career.incomeMul());
     screen(`${top(TX('Modo Carrera'))}
       ${c.migrated ? '<p class="note cmsg">' + TX('Tu carrera se ha adaptado a las ligas de 10 equipos: la temporada actual empieza de nuevo (conservas plantilla, fama y dinero).') + '</p>' : ''}
       <div class="chead"><img class="ccrest big" src="${myCrestUrl()}" alt=""><span id="cMgr"></span><div><b>${esc(c.school)}</b><small>${TX('Mánager:')} ${esc(mgr.name)} ${TX('· Temporada')} ${c.season}${c.goal ? TX(' · ★ Campeón de Primera') : ''}</small></div></div>
@@ -864,7 +948,7 @@ const App = (() => {
         <button class="ghost" id="cHall">${TX('🏛️ Salón de la fama')}</button><button class="ghost" id="cSave">${TX('💾 Guardar')}</button></div>
       <button class="ghost" id="cQuit">${TX('Abandonar carrera')}</button>`, 'bg_green');
     c.migrated = false;
-    $('cMgr').appendChild(face(Sprites.refOf(mgr), 40));
+    $('cMgr').appendChild(mgrFace(c.manager, 40));
     const after = msg => {
       if (Career.nextMatch()) return renderCareerPre(msg);
       const wt0 = Career.weekType(), wasPO = /^P/.test(wt0);
@@ -944,9 +1028,9 @@ const App = (() => {
     body.querySelectorAll('[data-diff]').forEach(b => b.onclick = () => { diff = b.dataset.diff; body.querySelectorAll('[data-diff]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
     if ($('cHall')) $('cHall').onclick = () => renderHall(renderCareerNew);
     const box = $('cMgrs');
-    MANAGERS.filter(id => PLAYER(id)).forEach(id => {
-      const b = document.createElement('button'); b.className = 'cmgr' + (id === pick ? ' sel' : '');
-      b.appendChild(face(Sprites.refOf(PLAYER(id)), 64)); b.insertAdjacentHTML('beforeend', `<span>${esc(PLAYER(id).name)}</span>`);
+    [...MANAGERS, ...(Halloween.rayUnlocked() ? [RAY_DARK] : [])].filter(id => PLAYER(id)).forEach(id => {
+      const b = document.createElement('button'); b.className = 'cmgr' + (id === pick ? ' sel' : '') + (id === RAY_DARK ? ' ray' : '');
+      b.appendChild(mgrFace(id, 64)); b.insertAdjacentHTML('beforeend', `<span>${esc(PLAYER(id).name)}</span>${id === RAY_DARK ? `<small>${TX('+10 % de ingresos')}</small>` : ''}`);
       b.onclick = () => { pick = id; box.querySelectorAll('.cmgr').forEach(x => x.classList.toggle('sel', x === b)); Sound.sfx('click'); };
       box.appendChild(b);
     });
@@ -1810,6 +1894,9 @@ const App = (() => {
         ${b('dWC', TX('🌍 Empezar el Mundial'), 'ahora mismo')}${b('dSeason', TX('Terminar temporada'), TX('simula lo que queda'))}
         ${b('dDiv1', TX('Subir a Primera'), TX('la temporada empieza de nuevo'))}${b('dDiv3', TX('Bajar a Tercera'), TX('la temporada empieza de nuevo'))}</div>`
         : `<p class="note">${TX('No hay ninguna carrera empezada.')}</p><div class="grid2">${b('dNewCar', TX('Crear carrera rápida'), TX('normal, con Nelly'))}</div>`}
+      <h3>${TX('Halloween')}</h3>
+      <div class="grid2">${b('dHwOn', settings.hwForce ? TX('🎃 Evento forzado: SÍ') : TX('🎃 Evento forzado: NO'), TX('verlo fuera de fechas'))}${b('dHwCandy', TX('+300 caramelos'))}
+        ${b('dHwRetos', TX('Completar los retos'), TX('desbloquea a Ray Dark'))}${b('dHwReset', TX('Reiniciar el evento'), TX('caramelos, retos y regalo'))}</div>
       <h3>${TX('Modo')}</h3>
       <div class="grid2">${b('dOff', TX('Salir del modo'), 'desarrollador')}</div>
       <h3>${TX('Partido')}</h3>
@@ -1847,6 +1934,10 @@ const App = (() => {
       $('dSign').onclick = () => renderDevSign();
     } else $('dNewCar').onclick = () => { Career.create(13, TX('Instituto Inazuma')); done(TX('Carrera creada')); };
     $('dRun').onclick = () => { Run.clear(); api.run = null; done(TX('Partida en curso borrada')); };
+    $('dHwOn').onclick = () => { settings.hwForce = !settings.hwForce; Halloween.forced = settings.hwForce; saveSettings(); done(settings.hwForce ? TX('Evento de Halloween forzado') : TX('Evento de Halloween según la fecha')); };
+    $('dHwCandy').onclick = () => { Halloween.data().candy += 300; done(TX('+300 caramelos')); };
+    $('dHwRetos').onclick = () => { const H = Halloween.data(); Halloween.RETOS.forEach(R => { H.retos[R.id] = Date.now(); }); H.ray = true; done(TX('Retos completados: Ray Dark desbloqueado')); };
+    $('dHwReset').onclick = () => { delete P.hw; Halloween.data(); done(TX('Evento reiniciado')); };
     let resetArm = false;
     $('dReset').onclick = () => {
       if (!resetArm) { resetArm = true; $('dReset').firstChild.textContent = TX('¿Seguro? Toca otra vez'); return; }
