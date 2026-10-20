@@ -420,7 +420,7 @@ const App = (() => {
     body.querySelectorAll('[data-reto]').forEach(b => b.onclick = () => {
       const r = Halloween.claim(b.dataset.reto); if (!r) return;
       Sound.sfx('reveal'); renderHalloween();
-      UI.toast(r.ray ? TX('¡Retos completados! Ray Dark ya se puede elegir como mánager en el Modo Carrera') : '+' + r.reward.candy + ' 🍬 · +' + r.reward.tickets + ' 🎟️', 3200);
+      UI.toast(r.ray ? TX('¡Ray Dark desbloqueado como mánager!') : '+' + r.reward.candy + ' 🍬 · +' + r.reward.tickets + ' 🎟️', 3200);
     });
     $('back').onclick = renderMenu;
     if (gift) setTimeout(() => UI.toast(TX('🎁 Regalo diario:') + ' +' + gift + ' 🍬', 2400), 300);
