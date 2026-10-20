@@ -13,7 +13,10 @@
      ya tiene partida) → se pregunta al jugador. Nunca se borra nada
      sin preguntar.
    ===================================================================== */
-const SAVE_KEYS = ['inazuma-perfil', 'inazuma-carrera', 'inazuma-ajustes', 'inazuma-run3', 'inazuma-sonido'];
+const SAVE_KEYS = ['inazuma-perfil', 'inazuma-carrera', 'inazuma-ajustes', 'inazuma-run3', 'inazuma-sonido', 'inazuma-jugador'];
+// Progreso de verdad (lo que se compara para decidir si hay dos partidas distintas); ajustes y sonido son de cada dispositivo
+const PROGRESS_KEYS = ['inazuma-perfil', 'inazuma-carrera', 'inazuma-run3', 'inazuma-jugador'];
+const DEVICE_KEYS = ['inazuma-ajustes', 'inazuma-sonido'];
 
 const Cloud = (() => {
   const META_KEY = 'inazuma-cuenta';
@@ -22,7 +25,8 @@ const Cloud = (() => {
   const CFG = (typeof CLOUD_CONFIG !== 'undefined' && CLOUD_CONFIG) || {};
   const PUSH_DELAY = 3000;      // espera tras un cambio antes de subir (agrupa varios guardados)
   const TIMEOUT = 15000;
-  const MAX_RAW = 700000;       // por encima, la partida se guarda comprimida (Firestore admite 1 MB por documento)
+  const MAX_RAW = 500000;       // por encima, la partida se guarda comprimida (Firestore admite 1 MB por documento)
+  const RETRY = (typeof CLOUD_RETRY !== 'undefined' && CLOUD_RETRY) || [20000, 45000, 90000, 180000, 300000];   // reintentos tras un error (cada vez más espaciados)
 
   /* ---------- Datos de la cuenta en este dispositivo ---------- */
   const origSet = Storage.prototype.setItem, origRemove = Storage.prototype.removeItem;
@@ -31,36 +35,47 @@ const Cloud = (() => {
   const saveMeta = () => { try { origSet.call(localStorage, META_KEY, JSON.stringify(meta)); } catch (_) {} };
 
   /* ---------- Partida local ---------- */
-  let applying = false;
+  let applying = false, frozen = false;   // frozen: se va a recargar con la partida bajada; no dejar que nada la pise
   function snapshot() { const o = {}; SAVE_KEYS.forEach(k => { try { const v = localStorage.getItem(k); if (v != null) o[k] = v; } catch (_) {} }); return o; }
-  function restore(o) {
+  function restore(o, freeze) {
+    if (freeze) frozen = true;
     applying = true;
     try { SAVE_KEYS.forEach(k => { try { if (o && o[k] != null) origSet.call(localStorage, k, o[k]); else origRemove.call(localStorage, k); } catch (_) {} }); }
     finally { applying = false; }
   }
-  function hash(o) {   // huella corta de la partida para saber si ha cambiado
-    const s = SAVE_KEYS.map(k => k + '=' + (o && o[k] != null ? o[k] : '')).join('\\u0001');
+  function hash(o, keys = SAVE_KEYS) {   // huella corta de la partida para saber si ha cambiado
+    const s = keys.map(k => k + '=' + (o && o[k] != null ? o[k] : '')).join('\\u0001');
     let h1 = 0x811c9dc5, h2 = 0x1000193;
     for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = Math.imul(h2 ^ c, 2246822519); }
     return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36) + ':' + s.length;
   }
-  // ¿Hay progreso de verdad? (ya hizo la tirada de bienvenida o tiene Carrera)
+  const hashP = o => hash(o, PROGRESS_KEYS);   // solo el progreso
+  // ¿Hay progreso de verdad? (ya hizo la tirada de bienvenida o tiene Carrera o Carrera Jugador)
   function hasProgress(o) {
     try { const p = JSON.parse((o || {})['inazuma-perfil'] || 'null'); if (p && (p.firstDone || Object.keys(p.coll || {}).length)) return true; } catch (_) {}
-    return !!(o && o['inazuma-carrera']);
+    return !!(o && (o['inazuma-carrera'] || o['inazuma-jugador']));
   }
   function describe(o) {
     try {
       const p = JSON.parse(o['inazuma-perfil'] || '{}'), cr = o['inazuma-carrera'] ? JSON.parse(o['inazuma-carrera']) : null;
+      const pc = o['inazuma-jugador'] ? JSON.parse(o['inazuma-jugador']) : null;
       const st = p.story || {}, etapas = ['s1', 's2', 's3', 's4'].filter(k => st[k] && st[k].done).length;
+      const pcName = pc && pc.me ? ((typeof PLAYER === 'function' && PLAYER(pc.me.id)) || pc.me.pd || {}).name : '';
       return { players: Object.keys(p.coll || {}).length, tickets: p.tickets || 0, coins: p.coins || 0, wins: p.wins || 0, etapas,
-        career: cr ? (cr.school || TX('Carrera')) + TX(' · temporada ') + (cr.season || 1) : '' };
-    } catch (_) { return { players: 0, tickets: 0, coins: 0, wins: 0, etapas: 0, career: '' }; }
+        career: cr ? (cr.school || TX('Carrera')) + TX(' · temporada ') + (cr.season || 1) : '',
+        pcareer: pc && pc.me ? `${pcName || '?'} · ${pc.school || ''} · ${TX('Temporada')} ${pc.season || 1} · ${TX('Nivel')} ${pc.me.lv || 1}` : '' };
+    } catch (_) { return { players: 0, tickets: 0, coins: 0, wins: 0, etapas: 0, career: '', pcareer: '' }; }
   }
 
   /* ---------- Avisos de cambios: cualquier guardado del juego programa una subida ---------- */
-  Storage.prototype.setItem = function (k, v) { origSet.call(this, k, v); if (!applying && this === localStorage && SAVE_KEYS.includes(k)) touch(); };
-  Storage.prototype.removeItem = function (k) { origRemove.call(this, k); if (!applying && this === localStorage && SAVE_KEYS.includes(k)) touch(); };
+  Storage.prototype.setItem = function (k, v) {
+    if (frozen && this === localStorage && SAVE_KEYS.includes(k)) return;   // a punto de recargar con la partida de la nube
+    origSet.call(this, k, v); if (!applying && this === localStorage && SAVE_KEYS.includes(k)) touch();
+  };
+  Storage.prototype.removeItem = function (k) {
+    if (frozen && this === localStorage && SAVE_KEYS.includes(k)) return;
+    origRemove.call(this, k); if (!applying && this === localStorage && SAVE_KEYS.includes(k)) touch();
+  };
 
   /* ---------- Estado visible para la interfaz ---------- */
   const state = { status: 'idle', msg: '', lastOk: meta.lastOk || 0, conflict: null };
@@ -188,7 +203,8 @@ const Cloud = (() => {
     try { if (await ready()) await auth.signOut(); } catch (_) {}
     signingOut = false;
     const guest = meta.guest; meta = { guest }; saveMeta();
-    if (!keepLocal) { applying = true; try { ['inazuma-perfil', 'inazuma-carrera', 'inazuma-run3'].forEach(k => { try { origRemove.call(localStorage, k); } catch (_) {} }); } finally { applying = false; } }
+    if (!keepLocal) { applying = true; try { PROGRESS_KEYS.forEach(k => { try { origRemove.call(localStorage, k); } catch (_) {} }); } finally { applying = false; } }   // todo el progreso (también la Carrera Jugador)
+    clearTimeout(timer); timer = 0; clearTimeout(retryT); retryT = 0; tries = 0;
     state.lastOk = 0; state.conflict = null; setStatus('idle');
     return { ok: true };
   }
@@ -223,17 +239,26 @@ const Cloud = (() => {
     try { const d = await withTimeout(ref().get({ source: 'server' })); return { row: d.exists ? await rowOf(d) : null }; }
     catch (e) { return { error: errOf(e) }; }
   }
-  function synced(rev, data) { meta.owner = meta.uid; meta.rev = rev; meta.hash = hash(data); meta.lastOk = state.lastOk = Date.now(); saveMeta(); }
+  function synced(rev, data) { meta.owner = meta.uid; meta.rev = rev; meta.hash = hash(data); meta.phash = hashP(data); meta.lastOk = state.lastOk = Date.now(); tries = 0; saveMeta(); }
+  // Reintento automático tras un error o sin conexión (antes solo se reintentaba al volver a guardar algo)
+  let retryT = 0, tries = 0;
+  function retryLater() {
+    if (retryT || !loggedIn() || meta.expired) return;
+    const d = RETRY[Math.min(tries, RETRY.length - 1)]; tries++;
+    retryT = setTimeout(() => { retryT = 0; if (!state.conflict && !syncing) push(true); }, d);
+  }
   function failStatus(r) {
-    if (r && r.expired) { meta.expired = true; saveMeta(); setStatus('expired', EXPIRED_MSG); }
-    else if (r && r.offline) setStatus('offline', TX('Sin conexión: se guardará en la nube cuando vuelva internet.'));
+    if (r && r.expired) { meta.expired = true; saveMeta(); setStatus('expired', EXPIRED_MSG); return; }
+    if (r && r.offline) setStatus('offline', TX('Sin conexión: se guardará en la nube cuando vuelva internet.'));
     else setStatus('error', TX('Error al guardar en la nube (') + ((r && r.code) || '?') + TX('). Se reintentará.'));
+    retryLater();
   }
   // Sube la partida del móvil. «overRev» = pisar a propósito esa versión de la nube (cuando el jugador elige la del móvil).
-  let pushing = null, again = false;
+  let pushing = null, again = false, syncing = false;
   async function push(now, overRev) {
-    if (!enabled() || !loggedIn() || meta.expired) return 'off';
+    if (!enabled() || !loggedIn() || meta.expired || frozen) return 'off';
     if (state.conflict && overRev == null) return 'conflict';
+    if (syncing && overRev == null) { schedule(); return 'queued'; }   // primero se termina de comparar con la nube
     if (pushing) { again = true; await pushing; if (!now) return 'queued'; }
     const run = (async () => {
       const data = snapshot(), h = hash(data);
@@ -274,6 +299,10 @@ const Cloud = (() => {
   // Al arrancar o al iniciar sesión: decide si subir, bajar o preguntar.
   // Devuelve 'off' | 'offline' | 'expired' | 'error' | 'same' | 'uploaded' | 'downloaded' | 'conflict'
   async function sync() {
+    syncing = true;
+    try { return await syncNow(); } finally { syncing = false; }
+  }
+  async function syncNow() {
     if (!enabled()) return 'off';
     if (!await ready()) { if (loggedIn()) setStatus('offline', TX('Sin conexión: se guardará en la nube cuando vuelva internet.')); return loggedIn() ? 'offline' : 'off'; }
     if (!loggedIn()) return 'off';
@@ -283,27 +312,39 @@ const Cloud = (() => {
     if (c.error) { failStatus(c.error); return c.error.expired ? 'expired' : c.error.offline ? 'offline' : 'error'; }
     const local = snapshot(), mine = meta.owner === meta.uid;
     const localChanged = !mine || hash(local) !== meta.hash;
+    // ¿Ha cambiado el progreso del móvil? (cambiar solo ajustes o sonido no cuenta como «otra partida»)
+    const localProgChanged = !mine || (meta.phash ? hashP(local) !== meta.phash : localChanged);
     if (!c.row) {   // cuenta sin partida en la nube: se sube la del móvil (si hay algo)
-      if (!hasProgress(local)) { meta.owner = meta.uid; meta.rev = 0; meta.hash = hash(local); saveMeta(); setStatus('ok'); return 'same'; }
-      return push(true, 0);
+      if (!hasProgress(local)) { meta.owner = meta.uid; meta.rev = 0; meta.hash = hash(local); meta.phash = hashP(local); saveMeta(); setStatus('ok'); return 'same'; }
+      syncing = false; return push(true, 0);
     }
     const cloudChanged = !mine || c.row.rev !== meta.rev;
-    if (!cloudChanged) { if (localChanged) return push(true); synced(c.row.rev, local); setStatus('ok'); return 'same'; }
-    if (!localChanged || !hasProgress(local) || hash(local) === hash(c.row.data || {})) { useCloud(c.row); return 'downloaded'; }
+    if (!cloudChanged) { if (localChanged) { syncing = false; return push(true); } synced(c.row.rev, local); setStatus('ok'); return 'same'; }
+    const cloudData = c.row.data || {};
+    if (!localProgChanged || !hasProgress(local) || hashP(local) === hashP(cloudData)) {
+      // Mientras se comparaba, ¿se ha jugado en este móvil? Entonces no se pisa nada: se pregunta
+      if (hash(snapshot()) !== hash(local)) return conflict(c.row);
+      useCloud(c.row, local); return 'downloaded';
+    }
     return conflict(c.row);
   }
-  function useCloud(row) { restore(row.data || {}); synced(row.rev, row.data || {}); state.conflict = null; setStatus('ok'); }
+  // Baja la partida de la nube; ajustes y sonido de este dispositivo se conservan
+  function useCloud(row, keepFrom) {
+    const data = Object.assign({}, row.data || {});
+    if (keepFrom) DEVICE_KEYS.forEach(k => { if (keepFrom[k] != null) data[k] = keepFrom[k]; });
+    restore(data, true); synced(row.rev, row.data || {}); state.conflict = null; setStatus('ok');
+  }
   // El jugador resuelve el conflicto: 'cloud' (baja la de la nube) o 'local' (sube la del móvil encima)
   async function resolve(choice) {
     const C = state.conflict; if (!C) return 'same';
-    if (choice === 'cloud') { useCloud(C.cloud); return 'downloaded'; }
+    if (choice === 'cloud') { useCloud(C.cloud, snapshot()); return 'downloaded'; }
     state.conflict = null;
     return push(true, C.cloud.rev);
   }
 
   // Al salir del juego o cambiar de app: subir ya lo pendiente
   if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && timer) { clearTimeout(timer); timer = 0; push(true); } });
-  if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('online', () => { if (loggedIn() && state.status === 'offline') push(true); });
+  if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('online', () => { if (loggedIn() && (state.status === 'offline' || state.status === 'error')) { clearTimeout(retryT); retryT = 0; push(true); } });
 
   // Partida de invitado: recuerda que ya eligió no crear cuenta (para no insistir)
   const guestChosen = () => !!meta.guest;
@@ -311,6 +352,6 @@ const Cloud = (() => {
 
   return { SAVE_KEYS, enabled, ready, loggedIn, user, via: () => meta.via || '', expired: () => !!meta.expired, pendingRedirect: () => !!meta.redirect,
     state, onChange: f => (listeners.add(f), () => listeners.delete(f)),
-    signUp, signIn, signInGoogle, signOut, sync, push, resolve, snapshot, restore, describe, hasProgress, guestChosen, chooseGuest, checkUser, cleanUser,
+    signUp, signIn, signInGoogle, signOut, sync, push, resolve, snapshot, restore, describe, hasProgress, guestChosen, chooseGuest, checkUser, cleanUser, PROGRESS_KEYS,
     _meta: () => meta };
 })();

@@ -67,7 +67,7 @@ function device(store) {
   const ls = new Storage();
   const ctx = { TX: (s, ...a) => a.length ? s.replace(/\{(\d+)\}/g, (m, i) => a[i]) : s, TXn: (n, a, b) => (n === 1 ? a : b).replace('{0}', n), Storage, localStorage: ls, setTimeout, clearTimeout, JSON, Math, Date, Object, Array, Set, String, Promise, console,
     Blob, Response, CompressionStream, DecompressionStream, btoa, atob, Uint8Array,
-    CLOUD_CONFIG: { apiKey: 'AIzaFake', authDomain: 'x.firebaseapp.com', projectId: 'x', appId: '1:1:web:1' } };
+    CLOUD_CONFIG: { apiKey: 'AIzaFake', authDomain: 'x.firebaseapp.com', projectId: 'x', appId: '1:1:web:1' }, CLOUD_RETRY: [300, 300, 300] };
   ctx.firebase = device.fb[store ? 'same' : 'new']();
   vm.createContext(ctx);
   vm.runInContext(code + '\nthis.Cloud = Cloud;', ctx);
@@ -190,6 +190,47 @@ const cloudTickets = d => JSON.parse(cloudOf(d).data['inazuma-perfil']).tickets;
   ok(await D.C.push(true) === 'uploaded' && cloudOf(D).z && !cloudOf(D).data, 'subida comprimida');
   let D2 = device(); await D2.C.signIn('nuevo', 'secreto1');
   ok(await D2.C.sync() === 'downloaded' && Object.keys(D2.prof().coll).length === 40000, 'otro móvil la descomprime bien');
+
+  console.log('15. Cambiar solo ajustes en dos móviles no es «otra partida»');
+  let P1 = device(); P1.play({ coll: { 3: { stars: 1 } }, tickets: 5 }); await P1.C.signUp('ajustes', 'secreto1'); await P1.C.sync();
+  let P2 = device(); await P2.C.signIn('ajustes', 'secreto1'); await P2.C.sync(); P2 = P2.reboot(); await P2.C.sync();
+  P1 = P1.reboot(); await P1.C.sync();
+  P1.play({ tickets: 50 }); await P1.C.push(true);                                            // en P1 se juega
+  P2.ls.setItem('inazuma-ajustes', JSON.stringify({ intro: 0, minutes: 5 }));                // en P2 solo se cambian ajustes
+  P2.ls.setItem('inazuma-sonido', JSON.stringify({ music: false }));
+  P2 = P2.reboot();
+  ok(await P2.C.sync() === 'downloaded', 'no pregunta: baja el progreso de la nube');
+  ok(P2.prof().tickets === 50 && JSON.parse(P2.ls.getItem('inazuma-ajustes')).minutes === 5 && JSON.parse(P2.ls.getItem('inazuma-sonido')).music === false, 'y conserva los ajustes y el sonido de este móvil');
+
+  console.log('16. Si de verdad se ha jugado en los dos, sí pregunta');
+  P2 = P2.reboot(); await P2.C.sync();
+  P1 = P1.reboot(); if (await P1.C.sync() === 'downloaded') { P1 = P1.reboot(); await P1.C.sync(); }   // tras bajar, el juego recarga
+  P1.play({ tickets: 60 }); await P1.C.push(true);
+  P2.play({ tickets: 61 }); P2 = P2.reboot();
+  const r16 = await P2.C.sync(); ok(r16 === 'conflict', 'pregunta cuál conservar (' + r16 + ')');
+
+  console.log('17. Cerrar sesión borra también la Carrera Jugador del móvil');
+  let Q = device(); Q.play({ coll: { 4: { stars: 1 } } }); Q.ls.setItem('inazuma-jugador', JSON.stringify({ me: { id: 1, lv: 3 }, school: 'Raimon', season: 2 }));
+  await Q.C.signUp('jugador', 'secreto1'); await Q.C.sync();
+  ok(cloudOf(Q).data['inazuma-jugador'], 'la Carrera Jugador se sube');
+  ok(Q.C.describe(Q.C.snapshot()).pcareer.includes('Raimon'), 'la pantalla de «dos versiones» la muestra');
+  await Q.C.signOut();
+  ok(Q.ls.getItem('inazuma-jugador') === null && Q.ls.getItem('inazuma-perfil') === null, 'al salir no queda nada de esa cuenta');
+
+  console.log('18. Tras un error se reintenta solo');
+  let R = device(); R.play({ coll: { 5: { stars: 1 } }, tickets: 1 }); await R.C.signUp('reintento', 'secreto1'); await R.C.sync();
+  server.down = true; R.play({ tickets: 2 });
+  ok(await R.C.push(true) === 'error' && R.C.state.status === 'offline', 'sin servidor: falla y avisa');
+  server.down = false;
+  await new Promise(r => setTimeout(r, 900));
+  ok(cloudTickets(R) === 2 && R.C.state.status === 'ok', 'cuando vuelve el servidor se sube sin que el jugador haga nada');
+
+  console.log('19. Al bajar la partida, nada la pisa antes de recargar');
+  let S1 = device(); S1.play({ coll: { 6: { stars: 1 } }, tickets: 70 }); await S1.C.signUp('pisar', 'secreto1'); await S1.C.sync();
+  let S2 = device(); await S2.C.signIn('pisar', 'secreto1');
+  ok(await S2.C.sync() === 'downloaded', 'baja la partida');
+  S2.ls.setItem('inazuma-perfil', JSON.stringify({ firstDone: true, coll: {}, tickets: 0 }));   // un guardado viejo justo antes de recargar
+  ok(S2.prof().tickets === 70, 'el guardado viejo no pisa la partida bajada');
 
   console.log(fails ? `\n${fails} FALLOS` : '\nTodo bien');
   process.exit(fails ? 1 : 0);
