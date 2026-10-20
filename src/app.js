@@ -13,7 +13,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.28.0';
+const VERSION = '0.28.1';
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
@@ -117,7 +117,7 @@ const App = (() => {
     infinite: ['Infinito', 'Oleadas de rivales cada vez más fuertes hasta que te quedes sin vidas. Cada 5 oleadas, un jefe. Intenta batir tu récord.'],
     gacha: ['Gacha', 'Gasta tickets para tirar: gira la manivela de la máquina y abre las cápsulas. Probabilidades: común 60 %, rara 28 %, épica 10 %, legendaria 2 % (cada 10 tiradas sin épica, la siguiente lo es seguro). Los repetidos suben estrellas a tu jugador.'],
     team: ['Plantilla', '<b>Mi equipo</b>: elige formación y quién juega (a portería solo porteros). <b>Jugadores</b>: busca y entrena (monedas) o usa Rayos Raimon para subir estrellas. <b>Técnicas</b>: equipa las supertécnicas.'],
-    career: ['Modo Carrera', 'Eres el mánager de un instituto: 3 divisiones, Copa y playoffs. Cada semana haz una actividad (entrenar, ojear…), juega o simula el partido y ficha (también a jugadores del extranjero). Tus titulares <b>suben o bajan</b> según su rendimiento. Cuida la fama: si llega a 0, cierran el club. Cada 3 temporadas, <b>el Mundial</b>.'],
+    career: ['Modo Carrera', 'Eres el mánager de un instituto: 3 divisiones, Copa y playoffs. Cada semana haz una actividad (entrenar, ojear…), juega o simula el partido y ficha (también a jugadores del extranjero). Tus titulares <b>suben o bajan</b> según su rendimiento. Los jugadores se <b>gradúan al acabar 6º curso</b> y la cantera trae chavales nuevos. Cuida la fama: si llega a 0, cierran el club. Cada 3 temporadas, <b>el Mundial</b>.'],
     wc: ['El Mundial', 'Eres el seleccionador de Inazuma Japón. Convoca a <b>10 jugadores</b> (dos equipos de 5) y elige qué 5 juegan cada partido. Grupo de 4 (pasan 2), semifinal y final, con penaltis si hay empate.'],
   };
   function tutorial(key, force) {
@@ -1119,7 +1119,7 @@ const App = (() => {
       <p class="note">⬆️ A Primera: ${sum.promoted[1].map(k => esc(Career.teamName(k))).join(', ')}<br>⬆️ A Segunda: ${sum.promoted[2].map(k => esc(Career.teamName(k))).join(', ')}<br>
       ⬇️ A Segunda: ${sum.relegated[1].map(k => esc(Career.teamName(k))).join(', ')}<br>⬇️ A Tercera: ${sum.relegated[2].map(k => esc(Career.teamName(k))).join(', ')}</p>
       <h3>Tu plantilla</h3>
-      <p class="note">🎓 Se gradúan (3º curso): ${names(sum.grads)}<br>🌱 Llegan de la cantera: ${names(sum.youth)}<br>El resto pasa de curso.</p>
+      <p class="note">🎓 Se gradúan (${LAST_YEAR}º curso): ${names(sum.grads)}<br>🌱 Llegan de la cantera: ${names(sum.youth)}<br>El resto pasa de curso.</p>
       ${sum.goal ? hallHtml() : ''}
       ${bottom(`<button class="cta" id="cNext">${c.over ? 'Ver resumen' : sum.goal ? 'Seguir jugando (infinito)' : 'Empezar temporada ' + c.season}</button>`)}`, sum.champion || sum.moves.includes('up') ? 'ill25' : 'bg_team');
     if (sum.champion || sum.moves.includes('up')) Sound.jingle('win');
@@ -1192,7 +1192,7 @@ const App = (() => {
     const list = $('cList');
     c.squad.slice().sort((a, b) => Career.rate(b, roles[sel]) - Career.rate(a, roles[sel])).forEach(m => {
       const at = c.lineup.indexOf(m.id);
-      const el = playerRow(m.id, `<span class="cst">${m.year}º curso${m.year >= 3 ? ' (se gradúa al acabar)' : ''}${at >= 0 ? ' · titular (' + roles[at] + ')' : ''} · nota aquí ${Career.rate(m, roles[sel])} · ${m.games} PJ · ${m.goals} goles</span>
+      const el = playerRow(m.id, `<span class="cst">${m.year}º curso${m.year >= LAST_YEAR ? ' (se gradúa al acabar)' : ''}${at >= 0 ? ' · titular (' + roles[at] + ')' : ''} · nota aquí ${Career.rate(m, roles[sel])} · ${m.games} PJ · ${m.goals} goles</span>
         <span class="cst">⚡ ${Career.equipped(m).map(t => esc(TECH(t).name)).join(' · ') || 'sin técnicas'} <button class="ghost mini ctech">Técnicas</button></span>`, m);
       el.classList.add('btn'); if (at >= 0) el.classList.add('sel');
       el.querySelector('.ctech').onclick = e => { e.stopPropagation(); renderCareerTechs(m.id, () => renderCareerSquad(back, sel)); };
@@ -1270,7 +1270,8 @@ const App = (() => {
       (c.scout || []).forEach(s => list.appendChild(buyBtn(s.id, s.price, null, `Disponible hasta la semana ${Math.min(WEEKS, s.until)}`)));
     } else if (tab === 'libres') {
       head.innerHTML = '<p class="note">Agentes libres de esta semana (la lista cambia cada semana). Se fichan al momento, sin negociar.</p>' + roleF;
-      Career.marketList().libres.filter(roleOk).forEach(id => list.appendChild(buyBtn(id, Math.round(Career.value(id) * 0.8 / 5) * 5)));
+      const mk = Career.marketList();
+      mk.libres.filter(roleOk).forEach(id => { const el = buyBtn(id, Math.round(Career.value(id) * 0.8 / 5) * 5, null, id === mk.star ? '⭐ Oportunidad de la semana' : ''); if (id === mk.star) el.classList.add('sel'); list.appendChild(el); });
     } else if (tab === 'clubes') {
       head.innerHTML = `<p class="note">Haz una oferta a otro club. Sus estrellas cuestan más, y a los clubes de divisiones superiores no les gusta vender a uno de abajo. Si te pasas de tacaño, cortan la negociación hasta la semana siguiente.</p>
         <div class="opts">${[1, 2, 3].map(k => `<button data-mdv="${k}" aria-pressed="${k === mkDiv}">${DIV_NAME[k]}</button>`).join('')}</div>${roleF}`;

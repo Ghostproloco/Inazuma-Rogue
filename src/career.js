@@ -27,6 +27,7 @@ const CAREER_DIFF = { facil: { name: 'Fácil', mul: 0.93, shift: -1 }, normal: {
 const HOF_KEY = 'inazuma-salon';
 const MANAGERS = [13, 14, 15, 212, 21440];      // Nelly, Celia, Silvia, Seymour Hillman (1 y 2)
 const SQUAD_MAX = 12, SQUAD_MIN = 7;
+const LAST_YEAR = 6;   // los jugadores se gradúan (se van) al acabar 6º curso
 const TACTICS = {
   equilibrada: { name: 'Equilibrada', desc: 'Sin riesgos', for: 1, ag: 1, forma: 0 },
   ofensiva:    { name: 'Ofensiva', desc: 'Más goles a favor… y en contra', for: 1.28, ag: 1.22, forma: 0 },
@@ -480,9 +481,9 @@ const Career = {
     // Premios para el gacha: tickets por cada logro de la temporada
     sum.tickets = (sum.champion ? 10 : 0) + (sum.moves.includes('up') ? 5 : 0) + (sum.goal ? 20 : 0);
     if (sum.tickets) { Profile.data.tickets += sum.tickets; Profile.save(); }
-    // Graduaciones (los de 3º se van) y cantera (llegan juveniles)
-    sum.grads = c.squad.filter(m => m.year >= 3).map(m => m.id);
-    c.squad = c.squad.filter(m => m.year < 3);
+    // Graduaciones (los de 6º se van) y cantera (llegan juveniles)
+    sum.grads = c.squad.filter(m => m.year >= LAST_YEAR).map(m => m.id);
+    c.squad = c.squad.filter(m => m.year < LAST_YEAR);
     c.squad.forEach(m => { m.year++; });
     const youth = this.youth(Math.max(2, SQUAD_MIN - c.squad.length));
     sum.youth = youth.map(m => m.id);
@@ -528,8 +529,15 @@ const Career = {
     if (!c.market || c.market.week !== c.week || c.market.season !== c.season) {
       const free = this.freePool(p => p.rarity !== 'legendaria');
       const libres = [];
+      // De vez en cuando, un agente libre destacado (más probable con más fama): épico o uno de los mejores raros
+      let star = null;
+      const r = cRnd(), pEpic = 0.15 + c.fame / 400, pRare = 0.35;
+      const best = list => list.sort((a, b) => this.sumIE(b) - this.sumIE(a)).slice(0, Math.max(1, Math.ceil(list.length * 0.3)));
+      if (r < pEpic) star = pickR(free.filter(p => p.rarity === 'epica'));
+      else if (r < pEpic + pRare) star = pickR(best(free.filter(p => p.rarity === 'rara')));
+      if (star) libres.push(star.id);
       for (let i = 0; i < 80 && libres.length < 8; i++) { const p = pickR(free); if (p && !libres.includes(p.id) && (p.rarity === 'comun' || cRnd() < 0.5)) libres.push(p.id); }
-      c.market = { week: c.week, season: c.season, libres };
+      c.market = { week: c.week, season: c.season, libres, star: star ? star.id : null };
       this.save();
     }
     return c.market;
@@ -552,7 +560,7 @@ const Career = {
     if (c.money < price) return { ok: false, msg: 'No tienes dinero suficiente.' };
     c.money -= price;
     const pd = PLAYER(id), fromClub = from && c.clubs[from];
-    const year = 1 + Math.floor(cRnd() * 3);
+    const year = 1 + Math.floor(cRnd() * (LAST_YEAR - 1));   // nunca llega alguien a punto de irse
     c.squad.push(this.member(id, year, fromClub ? 2 : 1));
     if (fromClub) {   // el club rival rellena el hueco con otro jugador del mismo puesto (algo peor)
       const i = fromClub.findIndex(p => p.id === id), role = fromClub[i].role;
