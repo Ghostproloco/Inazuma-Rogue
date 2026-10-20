@@ -314,7 +314,7 @@ select option{color:#111;font-family:system-ui}
 .clubpv{display:flex;align-items:center;gap:12px;justify-content:center;margin:8px 0}.clubpv b{display:block;color:var(--yellow);font-weight:normal;font-size:20px}.clubpv small{font-size:14px}
 .kitpv{background:rgba(10,18,48,.5);border:2px solid var(--ink)}
 .syms button{font-size:18px}
-textarea#sCode{width:100%;box-sizing:border-box;margin:8px 0;font:12px monospace;color:var(--chalk);background:var(--navy-d);border:2px solid var(--ink);box-shadow:0 0 0 2px #5a7ab8;padding:6px;-webkit-user-select:text;user-select:text;touch-action:manipulation;resize:vertical}
+textarea#sCode,textarea#tCode{width:100%;box-sizing:border-box;margin:8px 0;font:16px monospace;color:var(--chalk);background:var(--navy-d);border:2px solid var(--ink);box-shadow:0 0 0 2px #5a7ab8;padding:6px;-webkit-user-select:text;user-select:text;touch-action:manipulation;resize:vertical}
 .ctable tr.zpo td:first-child{box-shadow:inset 3px 0 0 #ffd23a}.ckey .zpo{color:#ffd23a}
 /* PC: sin controles en pantalla, campo más ancho y ayuda de teclas */
 .pc #shell{max-width:760px}
@@ -395,7 +395,7 @@ details.tgroup .tracks{margin-top:8px}
 .pfbar{display:flex;flex-direction:column;gap:6px;margin:6px 0}
 .pfq{display:flex;gap:6px}.pfq input{flex:1;min-width:0;font:18px var(--font-ui);color:var(--chalk);background:var(--navy-d);border:2px solid var(--ink);box-shadow:0 0 0 2px #5a7ab8;padding:7px 8px}
 .pfq input::placeholder{color:#8a96b0}.pfq button{padding:4px 12px;font-size:18px}
-.pfsel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.pfsel select{min-width:0;font-size:15px;padding:5px 4px}
+.pfsel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.pfsel select{min-width:0;font-size:16px;padding:5px 4px}
 .sortrow{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px}
 .opts.small{padding:2px}.opts.small button{font-size:12px;padding:4px 6px}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
@@ -509,6 +509,10 @@ details.adv[open]{display:flex;flex-direction:column;gap:8px}
 .gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;font:18px var(--font-ui);color:#1f1f1f;background:#fff;border:2px solid var(--ink);box-shadow:0 0 0 2px #dadce0;cursor:pointer}
 .gbtn svg{width:22px;height:22px;flex-shrink:0}.gbtn:active{transform:translateY(2px)}.gbtn:disabled{opacity:.6}
 .gsep{display:flex;align-items:center;gap:8px;font-size:12px;opacity:.85;margin:4px 0}.gsep:before,.gsep:after{content:"";flex:1;border-top:2px solid rgba(255,255,255,.25)}
+/* Sin zoom: ningún campo de texto por debajo de 16 px (el iPhone hace zoom al tocarlos) y sin doble toque */
+input,textarea,select{font-size:max(16px,1em)}
+html,body,button,.act,#shell{touch-action:manipulation}
+#touch,.act,.gmach canvas{touch-action:none}
 </style>
 
 <div id="shell">

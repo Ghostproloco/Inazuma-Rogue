@@ -13,6 +13,19 @@ const Controls = (() => {
   return { apply, isTouch, pc: () => !isTouch() };
 })();
 
+/* ---------- Sin zoom en el navegador ----------
+   El iPhone ignora «user-scalable=no», así que se bloquean a mano: pellizco
+   y, en ordenador, Ctrl + rueda o Ctrl + / Ctrl -. */
+(() => {
+  const no = e => { e.preventDefault(); };
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, no, { passive: false }));
+  document.addEventListener('touchmove', e => { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
+  // El doble toque ya lo quita «touch-action: manipulation» (CSS), sin comerse toques rápidos en los botones
+  document.addEventListener('dblclick', no, { passive: false });
+  addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+  addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && ['+', '-', '=', '0'].includes(e.key)) e.preventDefault(); });
+})();
+
 /* =====================================================================
    ENTRADA: teclado + joystick táctil + botones.
    ===================================================================== */
@@ -517,7 +530,7 @@ class MatchScene extends Phaser.Scene {
       if (down) f = ANIM.stand[2];
       else if (p.tackle || (p.dash && p.dash.tech.type === 'bloqueo')) f = ANIM.run[di][(Math.floor(time / 70) % 2) * 4 + 1];
       else if (p.kickT > 0) f = ANIM.kick[di][1];
-      else if (techP || p.windup || (s.shoot.charging && p.id === s.controlledId)) f = ANIM.kick[di][0];
+      else if (techP || p.windup || p.tkWind > 0 || (s.shoot.charging && p.id === s.controlledId)) f = ANIM.kick[di][0];
       else if (spd > 0.6) {
         // La animación avanza según la distancia recorrida: los pies no patinan
         v.animT += delta / 1000 * spd * 13 * GAME_SPEED;
@@ -538,7 +551,7 @@ class MatchScene extends Phaser.Scene {
       }
       v.spr.setTint(p.invuln > 0 && p.dash && !p.dash.tech.plain ? 0xfff2c0 : 0xffffff);
       v.fig.y = -p.z * PX;
-      v.warn.setVisible(p.windup > 0);
+      v.warn.setVisible(p.tkWind > 0);
       if (v.ctrl) v.marker.y = -56 - p.z * PX + Math.sin(time / 220) * 2;
       if (p.dash && !p.dash.tech.plain && Math.random() < 0.6) this.burst(p.dash.tech.elem, p.x * PX, p.y * PX - 14, 1, p.y * PX - 1);
     }

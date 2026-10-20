@@ -55,7 +55,7 @@ const Logic = (() => {
         s.players.push(Object.assign({}, d, { id: team + i, team, num: i + 1, home, ko,
           speed: d.speed * (ai ? diff.aiSpeed : 1),
           cd: {}, x: 0, y: 0, z: 0, vx: 0, vy: 0, dvx: 0, dvy: 0, facing: 0, aim: 0, moving: false,
-          stamina: 1, tired: false, sprint: false, stun: 0, kickLock: 0, kickT: 0, tackle: null, tackleCd: 0, windup: 0,
+          stamina: 1, tired: false, sprint: false, stun: 0, kickLock: 0, kickT: 0, tackle: null, tackleCd: 0, windup: null, tkWind: 0,
           dash: null, think: 0, holdT: 0, react: 0, diving: false, gkTech: null, invuln: 0 }));
       });
     }
@@ -79,7 +79,7 @@ const Logic = (() => {
     for (const p of s.players) {
       const o = p === tk ? [0, F.l / 2 - 0.6] : [p.ko[0], Math.min(p.ko[1], F.l / 2 - (p.team === team ? 1.5 : 6))];
       const a = toAbs(p.team, o[0], o[1]);
-      Object.assign(p, { x: a.x, y: a.y, z: 0, vx: 0, vy: 0, dvx: 0, dvy: 0, stun: 0, tackle: null, dash: null, windup: 0,
+      Object.assign(p, { x: a.x, y: a.y, z: 0, vx: 0, vy: 0, dvx: 0, dvy: 0, stun: 0, tackle: null, dash: null, windup: null, tkWind: 0,
         kickLock: 0, moving: false, diving: false, gkTech: null, invuln: 0 });
       p.facing = p.aim = attackDir(p.team) < 0 ? -Math.PI / 2 : Math.PI / 2;
     }
@@ -440,6 +440,7 @@ const Logic = (() => {
   /* ---------- Control del jugador ---------- */
   function handleUser(s, input) {
     const me = controlled(s), b = s.ball;
+    me.tkWind = 0; me.windup = null;   // al pasar a controlarlo, se olvida lo que estaba preparando su IA
     let { x, y } = input.move;
     const len = Math.hypot(x, y);
     if (len > 1) { x /= len; y /= len; }
@@ -563,9 +564,10 @@ const Logic = (() => {
   function ai(s, p, dt) {
     const b = s.ball;
     if (p.stun > 0 || p.recover > 0 || p.tackle || p.dash || (s.tech && s.tech.p === p)) { if (!p.tackle && !p.dash) p.dvx = p.dvy = 0; return; }
-    if (p.windup > 0) {
-      p.windup -= dt; p.dvx = p.dvy = 0;
-      if (p.windup <= 0) startTackle(s, p);
+    if (b.owner === p) p.tkWind = 0;   // si se queda el balón, ya no hay entrada que hacer
+    else if (p.tkWind > 0) {          // preparando la entrada (aviso «!»)
+      p.tkWind -= dt; p.dvx = p.dvy = 0;
+      if (p.tkWind <= 0) { p.tkWind = 0; if (b.owner && b.owner.team !== p.team) startTackle(s, p); }
       return;
     }
     if (p.role === 'POR') return gkAI(s, p, dt);
@@ -609,7 +611,7 @@ const Logic = (() => {
         const t = bestTech(p, 'bloqueo');
         if (t && !s.tech && d < 3 && rnd() < use * dt * 1.5) { startTech(s, p, t, 0); return; }
         const tk = p.team === 'B' ? s.diff.tackle : 0.6;
-        if (d < 2.2 && p.tackleCd <= 0 && rnd() < tk * dt * 2.5) { p.windup = p.team === 'B' ? 0.18 : 0.22; }
+        if (d < 2.2 && p.tackleCd <= 0 && rnd() < tk * dt * 2.5) { p.tkWind = p.team === 'B' ? 0.18 : 0.22; }
       }
       return;
     }

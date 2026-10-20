@@ -314,7 +314,7 @@ select option{color:#111;font-family:system-ui}
 .clubpv{display:flex;align-items:center;gap:12px;justify-content:center;margin:8px 0}.clubpv b{display:block;color:var(--yellow);font-weight:normal;font-size:20px}.clubpv small{font-size:14px}
 .kitpv{background:rgba(10,18,48,.5);border:2px solid var(--ink)}
 .syms button{font-size:18px}
-textarea#sCode{width:100%;box-sizing:border-box;margin:8px 0;font:12px monospace;color:var(--chalk);background:var(--navy-d);border:2px solid var(--ink);box-shadow:0 0 0 2px #5a7ab8;padding:6px;-webkit-user-select:text;user-select:text;touch-action:manipulation;resize:vertical}
+textarea#sCode,textarea#tCode{width:100%;box-sizing:border-box;margin:8px 0;font:16px monospace;color:var(--chalk);background:var(--navy-d);border:2px solid var(--ink);box-shadow:0 0 0 2px #5a7ab8;padding:6px;-webkit-user-select:text;user-select:text;touch-action:manipulation;resize:vertical}
 .ctable tr.zpo td:first-child{box-shadow:inset 3px 0 0 #ffd23a}.ckey .zpo{color:#ffd23a}
 /* PC: sin controles en pantalla, campo más ancho y ayuda de teclas */
 .pc #shell{max-width:760px}
@@ -395,7 +395,7 @@ details.tgroup .tracks{margin-top:8px}
 .pfbar{display:flex;flex-direction:column;gap:6px;margin:6px 0}
 .pfq{display:flex;gap:6px}.pfq input{flex:1;min-width:0;font:18px var(--font-ui);color:var(--chalk);background:var(--navy-d);border:2px solid var(--ink);box-shadow:0 0 0 2px #5a7ab8;padding:7px 8px}
 .pfq input::placeholder{color:#8a96b0}.pfq button{padding:4px 12px;font-size:18px}
-.pfsel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.pfsel select{min-width:0;font-size:15px;padding:5px 4px}
+.pfsel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.pfsel select{min-width:0;font-size:16px;padding:5px 4px}
 .sortrow{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px}
 .opts.small{padding:2px}.opts.small button{font-size:12px;padding:4px 6px}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
@@ -509,6 +509,10 @@ details.adv[open]{display:flex;flex-direction:column;gap:8px}
 .gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;font:18px var(--font-ui);color:#1f1f1f;background:#fff;border:2px solid var(--ink);box-shadow:0 0 0 2px #dadce0;cursor:pointer}
 .gbtn svg{width:22px;height:22px;flex-shrink:0}.gbtn:active{transform:translateY(2px)}.gbtn:disabled{opacity:.6}
 .gsep{display:flex;align-items:center;gap:8px;font-size:12px;opacity:.85;margin:4px 0}.gsep:before,.gsep:after{content:"";flex:1;border-top:2px solid rgba(255,255,255,.25)}
+/* Sin zoom: ningún campo de texto por debajo de 16 px (el iPhone hace zoom al tocarlos) y sin doble toque */
+input,textarea,select{font-size:max(16px,1em)}
+html,body,button,.act,#shell{touch-action:manipulation}
+#touch,.act,.gmach canvas{touch-action:none}
 </style>
 
 <div id="shell">
@@ -853,7 +857,7 @@ const Logic = (() => {
         s.players.push(Object.assign({}, d, { id: team + i, team, num: i + 1, home, ko,
           speed: d.speed * (ai ? diff.aiSpeed : 1),
           cd: {}, x: 0, y: 0, z: 0, vx: 0, vy: 0, dvx: 0, dvy: 0, facing: 0, aim: 0, moving: false,
-          stamina: 1, tired: false, sprint: false, stun: 0, kickLock: 0, kickT: 0, tackle: null, tackleCd: 0, windup: 0,
+          stamina: 1, tired: false, sprint: false, stun: 0, kickLock: 0, kickT: 0, tackle: null, tackleCd: 0, windup: null, tkWind: 0,
           dash: null, think: 0, holdT: 0, react: 0, diving: false, gkTech: null, invuln: 0 }));
       });
     }
@@ -877,7 +881,7 @@ const Logic = (() => {
     for (const p of s.players) {
       const o = p === tk ? [0, F.l / 2 - 0.6] : [p.ko[0], Math.min(p.ko[1], F.l / 2 - (p.team === team ? 1.5 : 6))];
       const a = toAbs(p.team, o[0], o[1]);
-      Object.assign(p, { x: a.x, y: a.y, z: 0, vx: 0, vy: 0, dvx: 0, dvy: 0, stun: 0, tackle: null, dash: null, windup: 0,
+      Object.assign(p, { x: a.x, y: a.y, z: 0, vx: 0, vy: 0, dvx: 0, dvy: 0, stun: 0, tackle: null, dash: null, windup: null, tkWind: 0,
         kickLock: 0, moving: false, diving: false, gkTech: null, invuln: 0 });
       p.facing = p.aim = attackDir(p.team) < 0 ? -Math.PI / 2 : Math.PI / 2;
     }
@@ -1238,6 +1242,7 @@ const Logic = (() => {
   /* ---------- Control del jugador ---------- */
   function handleUser(s, input) {
     const me = controlled(s), b = s.ball;
+    me.tkWind = 0; me.windup = null;   // al pasar a controlarlo, se olvida lo que estaba preparando su IA
     let { x, y } = input.move;
     const len = Math.hypot(x, y);
     if (len > 1) { x /= len; y /= len; }
@@ -1361,9 +1366,10 @@ const Logic = (() => {
   function ai(s, p, dt) {
     const b = s.ball;
     if (p.stun > 0 || p.recover > 0 || p.tackle || p.dash || (s.tech && s.tech.p === p)) { if (!p.tackle && !p.dash) p.dvx = p.dvy = 0; return; }
-    if (p.windup > 0) {
-      p.windup -= dt; p.dvx = p.dvy = 0;
-      if (p.windup <= 0) startTackle(s, p);
+    if (b.owner === p) p.tkWind = 0;   // si se queda el balón, ya no hay entrada que hacer
+    else if (p.tkWind > 0) {          // preparando la entrada (aviso «!»)
+      p.tkWind -= dt; p.dvx = p.dvy = 0;
+      if (p.tkWind <= 0) { p.tkWind = 0; if (b.owner && b.owner.team !== p.team) startTackle(s, p); }
       return;
     }
     if (p.role === 'POR') return gkAI(s, p, dt);
@@ -1407,7 +1413,7 @@ const Logic = (() => {
         const t = bestTech(p, 'bloqueo');
         if (t && !s.tech && d < 3 && rnd() < use * dt * 1.5) { startTech(s, p, t, 0); return; }
         const tk = p.team === 'B' ? s.diff.tackle : 0.6;
-        if (d < 2.2 && p.tackleCd <= 0 && rnd() < tk * dt * 2.5) { p.windup = p.team === 'B' ? 0.18 : 0.22; }
+        if (d < 2.2 && p.tackleCd <= 0 && rnd() < tk * dt * 2.5) { p.tkWind = p.team === 'B' ? 0.18 : 0.22; }
       }
       return;
     }
@@ -3470,6 +3476,19 @@ const Controls = (() => {
   return { apply, isTouch, pc: () => !isTouch() };
 })();
 
+/* ---------- Sin zoom en el navegador ----------
+   El iPhone ignora «user-scalable=no», así que se bloquean a mano: pellizco
+   y, en ordenador, Ctrl + rueda o Ctrl + / Ctrl -. */
+(() => {
+  const no = e => { e.preventDefault(); };
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, no, { passive: false }));
+  document.addEventListener('touchmove', e => { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
+  // El doble toque ya lo quita «touch-action: manipulation» (CSS), sin comerse toques rápidos en los botones
+  document.addEventListener('dblclick', no, { passive: false });
+  addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+  addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && ['+', '-', '=', '0'].includes(e.key)) e.preventDefault(); });
+})();
+
 /* =====================================================================
    ENTRADA: teclado + joystick táctil + botones.
    ===================================================================== */
@@ -3974,7 +3993,7 @@ class MatchScene extends Phaser.Scene {
       if (down) f = ANIM.stand[2];
       else if (p.tackle || (p.dash && p.dash.tech.type === 'bloqueo')) f = ANIM.run[di][(Math.floor(time / 70) % 2) * 4 + 1];
       else if (p.kickT > 0) f = ANIM.kick[di][1];
-      else if (techP || p.windup || (s.shoot.charging && p.id === s.controlledId)) f = ANIM.kick[di][0];
+      else if (techP || p.windup || p.tkWind > 0 || (s.shoot.charging && p.id === s.controlledId)) f = ANIM.kick[di][0];
       else if (spd > 0.6) {
         // La animación avanza según la distancia recorrida: los pies no patinan
         v.animT += delta / 1000 * spd * 13 * GAME_SPEED;
@@ -3995,7 +4014,7 @@ class MatchScene extends Phaser.Scene {
       }
       v.spr.setTint(p.invuln > 0 && p.dash && !p.dash.tech.plain ? 0xfff2c0 : 0xffffff);
       v.fig.y = -p.z * PX;
-      v.warn.setVisible(p.windup > 0);
+      v.warn.setVisible(p.tkWind > 0);
       if (v.ctrl) v.marker.y = -56 - p.z * PX + Math.sin(time / 220) * 2;
       if (p.dash && !p.dash.tech.plain && Math.random() < 0.6) this.burst(p.dash.tech.elem, p.x * PX, p.y * PX - 14, 1, p.y * PX - 1);
     }
@@ -4901,7 +4920,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.30.0';
+const VERSION = '0.30.1';
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
