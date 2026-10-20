@@ -1,7 +1,7 @@
 const fs = require('fs'), vm = require('vm');
-const S = '/home/claude/inazuma/src/';
+const S = require('path').join(__dirname,'..','src')+'/';
 const ctx = { console, Math, JSON, Object, Array, Set, Map, localStorage: { getItem: () => null, setItem: () => {} } };
-ctx.GAME = JSON.parse(fs.readFileSync('/home/claude/inazuma/pub/gamedata.json', 'utf8'));
+ctx.GAME = JSON.parse(fs.readFileSync(require('path').join(__dirname,'..','juego','gamedata.json'), 'utf8'));
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(S + 'logic.js', 'utf8') + '\n' + fs.readFileSync(S + 'run.js', 'utf8') + '\nthis.Logic=Logic;this.rivalTeam=rivalTeam;this.GAME_SPEED=GAME_SPEED;', ctx);
 const { Logic, rivalTeam } = ctx;

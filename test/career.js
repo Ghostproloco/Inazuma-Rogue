@@ -1,8 +1,8 @@
 const fs = require('fs'), vm = require('vm');
-const S = '/home/claude/inazuma/src/';
+const S = require('path').join(__dirname,'..','src')+'/';
 const store = {};
 const ctx = { console, Math, JSON, Object, Array, Set, Map, localStorage: { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => delete store[k] } };
-ctx.GAME = JSON.parse(fs.readFileSync('/home/claude/inazuma/pub/gamedata.json', 'utf8'));
+ctx.GAME = JSON.parse(fs.readFileSync(require('path').join(__dirname,'..','juego','gamedata.json'), 'utf8'));
 ctx.Sprites = { refOf: pd => ({ file: 'c00.png', row: 0 }) };
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(S + 'logic.js', 'utf8') + '\n' + fs.readFileSync(S + 'run.js', 'utf8') + '\n' + fs.readFileSync(S + 'career.js', 'utf8') + '\nthis.Career=Career;this.DIV_NAME=DIV_NAME;this.PLAYER=PLAYER;this.FORMATIONS=FORMATIONS;Profile.load();this.Profile=Profile;', ctx);

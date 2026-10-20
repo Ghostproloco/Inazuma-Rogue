@@ -13,7 +13,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.26.0';
+const VERSION = '0.27.0';
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
@@ -63,6 +63,9 @@ const App = (() => {
   /* ---------- Menú principal: modos ---------- */
   function renderMenu() {
     if (!Profile.data.firstDone) return renderWelcome();
+    if (Cloud.state.conflict) return renderConflict(renderMenu);
+    let traida = false; try { traida = !!localStorage.getItem('inazuma-traida'); if (traida) localStorage.removeItem('inazuma-traida'); } catch (_) {}
+    if (traida) { setTimeout(() => UI.toast(Cloud.enabled() && !Cloud.loggedIn() ? '¡Partida traída! Crea una cuenta en 👤 Cuenta para tenerla siempre a salvo' : '¡Partida traída!', 3500), 300); }
     const P = Profile.data, r = api.run && api.run.state !== 'over' ? api.run : null;
     const done = P.story.s1.done;
     screen(`<div class="title"><img class="logo" id="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>5 contra 5 · roguelite</span></div>${wallet()}
@@ -80,7 +83,8 @@ const App = (() => {
         <button class="ghost big" id="mQuick">Partido rápido<small>Tus mejores 5</small></button>
         <button class="ghost big" id="mSound">Ajustes<small>Partido, controles y sonido</small></button>
       </div>
-      <div class="grid2"><button class="ghost" id="mGift">🎁 Código de regalo</button><button class="ghost" id="mSaves">💾 Guardar / cargar</button></div>
+      <div class="grid2"><button class="ghost" id="mGift">🎁 Código de regalo</button><button class="ghost" id="mSaves">👤 Cuenta${Cloud.loggedIn() ? ' · ' + esc(Cloud.user()) : ''}</button></div>
+      <div data-cloudline>${cloudLine()}</div>
       ${r ? '<button class="ghost" id="mAbandon">Abandonar partida en curso</button>' : ''}
       <button class="ver" id="ver">v${VERSION}${settings.dev ? ' · dev' : ''}</button>`, 'bg_title');
     let vt = 0, vtT = 0;   // 20 toques seguidos en la versión: modo desarrollador
@@ -98,7 +102,8 @@ const App = (() => {
     $('mInf').onclick = () => { if (!done) return UI.toast('Completa la Etapa 1 de la Historia'); if (!busy()) { newDraft('infinite', {}); tutorial('infinite'); } };
     $('mGacha').onclick = renderGacha; $('mTeam').onclick = () => renderTeam();
     $('mGift').onclick = renderGift;
-    $('mSaves').onclick = () => renderSaves(renderMenu);
+    $('mSaves').onclick = () => renderAccount(renderMenu);
+    body.querySelector('[data-cloudline]').onclick = () => renderAccount(renderMenu);
     $('mQuick').onclick = startQuick; $('mSound').onclick = renderSettings;
     Sound.music('menu');
   }
@@ -180,7 +185,12 @@ const App = (() => {
     screen(`<div class="title"><img class="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>¡Bienvenido!</span></div>
       <p class="note">Tu plantilla empieza vacía. Haz tu tirada de bienvenida: <b>10 jugadores</b> del juego, con un <b>portero asegurado</b> y al menos uno épico o mejor. Además recibes 60 monedas para entrenar.</p>
       <p class="note">Probabilidades: común 60 % · rara 28 % · épica 10 % · legendaria 2 %. Cada 10 tiradas sin épica, la siguiente lo es seguro.</p>
-      <button class="cta" id="wPull">Tirada de bienvenida ×10</button>`, 'bg_title');
+      <button class="cta" id="wPull">Tirada de bienvenida ×10</button>
+      ${Cloud.enabled() && !Cloud.loggedIn() ? `<div class="grid2"><button class="ghost big" id="wIn">Ya tengo cuenta<small>Recuperar mi partida</small></button><button class="ghost big" id="wUp">Crear cuenta<small>Guardar en la nube</small></button></div>` : ''}
+      <button class="ghost big" id="wOld">¿Jugabas en la versión antigua?<small>Trae tu partida aquí</small></button>
+      <div data-cloudline>${Cloud.loggedIn() ? cloudLine() : ''}</div>`, 'bg_title');
+    $('wOld').onclick = () => renderTransfer(renderMenu);
+    if ($('wIn')) { $('wIn').onclick = () => renderLogin(renderMenu, 'in'); $('wUp').onclick = () => renderLogin(renderMenu, 'up'); }
     $('wPull').onclick = () => {
       Sound.unlock();
       Profile.data.pity = 0;
@@ -1348,10 +1358,10 @@ const App = (() => {
   }
 
   /* ---------- Guardar y cargar partidas ---------- */
-  const SAVE_KEYS = ['inazuma-perfil', 'inazuma-carrera', 'inazuma-ajustes', 'inazuma-run3', 'inazuma-sonido'];
-  const snapshot = () => { const o = {}; SAVE_KEYS.forEach(k => { try { const v = localStorage.getItem(k); if (v != null) o[k] = v; } catch (_) {} }); return o; };
-  const restore = o => { SAVE_KEYS.forEach(k => { try { if (o[k] != null) localStorage.setItem(k, o[k]); else localStorage.removeItem(k); } catch (_) {} }); };
+  const snapshot = () => Cloud.snapshot();
+  const restore = o => Cloud.restore(o);
   const slotKey = i => 'inazuma-slot-' + i;
+  const reloadGame = (t = 'Cargando tu partida…') => { screen(`<div class="title"><img class="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>${t}</span></div>`, 'bg_title'); setTimeout(() => location.reload(), 350); };
   async function packCode(obj) {
     const json = JSON.stringify(obj);
     try {
@@ -1369,18 +1379,161 @@ const App = (() => {
     const ds = new DecompressionStream('gzip'), r = new Blob([buf]).stream().pipeThrough(ds);
     return JSON.parse(await new Response(r).text());
   }
-  const describe = o => { try { const p = JSON.parse(o['inazuma-perfil'] || '{}'), cr = o['inazuma-carrera'] ? JSON.parse(o['inazuma-carrera']) : null;
-    return `${Object.keys(p.coll || {}).length} jugadores · ${p.tickets || 0} 🎟️${cr ? ' · Carrera: ' + esc(cr.school) + ' T' + cr.season : ''}`; } catch (_) { return ''; } };
+  const describe = o => { const d = Cloud.describe(o || {}); return `${d.players} jugadores · ${d.tickets} 🎟️${d.career ? ' · Carrera: ' + esc(d.career) : ''}`; };
+  const ago = t => { if (!t) return ''; const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'ahora mismo' : m < 60 ? 'hace ' + m + ' min' : m < 1440 ? 'hace ' + Math.round(m / 60) + ' h' : new Date(t).toLocaleDateString('es-ES'); };
+  // Línea de estado de la cuenta (menú y pantalla de cuenta)
+  function cloudLine() {
+    if (!Cloud.enabled()) return '';
+    const S = Cloud.state;
+    if (!Cloud.loggedIn()) return `<p class="cloudst warn">Invitado · tu partida solo está en este móvil. <b>Crea una cuenta</b> para no perderla.</p>`;
+    if (Cloud.expired() || S.status === 'expired') return `<p class="cloudst warn">👤 ${esc(Cloud.user())} · sesión caducada: <b>vuelve a entrar</b> para guardar en la nube.</p>`;
+    if (S.status === 'conflict') return `<p class="cloudst warn">👤 ${esc(Cloud.user())} · hay dos versiones de tu partida: <b>elige cuál conservar</b>.</p>`;
+    if (S.status === 'offline') return `<p class="cloudst warn">👤 ${esc(Cloud.user())} · sin conexión: se guardará en la nube al volver internet.</p>`;
+    if (S.status === 'error') return `<p class="cloudst warn">👤 ${esc(Cloud.user())} · ${esc(S.msg)}</p>`;
+    if (S.status === 'saving') return `<p class="cloudst">👤 ${esc(Cloud.user())} · guardando en la nube…</p>`;
+    return `<p class="cloudst ok">👤 ${esc(Cloud.user())} · ☁️ guardado en la nube${S.lastOk ? ' ' + ago(S.lastOk) : ''}</p>`;
+  }
+  // Refresca la línea de estado si está en pantalla; avisa una vez si aparece un conflicto
+  let lastCloudStatus = Cloud.state.status;
+  Cloud.onChange(S => {
+    document.querySelectorAll('[data-cloudline]').forEach(el => { el.innerHTML = cloudLine(); });
+    if (S.status !== lastCloudStatus) {
+      if (S.status === 'conflict') UI.toast('Tu partida ha cambiado en otro dispositivo. Elige cuál conservar en 👤 Cuenta.', 3500);
+      else if (S.status === 'expired') UI.toast('Sesión caducada: vuelve a entrar en 👤 Cuenta', 3000);
+    }
+    lastCloudStatus = S.status;
+  });
+
+  /* ---------- Cuenta: entrar, crear cuenta y estado ---------- */
+  function renderAccount(back = renderMenu, mode) {
+    if (!Cloud.enabled()) {
+      screen(`${top('Cuenta')}<p class="note">Las cuentas todavía no están activadas en esta versión del juego. Tu partida se guarda en este móvil.</p>
+        <button class="ghost" id="aOld">📦 Traer partida de la versión antigua</button>
+        <button class="ghost" id="aBackup">💾 Copias y código de partida</button>`, 'bg_green');
+      $('aOld').onclick = () => renderTransfer(() => renderAccount(back));
+      $('aBackup').onclick = () => renderSaves(() => renderAccount(back));
+      $('back').onclick = back; return;
+    }
+    if (Cloud.state.conflict) return renderConflict(() => renderAccount(back));
+    if (!Cloud.loggedIn() || Cloud.expired()) return renderLogin(back, mode || (Cloud.expired() ? 'in' : Profile.data.firstDone ? 'up' : 'in'));
+    const S = Cloud.state;
+    screen(`${top('Cuenta')}
+      <div data-cloudline>${cloudLine()}</div>
+      <p class="note">Tu partida (plantilla, gacha, Historia, Carrera y la partida en curso) se guarda <b>sola</b> en la nube cada vez que cambia. En otro móvil u ordenador, entra con tu usuario y contraseña y la tendrás igual.</p>
+      <div class="grid2"><button class="cta" id="aNow">☁️ Guardar ahora</button><button class="ghost" id="aOut">Cerrar sesión</button></div>
+      <p class="note" id="aMsg"></p>
+      <details class="adv"><summary>Opciones avanzadas</summary>
+        <p class="note">Copias extra que se quedan solo en este navegador, por si quieres volver a un punto anterior.</p>
+        <button class="ghost" id="aBackup">💾 Copias en este móvil</button>
+      </details>
+      <button class="ghost" id="aOld">📦 Traer partida de la versión antigua</button>`, 'bg_green');
+    $('aOld').onclick = () => renderTransfer(() => renderAccount(back));
+    const msg = t => { $('aMsg').textContent = t; };
+    $('aNow').onclick = async () => {
+      msg('Guardando…'); if (Career.data) Career.save(); Profile.save(); saveSettings();
+      const r = await Cloud.push(true);
+      if (r === 'uploaded' || r === 'same') { msg('Guardado en la nube ✓'); Sound.sfx('reveal'); }
+      else if (r === 'conflict') renderConflict(() => renderAccount(back));
+      else msg(Cloud.state.msg || 'No se ha podido guardar ahora. Se reintentará solo.');
+    };
+    $('aOut').onclick = async () => {
+      const b = $('aOut');
+      if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = '¿Seguro?'; msg('Se guardará tu partida en la nube y este móvil quedará vacío para que pueda entrar otra cuenta. Toca otra vez para confirmar.'); return; }
+      msg('Guardando antes de salir…');
+      const r = await Cloud.signOut();
+      if (!r.ok) {
+        msg(r.msg + ' Si sales igualmente, perderás lo que no se haya subido.');
+        b.textContent = 'Salir igualmente'; b.onclick = async () => { await Cloud.signOut({ force: true }); reloadGame('Sesión cerrada'); };
+        return;
+      }
+      reloadGame('Sesión cerrada');
+    };
+    $('aBackup').onclick = () => renderSaves(() => renderAccount(back));
+    $('back').onclick = back;
+  }
+  function renderLogin(back = renderMenu, mode = 'in') {
+    const up = mode === 'up', first = !Profile.data.firstDone, expired = Cloud.loggedIn() && Cloud.expired();
+    screen(`${top(up ? 'Crear cuenta' : 'Iniciar sesión')}
+      <div class="grid2 tabs"><button class="ghost" id="tIn" aria-pressed="${!up}">Ya tengo cuenta</button><button class="ghost" id="tUp" aria-pressed="${up}">Crear cuenta</button></div>
+      ${up ? `<p class="note">Con una cuenta tu partida se guarda en la nube y la recuperas en cualquier móvil u ordenador.${Profile.data.firstDone ? ' <b>Tu progreso actual se pasará a la cuenta.</b>' : ''}</p>`
+        : `<p class="note">${expired ? 'Tu sesión ha caducado. Entra otra vez para seguir guardando en la nube.' : 'Entra con tu usuario y contraseña para recuperar tu partida.'}</p>`}
+      <form class="aform" id="aForm" autocomplete="on">
+        <label>Usuario<input id="aUser" name="username" type="text" maxlength="16" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="ej.: fran_10" value="${expired ? esc(Cloud.user() || '') : ''}"></label>
+        <label>Contraseña<input id="aPass" name="password" type="password" maxlength="72" autocomplete="${up ? 'new-password' : 'current-password'}" placeholder="mínimo 6 caracteres"></label>
+        ${up ? '<label>Repite la contraseña<input id="aPass2" type="password" maxlength="72" autocomplete="new-password"></label>' : ''}
+        <label class="showpw"><input type="checkbox" id="aShow"> Mostrar contraseña</label>
+        <button class="cta" id="aGo" type="submit">${up ? 'Crear cuenta' : 'Entrar'}</button>
+      </form>
+      <p class="giftmsg" id="aMsg"></p>
+      ${up ? '<p class="note">Apunta tu contraseña: como no usamos correo, <b>no se puede recuperar</b> si la olvidas.</p>' : ''}
+      <button class="ghost" id="aOld">📦 ¿Jugabas en la versión antigua? Trae tu partida</button>
+      ${first ? '<button class="ghost big" id="aGuest">Jugar como invitado<small>Tu partida solo se guardará en este móvil</small></button>' : ''}`, 'bg_green');
+    const form = $('aForm'), m = $('aMsg'), go = $('aGo');
+    form.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') back(); }));
+    $('aShow').onchange = e => form.querySelectorAll('input[type=password],input[data-pw]').forEach(i => { i.dataset.pw = 1; i.type = e.target.checked ? 'text' : 'password'; });
+    $('tIn').onclick = () => renderLogin(back, 'in'); $('tUp').onclick = () => renderLogin(back, 'up');
+    const say = (t, ok) => { m.textContent = t; m.className = 'giftmsg ' + (ok ? 'ok' : 'bad'); };
+    $('aUser').addEventListener('input', e => { if (up) { const u = Cloud.cleanUser(e.target.value), bad = u && Cloud.checkUser(u); say(bad && u.length >= 3 ? bad : ''); } });
+    form.onsubmit = async e => {
+      e.preventDefault(); if (go.disabled) return;
+      const u = $('aUser').value, p = $('aPass').value;
+      if (up && p !== $('aPass2').value) return say('Las contraseñas no coinciden.');
+      go.disabled = true; say(up ? 'Creando cuenta…' : 'Entrando…', true);
+      if (Career.data) Career.save(); Profile.save(); saveSettings();
+      const r = up ? await Cloud.signUp(u, p) : await Cloud.signIn(u, p);
+      if (!r.ok) { go.disabled = false; Sound.sfx('click'); return say(r.msg); }
+      say('Comprobando tu partida…', true);
+      afterSync(await Cloud.sync(), back, up ? '¡Cuenta creada! Tu partida ya se guarda en la nube.' : '¡Hola, ' + Cloud.user() + '!');
+    };
+    if ($('aGuest')) $('aGuest').onclick = () => { Cloud.chooseGuest(); renderMenu(); };
+    $('aOld').onclick = () => renderTransfer(() => renderLogin(back, mode));
+    $('back').onclick = back;
+    if (Controls.pc()) $('aUser').focus();
+  }
+  // Qué hacer tras sincronizar
+  function afterSync(r, next, hello) {
+    if (r === 'downloaded') return reloadGame('Cargando tu partida de la nube…');
+    if (r === 'conflict') return renderConflict(next);
+    if (hello) UI.toast(hello, 2500);
+    if (r === 'offline') UI.toast('Sin conexión: tu partida se subirá cuando vuelva internet', 3000);
+    if (r === 'error') UI.toast(Cloud.state.msg || 'Error con la nube; se reintentará', 3000);
+    Sound.sfx('reveal'); next();
+  }
+  // Dos versiones distintas: el jugador elige; la otra se guarda como copia en este móvil por si acaso
+  function renderConflict(next = renderMenu) {
+    const C = Cloud.state.conflict; if (!C) return next();
+    const card = (id, title, d, when, cls) => `<button class="cpl conf ${cls}" id="${id}"><span class="cplb"><b>${title}</b>
+      <span class="cst">${when}</span>
+      <span class="cst">👥 <b>${d.players}</b> jugadores · 🎟️ ${d.tickets} · 🪙 ${d.coins}</span>
+      <span class="cst">Victorias: ${d.wins} · Etapas completadas: ${d.etapas}</span>
+      ${d.career ? `<span class="cst">Carrera: ${esc(d.career)}</span>` : ''}</span></button>`;
+    screen(`<div class="top"><h2>¿Qué partida conservas?</h2></div>
+      <p class="note">Tu cuenta <b>${esc(Cloud.user())}</b> tiene una partida en la nube distinta de la de este móvil. Elige con cuál sigues. La otra se guarda como copia en este móvil (Cuenta → Opciones avanzadas), así que no se pierde.</p>
+      ${card('cCloud', '☁️ La de la nube', C.cloudInfo, C.cloudDate ? 'Guardada el ' + new Date(C.cloudDate).toLocaleString('es-ES') : '', '')}
+      ${card('cLocal', '📱 La de este móvil', C.localInfo, 'La que tienes ahora aquí', '')}
+      <p class="note" id="cMsg"></p>`, 'bg_green');
+    const keepCopy = (data, label) => { try { localStorage.setItem(slotKey(3), JSON.stringify({ date: Date.now(), data, label })); } catch (_) {} };
+    $('cCloud').onclick = async () => { keepCopy(C.local, 'Copia del móvil'); await Cloud.resolve('cloud'); reloadGame('Cargando tu partida de la nube…'); };
+    $('cLocal').onclick = async () => {
+      keepCopy(C.cloud.data, 'Copia de la nube'); $('cMsg').textContent = 'Subiendo la partida de este móvil…';
+      const r = await Cloud.resolve('local');
+      if (r === 'uploaded' || r === 'same') { UI.toast('Guardada en la nube ✓', 2000); next(); }
+      else if (r === 'conflict') renderConflict(next);
+      else { $('cMsg').textContent = (Cloud.state.msg || 'No se ha podido subir') + ' Se reintentará más tarde.'; setTimeout(next, 1800); }
+    };
+  }
+
   function renderSaves(back = renderMenu) {
     const slots = [1, 2, 3].map(i => { try { return JSON.parse(localStorage.getItem(slotKey(i)) || 'null'); } catch (_) { return null; } });
-    screen(`${top('Guardar partida')}
-      <p class="note">El juego se guarda solo en este navegador. Aquí puedes guardar copias en <b>3 ranuras</b> o sacar un <b>código de partida</b> para llevarla a otro móvil u ordenador.</p>
-      <div class="csquad">${slots.map((s, i) => `<div class="cpl fac"><div class="cplb"><b>Ranura ${i + 1}</b><span class="cst">${s ? new Date(s.date).toLocaleString('es-ES') + ' · ' + describe(s.data) : 'Vacía'}</span></div>
+    screen(`${top('Copias en este móvil')}
+      <p class="note">Copias que se quedan <b>solo en este navegador</b>, para volver a un punto anterior. ${Cloud.enabled() ? 'Para llevar tu partida a otro dispositivo usa tu <b>cuenta</b>.' : ''}</p>
+      <div class="csquad">${slots.map((s, i) => `<div class="cpl fac"><div class="cplb"><b>Ranura ${i + 1}${s && s.label ? ' · ' + esc(s.label) : ''}</b><span class="cst">${s ? new Date(s.date).toLocaleString('es-ES') + ' · ' + describe(s.data) : 'Vacía'}</span></div>
         <span class="row2"><button class="cta mini" data-save="${i + 1}">Guardar</button>${s ? `<button class="ghost mini" data-load="${i + 1}">Cargar</button>` : ''}</span></div>`).join('')}</div>
-      <h3>Código de partida</h3>
+      <details class="adv"><summary>Código de partida (sin cuenta)</summary>
       <button class="ghost" id="sExport">📤 Sacar código de mi partida</button>
       <textarea id="sCode" rows="4" placeholder="Pega aquí un código de partida para cargarlo" spellcheck="false"></textarea>
       <div class="grid2"><button class="ghost" id="sCopy">Copiar</button><button class="cta" id="sImport">📥 Cargar este código</button></div>
+      <button class="ghost" id="sLink">🔗 Copiar enlace de transferencia<small>Ábrelo en el otro dispositivo y se carga solo</small></button></details>
       <p class="note" id="sMsg"></p>`, 'bg_green');
     const msg = t => { $('sMsg').textContent = t; };
     const ta = $('sCode'); ta.addEventListener('keydown', e => e.stopPropagation());
@@ -1389,18 +1542,106 @@ const App = (() => {
       try { localStorage.setItem(slotKey(b.dataset.save), JSON.stringify({ date: Date.now(), data: snapshot() })); UI.toast('Partida guardada en la ranura ' + b.dataset.save); Sound.sfx('reveal'); renderSaves(back); }
       catch (_) { msg('No se ha podido guardar (el navegador no deja más espacio).'); }
     });
+    // Cargar una copia: se escribe como cambio normal, así con cuenta también se sube a la nube
+    const load = o => { SAVE_KEYS.forEach(k => { try { if (o[k] != null) localStorage.setItem(k, o[k]); else localStorage.removeItem(k); } catch (_) {} }); Cloud.push(true).finally(() => reloadGame()); };
     body.querySelectorAll('[data-load]').forEach(b => b.onclick = () => {
       if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = '¿Seguro?'; msg('Cargar sustituye tu partida actual. Toca otra vez para confirmar.'); return; }
-      const s = slots[+b.dataset.load - 1]; restore(s.data); msg('Cargando…'); setTimeout(() => location.reload(), 300);
+      msg('Cargando…'); load(slots[+b.dataset.load - 1].data);
     });
     $('sExport').onclick = async () => { ta.value = await packCode(snapshot()); ta.select(); msg('Código creado: cópialo y guárdalo (por ejemplo en tus notas). Para cargarlo, pégalo aquí en el otro dispositivo.'); };
     $('sCopy').onclick = async () => { ta.select(); try { await navigator.clipboard.writeText(ta.value); msg('Copiado.'); } catch (_) { try { document.execCommand('copy'); msg('Copiado.'); } catch (__) { msg('Selecciónalo y cópialo a mano.'); } } };
+    $('sLink').onclick = async () => {
+      if (Career.data) Career.save(); Profile.save(); saveSettings();
+      const link = location.origin + location.pathname + '#partida=' + encodeURIComponent(await packCode(snapshot()));
+      ta.value = link;
+      try { await navigator.clipboard.writeText(link); msg('Enlace copiado. Mándatelo (WhatsApp, notas…) y ábrelo en el otro dispositivo.'); }
+      catch (_) { ta.select(); msg('Copia el enlace del recuadro y ábrelo en el otro dispositivo.'); }
+    };
     $('sImport').onclick = async () => {
       if (!ta.value.trim()) return msg('Pega primero un código.');
-      try { const o = await unpackCode(ta.value); if (!o['inazuma-perfil'] && !o['inazuma-carrera']) throw new Error('vacío'); restore(o); msg('¡Partida cargada! Reiniciando…'); setTimeout(() => location.reload(), 400); }
-      catch (_) { msg('Ese código no es válido.'); }
+      const rr = await readCode(ta.value); if (rr.error) return msg(rr.error.replace(/<[^>]+>/g, ''));
+      const o = rr.data;
+      msg('¡Partida cargada! Reiniciando…'); load(o);
     };
     $('back').onclick = back;
+  }
+
+  /* ---------- Traer la partida de la versión antigua (u otro dispositivo sin cuenta) ---------- */
+  const OLD_URL = 'https://claude.ai/artifact/J4Hbvgaj1rHQC3mtFDSL2C';
+  // Busca el código dentro de lo que pegue el jugador (vale con texto de más, saltos de línea o un enlace #partida=)
+  // Devuelve posibles códigos, del más largo al más corto (por si se pegó texto justo detrás)
+  function findCodes(txt) {
+    const raw = String(txt || '');
+    let m = raw.replace(/\s+/g, '').match(/#partida=([^&]+)/);
+    if (m) { try { return [decodeURIComponent(m[1])]; } catch (_) { return [m[1]]; } }
+    m = raw.match(/IR[ZJ]1:[A-Za-z0-9+/=\s]+/); if (!m) return [];
+    const parts = m[0].trim().split(/\s+/), out = [];
+    for (let k = parts.length; k >= 1 && out.length < 6; k--) out.push(parts.slice(0, k).join(''));
+    return out;
+  }
+  const findCode = txt => findCodes(txt)[0] || '';
+  async function readCode(txt) {
+    const cs = findCodes(txt);
+    if (!cs.length) return { error: 'No encuentro ningún código. Tiene que empezar por <b>IRZ1:</b> y es un texto largo.' };
+    let o = null;
+    for (const c of cs) { try { o = await unpackCode(c); break; } catch (_) {} }
+    if (!o) return { error: 'El código está <b>incompleto o roto</b>. Vuelve a la versión antigua, toca «Copiar» y pégalo entero.' };
+    if (!o['inazuma-perfil'] && !o['inazuma-carrera']) return { error: 'Ese código no tiene ninguna partida dentro.' };
+    return { data: o };
+  }
+  function renderTransfer(back = renderMenu, preset = '') {
+    const sync = Cloud.enabled();
+    screen(`${top('Traer mi partida')}
+      <p class="note">Si jugabas en la <b>versión antigua</b> del juego (o en otro móvil sin cuenta), sigue estos pasos para traer tu partida aquí.</p>
+      <ol class="steps">
+        <li><b>Abre la versión antigua</b> con este botón.<a class="ghost linkbtn" id="tOpen" href="${OLD_URL}" target="_blank" rel="noopener">🔗 Abrir la versión antigua</a></li>
+        <li>Allí toca <b>💾 Guardar / cargar</b> → <b>📤 Sacar código de mi partida</b> → <b>Copiar</b>.</li>
+        <li>Vuelve a esta pestaña y toca <b>📋 Pegar</b> (o mantén el dedo en el recuadro y elige «Pegar»).</li>
+        <li>Revisa que es tu partida y toca <b>Cargar</b>.${sync ? ' Después crea tu cuenta para no tener que hacer esto nunca más.' : ''}</li>
+      </ol>
+      <textarea id="tCode" rows="4" placeholder="Pega aquí el código (empieza por IRZ1:)" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+      <div class="grid2"><button class="ghost" id="tPaste">📋 Pegar</button><button class="cta" id="tCheck">Comprobar</button></div>
+      <div id="tOut"></div>
+      ${Profile.data.firstDone ? '<p class="note">⚠️ Cargar sustituye la partida que tienes ahora en este dispositivo.</p>' : ''}`, 'bg_green');
+    const ta = $('tCode'), out = $('tOut');
+    ta.addEventListener('keydown', e => e.stopPropagation());
+    if (preset) ta.value = preset;
+    const check = async () => {
+      if (!ta.value.trim()) { out.innerHTML = '<p class="giftmsg bad">Primero pega el código.</p>'; return; }
+      out.innerHTML = '<p class="giftmsg ok">Leyendo el código…</p>';
+      const r = await readCode(ta.value);
+      if (r.error) { out.innerHTML = `<p class="giftmsg bad">${r.error}</p>`; Sound.sfx('click'); return; }
+      const d = Cloud.describe(r.data);
+      out.innerHTML = `<div class="cpl conf"><span class="cplb"><b>✅ Partida encontrada</b>
+        <span class="cst">👥 <b>${d.players}</b> jugadores · 🎟️ ${d.tickets} · 🪙 ${d.coins}</span>
+        <span class="cst">Victorias: ${d.wins} · Etapas completadas: ${d.etapas}</span>
+        ${d.career ? `<span class="cst">Carrera: ${esc(d.career)}</span>` : ''}</span></div>
+        <button class="cta" id="tLoad">📥 Cargar esta partida</button>`;
+      Sound.sfx('reveal');
+      $('tLoad').onclick = async () => {
+        $('tLoad').disabled = true;
+        // Copia de seguridad de lo que había, por si acaso
+        if (Profile.data.firstDone) { try { localStorage.setItem(slotKey(3), JSON.stringify({ date: Date.now(), data: snapshot(), label: 'Antes de traer la partida' })); } catch (_) {} }
+        SAVE_KEYS.forEach(k => { try { if (r.data[k] != null) localStorage.setItem(k, r.data[k]); else if (k !== 'inazuma-ajustes' && k !== 'inazuma-sonido') localStorage.removeItem(k); } catch (_) {} });
+        try { localStorage.setItem('inazuma-traida', '1'); } catch (_) {}
+        if (Cloud.loggedIn()) { await Cloud.push(true); }
+        reloadGame('¡Partida traída! Cargando…');
+      };
+    };
+    $('tPaste').onclick = async () => {
+      try { const t = await navigator.clipboard.readText(); if (t) { ta.value = t; check(); return; } } catch (_) {}
+      ta.focus(); out.innerHTML = '<p class="giftmsg bad">Tu navegador no deja pegar con el botón: mantén el dedo en el recuadro y elige «Pegar».</p>';
+    };
+    ta.addEventListener('paste', () => setTimeout(check, 50));
+    $('tCheck').onclick = check;
+    $('back').onclick = back;
+    if (preset) check();
+  }
+  // Enlace de transferencia: …/juego/#partida=IRZ1:… abre esta pantalla con el código puesto
+  function hashCode() {
+    const h = location.hash || ''; if (!/^#partida=/.test(h)) return '';
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (_) {}
+    return findCode(h);
   }
 
   /* ---------- Códigos de regalo ---------- */
@@ -1687,7 +1928,22 @@ const App = (() => {
     Controls.apply();
     Career.load();
     if (api.run && (!api.run.roster || !api.run.kind)) api.run = null;
-    if (settings.intro !== 0) playIntro(renderMenu); else renderMenu();
+    const pend = hashCode();
+    const first = pend ? () => renderTransfer(renderMenu, pend) : renderMenu;
+    const start = () => { if (settings.intro !== 0 && !pend) playIntro(first); else first(); };
+    if (!Cloud.enabled() || !Cloud.loggedIn() || Cloud.expired()) return start();
+    // Con cuenta: mira la nube antes de empezar (máximo unos segundos; si no hay internet, se juega igual)
+    screen(`<div class="title"><img class="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>Comprobando tu partida…</span></div>`, 'bg_title');
+    let done = false;
+    const fallback = setTimeout(() => { if (!done) { done = true; UI.toast('La nube tarda en responder: juegas con la partida de este móvil', 3000); start(); } }, 8000);
+    Cloud.sync().then(r => {
+      if (done) { if (r === 'downloaded') reloadGame('Cargando tu partida de la nube…'); return; }
+      done = true; clearTimeout(fallback);
+      if (r === 'downloaded') return reloadGame('Cargando tu partida de la nube…');
+      if (r === 'conflict') return renderConflict(start);
+      if (r === 'offline') UI.toast('Sin conexión: tu partida se subirá cuando vuelva internet', 3000);
+      start();
+    });
   };
   return api;
 })();

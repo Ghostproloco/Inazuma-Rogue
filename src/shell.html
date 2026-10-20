@@ -482,6 +482,24 @@ details.techs .cards{margin-top:6px}
 .dbg{position:absolute;left:8px;top:calc(env(safe-area-inset-top,0px) + 56px);z-index:8;margin:0;pointer-events:none;
   font:12px/1.4 var(--font-ui);color:#7fff7f;background:rgba(0,0,0,.6);padding:4px 6px;white-space:pre-wrap;max-width:70%}
 @media (prefers-reduced-motion:reduce){.toast,.act,.banner{transition:none}.gcard{animation:none;opacity:1;transform:none}.cap,.gm-hint,.cap .ct{animation:none!important}}
+/* Cuenta y guardado en la nube */
+.cloudst{font-size:13px;margin:6px 0 0;padding:6px 8px;background:rgba(10,18,48,.7);border:2px solid var(--ink);line-height:1.5;cursor:pointer}
+.cloudst.ok{color:#bff5c8}.cloudst.warn{color:#ffd9a8;box-shadow:0 0 0 2px #b8742a}.cloudst b{color:var(--yellow);font-weight:normal}
+.aform{display:flex;flex-direction:column;gap:10px;margin:4px 0}
+.aform label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--gold)}
+.aform input[type=text],.aform input[type=password]{font:18px var(--font-ui);color:var(--chalk);background:var(--navy-d);border:2px solid var(--ink);box-shadow:0 0 0 2px #5a7ab8;padding:10px 8px;-webkit-user-select:text;user-select:text;touch-action:manipulation;border-radius:0}
+.aform input::placeholder{color:#8a96b0}
+.aform .showpw{flex-direction:row;align-items:center;gap:8px;color:var(--chalk);font-size:13px}
+.aform .showpw input{width:20px;height:20px;margin:0}
+.tabs .ghost{font-size:16px}
+details.adv{margin-top:10px;background:rgba(10,18,48,.55);border:2px solid var(--ink);padding:6px 8px}
+details.adv summary{cursor:pointer;color:var(--gold);font-size:15px;padding:4px 0}
+details.adv[open]{display:flex;flex-direction:column;gap:8px}
+.cpl.conf{width:100%;padding:10px;margin:6px 0}.cpl.conf b{font-size:18px}
+.steps{margin:4px 0;padding-left:22px;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.5}
+.steps b{color:var(--yellow);font-weight:normal}
+.linkbtn{display:block;text-align:center;text-decoration:none;margin-top:6px}
+#sLink,#aOld,#wOld{display:flex;flex-direction:column;align-items:center;gap:2px}
 </style>
 
 <div id="shell">

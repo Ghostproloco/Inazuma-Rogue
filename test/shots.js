@@ -1,8 +1,8 @@
 // Banco de pruebas: tiros aislados (tirador contra portero) para medir probabilidades de gol
 const fs = require('fs'), vm = require('vm');
-const S = '/home/claude/inazuma/src/';
+const S = require('path').join(__dirname,'..','src')+'/';
 const ctx = { console, Math, JSON, Object, Array, Set, Map, localStorage: { getItem: () => null, setItem: () => {} } };
-ctx.GAME = JSON.parse(fs.readFileSync('/home/claude/inazuma/pub/gamedata.json', 'utf8'));
+ctx.GAME = JSON.parse(fs.readFileSync(require('path').join(__dirname,'..','juego','gamedata.json'), 'utf8'));
 vm.createContext(ctx);
 const code = fs.readFileSync(S + 'logic.js', 'utf8') + '\n' + fs.readFileSync(S + 'run.js', 'utf8') + '\nthis.Logic=Logic;this.rivalTeam=rivalTeam;this.TECH=TECH;';
 vm.runInContext(code, ctx);
