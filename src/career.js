@@ -7,7 +7,7 @@
 const CAREER_KEY = 'inazuma-carrera';
 const YOU = 'TU';                               // clave de tu club en las tablas
 const DIV_NAME = { 1: 'Primera', 2: 'Segunda', 3: 'Tercera' };
-const DIV_FACTOR = { 1: 0.95, 2: 0.85, 3: 0.78 }; // fuerza de los rivales según la división
+const DIV_FACTOR = { 1: 0.95, 2: 0.85, 3: 0.72 }; // fuerza de los rivales según la división
 const DIV_DIFF = { 1: 'dificil', 2: 'medio', 3: 'facil' };
 const DIV_TICKET = { 1: 170, 2: 105, 3: 60 };   // taquilla por victoria
 const DIV_PRIZE = { 1: 1500, 2: 800, 3: 400 };  // premio al campeón
@@ -28,6 +28,7 @@ const HOF_KEY = 'inazuma-salon';
 const MANAGERS = [13, 14, 15, 212, 21440];      // Nelly, Celia, Silvia, Seymour Hillman (1 y 2)
 const SQUAD_MAX = 12, SQUAD_MIN = 7;
 const LAST_YEAR = 6;   // los jugadores se gradúan (se van) al acabar 6º curso
+const YEAR_GROWTH = 1; // puntos que sube cada stat al pasar de curso
 const TACTICS = {
   equilibrada: { name: 'Equilibrada', desc: 'Sin riesgos', for: 1, ag: 1, forma: 0 },
   ofensiva:    { name: 'Ofensiva', desc: 'Más goles a favor… y en contra', for: 1.28, ag: 1.22, forma: 0 },
@@ -136,7 +137,7 @@ const Career = {
     const pool = this.freePool(p => p.rarity === 'comun' && p.id < 20000);
     const pick = (role, n) => {
       const c = pool.filter(p => p.role === role).sort((a, b) => this.sumIE(a) - this.sumIE(b));
-      const band = c.slice(Math.floor(c.length * 0.25), Math.floor(c.length * 0.6)), out = [];
+      const band = c.slice(Math.floor(c.length * 0.6), Math.floor(c.length * 0.92)), out = [];   // chavales normalitos, pero capaces de competir en Tercera
       while (out.length < n && band.length) out.push(band.splice(Math.floor(cRnd() * band.length), 1)[0]);
       return out;
     };
@@ -470,13 +471,13 @@ const Career = {
     if (d === 1 && pos === 1 && !c.goal) { c.goal = true; sum.goal = true; }
     if (d > 1 && up2.concat(up3).includes(YOU)) { sum.moves.push('up'); sum.fame += 10; if (poW[d] === YOU) { sum.playoff = true; c.titles.push({ season: c.season, name: 'Playoff de ascenso' }); } }
     if (d < 3 && (d === 1 ? down1 : down2).includes(YOU)) { sum.moves.push('down'); sum.fame -= 15; }
-    if (d === 3 && pos >= 8) { sum.fame -= 12; sum.warning = true; }
+    if (d === 3 && pos >= 8) { sum.fame -= c.season === 1 ? 4 : 12; sum.warning = true; }   // el primer año, el director es comprensivo
     c.divs[1] = c.divs[1].filter(k => !down1.includes(k)).concat(up2);
     c.divs[2] = c.divs[2].filter(k => !up2.includes(k) && !down2.includes(k)).concat(down1, up3);
     c.divs[3] = c.divs[3].filter(k => !up3.includes(k)).concat(down2);
     sum.table = table[d]; sum.po = c.po[d] || null;
     sum.promoted = { 1: up2, 2: up3 }; sum.relegated = { 1: down1, 2: down2 };
-    c.fame = Math.max(0, Math.min(100, c.fame + sum.fame)); c.money += sum.money;
+    c.fame = Math.max(c.season === 1 ? 10 : 0, Math.min(100, c.fame + sum.fame)); c.money += sum.money;   // tras el primer año, al menos 10 de fama
     c.history.push({ season: c.season, div: d, pos, champion: sum.champion, up: sum.moves.includes('up'), down: sum.moves.includes('down'), cup: sum.cupWinner === YOU, cupRound: c.cup ? c.cup.rounds.length : 0 });
     // Premios para el gacha: tickets por cada logro de la temporada
     sum.tickets = (sum.champion ? 10 : 0) + (sum.moves.includes('up') ? 5 : 0) + (sum.goal ? 20 : 0);
@@ -484,10 +485,15 @@ const Career = {
     // Graduaciones (los de 6º se van) y cantera (llegan juveniles)
     sum.grads = c.squad.filter(m => m.year >= LAST_YEAR).map(m => m.id);
     c.squad = c.squad.filter(m => m.year < LAST_YEAR);
-    c.squad.forEach(m => { m.year++; });
+    c.squad.forEach(m => { m.year++; STAT_KEYS.forEach(k => { m.up[k] = (m.up[k] || 0) + YEAR_GROWTH; }); });   // un año más de experiencia
+    sum.growth = YEAR_GROWTH;
+    // Cantera: siempre llegan al menos 2; si no caben, el jugador elige a quién deja ir (c.pendingYouth)
     const youth = this.youth(Math.max(2, SQUAD_MIN - c.squad.length));
     sum.youth = youth.map(m => m.id);
-    c.squad.push(...youth.slice(0, Math.max(0, SQUAD_MAX - c.squad.length)));
+    const room = Math.max(0, SQUAD_MAX - c.squad.length);
+    c.squad.push(...youth.slice(0, room));
+    c.pendingYouth = youth.slice(room);
+    sum.pendingYouth = c.pendingYouth.map(m => m.id);
     // Los clubes rivales reponen jugadores que les falten
     for (const k in c.clubs) while (c.clubs[k].length < 5) c.clubs[k].push(this.replacement(c.clubs[k][0] ? 'MED' : 'POR', 50));
     if (sum.season % 3 === 0 && !(c.fame <= 0 && c.history.length > 1)) { c.wc = this.wcCreate(sum.season); sum.wc = true; }   // cada 3 temporadas: Mundial
@@ -511,6 +517,18 @@ const Career = {
       if (p) out.push(this.member(p.id, 1));
     }
     return out;
+  },
+
+  // Juvenil que no cabe: entra si dejas ir a alguien de la plantilla (releaseId), o se va (releaseId = null)
+  resolveYouth(youthId, releaseId) {
+    const c = this.data, i = (c.pendingYouth || []).findIndex(m => m.id === youthId); if (i < 0) return { ok: false };
+    const kid = c.pendingYouth.splice(i, 1)[0];
+    if (releaseId == null) { this.save(); return { ok: true, msg: PLAYER(kid.id).name + ' se va a otro instituto.' }; }
+    const out = c.squad.find(m => m.id === releaseId); if (!out) { c.pendingYouth.splice(i, 0, kid); return { ok: false }; }
+    c.squad = c.squad.filter(m => m !== out); c.squad.push(kid);
+    if (c.lineup.includes(releaseId)) this.autoLineup();   // solo se recoloca si se iba un titular
+    c.news.unshift(`T${c.season}: ${PLAYER(out.id).name} deja el club y entra ${PLAYER(kid.id).name} de la cantera`); c.news.length = Math.min(c.news.length, 20);
+    this.save(); return { ok: true, msg: PLAYER(kid.id).name + ' entra en la plantilla.' };
   },
 
   /* ---------- Fichajes ---------- */

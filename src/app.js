@@ -13,7 +13,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.28.1';
+const VERSION = '0.29.0';
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
@@ -830,6 +830,7 @@ const App = (() => {
     const c = Career.data;
     if (!c) return renderCareerNew();
     if (c.over) return renderCareerOver();
+    if ((c.pendingYouth || []).length) return renderYouthChoice(renderCareer);
     if (c.wc) return renderWC();
     tutorial('career');
     const nm = Career.nextMatch(), d = Career.myDiv(), mgr = PLAYER(c.manager), wt = Career.weekType();
@@ -1119,11 +1120,32 @@ const App = (() => {
       <p class="note">⬆️ A Primera: ${sum.promoted[1].map(k => esc(Career.teamName(k))).join(', ')}<br>⬆️ A Segunda: ${sum.promoted[2].map(k => esc(Career.teamName(k))).join(', ')}<br>
       ⬇️ A Segunda: ${sum.relegated[1].map(k => esc(Career.teamName(k))).join(', ')}<br>⬇️ A Tercera: ${sum.relegated[2].map(k => esc(Career.teamName(k))).join(', ')}</p>
       <h3>Tu plantilla</h3>
-      <p class="note">🎓 Se gradúan (${LAST_YEAR}º curso): ${names(sum.grads)}<br>🌱 Llegan de la cantera: ${names(sum.youth)}<br>El resto pasa de curso.</p>
+      <p class="note">🎓 Se gradúan (${LAST_YEAR}º curso): ${names(sum.grads)}<br>🌱 Llegan de la cantera: ${names(sum.youth)}<br>📈 El resto pasa de curso y gana experiencia: <b>+${sum.growth || 1} en todas sus stats</b>.</p>
+      ${(sum.pendingYouth || []).length ? `<p class="note cmsg gold">🌱 ${names(sum.pendingYouth)} ${sum.pendingYouth.length > 1 ? 'quieren' : 'quiere'} entrar, pero la plantilla está llena: ahora eliges si haces hueco.</p>` : ''}
       ${sum.goal ? hallHtml() : ''}
       ${bottom(`<button class="cta" id="cNext">${c.over ? 'Ver resumen' : sum.goal ? 'Seguir jugando (infinito)' : 'Empezar temporada ' + c.season}</button>`)}`, sum.champion || sum.moves.includes('up') ? 'ill25' : 'bg_team');
     if (sum.champion || sum.moves.includes('up')) Sound.jingle('win');
     $('cNext').onclick = () => { Sound.music('menu'); c.over ? renderCareerOver() : renderCareer(); };
+  }
+  // Juveniles que no caben: entra si dejas ir a alguien, o se va a otro instituto
+  function renderYouthChoice(next) {
+    const c = Career.data, kid = (c.pendingYouth || [])[0];
+    if (!kid) return next();
+    const pd = PLAYER(kid.id);
+    screen(`<h2>🌱 Llega un juvenil</h2>
+      <p class="note"><b>${esc(pd.name)}</b> (${ROLE_LABEL[pd.role]}, 1º curso) quiere entrar en el club, pero tu plantilla está llena (${SQUAD_MAX}/${SQUAD_MAX}). ¿Le haces hueco?</p>
+      <div class="csquad" id="yKid"></div>
+      <h3>Elige a quién dejas ir</h3>
+      <p class="note">Ordenados de peor a mejor. Se va del club sin cobrar nada.</p>
+      <div class="csquad" id="ySquad"></div>
+      ${bottom(`<button class="ghost" id="yNo">No, que ${esc(pd.name)} se vaya a otro instituto</button>`)}`, 'bg_team');
+    $('yKid').appendChild(playerRow(kid.id, `<span class="cst">1º curso · de la cantera</span>`, kid));
+    c.squad.slice().sort((a, b) => Career.ovr(a) - Career.ovr(b)).forEach(m => {
+      const el = playerRow(m.id, `<span class="cst">${m.year}º curso${c.lineup.includes(m.id) ? ' · <b>titular</b>' : ''}</span><button class="ghost mini">Dejar ir</button>`, m);
+      el.querySelector('button').onclick = () => { const r = Career.resolveYouth(kid.id, m.id); if (r.ok) { UI.toast(r.msg, 2000); Sound.sfx('reveal'); renderYouthChoice(next); } };
+      $('ySquad').appendChild(el);
+    });
+    $('yNo').onclick = () => { const r = Career.resolveYouth(kid.id, null); if (r.ok) UI.toast(r.msg, 1800); renderYouthChoice(next); };
   }
   function hallHtml() {
     const c = Career.data;
