@@ -2,7 +2,7 @@
 const fs = require('fs'), vm = require('vm');
 const S = require('path').join(__dirname,'..','src')+'/';
 const store = {};
-const ctx = { console, Math, JSON, Object, Array, Set, Map, localStorage: { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => delete store[k] } };
+const ctx = { TX: (s, ...a) => a.length ? s.replace(/\{(\d+)\}/g, (m, i) => a[i]) : s, TXn: (n, a, b) => (n === 1 ? a : b).replace('{0}', n), console, Math, JSON, Object, Array, Set, Map, localStorage: { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => delete store[k] } };
 ctx.GAME = JSON.parse(fs.readFileSync(require('path').join(__dirname,'..','juego','gamedata.json'), 'utf8'));
 ctx.Sprites = { refOf: pd => ({ file: 'c00.png', row: 0 }) };
 vm.createContext(ctx);

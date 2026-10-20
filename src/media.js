@@ -107,35 +107,35 @@ const ClubCrest = (() => {
    SONIDO: música y jingles de tus archivos; efectos generados aquí
    ===================================================================== */
 // Pistas ordenadas por grupo (el orden de aquí es el de Ajustes). loop: [inicio, fin] en segundos.
-const TRACK_GROUPS = ['Inicio', 'Partidos · Inazuma Eleven', 'Partidos · Inazuma Eleven 2', 'Rivales · Inazuma Eleven 2', 'Historia · Inazuma Eleven 2', 'Lugares · Inazuma Eleven 2', 'Jingles'];
+const TRACK_GROUPS = [TX('Inicio'), TX('Partidos · Inazuma Eleven'), TX('Partidos · Inazuma Eleven 2'), TX('Rivales · Inazuma Eleven 2'), TX('Historia · Inazuma Eleven 2'), TX('Lugares · Inazuma Eleven 2'), 'Jingles'];
 const TRACKS = {};
 [
-  ['Inicio', [
-    ['title', 'Título · Inazuma Eleven', [0, 0]], ['title2', 'Título · Inazuma Eleven 2', [0, 0]],
-    ['op00', 'Opening · Inazuma Eleven', null], ['op2', 'Opening · Inazuma Eleven 2', null], ['bg_end', 'Ending · Inazuma Eleven', null]]],
-  ['Partidos · Inazuma Eleven', [
-    ['m01', 'Partido 1', [3.5, 68.32]], ['m02', 'Partido 2', [0, 65.93]], ['m03', 'Partido 3', [5.05, 79.07]], ['m04', 'Partido 4', [4.29, 70.71]], ['m05', 'Partido 5', [0.28, 67.57]],
-    ['p07', 'Ritmo rápido', [0, 50.37]], ['pb01', 'Contraataque - ¡Al rojo vivo!', [6.48, 77.59]], ['p01', 'Tema épico', [20.79, 93.93]],
-    ['e01', 'Tensión', [0, 33.68]], ['d01', 'El centro de entrenamiento Osakaland', [0, 79.32]]]],
-  ['Partidos · Inazuma Eleven 2', [
-    ['p10', 'El poder del Raimon', [1.55, 76.9]], ['p11', 'Ataque relámpago', [9.93, 72.83]], ['p05', 'Cruzada gloriosa', [6.1, 94.58]],
-    ['p06', 'Centro de entrenamiento', [6.77, 66.77]], ['p15', 'Tema de partido (P15)', [1.66, 93.1]]]],
-  ['Rivales · Inazuma Eleven 2', [
-    ['p04', 'Atronadora Royal Academy', [0, 76.6]], ['e07', 'Royal Academy', [0.25, 65.81]], ['p16', 'R. A. Redux - Supertécnicas milagrosas', [0, 84.48]],
-    ['p12', 'Emperadores Oscuros - El campo del trueno', [1.45, 73.21]], ['e204', 'La sombra negra - Tema de Ray Dark', [0, 58.29]],
-    ['p17', 'Géminis - El balón negro', [3.69, 62.77]], ['p18', 'Épsilon - Ira infernal', [14.64, 86.43]], ['p19', 'Génesis - El equipo G', [6, 81]],
-    ['e211', 'Génesis - Los superhumanos', [7.3, 87.92]], ['e210', 'El poder de la Academia Alius', [12.8, 93.87]]]],
-  ['Historia · Inazuma Eleven 2', [
-    ['e201', 'Los sueños del Raimon', [0.09, 79]], ['e01b', 'El club de fútbol', [0, 50.53]], ['e205', '¡Vamos allá!', [0.23, 37.73]], ['e208', 'Alma de luchador', [0, 81.25]],
-    ['e206', 'La amenaza del trueno', [4, 73.33]], ['e03', 'La última batalla', [0.23, 29.77]], ['e05', 'Terreno sagrado', [0.21, 73.73]], ['e202', 'Su Majestad', [0, 61.97]],
-    ['e209', 'Tiempos difíciles', [0, 96.77]], ['e207', 'Sueños rotos', [0, 86.81]], ['e203', 'Axel y Julia - Un final feliz', [0, 89.46]],
-    ['e212', 'El astro del balón - Versión para piano', [0, 56.49]], ['s201', 'El óvalo - Estadio', [0, 32]]]],
-  ['Lugares · Inazuma Eleven 2', [
-    ['m201', 'La Caravana Inazuma', [8.64, 79.55]], ['m205', 'La ciudad de Inazuma', [12, 71.52]], ['m206', 'Zona residencial - Una promesa solemne', [4.88, 74.59]],
-    ['m207', '¡Hacia el infinito!', [9.7, 104.21]], ['m208', 'Hokkaido - Paraíso nevado', [0, 55.27]], ['m213', 'Okinawa - Fútbol bajo el sol', [6, 84]],
-    ['m214', 'Osakaland', [12.41, 105.52]], ['m216', 'Royal Academy - Versión del juego', [0, 62.5]], ['m217', 'El bosque del monte Fuji', [0, 89.14]],
-    ['m218', 'La base de la Academia Alius', [4.8, 76.8]]]],
-  ['Jingles', [['j13', 'Gol', null], ['j01', 'Victoria', null], ['j07', 'Derrota', null]]],
+  [TX('Inicio'), [
+    ['title', TX('Título · Inazuma Eleven'), [0, 0]], ['title2', TX('Título · Inazuma Eleven 2'), [0, 0]],
+    ['op00', TX('Opening · Inazuma Eleven'), null], ['op2', TX('Opening · Inazuma Eleven 2'), null], ['bg_end', TX('Ending · Inazuma Eleven'), null]]],
+  [TX('Partidos · Inazuma Eleven'), [
+    ['m01', TX('Partido 1'), [3.5, 68.32]], ['m02', TX('Partido 2'), [0, 65.93]], ['m03', TX('Partido 3'), [5.05, 79.07]], ['m04', TX('Partido 4'), [4.29, 70.71]], ['m05', TX('Partido 5'), [0.28, 67.57]],
+    ['p07', TX('Ritmo rápido'), [0, 50.37]], ['pb01', TX('Contraataque - ¡Al rojo vivo!'), [6.48, 77.59]], ['p01', TX('Tema épico'), [20.79, 93.93]],
+    ['e01', TX('Tensión'), [0, 33.68]], ['d01', TX('El centro de entrenamiento Osakaland'), [0, 79.32]]]],
+  [TX('Partidos · Inazuma Eleven 2'), [
+    ['p10', TX('El poder del Raimon'), [1.55, 76.9]], ['p11', TX('Ataque relámpago'), [9.93, 72.83]], ['p05', TX('Cruzada gloriosa'), [6.1, 94.58]],
+    ['p06', TX('Centro de entrenamiento'), [6.77, 66.77]], ['p15', TX('Tema de partido (P15)'), [1.66, 93.1]]]],
+  [TX('Rivales · Inazuma Eleven 2'), [
+    ['p04', TX('Atronadora Royal Academy'), [0, 76.6]], ['e07', 'Royal Academy', [0.25, 65.81]], ['p16', TX('R. A. Redux - Supertécnicas milagrosas'), [0, 84.48]],
+    ['p12', TX('Emperadores Oscuros - El campo del trueno'), [1.45, 73.21]], ['e204', TX('La sombra negra - Tema de Ray Dark'), [0, 58.29]],
+    ['p17', TX('Géminis - El balón negro'), [3.69, 62.77]], ['p18', TX('Épsilon - Ira infernal'), [14.64, 86.43]], ['p19', TX('Génesis - El equipo G'), [6, 81]],
+    ['e211', TX('Génesis - Los superhumanos'), [7.3, 87.92]], ['e210', TX('El poder de la Academia Alius'), [12.8, 93.87]]]],
+  [TX('Historia · Inazuma Eleven 2'), [
+    ['e201', TX('Los sueños del Raimon'), [0.09, 79]], ['e01b', TX('El club de fútbol'), [0, 50.53]], ['e205', TX('¡Vamos allá!'), [0.23, 37.73]], ['e208', TX('Alma de luchador'), [0, 81.25]],
+    ['e206', TX('La amenaza del trueno'), [4, 73.33]], ['e03', TX('La última batalla'), [0.23, 29.77]], ['e05', TX('Terreno sagrado'), [0.21, 73.73]], ['e202', TX('Su Majestad'), [0, 61.97]],
+    ['e209', TX('Tiempos difíciles'), [0, 96.77]], ['e207', TX('Sueños rotos'), [0, 86.81]], ['e203', TX('Axel y Julia - Un final feliz'), [0, 89.46]],
+    ['e212', TX('El astro del balón - Versión para piano'), [0, 56.49]], ['s201', TX('El óvalo - Estadio'), [0, 32]]]],
+  [TX('Lugares · Inazuma Eleven 2'), [
+    ['m201', TX('La Caravana Inazuma'), [8.64, 79.55]], ['m205', TX('La ciudad de Inazuma'), [12, 71.52]], ['m206', TX('Zona residencial - Una promesa solemne'), [4.88, 74.59]],
+    ['m207', TX('¡Hacia el infinito!'), [9.7, 104.21]], ['m208', TX('Hokkaido - Paraíso nevado'), [0, 55.27]], ['m213', TX('Okinawa - Fútbol bajo el sol'), [6, 84]],
+    ['m214', TX('Osakaland'), [12.41, 105.52]], ['m216', TX('Royal Academy - Versión del juego'), [0, 62.5]], ['m217', TX('El bosque del monte Fuji'), [0, 89.14]],
+    ['m218', TX('La base de la Academia Alius'), [4.8, 76.8]]]],
+  ['Jingles', [['j13', TX('Gol'), null], ['j01', TX('Victoria'), null], ['j07', TX('Derrota'), null]]],
 ].forEach(([group, list]) => list.forEach(([k, name, loop]) => {
   TRACKS[k] = { file: k + '.mp3', name, loop, group, jingle: group === 'Jingles' };
 }));

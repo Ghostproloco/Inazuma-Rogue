@@ -1,11 +1,15 @@
 /* =====================================================================
    APP: menús, modos, gacha, plantilla, recorridos y pantallas (DOM).
    ===================================================================== */
-const ELEM_LABEL = { fuego: 'Fuego', viento: 'Viento', bosque: 'Bosque', 'montaña': 'Montaña', neutro: '—' };
-const TYPE_LABEL = { tiro: 'Tiro', regate: 'Regate', bloqueo: 'Bloqueo', parada: 'Parada' };
-const ROLE_LABEL = { POR: 'Portero', DEF: 'Defensa', MED: 'Medio', DEL: 'Delantero' };
+const ELEM_LABEL = { fuego: TX('Fuego'), viento: TX('Viento'), bosque: TX('Bosque'), 'montaña': TX('Montaña'), neutro: '—' };
+const TYPE_LABEL = { tiro: TX('Tiro'), regate: TX('Regate'), bloqueo: TX('Bloqueo'), parada: TX('Parada') };
+const ROLE_LABEL = { POR: TX('Portero'), DEF: TX('Defensa'), MED: TX('Medio'), DEL: TX('Delantero') };
 const ROLES4 = ['POR', 'DEF', 'MED', 'DEL'];
-const FIELD_LABEL = { normal: 'Campo clásico', noche: 'Campo nocturno', jungla: 'Campo de la jungla', atardecer: 'Campo al atardecer', nieve: 'Campo nevado', acero: 'Estadio de acero', cielo: 'Campo celestial', volcan: 'Campo volcánico' };
+// Abreviatura del puesto para mostrar (en inglés: GK, DF, MF, FW) y curso del jugador («3º curso» / «Year 3»)
+const RAB = r => (I18N.en() ? { POR: 'GK', DEF: 'DF', MED: 'MF', DEL: 'FW' }[r] : null) || r;
+const yearTx = n => TX('{0}º curso', n);
+const ordTx = n => I18N.en() ? n + ([, 'st', 'nd', 'rd'][n % 100 > 10 && n % 100 < 14 ? 0 : n % 10] || 'th') : n + 'º';
+const FIELD_LABEL = { normal: TX('Campo clásico'), noche: TX('Campo nocturno'), jungla: TX('Campo de la jungla'), atardecer: TX('Campo al atardecer'), nieve: TX('Campo nevado'), acero: TX('Estadio de acero'), cielo: TX('Campo celestial'), volcan: TX('Campo volcánico') };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const chip = e => `<span class="chip ${EL(e).css}">${ELEM_LABEL[e] || e}</span>`;
 const rchip = r => `<span class="rar ${r}">${RARITY[r].label}</span>`;
@@ -13,7 +17,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.30.1';
+const VERSION = '0.31.0';
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
@@ -41,10 +45,10 @@ const App = (() => {
   }
   const crestOf = key => (TEAM(key) || {}).crest || 1;
   // Barra fija arriba con «Volver» y el título; barra fija abajo para el botón principal
-  const top = (title, id = 'back', label = 'Volver') => `<div class="top"><button class="ghost back" id="${id}">◀ ${label}</button><h2>${title}</h2></div>`;
+  const top = (title, id = 'back', label = TX('Volver')) => `<div class="top"><button class="ghost back" id="${id}">◀ ${label}</button><h2>${title}</h2></div>`;
   const bottom = html => `<div class="bottom">${html}</div>`;
   const face = (ref, size) => Sprites.face(ref, size);
-  function wallet() { const P = Profile.data; return `<div class="runbar"><span>🪙 ${P.coins}</span><span>🎟️ ${P.tickets}</span><span title="Rayos Raimon">⚡ ${P.rayos}</span><span>👥 ${Profile.ids().length}</span></div>`; }
+  function wallet() { const P = Profile.data; return `<div class="runbar"><span>🪙 ${P.coins}</span><span>🎟️ ${P.tickets}</span><span title="${TX('Rayos Raimon')}">⚡ ${P.rayos}</span><span>👥 ${Profile.ids().length}</span></div>`; }
   function opts(group, key, list, obj = settings) {
     return `<div class="group"><label>${group}</label><div class="opts">${list.map(([v, t]) =>
       `<button data-k="${key}" data-v="${v}" aria-pressed="${obj[key] == v}">${t}</button>`).join('')}</div></div>`;
@@ -56,7 +60,7 @@ const App = (() => {
       onChange && onChange(b.dataset.k);
     }));
   }
-  const formSelect = (obj, key = 'formation') => `<div class="group"><label>Formación</label><select id="formSel">${Object.entries(FORMATIONS).map(([k, f]) =>
+  const formSelect = (obj, key = 'formation') => `<div class="group"><label>${TX('Formación')}</label><select id="formSel">${Object.entries(FORMATIONS).map(([k, f]) =>
     `<option value="${k}" ${obj[key] === k ? 'selected' : ''}>${k} · ${f.name}</option>`).join('')}</select></div>`;
   document.addEventListener('pointerdown', () => Sound.unlock(), { capture: true });
 
@@ -65,41 +69,41 @@ const App = (() => {
     if (!Profile.data.firstDone) return renderWelcome();
     if (Cloud.state.conflict) return renderConflict(renderMenu);
     let traida = false; try { traida = !!localStorage.getItem('inazuma-traida'); if (traida) localStorage.removeItem('inazuma-traida'); } catch (_) {}
-    if (traida) { setTimeout(() => UI.toast(Cloud.enabled() && !Cloud.loggedIn() ? '¡Partida traída! Crea una cuenta en 👤 Cuenta para tenerla siempre a salvo' : '¡Partida traída!', 3500), 300); }
+    if (traida) { setTimeout(() => UI.toast(Cloud.enabled() && !Cloud.loggedIn() ? TX('¡Partida traída! Crea una cuenta en 👤 Cuenta para tenerla siempre a salvo') : TX('¡Partida traída!'), 3500), 300); }
     const P = Profile.data, r = api.run && api.run.state !== 'over' ? api.run : null;
     const done = P.story.s1.done;
-    screen(`<div class="title"><img class="logo" id="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>5 contra 5 · roguelite</span></div>${wallet()}
-      ${r ? `<button class="cta" id="mContinue">Continuar: ${esc(r.name)}<small>Partido ${r.index + 1}${r.kind === 'infinite' ? '' : ' de ' + r.schedule.length} · ${'♥'.repeat(r.lives)}</small></button>` : ''}
+    screen(`<div class="title"><img class="logo" id="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>${TX('5 contra 5 · roguelite')}</span></div>${wallet()}
+      ${r ? `<button class="cta" id="mContinue">${TX('Continuar:')} ${esc(r.name)}<small>${TX('Partido')} ${r.index + 1}${r.kind === 'infinite' ? '' : TX(' de ') + r.schedule.length} · ${'♥'.repeat(r.lives)}</small></button>` : ''}
       <div class="modes">
-        <button class="mode" id="mCareer"><span class="cicon">🏆</span><span class="mt"><b>Modo Carrera</b><small>${Career.data && !Career.data.over ? 'Temporada ' + Career.data.season + ' · ' + DIV_NAME[Career.myDiv()] + ' · semana ' + Career.data.week : 'Eres el mánager: 3 divisiones y ascensos'}</small></span></button>
-        <button class="mode" id="mStory">${Sprites.crest(1)}<span class="mt"><b>Historia</b><small>${P.story.s4.done ? 'Etapas 1, 2 y 3 completadas ✓' : P.story.s3.done ? 'Etapa 3 · Fase 2 abierta (mejor: ' + P.story.s4.best + ')' : P.story.s2.done ? 'Etapa 3 abierta: el Inazuma 3' : done ? 'Etapa 1 ✓ · Etapa 2 abierta (mejor: ' + P.story.s2.best + ')' : 'Etapa 1 · mejor: ' + P.story.s1.best + ' victorias'}</small></span></button>
-        <button class="mode" id="mSpecial">${Sprites.crest(588)}<span class="mt"><b>Equipos especiales</b><small>${SPECIALS.filter(x => Profile.unlocked({ special: x })).length} de ${SPECIALS.length} abiertos</small></span></button>
-        <button class="mode ${done ? '' : 'locked'}" id="mChain">${Sprites.crest(599)}<span class="mt"><b>Cadenas</b><small>${done ? 'Desafíos cortos · premio: Rayo Raimon' : '🔒 Completa la Etapa 1'}</small></span></button>
-        <button class="mode ${done ? '' : 'locked'}" id="mInf">${Sprites.crest(15)}<span class="mt"><b>Infinito</b><small>${done ? 'Por oleadas · récord: ' + P.infBest : '🔒 Completa la Etapa 1'}</small></span></button>
+        <button class="mode" id="mCareer"><span class="cicon">🏆</span><span class="mt"><b>${TX('Modo Carrera')}</b><small>${Career.data && !Career.data.over ? TX('Temporada ') + Career.data.season + ' · ' + DIV_NAME[Career.myDiv()] + TX(' · semana ') + Career.data.week : TX('Eres el mánager: 3 divisiones y ascensos')}</small></span></button>
+        <button class="mode" id="mStory">${Sprites.crest(1)}<span class="mt"><b>${TX('Historia')}</b><small>${P.story.s4.done ? TX('Etapas 1, 2 y 3 completadas ✓') : P.story.s3.done ? TX('Etapa 3 · Fase 2 abierta (mejor: ') + P.story.s4.best + ')' : P.story.s2.done ? TX('Etapa 3 abierta: el Inazuma 3') : done ? TX('Etapa 1 ✓ · Etapa 2 abierta (mejor: ') + P.story.s2.best + ')' : TX('Etapa 1 · mejor: ') + P.story.s1.best + TX(' victorias')}</small></span></button>
+        <button class="mode" id="mSpecial">${Sprites.crest(588)}<span class="mt"><b>${TX('Equipos especiales')}</b><small>${SPECIALS.filter(x => Profile.unlocked({ special: x })).length} ${TX('de')} ${SPECIALS.length} ${TX('abiertos')}</small></span></button>
+        <button class="mode ${done ? '' : 'locked'}" id="mChain">${Sprites.crest(599)}<span class="mt"><b>${TX('Cadenas')}</b><small>${done ? TX('Desafíos cortos · premio: Rayo Raimon') : TX('🔒 Completa la Etapa 1')}</small></span></button>
+        <button class="mode ${done ? '' : 'locked'}" id="mInf">${Sprites.crest(15)}<span class="mt"><b>${TX('Infinito')}</b><small>${done ? TX('Por oleadas · récord: ') + P.infBest : TX('🔒 Completa la Etapa 1')}</small></span></button>
       </div>
       <div class="grid2">
-        <button class="ghost big" id="mGacha">Gacha<small>${P.tickets} tickets</small></button>
-        <button class="ghost big" id="mTeam">Plantilla<small>Entrenar y Rayos</small></button>
-        <button class="ghost big" id="mQuick">Partido rápido<small>Tus mejores 5</small></button>
-        <button class="ghost big" id="mSound">Ajustes<small>Partido, controles y sonido</small></button>
+        <button class="ghost big" id="mGacha">${TX('Gacha')}<small>${P.tickets} ${TX('tickets')}</small></button>
+        <button class="ghost big" id="mTeam">${TX('Plantilla')}<small>${TX('Entrenar y Rayos')}</small></button>
+        <button class="ghost big" id="mQuick">${TX('Partido rápido')}<small>${TX('Tus mejores 5')}</small></button>
+        <button class="ghost big" id="mSound">${TX('Ajustes')}<small>${TX('Partido, controles y sonido')}</small></button>
       </div>
-      <div class="grid2"><button class="ghost" id="mGift">🎁 Código de regalo</button><button class="ghost" id="mSaves">👤 Cuenta${Cloud.loggedIn() ? ' · ' + esc(Cloud.user()) : ''}</button></div>
+      <div class="grid2"><button class="ghost" id="mGift">${TX('🎁 Código de regalo')}</button><button class="ghost" id="mSaves">${TX('👤 Cuenta')}${Cloud.loggedIn() ? ' · ' + esc(Cloud.user()) : ''}</button></div>
       <div data-cloudline>${cloudLine()}</div>
-      ${r ? '<button class="ghost" id="mAbandon">Abandonar partida en curso</button>' : ''}
-      <button class="ver" id="ver">v${VERSION}${settings.dev ? ' · dev' : ''}</button>`, 'bg_title');
+      ${r ? '<button class="ghost" id="mAbandon">' + TX('Abandonar partida en curso') + '</button>' : ''}
+      <button class="ver" id="ver">v${VERSION}${settings.dev ? TX(' · dev') : ''}</button>`, 'bg_title');
     let vt = 0, vtT = 0;   // 20 toques seguidos en la versión: modo desarrollador
     $('ver').onclick = () => {
       const now = Date.now(); vt = now - vtT < 1500 ? vt + 1 : 1; vtT = now;
-      if (vt >= 20) { vt = 0; if (!settings.dev) { settings.dev = true; settings.devWin = 1; saveSettings(); UI.toast('Modo desarrollador activado', 1800); } Sound.sfx('reveal'); renderDev(); }
-      else if (vt >= 15) UI.toast('Faltan ' + (20 - vt) + ' toques…', 600);
+      if (vt >= 20) { vt = 0; if (!settings.dev) { settings.dev = true; settings.devWin = 1; saveSettings(); UI.toast(TX('Modo desarrollador activado'), 1800); } Sound.sfx('reveal'); renderDev(); }
+      else if (vt >= 15) UI.toast(TX('Faltan ') + (20 - vt) + TX(' toques…'), 600);
     };
-    const busy = () => { if (r) { UI.toast('Termina o abandona la partida en curso'); return true; } return false; };
+    const busy = () => { if (r) { UI.toast(TX('Termina o abandona la partida en curso')); return true; } return false; };
     if (r) { $('mContinue').onclick = openRun; $('mAbandon').onclick = () => { Run.clear(); api.run = null; renderMenu(); }; }
     $('mStory').onclick = () => { if (!busy()) renderStory(); };
     $('mCareer').onclick = () => renderCareer();
     $('mSpecial').onclick = () => { if (!busy()) renderSpecials(); };
-    $('mChain').onclick = () => { if (!done) return UI.toast('Completa la Etapa 1 de la Historia'); if (!busy()) renderChains(); };
-    $('mInf').onclick = () => { if (!done) return UI.toast('Completa la Etapa 1 de la Historia'); if (!busy()) { newDraft('infinite', {}); tutorial('infinite'); } };
+    $('mChain').onclick = () => { if (!done) return UI.toast(TX('Completa la Etapa 1 de la Historia')); if (!busy()) renderChains(); };
+    $('mInf').onclick = () => { if (!done) return UI.toast(TX('Completa la Etapa 1 de la Historia')); if (!busy()) { newDraft('infinite', {}); tutorial('infinite'); } };
     $('mGacha').onclick = renderGacha; $('mTeam').onclick = () => renderTeam();
     $('mGift').onclick = renderGift;
     $('mSaves').onclick = () => renderAccount(renderMenu);
@@ -111,33 +115,33 @@ const App = (() => {
   const mini = keys => `<span class="mini">${keys.map(k => Sprites.crest(crestOf(k))).join('')}</span>`;
   /* ---------- Tutoriales: se enseñan la primera vez que entras en cada modo (y con el botón ❓) ---------- */
   const TUTS = {
-    story: ['Historia', 'Recorre los torneos del 1, 2 y 3 con tu equipo. Es <b>roguelite</b>: tienes vidas ♥, tras cada victoria eliges una mejora (técnica, habilidad o fichaje temporal) y todo eso se pierde al acabar el intento. Completar una etapa la deja superada para siempre y abre más modos.'],
-    special: ['Equipos especiales', 'Un solo partido, sin segundas oportunidades. Si ganas, <b>su estrella se une a tu plantilla</b> (o sube una ★ si ya la tenías).'],
-    chains: ['Cadenas', 'Varios partidos seguidos <b>sin recuperar vidas</b>. Al completarla: Rayo Raimon, tickets, monedas y la estrella del último rival. La primera vez, una técnica legendaria. Sin perder vidas, 💎 extra. Medallas 🥉🥈🥇 al repetirlas.'],
-    infinite: ['Infinito', 'Oleadas de rivales cada vez más fuertes hasta que te quedes sin vidas. Cada 5 oleadas, un jefe. Intenta batir tu récord.'],
-    gacha: ['Gacha', 'Gasta tickets para tirar: gira la manivela de la máquina y abre las cápsulas. Probabilidades: común 60 %, rara 28 %, épica 10 %, legendaria 2 % (cada 10 tiradas sin épica, la siguiente lo es seguro). Los repetidos suben estrellas a tu jugador.'],
-    team: ['Plantilla', '<b>Mi equipo</b>: elige formación y quién juega (a portería solo porteros). <b>Jugadores</b>: busca y entrena (monedas) o usa Rayos Raimon para subir estrellas. <b>Técnicas</b>: equipa las supertécnicas.'],
-    career: ['Modo Carrera', 'Eres el mánager de un instituto: 3 divisiones, Copa y playoffs. Cada semana haz una actividad (entrenar, ojear…), juega o simula el partido y ficha (también a jugadores del extranjero). Tus titulares <b>suben o bajan</b> según su rendimiento. Los jugadores se <b>gradúan al acabar 6º curso</b> y la cantera trae chavales nuevos. Cuida la fama: si llega a 0, cierran el club. Cada 3 temporadas, <b>el Mundial</b>.'],
-    wc: ['El Mundial', 'Eres el seleccionador de Inazuma Japón. Convoca a <b>10 jugadores</b> (dos equipos de 5) y elige qué 5 juegan cada partido. Grupo de 4 (pasan 2), semifinal y final, con penaltis si hay empate.'],
+    story: [TX('Historia'), TX('Recorre los torneos del 1, 2 y 3 con tu equipo. Es') + ' <b>' + TX('roguelite') + '</b>' + TX(': tienes vidas ♥, tras cada victoria eliges una mejora (técnica, habilidad o fichaje temporal) y todo eso se pierde al acabar el intento. Completar una etapa la deja superada para siempre y abre más modos.')],
+    special: [TX('Equipos especiales'), TX('Un solo partido, sin segundas oportunidades. Si ganas,') + ' <b>' + TX('su estrella se une a tu plantilla') + '</b> ' + TX('(o sube una ★ si ya la tenías).')],
+    chains: [TX('Cadenas'), TX('Varios partidos seguidos') + ' <b>' + TX('sin recuperar vidas') + '</b>' + TX('. Al completarla: Rayo Raimon, tickets, monedas y la estrella del último rival. La primera vez, una técnica legendaria. Sin perder vidas, 💎 extra. Medallas 🥉🥈🥇 al repetirlas.')],
+    infinite: [TX('Infinito'), TX('Oleadas de rivales cada vez más fuertes hasta que te quedes sin vidas. Cada 5 oleadas, un jefe. Intenta batir tu récord.')],
+    gacha: [TX('Gacha'), TX('Gasta tickets para tirar: gira la manivela de la máquina y abre las cápsulas. Probabilidades: común 60 %, rara 28 %, épica 10 %, legendaria 2 % (cada 10 tiradas sin épica, la siguiente lo es seguro). Los repetidos suben estrellas a tu jugador.')],
+    team: [TX('Plantilla'), '<b>' + TX('Mi equipo') + '</b>' + TX(': elige formación y quién juega (a portería solo porteros).') + ' <b>' + TX('Jugadores') + '</b>' + TX(': busca y entrena (monedas) o usa Rayos Raimon para subir estrellas.') + ' <b>' + TX('Técnicas') + '</b>' + TX(': equipa las supertécnicas.')],
+    career: [TX('Modo Carrera'), TX('Eres el mánager de un instituto: 3 divisiones, Copa y playoffs. Cada semana haz una actividad (entrenar, ojear…), juega o simula el partido y ficha (también a jugadores del extranjero). Tus titulares') + ' <b>' + TX('suben o bajan') + '</b> ' + TX('según su rendimiento. Los jugadores se') + ' <b>' + TX('gradúan al acabar 6º curso') + '</b> ' + TX('y la cantera trae chavales nuevos. Cuida la fama: si llega a 0, cierran el club. Cada 3 temporadas,') + ' <b>' + TX('el Mundial') + '</b>.'],
+    wc: [TX('El Mundial'), TX('Eres el seleccionador de Inazuma Japón. Convoca a') + ' <b>' + TX('10 jugadores') + '</b> ' + TX('(dos equipos de 5) y elige qué 5 juegan cada partido. Grupo de 4 (pasan 2), semifinal y final, con penaltis si hay empate.')],
   };
   function tutorial(key, force) {
     const T = TUTS[key]; settings.tuts = settings.tuts || {};
     if (!T || (settings.tuts[key] && !force)) return;
     settings.tuts[key] = 1; saveSettings();
     const d = document.createElement('div'); d.className = 'tutbox';
-    d.innerHTML = `<div class="tutin"><h2>❓ ${T[0]}</h2><p>${T[1]}</p><button class="cta">¡Entendido!</button></div>`;
+    d.innerHTML = `<div class="tutin"><h2>❓ ${T[0]}</h2><p>${T[1]}</p><button class="cta">${TX('¡Entendido!')}</button></div>`;
     d.querySelector('button').onclick = () => d.remove();
     document.body.appendChild(d);
   }
-  const tutBtn = key => `<button class="ghost mini tutq" data-tut="${key}">❓ Cómo funciona</button>`;
+  const tutBtn = key => `<button class="ghost mini tutq" data-tut="${key}">${TX('❓ Cómo funciona')}</button>`;
   document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-tut]'); if (b) tutorial(b.dataset.tut, true); });
   function renderStory() {
     const P = Profile.data;
-    screen(`${top('Historia')}${wallet()}
+    screen(`${top(TX('Historia'))}${wallet()}
       <div class="modes">${STAGES.map((s, i) => { const open = s.available && Profile.unlocked({ stage: s }), ord = STAGE_ORDER[s.key] || [];
         return `<button class="mode ${open ? '' : 'locked'}" data-st="${s.key}">${Sprites.crest([1, 33, 3021, 3057][i] || 15)}<span class="mt"><b>${s.name}</b>
-        <small>${open ? (P.story[s.key] && P.story[s.key].done ? 'Completada ✓ · puedes repetirla' : ord.length ? 'De ' + esc(ord[0]) + ' a ' + esc(ord[ord.length - 1]) : '') : '🔒 ' + s.note}</small>${open && ord.length ? mini(ord) : ''}</span></button>`; }).join('')}</div>
-      <p class="note">Cada intento es roguelite: las técnicas, habilidades y fichajes se pierden al acabar. La etapa que completas queda superada para siempre y abre las Cadenas, el Infinito y más equipos especiales.</p>
+        <small>${open ? (P.story[s.key] && P.story[s.key].done ? TX('Completada ✓ · puedes repetirla') : ord.length ? TX('De ') + esc(ord[0]) + ' a ' + esc(ord[ord.length - 1]) : '') : '🔒 ' + s.note}</small>${open && ord.length ? mini(ord) : ''}</span></button>`; }).join('')}</div>
+      <p class="note">${TX('Cada intento es roguelite: las técnicas, habilidades y fichajes se pierden al acabar. La etapa que completas queda superada para siempre y abre las Cadenas, el Infinito y más equipos especiales.')}</p>
 `, 'bg_team');
     body.querySelectorAll('[data-st]').forEach(b => b.onclick = () => {
       const st = STAGES.find(s => s.key === b.dataset.st);
@@ -149,17 +153,17 @@ const App = (() => {
   }
   function renderSpecials() {
     const P = Profile.data;
-    screen(`${top('Especiales')}${wallet()}
-      <p class="note">Un solo partido, sin segundas oportunidades. Si ganas, te llevas a su estrella para tu plantilla (o una estrella más si ya la tienes).</p>
+    screen(`${top(TX('Especiales'))}${wallet()}
+      <p class="note">${TX('Un solo partido, sin segundas oportunidades. Si ganas, te llevas a su estrella para tu plantilla (o una estrella más si ya la tienes).')}</p>
       <div class="modes" id="sp"></div>`);
     SPECIALS.forEach(x => {
       const t = TEAM(x.key), open = Profile.unlocked({ special: x });
       const sum = p => Object.values(p.ie).reduce((a, b) => a + b, 0);
       const star = t.players.filter(m => m.role !== 'POR').map(m => PLAYER(m.id)).filter(p => p.cs).sort((a, b) => sum(b) - sum(a))[0];
       const b = document.createElement('button'); b.className = 'mode' + (open ? '' : ' locked');
-      b.innerHTML = `${Sprites.crest(t.crest)}<span class="mt"><b>${esc(t.name)}</b><small>${open ? `${FIELD_LABEL[TEAM_FIELD[t.key]] || ''} · Premio: ${star ? esc(star.name) : '—'}${P.specials[t.key] ? ' · ganado ×' + P.specials[t.key] : ''}`
-        : '🔒 ' + (x.unlock === 'done' ? 'Completa la Etapa 1' : x.unlock === 'done2' ? 'Completa la Etapa 2' : `Gana ${x.unlock} partidos en la Etapa 1`)}</small></span>`;
-      b.onclick = () => { if (!open) return UI.toast('Aún bloqueado'); newDraft('special', { team: t.key }); };
+      b.innerHTML = `${Sprites.crest(t.crest)}<span class="mt"><b>${esc(t.name)}</b><small>${open ? `${FIELD_LABEL[TEAM_FIELD[t.key]] || ''} ${TX('· Premio:')} ${star ? esc(star.name) : '—'}${P.specials[t.key] ? TX(' · ganado ×') + P.specials[t.key] : ''}`
+        : '🔒 ' + (x.unlock === 'done' ? TX('Completa la Etapa 1') : x.unlock === 'done2' ? TX('Completa la Etapa 2') : `${TX('Gana')} ${x.unlock} ${TX('partidos en la Etapa 1')}`)}</small></span>`;
+      b.onclick = () => { if (!open) return UI.toast(TX('Aún bloqueado')); newDraft('special', { team: t.key }); };
       $('sp').appendChild(b);
     });
     tutorial('special'); if (!$('tutq-special')) body.insertAdjacentHTML('beforeend', `<p class="note" id="tutq-special">${tutBtn('special')}</p>`);
@@ -167,14 +171,14 @@ const App = (() => {
   }
   function renderChains() {
     const P = Profile.data;
-    screen(`${top('Cadenas')}${wallet()}
-      <p class="note">Varios partidos seguidos sin recuperar vidas. <b>Premios por completarla:</b> ⚡ Rayo Raimon · 5 🎟️ · 150 🪙 · la estrella del último rival se une a tu plantilla (o sube una ★).
-      <b>La primera vez:</b> una técnica legendaria y 10 🎟️ más. <b>Sin perder vidas:</b> +5 🎟️ 💎. <b>Medallas:</b> 🥉 1 vez · 🥈 3 veces · 🥇 5 veces (15 🎟️ y otro Rayo).</p>
+    screen(`${top(TX('Cadenas'))}${wallet()}
+      <p class="note">${TX('Varios partidos seguidos sin recuperar vidas.')} <b>${TX('Premios por completarla:')}</b> ${TX('⚡ Rayo Raimon · 5 🎟️ · 150 🪙 · la estrella del último rival se une a tu plantilla (o sube una ★).')}
+      <b>${TX('La primera vez:')}</b> ${TX('una técnica legendaria y 10 🎟️ más.')} <b>${TX('Sin perder vidas:')}</b> +5 🎟️ 💎. <b>${TX('Medallas:')}</b> ${TX('🥉 1 vez · 🥈 3 veces · 🥇 5 veces (15 🎟️ y otro Rayo).')}</p>
       <div class="modes">${CHAINS.map(c => { const open = Profile.unlocked({ chain: c });
-        return `<button class="mode${open ? '' : ' locked'}" data-ch="${c.key}">${Sprites.crest(crestOf(c.teams[0]))}<span class="mt"><b>${open ? '' : '🔒 '}${esc(c.name)}</b><small>${open ? esc(c.desc) : c.needs === 's4' ? 'Completa la Etapa 3' : 'Completa la Etapa 2'} · ${c.teams.length} partidos · ${'♥'.repeat(c.lives)}${P.chains[c.key] ? ' · ' + (P.chains[c.key] >= 5 ? '🥇' : P.chains[c.key] >= 3 ? '🥈' : '🥉') + ' ×' + P.chains[c.key] + (P.chainPerfect && P.chainPerfect[c.key] ? ' 💎' : '') : ' · 📜 técnica legendaria la 1.ª vez'}</small>${mini(c.teams)}</span></button>`; }).join('')}</div>`);
+        return `<button class="mode${open ? '' : ' locked'}" data-ch="${c.key}">${Sprites.crest(crestOf(c.teams[0]))}<span class="mt"><b>${open ? '' : '🔒 '}${esc(c.name)}</b><small>${open ? esc(c.desc) : c.needs === 's4' ? TX('Completa la Etapa 3') : TX('Completa la Etapa 2')} · ${c.teams.length} ${TX('partidos ·')} ${'♥'.repeat(c.lives)}${P.chains[c.key] ? ' · ' + (P.chains[c.key] >= 5 ? '🥇' : P.chains[c.key] >= 3 ? '🥈' : '🥉') + ' ×' + P.chains[c.key] + (P.chainPerfect && P.chainPerfect[c.key] ? ' 💎' : '') : TX(' · 📜 técnica legendaria la 1.ª vez')}</small>${mini(c.teams)}</span></button>`; }).join('')}</div>`);
     body.querySelectorAll('[data-ch]').forEach(b => b.onclick = () => {
       const c = CHAINS.find(x => x.key === b.dataset.ch);
-      if (!Profile.unlocked({ chain: c })) return UI.toast('Se abre al completar la Etapa 2');
+      if (!Profile.unlocked({ chain: c })) return UI.toast(TX('Se abre al completar la Etapa 2'));
       newDraft('chain', { chain: c.key });
     });
     tutorial('chains'); if (!$('tutq-chains')) body.insertAdjacentHTML('beforeend', `<p class="note" id="tutq-chains">${tutBtn('chains')}</p>`);
@@ -182,39 +186,41 @@ const App = (() => {
   }
 
   function renderWelcome() {
-    screen(`<div class="title"><img class="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>¡Bienvenido!</span></div>
-      <p class="note">Tu plantilla empieza vacía. Haz tu tirada de bienvenida: <b>10 jugadores</b> del juego, con un <b>portero asegurado</b> y al menos uno épico o mejor. Además recibes 60 monedas para entrenar.</p>
-      <p class="note">Probabilidades: común 60 % · rara 28 % · épica 10 % · legendaria 2 %. Cada 10 tiradas sin épica, la siguiente lo es seguro.</p>
-      <button class="cta" id="wPull">Tirada de bienvenida ×10</button>
-      ${Cloud.enabled() && !Cloud.loggedIn() ? `<div class="grid2"><button class="ghost big" id="wIn">Ya tengo cuenta<small>Recuperar mi partida</small></button><button class="ghost big" id="wUp">Crear cuenta<small>Guardar en la nube</small></button></div>` : ''}
-      <button class="ghost big" id="wOld">¿Jugabas en la versión antigua?<small>Trae tu partida aquí</small></button>
+    screen(`<div class="title"><img class="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>${TX('¡Bienvenido!')}</span></div>
+      <p class="note">${TX('Tu plantilla empieza vacía. Haz tu tirada de bienvenida:')} <b>${TX('10 jugadores')}</b> ${TX('del juego, con un')} <b>${TX('portero asegurado')}</b> ${TX('y al menos uno épico o mejor. Además recibes 60 monedas para entrenar.')}</p>
+      <p class="note">${TX('Probabilidades: común 60 % · rara 28 % · épica 10 % · legendaria 2 %. Cada 10 tiradas sin épica, la siguiente lo es seguro.')}</p>
+      <button class="cta" id="wPull">${TX('Tirada de bienvenida ×10')}</button>
+      ${Cloud.enabled() && !Cloud.loggedIn() ? `<div class="grid2"><button class="ghost big" id="wIn">${TX('Ya tengo cuenta')}<small>${TX('Recuperar mi partida')}</small></button><button class="ghost big" id="wUp">${TX('Crear cuenta')}<small>${TX('Guardar en la nube')}</small></button></div>` : ''}
+      <button class="ghost" id="wLang">🌐 ${I18N.lang === 'en' ? 'Español' : 'English'}</button>
+      <button class="ghost big" id="wOld">${TX('¿Jugabas en la versión antigua?')}<small>${TX('Trae tu partida aquí')}</small></button>
       <div data-cloudline>${Cloud.loggedIn() ? cloudLine() : ''}</div>`, 'bg_title');
     $('wOld').onclick = () => renderTransfer(renderMenu);
+    $('wLang').onclick = () => { const l = I18N.lang === 'en' ? 'es' : 'en'; I18N.set(l); screen(`<div class="title"><img class="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>${l === 'en' ? 'Changing language…' : 'Cambiando el idioma…'}</span></div>`, 'bg_title'); setTimeout(() => location.reload(), 250); };
     if ($('wIn')) { $('wIn').onclick = () => renderLogin(renderMenu, 'in'); $('wUp').onclick = () => renderLogin(renderMenu, 'up'); }
     $('wPull').onclick = () => {
       Sound.unlock();
       Profile.data.pity = 0;
       const res = Gacha.pull(10, { keeper: true });
       Profile.data.firstDone = true; Profile.data.coins += 60; Profile.save();
-      renderMachine(res, 1, renderMenu, 'Tirada de bienvenida');
+      renderMachine(res, 1, renderMenu, TX('Tirada de bienvenida'));
     };
   }
 
   /* ---------- Gacha ---------- */
   function renderGacha() {
     const P = Profile.data, B = BANNERS.find(b => b.id === P.banner) || BANNERS[0];
-    screen(`${top('Gacha')}${wallet()}
+    screen(`${top(TX('Gacha'))}${wallet()}
       <div class="banners" id="bn"></div>
-      <p class="note">Común 60 % · Rara 28 % · Épica 10 % · Legendaria 2 %. En el tramo legendario, la mitad de las veces sale una <b>técnica legendaria</b> (de las más fuertes del juego).<br>
-      Épica o mejor asegurada cada 10 tiradas (llevas ${P.pity} de 10). Los repetidos suben una estrella (máx. ${MAX_STARS}); con 5 estrellas, o una técnica repetida, dan monedas.</p>
-      <p class="note">Tickets: Historia (1 por victoria y 3 al completarla), Especiales (2), Cadenas (2 al completarlas) e Infinito (2 por oleada especial).</p>
-      ${bottom(`<div class="grid2"><button class="cta" id="g1" ${P.tickets < 1 ? 'disabled' : ''}>Tirar ×1<small>1 ticket</small></button><button class="cta" id="g10" ${P.tickets < 10 ? 'disabled' : ''}>Tirar ×10<small>10 tickets</small></button></div>`)}`, 'bg_green');
+      <p class="note">${TX('Común 60 % · Rara 28 % · Épica 10 % · Legendaria 2 %. En el tramo legendario, la mitad de las veces sale una')} <b>${TX('técnica legendaria')}</b> ${TX('(de las más fuertes del juego).')}<br>
+      ${TX('Épica o mejor asegurada cada 10 tiradas (llevas')} ${P.pity} ${TX('de 10). Los repetidos suben una estrella (máx.')} ${MAX_STARS}${TX('); con 5 estrellas, o una técnica repetida, dan monedas.')}</p>
+      <p class="note">${TX('Tickets: Historia (1 por victoria y 3 al completarla), Especiales (2), Cadenas (2 al completarlas) e Infinito (2 por oleada especial).')}</p>
+      ${bottom(`<div class="grid2"><button class="cta" id="g1" ${P.tickets < 1 ? 'disabled' : ''}>${TX('Tirar ×1')}<small>${TX('1 ticket')}</small></button><button class="cta" id="g10" ${P.tickets < 10 ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${TX('10 tickets')}</small></button></div>`)}`, 'bg_green');
     BANNERS.forEach(b => {
       const seenL = new Set(), legs = GAME.players.filter(p => p.banner === b.id && p.rarity === 'legendaria').filter(p => { const k = p.full.replace(/ \((IE2|IE3)\)$/, ''); return !seenL.has(k) && seenL.add(k); });
       const el = document.createElement('button');
       el.className = 'banner-card' + (b.id === B.id ? ' sel' : '');
       const n = GAME.players.filter(p => p.banner === b.id && p.gacha !== false).length;
-      el.innerHTML = `${Sprites.crest(b.crest)}<span class="mt"><b>${esc(b.name)}</b><small>${esc(b.desc)} · ${n} jugadores</small><span class="legs"></span></span>`;
+      el.innerHTML = `${Sprites.crest(b.crest)}<span class="mt"><b>${esc(b.name)}</b><small>${esc(b.desc)} · ${n} ${TX('jugadores')}</small><span class="legs"></span></span>`;
       legs.forEach(p => el.querySelector('.legs').appendChild(face(Sprites.refOf(p), 32)));
       el.onclick = () => { P.banner = b.id; Profile.save(); Sound.sfx('click'); renderGacha(); };
       $('bn').appendChild(el);
@@ -232,17 +238,17 @@ const App = (() => {
       c.classList.add('techcard', EL(t.elem).css);
       c.innerHTML = `<div class="scroll">${TYPE_ICON[t.type] || '★'}</div><div class="gname">${esc(t.name)}</div>
         <div class="gmeta">${rchip('legendaria')}${chip(t.elem)}</div><div class="gmeta">${TYPE_LABEL[t.type]} · ${t.power}</div>
-        <div class="gtag">${r.isNew ? '¡TÉCNICA NUEVA!' : '+' + r.coins + ' 🪙'}</div>`;
+        <div class="gtag">${r.isNew ? TX('¡TÉCNICA NUEVA!') : '+' + r.coins + ' 🪙'}</div>`;
       return c;
     }
     const pd = PLAYER(r.id);
     c.appendChild(face(Sprites.refOf(pd), 80));
-    c.insertAdjacentHTML('beforeend', `<div class="gname">${esc(pd.name)}</div><div class="gmeta">${rchip(r.tier)}<span>${pd.role}</span>${chip(pd.elem)}</div>
+    c.insertAdjacentHTML('beforeend', `<div class="gname">${esc(pd.name)}</div><div class="gmeta">${rchip(r.tier)}<span>${RAB(pd.role)}</span>${chip(pd.elem)}</div>
       <div class="gtag">${r.isNew ? 'NUEVO' : r.coins ? '+' + r.coins + ' 🪙' : '★ ' + r.star}</div>`);
     return c;
   }
-  function renderReveal(res, done, title = '¡Nuevos jugadores!') {
-    screen(`<h2>${title}</h2><div class="reveal" id="rv"></div>${bottom('<button class="cta" id="ok" hidden>Continuar</button>')}`, 'bg_whistle');
+  function renderReveal(res, done, title = TX('¡Nuevos jugadores!')) {
+    screen(`<h2>${title}</h2><div class="reveal" id="rv"></div>${bottom('<button class="cta" id="ok" hidden>' + TX('Continuar') + '</button>')}`, 'bg_whistle');
     const box = $('rv');
     res.forEach((r, i) => {
       const c = makeCard(r); c.style.animationDelay = (i * 0.18) + 's'; box.appendChild(c);
@@ -293,9 +299,9 @@ const App = (() => {
   function renderMachine(res, bannerId, done, title) {
     const B = BANNERS.find(b => b.id === bannerId) || BANNERS[0];
     screen(`<h2>${esc(title || B.name)}</h2>
-      <div class="gmach"><canvas id="mc" width="96" height="128"></canvas><div class="gm-hint" id="mHint">${Controls.pc() ? 'Arrastra la manivela en círculo (o pulsa Espacio)' : 'Gira la manivela con el dedo ↻'}</div></div>
+      <div class="gmach"><canvas id="mc" width="96" height="128"></canvas><div class="gm-hint" id="mHint">${Controls.pc() ? TX('Arrastra la manivela en círculo (o pulsa Espacio)') : TX('Gira la manivela con el dedo ↻')}</div></div>
       <div class="caps" id="caps"></div>
-      ${bottom('<div class="grid2"><button class="ghost" id="mSkip">Saltar</button><button class="cta" id="mAll" hidden>Abrir todas</button></div><button class="cta" id="mOk" hidden>Continuar</button>')}`, 'bg_whistle');
+      ${bottom('<div class="grid2"><button class="ghost" id="mSkip">' + TX('Saltar') + '</button><button class="cta" id="mAll" hidden>' + TX('Abrir todas') + '</button></div><button class="cta" id="mOk" hidden>' + TX('Continuar') + '</button>')}`, 'bg_whistle');
     const cv = $('mc'), caps = $('caps');
     const crest = new Image(); crest.src = `ui/crest${B.crest}.png`;
     let seed = bannerId * 97; const rr = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
@@ -309,7 +315,7 @@ const App = (() => {
     // Cápsulas: a veces una legendaria llega disfrazada de épica y sube al abrirla
     const items = res.map(r => ({ r, shown: r.tier === 'legendaria' && Math.random() < 0.5 ? 'epica' : r.tier, opened: false }));
     let left = items.length;
-    const finish = () => { $('mHint').textContent = '¡Ya están todas abiertas!'; $('mAll').hidden = true; $('mSkip').hidden = true; $('mOk').hidden = false; };
+    const finish = () => { $('mHint').textContent = TX('¡Ya están todas abiertas!'); $('mAll').hidden = true; $('mSkip').hidden = true; $('mOk').hidden = false; };
     function openCap(it, el) {
       if (it.opened) return Promise.resolve(); it.opened = true;
       return new Promise(res2 => {
@@ -332,7 +338,7 @@ const App = (() => {
     function flash(col) { const f = document.createElement('div'); f.className = 'gflash'; f.style.background = col; document.body.appendChild(f); setTimeout(() => f.remove(), 450); }
     function dispense() {
       if (dispensed) return; dispensed = true; st.shake = true;
-      $('mHint').textContent = items.length > 1 ? 'Toca cada cápsula para abrirla' : 'Toca la cápsula para abrirla';
+      $('mHint').textContent = items.length > 1 ? TX('Toca cada cápsula para abrirla') : TX('Toca la cápsula para abrirla');
       items.forEach((it, i) => setTimeout(() => {
         const el = document.createElement('button');
         el.className = 'cap t-' + it.shown + (items.length === 1 ? ' big' : '');
@@ -357,7 +363,7 @@ const App = (() => {
     const key = e => { if (!cv.isConnected) return removeEventListener('keydown', key); if ((e.code === 'Space' || e.code === 'Enter') && !dispensed) { e.preventDefault(); autoSpin(); } };
     addEventListener('keydown', key);
     $('mAll').onclick = async () => { $('mAll').hidden = true; for (const el of [...caps.querySelectorAll('.cap')]) { const it = items[[...caps.children].indexOf(el)]; await openCap(it, el); await new Promise(r => setTimeout(r, 120)); } };
-    $('mSkip').onclick = () => { alive = false; cancelAnimationFrame(raf); removeEventListener('keydown', key); renderReveal(res, done, title || '¡Nuevos jugadores!'); };
+    $('mSkip').onclick = () => { alive = false; cancelAnimationFrame(raf); removeEventListener('keydown', key); renderReveal(res, done, title || TX('¡Nuevos jugadores!')); };
     $('mOk').onclick = () => { alive = false; cancelAnimationFrame(raf); removeEventListener('keydown', key); done(); };
   }
 
@@ -380,7 +386,7 @@ const App = (() => {
     const pd = PLAYER(id), o = Profile.owned(id);
     const el = document.createElement('button'); el.className = 'ptile ' + pd.rarity;
     el.appendChild(face(Sprites.refOf(pd), 64));
-    el.insertAdjacentHTML('beforeend', `<span class="tn">${esc(pd.name)}</span><span class="tm">${rchip(pd.rarity)}<i>${pd.role}</i></span>${o ? stars(o.stars) : ''}${extra}`);
+    el.insertAdjacentHTML('beforeend', `<span class="tn">${esc(pd.name)}</span><span class="tm">${rchip(pd.rarity)}<i>${RAB(pd.role)}</i></span>${o ? stars(o.stars) : ''}${extra}`);
     return el;
   }
   let teamFilter = '', teamSort = 'rareza', teamTab = 'equipo';
@@ -396,10 +402,10 @@ const App = (() => {
   const pfActive = () => !!(PF.q || PF.rar || PF.elem || PF.game);
   function pfBar() {
     const opt = (v, t, cur) => `<option value="${v}" ${cur === v ? 'selected' : ''}>${t}</option>`;
-    return `<div class="pfbar"><div class="pfq"><input id="pfQ" type="search" placeholder="Buscar por nombre o mote…" value="${esc(PF.q)}" autocomplete="off"><button class="ghost" id="pfX" ${pfActive() ? '' : 'hidden'} title="Quitar filtros">✕</button></div>
-      <div class="pfsel"><select id="pfR" aria-label="Rareza">${opt('', 'Rareza', PF.rar)}${['legendaria', 'epica', 'rara', 'comun'].map(r => opt(r, RARITY[r].label, PF.rar)).join('')}</select>
-      <select id="pfE" aria-label="Elemento">${opt('', 'Elemento', PF.elem)}${['fuego', 'bosque', 'viento', 'montaña'].map(e => opt(e, ELEM_LABEL[e], PF.elem)).join('')}</select>
-      <select id="pfG" aria-label="Juego">${opt('', 'Juego', PF.game)}${opt('1', 'Inazuma 1', PF.game)}${opt('2', 'Inazuma 2', PF.game)}${opt('3', 'Inazuma 3', PF.game)}</select></div></div>`;
+    return `<div class="pfbar"><div class="pfq"><input id="pfQ" type="search" placeholder="${TX('Buscar por nombre o mote…')}" value="${esc(PF.q)}" autocomplete="off"><button class="ghost" id="pfX" ${pfActive() ? '' : 'hidden'} title="${TX('Quitar filtros')}">✕</button></div>
+      <div class="pfsel"><select id="pfR" aria-label="${TX('Rareza')}">${opt('', TX('Rareza'), PF.rar)}${['legendaria', 'epica', 'rara', 'comun'].map(r => opt(r, RARITY[r].label, PF.rar)).join('')}</select>
+      <select id="pfE" aria-label="${TX('Elemento')}">${opt('', TX('Elemento'), PF.elem)}${['fuego', 'bosque', 'viento', 'montaña'].map(e => opt(e, ELEM_LABEL[e], PF.elem)).join('')}</select>
+      <select id="pfG" aria-label="${TX('Juego')}">${opt('', TX('Juego'), PF.game)}${opt('1', TX('Inazuma 1'), PF.game)}${opt('2', TX('Inazuma 2'), PF.game)}${opt('3', TX('Inazuma 3'), PF.game)}</select></div></div>`;
   }
   // Conecta la barra: al escribir solo se redibuja la lista (no se pierde el foco)
   function pfWire(root, redrawList, redrawAll) {
@@ -460,7 +466,7 @@ const App = (() => {
       const fc = document.createElement('span'); fc.className = 'pf';
       if (it) fc.appendChild(face(it.ref, 46)); else fc.textContent = '+';
       b.appendChild(fc);
-      b.insertAdjacentHTML('beforeend', `<span class="pr">${r}${it && it.badge != null ? ' · ' + it.badge : ''}</span><span class="pn">${it ? esc(firstName(it.name)) : 'Elegir'}</span>`);
+      b.insertAdjacentHTML('beforeend', `<span class="pr">${RAB(r)}${it && it.badge != null ? ' · ' + it.badge : ''}</span><span class="pn">${it ? esc(firstName(it.name)) : TX('Elegir')}</span>`);
       b.onclick = () => onSlot(i);
       el.appendChild(b);
     });
@@ -474,10 +480,10 @@ const App = (() => {
     const role = roles[t.sel];
     const avg = t.ids.every(x => x != null) ? Math.round(t.ids.reduce((a, id, i) => a + rate(id, roles[i]), 0) / 5) : null;
     box.innerHTML = `${formSelect(t)}
-      <div class="edbar"><button class="ghost" id="edAuto">⚡ Mejor equipo</button><span class="note">${avg != null ? 'Media del equipo: <b>' + avg + '</b>' : 'Faltan jugadores'}</span></div>
+      <div class="edbar"><button class="ghost" id="edAuto">${TX('⚡ Mejor equipo')}</button><span class="note">${avg != null ? TX('Media del equipo:') + ' <b>' + avg + '</b>' : TX('Faltan jugadores')}</span></div>
       <div id="edPitch"></div>
-      <h3>Puesto: ${ROLE_LABEL[role]} <small>toca un jugador para ponerlo; toca otro puesto del campo para cambiarlo</small></h3>
-      ${pfBar()}<div class="opts small" id="edShow"><button data-v="pos" aria-pressed="${t.show === 'pos'}">De ${ROLE_LABEL[role].toLowerCase()}</button><button data-v="all" aria-pressed="${t.show === 'all'}">Todos</button></div>
+      <h3>${TX('Puesto:')} ${ROLE_LABEL[role]} <small>${TX('toca un jugador para ponerlo; toca otro puesto del campo para cambiarlo')}</small></h3>
+      ${pfBar()}<div class="opts small" id="edShow"><button data-v="pos" aria-pressed="${t.show === 'pos'}">${TX('De')} ${ROLE_LABEL[role].toLowerCase()}</button><button data-v="all" aria-pressed="${t.show === 'all'}">${TX('Todos')}</button></div>
       <div class="pgrid" id="edList"></div>`;
     const redraw = () => { onChange && onChange(); teamEditor(box, t, onChange); };
     box.querySelector('#edPitch').appendChild(pitch(roles, t.ids.map((id, i) => id == null ? null :
@@ -494,13 +500,13 @@ const App = (() => {
     const list = box.querySelector('#edList');
     const drawList = () => {
     const ids = pool.filter(pfMatch); list.innerHTML = '';
-    if (!ids.length) list.innerHTML = pool.length ? '<p class="note">Ningún jugador coincide con la búsqueda.</p>' : '<p class="note">No tienes jugadores de este puesto. Toca «Todos».</p>';
+    if (!ids.length) list.innerHTML = pool.length ? '<p class="note">' + TX('Ningún jugador coincide con la búsqueda.') + '</p>' : '<p class="note">' + TX('No tienes jugadores de este puesto. Toca «Todos».') + '</p>';
     ids.forEach(id => {
       const at = t.ids.indexOf(id);
-      const c = tile(id, `<span class="slot">${at >= 0 ? 'En el equipo · ' + roles[at] : 'Nota ' + rate(id, role)}</span>`);
+      const c = tile(id, `<span class="slot">${at >= 0 ? TX('En el equipo · ') + RAB(roles[at]) : TX('Nota ') + rate(id, role)}</span>`);
       if (at >= 0) c.classList.add('sel');
       c.onclick = () => {
-        if (at >= 0 && roles[at] === 'POR' && t.ids[t.sel] != null && !playsAs(PLAYER(t.ids[t.sel]), 'POR')) return UI.toast('Así la portería se quedaría sin portero');
+        if (at >= 0 && roles[at] === 'POR' && t.ids[t.sel] != null && !playsAs(PLAYER(t.ids[t.sel]), 'POR')) return UI.toast(TX('Así la portería se quedaría sin portero'));
         if (at >= 0) t.ids[at] = t.ids[t.sel];   // si ya juega, se cambian de puesto
         t.ids[t.sel] = id; Sound.sfx('click');
         const empty = t.ids.findIndex(x => x == null); if (empty >= 0) t.sel = empty;
@@ -515,32 +521,32 @@ const App = (() => {
 
   function renderTeam() {
     const myTechs = Object.keys(Profile.data.techs).map(Number).filter(t => TECH(t));
-    const tabs = `<div class="opts" id="tt"><button data-t="equipo" aria-pressed="${teamTab === 'equipo'}">Mi equipo</button><button data-t="jug" aria-pressed="${teamTab === 'jug'}">Jugadores (${Profile.ids().length})</button><button data-t="tec" aria-pressed="${teamTab === 'tec'}">Técnicas (${myTechs.length})</button></div>`;
+    const tabs = `<div class="opts" id="tt"><button data-t="equipo" aria-pressed="${teamTab === 'equipo'}">${TX('Mi equipo')}</button><button data-t="jug" aria-pressed="${teamTab === 'jug'}">${TX('Jugadores (')}${Profile.ids().length})</button><button data-t="tec" aria-pressed="${teamTab === 'tec'}">${TX('Técnicas (')}${myTechs.length})</button></div>`;
     if (teamTab === 'tec') {
-      screen(`${top('Plantilla')}${tabs}<p class="note">Técnicas legendarias que has sacado en el gacha. Las puede equipar cualquier jugador de su elemento desde su ficha.</p><div class="cards" id="tk"></div>`);
-      if (!myTechs.length) $('tk').innerHTML = '<p class="note">Aún no tienes ninguna. Salen en el tramo legendario del gacha.</p>';
+      screen(`${top(TX('Plantilla'))}${tabs}<p class="note">${TX('Técnicas legendarias que has sacado en el gacha. Las puede equipar cualquier jugador de su elemento desde su ficha.')}</p><div class="cards" id="tk"></div>`);
+      if (!myTechs.length) $('tk').innerHTML = '<p class="note">' + TX('Aún no tienes ninguna. Salen en el tramo legendario del gacha.') + '</p>';
       myTechs.forEach(tid => {
         const t = TECH(tid), who = Profile.ids().filter(id => Profile.learnable(id).gacha.includes(tid));
         const c = document.createElement('div'); c.className = 'pcard techrow ' + EL(t.elem).css;
-        c.innerHTML = `<div class="scroll small">${TYPE_ICON[t.type] || '★'}</div><div class="pinfo">${techLine(t)}<div class="pmeta">${who.length ? who.length + ' de tus jugadores pueden equiparla' : 'Ninguno de tus jugadores es de ' + (ELEM_LABEL[t.elem] || t.elem)}</div></div>`;
+        c.innerHTML = `<div class="scroll small">${TYPE_ICON[t.type] || '★'}</div><div class="pinfo">${techLine(t)}<div class="pmeta">${who.length ? who.length + TX(' de tus jugadores pueden equiparla') : TX('Ninguno de tus jugadores es de ') + (ELEM_LABEL[t.elem] || t.elem)}</div></div>`;
         $('tk').appendChild(c);
       });
     } else if (teamTab === 'equipo') {
-      screen(`${top('Plantilla')}${tabs}<p class="note">Este es el equipo que sale en el partido rápido y al empezar cualquier modo. Se guarda solo.</p><div id="ed"></div>`);
+      screen(`${top(TX('Plantilla'))}${tabs}<p class="note">${TX('Este es el equipo que sale en el partido rápido y al empezar cualquier modo. Se guarda solo.')}</p><div id="ed"></div>`);
       if (!api.myTeam) api.myTeam = savedTeam();
       teamEditor($('ed'), api.myTeam, () => saveTeam(api.myTeam));
     } else {
       const all = sortedIds(teamFilter); if (SORTS[teamSort]) all.sort(SORTS[teamSort]);
-      screen(`${top('Plantilla')}${tabs}${wallet()}${pfBar()}
-        <div class="opts" id="tf">${[['', 'Todos'], ...ROLES4.map(r => [r, r])].map(([v, t]) => `<button data-f="${v}" aria-pressed="${teamFilter === v}">${t}</button>`).join('')}</div>
+      screen(`${top(TX('Plantilla'))}${tabs}${wallet()}${pfBar()}
+        <div class="opts" id="tf">${[['', TX('Todos')], ...ROLES4.map(r => [r, RAB(r)])].map(([v, t]) => `<button data-f="${v}" aria-pressed="${teamFilter === v}">${t}</button>`).join('')}</div>
         <div class="sortrow"><span id="tcount"></span><span class="opts small" id="ts">${Object.keys(SORTS).map(k => `<button data-s="${k}" aria-pressed="${teamSort === k}">${k[0].toUpperCase() + k.slice(1)}</button>`).join('')}</span></div>
         <div class="pgrid" id="tl"></div>`);
       body.querySelectorAll('#tf button').forEach(b => b.onclick = () => { teamFilter = b.dataset.f; renderTeam(); });
       body.querySelectorAll('#ts button').forEach(b => b.onclick = () => { teamSort = b.dataset.s; renderTeam(); });
       const drawList = () => {
         const ids = all.filter(pfMatch), tl = $('tl'); tl.innerHTML = '';
-        $('tcount').textContent = (pfActive() ? ids.length + ' de ' + all.length : ids.length) + ' jugadores · toca uno para entrenarlo';
-        if (!ids.length) tl.innerHTML = '<p class="note">Ningún jugador coincide. Prueba con otro nombre o quita filtros (✕).</p>';
+        $('tcount').textContent = (pfActive() ? ids.length + TX(' de ') + all.length : ids.length) + TX(' jugadores · toca uno para entrenarlo');
+        if (!ids.length) tl.innerHTML = '<p class="note">' + TX('Ningún jugador coincide. Prueba con otro nombre o quita filtros (✕).') + '</p>';
         ids.forEach(id => { const c = tile(id); c.onclick = () => renderPlayer(id); tl.appendChild(c); });
       };
       pfWire(body, drawList, renderTeam); drawList();
@@ -552,40 +558,40 @@ const App = (() => {
   function renderPlayer(id) {
     const pd = PLAYER(id), o = Profile.owned(id), P = Profile.data;
     screen(`${top(esc(pd.name))}<div class="phead" id="ph"></div>${wallet()}
-      <button class="cta" id="rayo" ${P.rayos < 1 || o.stars >= MAX_STARS ? 'disabled' : ''}>⚡ Usar Rayo Raimon<small>${o.stars >= MAX_STARS ? 'Ya tiene 5 estrellas' : '+1 estrella sin necesitar repetidos (tienes ' + P.rayos + ')'}</small></button>
-      <h3>Entrenar <small>+3 por mejora; el límite sube con las estrellas</small></h3><div class="ups" id="ups"></div>
-      <h3>Técnicas equipadas <small>las ${TECH_SLOTS} con las que empieza cada partida · toca un hueco y elige</small></h3>
+      <button class="cta" id="rayo" ${P.rayos < 1 || o.stars >= MAX_STARS ? 'disabled' : ''}>${TX('⚡ Usar Rayo Raimon')}<small>${o.stars >= MAX_STARS ? TX('Ya tiene 5 estrellas') : TX('+1 estrella sin necesitar repetidos (tienes ') + P.rayos + ')'}</small></button>
+      <h3>${TX('Entrenar')} <small>${TX('+3 por mejora; el límite sube con las estrellas')}</small></h3><div class="ups" id="ups"></div>
+      <h3>${TX('Técnicas equipadas')} <small>${TX('las')} ${TECH_SLOTS} ${TX('con las que empieza cada partida · toca un hueco y elige')}</small></h3>
       <div class="eqslots" id="eqs"></div>
-      <h3>Puede aprender</h3><div class="eqlist" id="eql"></div>
-      <p class="note">Puede equipar sus propias técnicas y las técnicas legendarias del gacha de su elemento (${ELEM_LABEL[pd.elem] || pd.elem}).</p>`);
+      <h3>${TX('Puede aprender')}</h3><div class="eqlist" id="eql"></div>
+      <p class="note">${TX('Puede equipar sus propias técnicas y las técnicas legendarias del gacha de su elemento (')}${ELEM_LABEL[pd.elem] || pd.elem}).</p>`);
     const eq = Profile.equipOf(id), L = Profile.learnable(id);
     api.eqSlot = Math.min(api.eqSlot || 0, TECH_SLOTS - 1);
     for (let k = 0; k < TECH_SLOTS; k++) {
       const t = eq[k] != null ? TECH(eq[k]) : null, b = document.createElement('button');
       b.className = 'eqslot' + (k === api.eqSlot ? ' sel' : '');
-      b.innerHTML = `<i>Hueco ${k + 1}</i>${t ? techLine(t) : '<span class="tline">Vacío</span>'}`;
+      b.innerHTML = `<i>${TX('Hueco')} ${k + 1}</i>${t ? techLine(t) : '<span class="tline">' + TX('Vacío') + '</span>'}`;
       b.onclick = () => { api.eqSlot = k; renderPlayer(id); };
       $('eqs').appendChild(b);
     }
     const addOpt = (tid, src) => {
       const t = TECH(tid), on = eq.includes(tid), b = document.createElement('button');
       b.className = 'eqopt' + (on ? ' on' : '') + (src === 'gacha' ? ' leg' : '');
-      b.innerHTML = `${techLine(t)}<i>${on ? 'Equipada' : src === 'gacha' ? 'Del gacha' : 'Suya'}${EVO(tid) != null ? ' · evoluciona a ' + esc(TECH(EVO(tid)).name) : ''}</i>`;
+      b.innerHTML = `${techLine(t)}<i>${on ? TX('Equipada') : src === 'gacha' ? TX('Del gacha') : TX('Suya')}${EVO(tid) != null ? TX(' · evoluciona a ') + esc(TECH(EVO(tid)).name) : ''}</i>`;
       b.onclick = () => { Profile.setEquip(id, api.eqSlot, tid); Sound.sfx('click'); api.eqSlot = (api.eqSlot + 1) % TECH_SLOTS; renderPlayer(id); };
       $('eql').appendChild(b);
     };
     L.gacha.forEach(t => addOpt(t, 'gacha')); L.own.forEach(t => addOpt(t, 'own'));
-    if (!L.own.length && !L.gacha.length) $('eql').innerHTML = '<p class="note">No tiene técnicas que aprender.</p>';
+    if (!L.own.length && !L.gacha.length) $('eql').innerHTML = '<p class="note">' + TX('No tiene técnicas que aprender.') + '</p>';
     const ph = $('ph'); ph.appendChild(face(Sprites.refOf(pd), 112));
-    ph.insertAdjacentHTML('beforeend', `<div><div class="pname">${esc(pd.name)}</div>${pd.full !== pd.name ? `<div class="pfull">${esc(pd.full)}</div>` : ''}${pd.also ? `<div class="pfull">También: ${pd.also.map(esc).join(' · ')}</div>` : ''}<div class="pmeta">${rchip(pd.rarity)} ${pd.anyRole ? 'Todos los puestos' : ROLE_LABEL[pd.role]} ${chip(pd.elem)} ${stars(o.stars)}</div></div>`);
+    ph.insertAdjacentHTML('beforeend', `<div><div class="pname">${esc(pd.name)}</div>${pd.full !== pd.name ? `<div class="pfull">${esc(pd.full)}</div>` : ''}${pd.also ? `<div class="pfull">${TX('También:')} ${pd.also.map(esc).join(' · ')}</div>` : ''}<div class="pmeta">${rchip(pd.rarity)} ${pd.anyRole ? TX('Todos los puestos') : ROLE_LABEL[pd.role]} ${chip(pd.elem)} ${stars(o.stars)}</div></div>`);
     STAT_KEYS.forEach(k => {
       const b = document.createElement('button'), can = Profile.canUpgrade(id, k), cost = Profile.upgradeCost(id, k);
-      b.innerHTML = `${STAT_LABEL[k]} <b>${statOf(id, o, k)}</b><small>${can ? '+3 · ' + cost + '🪙' : 'máx. ' + statCap(id, o, k)}</small>`;
+      b.innerHTML = `${STAT_LABEL[k]} <b>${statOf(id, o, k)}</b><small>${can ? '+3 · ' + cost + '🪙' : TX('máx. ') + statCap(id, o, k)}</small>`;
       b.disabled = !can || P.coins < cost;
       b.onclick = () => { if (Profile.upgrade(id, k)) { Sound.sfx('click'); renderPlayer(id); } };
       $('ups').appendChild(b);
     });
-    $('rayo').onclick = () => { if (Profile.useRayo(id)) { Sound.sfx('reveal'); UI.toast(pd.name + ' sube a ' + Profile.owned(id).stars + ' estrellas'); renderPlayer(id); } };
+    $('rayo').onclick = () => { if (Profile.useRayo(id)) { Sound.sfx('reveal'); UI.toast(pd.name + TX(' sube a ') + Profile.owned(id).stars + TX(' estrellas')); renderPlayer(id); } };
     $('back').onclick = () => renderTeam();
   }
 
@@ -595,17 +601,17 @@ const App = (() => {
     api.draft = { kind, o, formation: t.formation, diff: o.diff || 'medio', ids: t.ids };
     renderDraft();
   }
-  const KIND_TITLE = { story: 'Historia', special: 'Equipo especial', chain: 'Cadena', infinite: 'Infinito' };
+  const KIND_TITLE = { story: TX('Historia'), special: TX('Equipo especial'), chain: TX('Cadena'), infinite: TX('Infinito') };
   function renderDraft() {
     const d = api.draft;
     const sub = d.kind === 'special' ? esc(d.o.team) : d.kind === 'chain' ? esc(CHAINS.find(c => c.key === d.o.chain).name) : '';
     screen(`${top(KIND_TITLE[d.kind] + (d.kind === 'story' ? ' · ' + STAGE_NAME[d.o.stage || 's1'] : '') + (sub ? ' · ' + sub : ''))}
-      ${d.kind === 'story' ? opts('Dificultad', 'diff', [['facil', 'Fácil'], ['medio', 'Medio'], ['dificil', 'Difícil']], d) +
-        '<p class="note">Fácil: 5 partidos y 3 vidas · Medio: 6 y 2 · Difícil: 7 y 1.</p>' : ''}
-      ${d.kind === 'infinite' ? '<p class="note">Rivales cada vez más fuertes y 2 vidas. Cada 5 partidos, una oleada especial con premio extra.</p>' : ''}
+      ${d.kind === 'story' ? opts(TX('Dificultad'), 'diff', [['facil', TX('Fácil')], ['medio', TX('Medio')], ['dificil', TX('Difícil')]], d) +
+        '<p class="note">' + TX('Fácil: 5 partidos y 3 vidas · Medio: 6 y 2 · Difícil: 7 y 1.') + '</p>' : ''}
+      ${d.kind === 'infinite' ? '<p class="note">' + TX('Rivales cada vez más fuertes y 2 vidas. Cada 5 partidos, una oleada especial con premio extra.') + '</p>' : ''}
       <div id="ed"></div>
-      <p class="note">Las técnicas, habilidades y fichajes se pierden al acabar; monedas, tickets y Rayos se quedan.</p>
-      ${bottom(`<button class="cta" id="go">Empezar</button>`)}`);
+      <p class="note">${TX('Las técnicas, habilidades y fichajes se pierden al acabar; monedas, tickets y Rayos se quedan.')}</p>
+      ${bottom(`<button class="cta" id="go">${TX('Empezar')}</button>`)}`);
     bindOpts(d);
     const go = $('go'), sync = () => { go.disabled = d.ids.some(x => x == null); saveTeam(d); api.myTeam = null; };
     teamEditor($('ed'), d, sync); sync();
@@ -621,13 +627,13 @@ const App = (() => {
   async function startMatch(teams, golden, field, musicRole, rival) {
     GAME_SPEED = settings.dev && settings.speed ? +settings.speed : 0.75;
     const s = Object.assign({}, settings, { golden, field, difficulty: api.mode === 'run' ? api.run.diff : api.mode === 'career' || api.mode === 'wc' ? Career.matchDiff() : 'facil' });
-    screen('<h2>Cargando…</h2>');
+    screen('<h2>' + TX('Cargando…') + '</h2>');
     try {
       api.matchSheet = await Sprites.matchSheet([...teams.A.players, ...teams.B.players].map(p => p.sprite));
-    } catch (e) { screen(`<h2>No se pudieron cargar los jugadores</h2><p class="note">${esc(e.message)}</p><button class="cta" id="back">Volver</button>`); $('back').onclick = renderMenu; return; }
+    } catch (e) { screen(`<h2>${TX('No se pudieron cargar los jugadores')}</h2><p class="note">${esc(e.message)}</p><button class="cta" id="back">${TX('Volver')}</button>`); $('back').onclick = renderMenu; return; }
     api.match = Logic.createMatch(s, teams);
     $('cA').src = api.mode === 'wc' ? 'ui/crest3016.png' : api.mode === 'career' && Career.data ? ClubCrest.url(Career.data.crest, Career.data.school) : 'ui/crest1.png';
-    $('nA').textContent = api.mode === 'wc' ? 'Japón' : api.mode === 'career' && Career.data ? Career.data.school.replace(/^Instituto\s+/i, '') : 'Tú';
+    $('nA').textContent = api.mode === 'wc' ? TX('Japón') : api.mode === 'career' && Career.data ? Career.data.school.replace(/^Instituto\s+/i, '') : TX('Tú');
     UI.reset();
     api.scene && api.scene.bind(api.match, api.matchSheet);
     show(null);
@@ -636,11 +642,11 @@ const App = (() => {
     if (field && field !== 'normal') UI.toast(FIELD_LABEL[field] || '', 1600);
   }
   function startQuick() {
-    if (api.run && api.run.state !== 'over') return UI.toast('Termina o abandona la partida en curso');
+    if (api.run && api.run.state !== 'over') return UI.toast(TX('Termina o abandona la partida en curso'));
     api.mode = 'quick';
     const T = savedTeam(), F = FORMATIONS[T.formation], pos = layout(F.roles), L = T.ids;
-    if (L.some(x => x == null)) return UI.toast('Completa tu equipo en Plantilla');
-    const A = { name: 'Tu equipo', players: L.map((id, i) => {
+    if (L.some(x => x == null)) return UI.toast(TX('Completa tu equipo en Plantilla'));
+    const A = { name: TX('Tu equipo'), players: L.map((id, i) => {
       const pd = PLAYER(id);
       return Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: Sprites.refOf(pd) });
     }) };
@@ -651,10 +657,10 @@ const App = (() => {
     if (!api.match || api.match.over || !$('screen').hidden) return;
     if (api.running) {
       api.running = false;
-      $('pauseBody').innerHTML = `<h1>Pausa</h1><button class="cta" id="pResume">Seguir</button>
-        <div class="group"><label>Supertécnicas</label><div class="opts">${[['boton', 'Con botón'], ['auto', 'Automáticas']].map(([v, t]) => `<button data-v="${v}" aria-pressed="${settings.techMode === v}">${t}</button>`).join('')}</div></div>
-        ${settings.dev && settings.devWin ? '<button class="ghost" id="pWin">🛠 Ganar ahora (desarrollador)</button>' : ''}
-        <button class="ghost" id="pQuit">${api.mode === 'run' || api.mode === 'career' || api.mode === 'wc' ? 'Rendirse (cuenta como derrota)' : 'Salir al menú'}</button>`;
+      $('pauseBody').innerHTML = `<h1>${TX('Pausa')}</h1><button class="cta" id="pResume">${TX('Seguir')}</button>
+        <div class="group"><label>${TX('Supertécnicas')}</label><div class="opts">${[['boton', TX('Con botón')], ['auto', TX('Automáticas')]].map(([v, t]) => `<button data-v="${v}" aria-pressed="${settings.techMode === v}">${t}</button>`).join('')}</div></div>
+        ${settings.dev && settings.devWin ? '<button class="ghost" id="pWin">' + TX('🛠 Ganar ahora (desarrollador)') + '</button>' : ''}
+        <button class="ghost" id="pQuit">${api.mode === 'run' || api.mode === 'career' || api.mode === 'wc' ? TX('Rendirse (cuenta como derrota)') : TX('Salir al menú')}</button>`;
       $('pauseBody').querySelectorAll('.opts button').forEach(b => b.addEventListener('click', () => {
         settings.techMode = b.dataset.v; saveSettings(); api.match.settings.techMode = b.dataset.v;
         b.parentNode.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
@@ -696,7 +702,7 @@ const App = (() => {
   /* ---------- Partida en curso ---------- */
   function runHeader() {
     const r = api.run;
-    return `<div class="runbar"><span>${esc(r.name)}${r.kind === 'story' ? ' · ' + { facil: 'Fácil', medio: 'Medio', dificil: 'Difícil' }[r.diff] : ''}</span>
+    return `<div class="runbar"><span>${esc(r.name)}${r.kind === 'story' ? ' · ' + { facil: TX('Fácil'), medio: TX('Medio'), dificil: TX('Difícil') }[r.diff] : ''}</span>
       <span class="hearts">${'♥'.repeat(r.lives)}<s>${'♥'.repeat(Math.max(0, r.maxLives - r.lives))}</s></span>
       <span>🪙 +${r.coinsEarned}</span><span>🎟️ +${r.ticketsEarned}</span><span>⚡ ${Profile.data.rayos}</span></div>`;
   }
@@ -705,10 +711,10 @@ const App = (() => {
     const el = document.createElement('div');
     el.className = 'pcard ' + pd.rarity + (api.pick === mi ? ' sel' : '');
     el.appendChild(face(Sprites.refOf(pd), 56));
-    el.insertAdjacentHTML('beforeend', `<div class="pinfo"><div class="pname">${esc(pd.name)}${m.temp ? ' <em>temporal</em>' : ''}</div>
-      <div class="pmeta"><b>${slot}</b> · ${ROLE_LABEL[pd.role]} ${chip(pd.elem)} ${o ? stars(o.stars) : ''}</div>
-      <div class="ptechs">${m.techs.map(TECH).map(techLine).join('') || '<i>Sin técnicas</i>'}</div>
-      ${m.passives.length ? `<div class="ppass">${m.passives.map(esc).join(' · ')}</div>` : ''}</div>`);
+    el.insertAdjacentHTML('beforeend', `<div class="pinfo"><div class="pname">${esc(pd.name)}${m.temp ? ' <em>' + TX('temporal') + '</em>' : ''}</div>
+      <div class="pmeta"><b>${RAB(slot)}</b> · ${ROLE_LABEL[pd.role]} ${chip(pd.elem)} ${o ? stars(o.stars) : ''}</div>
+      <div class="ptechs">${m.techs.map(TECH).map(techLine).join('') || '<i>' + TX('Sin técnicas') + '</i>'}</div>
+      ${m.passives.length ? `<div class="ppass">${m.passives.map(n => esc(TX(n))).join(' · ')}</div>` : ''}</div>`);
     return el;
   }
   function openRun() {
@@ -720,16 +726,16 @@ const App = (() => {
   function renderMap() {
     const r = api.run, rival = Run.rivalName(r), F = FORMATIONS[r.formation];
     const path = r.kind === 'infinite'
-      ? `<p class="note">Oleada ${r.index + 1}${Run.isBoss(r) ? ' · <b>¡oleada especial!</b>' : ''} · récord ${Profile.data.infBest}</p>`
+      ? `<p class="note">${TX('Oleada')} ${r.index + 1}${Run.isBoss(r) ? ' · <b>' + TX('¡oleada especial!') + '</b>' : ''} ${TX('· récord')} ${Profile.data.infBest}</p>`
       : `<ol class="path">${r.schedule.map((t, i) => `<li class="${i < r.index ? 'done' : i === r.index ? 'now' : ''}">${Sprites.crest(crestOf(t))}<span>${esc(t)}</span></li>`).join('')}</ol>`;
-    screen(`${top(r.kind === 'infinite' ? 'Oleada ' + (r.index + 1) : 'Partido ' + (r.index + 1) + ' de ' + r.schedule.length, 'toMenu', 'Menú')}${runHeader()}
+    screen(`${top(r.kind === 'infinite' ? TX('Oleada ') + (r.index + 1) : TX('Partido ') + (r.index + 1) + TX(' de ') + r.schedule.length, 'toMenu', TX('Menú'))}${runHeader()}
       ${path}<div class="vsrow">${Sprites.crest(crestOf(rival))}<div><b>${esc(rival)}</b><span class="note">${FIELD_LABEL[Run.field(r)] || ''}</span><div class="faces" id="rfaces"></div></div></div>
       ${formSelect(r)}
-      <h3>Alineación <small>toca un puesto y luego un suplente (u otro puesto) para cambiarlos</small></h3>
+      <h3>${TX('Alineación')} <small>${TX('toca un puesto y luego un suplente (u otro puesto) para cambiarlos')}</small></h3>
       <div id="lineup"></div>
-      <h3>Banquillo</h3><div class="pgrid" id="bench"></div>
-      <details class="techs"><summary>Ver técnicas del equipo</summary><div class="cards" id="tdet"></div></details>
-      ${bottom(`<button class="cta" id="goMatch">Jugar contra ${esc(rival)}</button>`)}`, 'bg_vs');
+      <h3>${TX('Banquillo')}</h3><div class="pgrid" id="bench"></div>
+      <details class="techs"><summary>${TX('Ver técnicas del equipo')}</summary><div class="cards" id="tdet"></div></details>
+      ${bottom(`<button class="cta" id="goMatch">${TX('Jugar contra')} ${esc(rival)}</button>`)}`, 'bg_vs');
     const rt = TEAM(rival);
     if (rt) rt.players.forEach(m => $('rfaces').appendChild(face({ file: m.file, row: m.row }, 40)));
     $('formSel').onchange = e => { r.formation = e.target.value; Run.save(r); renderMap(); };
@@ -744,14 +750,14 @@ const App = (() => {
       if (r.lineup.slice(0, 5).includes(mi)) return;
       const pd = PLAYER(m.id), c = document.createElement('button');
       c.className = 'ptile ' + pd.rarity; c.appendChild(face(Sprites.refOf(pd), 56));
-      c.insertAdjacentHTML('beforeend', `<span class="tn">${esc(pd.name)}</span><span class="tm"><i>${pd.role}</i>${m.temp ? '<em class="tmp">temporal</em>' : ''}</span>`);
+      c.insertAdjacentHTML('beforeend', `<span class="tn">${esc(pd.name)}</span><span class="tm"><i>${RAB(pd.role)}</i>${m.temp ? '<em class="tmp">' + TX('temporal') + '</em>' : ''}</span>`);
       c.onclick = () => {
-        if (api.mapSel == null) return UI.toast('Primero toca el puesto del campo');
+        if (api.mapSel == null) return UI.toast(TX('Primero toca el puesto del campo'));
         Run.swapLineup(r, api.mapSel, mi); api.mapSel = null; Run.save(r); Sound.sfx('click'); renderMap();
       };
       $('bench').appendChild(c);
     });
-    if (!$('bench').children.length) $('bench').innerHTML = '<p class="note">Sin suplentes todavía: los fichajes temporales aparecen aquí.</p>';
+    if (!$('bench').children.length) $('bench').innerHTML = '<p class="note">' + TX('Sin suplentes todavía: los fichajes temporales aparecen aquí.') + '</p>';
     r.lineup.slice(0, 5).forEach((mi, si) => $('tdet').appendChild(memberCard(mi, F.roles[si])));
     $('goMatch').onclick = () => { api.mode = 'run'; startMatch(Run.matchTeams(r), true, Run.field(r), Run.musicRole(r), Run.rivalName(r)); };
     $('toMenu').onclick = renderMenu;
@@ -759,38 +765,38 @@ const App = (() => {
   }
   function renderResult(s) {
     const r = api.run, L = r.last;
-    const gains = [`<li>🪙 +${L.coins} monedas</li>`];
-    if (L.tickets) gains.push(`<li>🎟️ +${L.tickets} ticket${L.tickets > 1 ? 's' : ''}</li>`);
-    if (L.rayo) gains.push('<li>⚡ ¡5 victorias más: ganas un Rayo Raimon!</li>');
-    if (L.chainRayo) gains.push('<li>⚡ Cadena completada: ¡Rayo Raimon!</li>');
-    if (L.chainTech != null) gains.push(`<li>📜 Primera vez: técnica legendaria <b>${esc(TECH(L.chainTech).name)}</b></li>`);
-    if (L.perfect) gains.push('<li>💎 ¡Cadena perfecta sin perder vidas! +5 🎟️</li>');
-    if (L.medal) gains.push(`<li>${L.medal === 'oro' ? '🥇' : '🥈'} Medalla de ${L.medal}: +15 🎟️ y otro ⚡ Rayo</li>`);
-    if (L.lifeLost) gains.push(`<li>♥ −1 vida${r.lives > 0 ? ' · repites contra el mismo rival' : ''}</li>`);
-    screen(`<img class="finimg" src="ui/fin.png" alt="Fin del partido">${runHeader()}<h2>${L.result === 'win' ? '¡Victoria!' : 'Derrota'}</h2>
+    const gains = [`<li>🪙 +${L.coins} ${TX('monedas')}</li>`];
+    if (L.tickets) gains.push(`<li>🎟️ +${L.tickets} ${TX('ticket')}${L.tickets > 1 ? 's' : ''}</li>`);
+    if (L.rayo) gains.push('<li>' + TX('⚡ ¡5 victorias más: ganas un Rayo Raimon!') + '</li>');
+    if (L.chainRayo) gains.push('<li>' + TX('⚡ Cadena completada: ¡Rayo Raimon!') + '</li>');
+    if (L.chainTech != null) gains.push(`<li>${TX('📜 Primera vez: técnica legendaria')} <b>${esc(TECH(L.chainTech).name)}</b></li>`);
+    if (L.perfect) gains.push('<li>' + TX('💎 ¡Cadena perfecta sin perder vidas! +5 🎟️') + '</li>');
+    if (L.medal) gains.push(`<li>${L.medal === 'oro' ? '🥇' : '🥈'} ${TX('Medalla de')} ${L.medal}${TX(': +15 🎟️ y otro ⚡ Rayo')}</li>`);
+    if (L.lifeLost) gains.push(`<li>${TX('♥ −1 vida')}${r.lives > 0 ? TX(' · repites contra el mismo rival') : ''}</li>`);
+    screen(`<img class="finimg" src="ui/fin.png" alt="${TX('Fin del partido')}">${runHeader()}<h2>${L.result === 'win' ? TX('¡Victoria!') : TX('Derrota')}</h2>
       ${scoreLine(s)}
       <ul class="gains">${gains.join('')}</ul><div id="excl"></div>
-      <button class="cta" id="next">Continuar</button>`, L.result === 'win' ? 'ill27' : 'ill15');
+      <button class="cta" id="next">${TX('Continuar')}</button>`, L.result === 'win' ? 'ill27' : 'ill15');
     if (L.exclusive) {
-      const x = L.exclusive, pd = PLAYER(x.id), c = miniCard(x.id, `<div class="slot">${x.isNew ? '¡Se une a tu plantilla!' : x.star ? 'Sube a ' + x.star + ' estrellas' : '+' + x.coins + ' 🪙'}</div>`);
-      $('excl').insertAdjacentHTML('beforeend', '<h3>Premio del equipo especial</h3>'); $('excl').appendChild(c);
+      const x = L.exclusive, pd = PLAYER(x.id), c = miniCard(x.id, `<div class="slot">${x.isNew ? TX('¡Se une a tu plantilla!') : x.star ? TX('Sube a ') + x.star + TX(' estrellas') : '+' + x.coins + ' 🪙'}</div>`);
+      $('excl').insertAdjacentHTML('beforeend', '<h3>' + TX('Premio del equipo especial') + '</h3>'); $('excl').appendChild(c);
     }
     $('next').onclick = openRun;
   }
-  const scoreLine = s => `<div class="result">${Sprites.crest(1)}<span class="sc">${s.score.A}–${s.score.B}<small>Tu equipo · ${esc(s.teams.B.name)}</small></span>${Sprites.crest(crestOf(s.teams.B.name))}</div>`;
+  const scoreLine = s => `<div class="result">${Sprites.crest(1)}<span class="sc">${s.score.A}–${s.score.B}<small>${TX('Tu equipo ·')} ${esc(s.teams.B.name)}</small></span>${Sprites.crest(crestOf(s.teams.B.name))}</div>`;
   function renderReward() {
     const r = api.run;
-    screen(`${runHeader()}<h2>Elige una recompensa</h2><div id="rw" class="cards"></div>`, 'bg_green');
+    screen(`${runHeader()}<h2>${TX('Elige una recompensa')}</h2><div id="rw" class="cards"></div>`, 'bg_green');
     r.rewards.forEach(o => {
       const c = document.createElement('button'); c.className = 'rcard';
       const who = o.member != null ? PLAYER(r.roster[o.member].id) : o.id != null ? PLAYER(o.id) : null;
       if (who) c.appendChild(face(Sprites.refOf(who), 64));
       let html = '';
-      if (o.kind === 'tech') html = `<div class="rk">Supertécnica${o.rare ? ' <em>rara</em>' : ''}</div><div class="pname">${esc(who.name)} aprende</div>${techLine(TECH(o.tech))}${o.replace != null ? `<div class="pmeta">Sustituye a ${esc(TECH(o.replace).name)} (máx. ${TECH_SLOTS} técnicas)</div>` : ''}`;
-      if (o.kind === 'evolve') html = `<div class="rk">Evolución</div><div class="pname">${esc(who.name)}</div>${techLine(TECH(o.from))}<span class="evo">↓</span>${techLine(TECH(o.to))}`;
-      if (o.kind === 'recruit') html = `<div class="rk">Fichaje temporal</div><div class="pname">${esc(who.name)}</div><div class="pmeta">${ROLE_LABEL[who.role]} ${chip(who.elem)} · Tiro ${who.ie.tiro} · Rapidez ${who.ie.rapidez}</div>`;
-      if (o.kind === 'passive') html = `<div class="rk">Habilidad</div><div class="pname">${esc(o.name)} para ${esc(who.name)}</div><div class="pmeta">${esc(PASSIVES[o.name].desc)}</div>`;
-      if (o.kind === 'coins') html = `<div class="rk">Monedas</div><div class="pname">+${o.amount} 🪙</div>`;
+      if (o.kind === 'tech') html = `<div class="rk">${TX('Supertécnica')}${o.rare ? ' <em>' + TX('rara') + '</em>' : ''}</div><div class="pname">${esc(who.name)} ${TX('aprende')}</div>${techLine(TECH(o.tech))}${o.replace != null ? `<div class="pmeta">${TX('Sustituye a')} ${esc(TECH(o.replace).name)} ${TX('(máx.')} ${TECH_SLOTS} ${TX('técnicas)')}</div>` : ''}`;
+      if (o.kind === 'evolve') html = `<div class="rk">${TX('Evolución')}</div><div class="pname">${esc(who.name)}</div>${techLine(TECH(o.from))}<span class="evo">↓</span>${techLine(TECH(o.to))}`;
+      if (o.kind === 'recruit') html = `<div class="rk">${TX('Fichaje temporal')}</div><div class="pname">${esc(who.name)}</div><div class="pmeta">${ROLE_LABEL[who.role]} ${chip(who.elem)} ${TX('· Tiro')} ${who.ie.tiro} ${TX('· Rapidez')} ${who.ie.rapidez}</div>`;
+      if (o.kind === 'passive') html = `<div class="rk">${TX('Habilidad')}</div><div class="pname">${esc(TX(o.name))} ${TX('para')} ${esc(who.name)}</div><div class="pmeta">${esc(PASSIVES[o.name].desc)}</div>`;
+      if (o.kind === 'coins') html = `<div class="rk">${TX('Monedas')}</div><div class="pname">+${o.amount} 🪙</div>`;
       c.insertAdjacentHTML('beforeend', `<div>${html}</div>`);
       c.onclick = () => { Run.takeReward(r, o); Run.save(r); Sound.sfx('reveal'); renderMap(); };
       $('rw').appendChild(c);
@@ -798,23 +804,23 @@ const App = (() => {
   }
   function renderOver() {
     const r = api.run, win = r.last && r.last.victory;
-    const what = r.kind === 'infinite' ? `Has llegado a la oleada ${r.index + 1} (récord: ${Profile.data.infBest}).`
-      : `Victorias: ${r.wins}${r.kind !== 'special' ? ' de ' + r.schedule.length : ''}.`;
-    screen(`${runHeader()}<h2>${win ? (r.kind === 'story' ? '¡Etapa completada!' : r.kind === 'chain' ? '¡Cadena completada!' : '¡Victoria!') : 'Fin de la partida'}</h2>
-      <p class="note">${what} Has ganado <b>${r.coinsEarned} monedas</b> y <b>${r.ticketsEarned} tickets</b>, que se quedan en tu perfil.<br>
-      Las técnicas, habilidades y fichajes temporales se pierden.</p>
-      ${win && r.kind === 'story' ? (r.stage === 's4' ? '<p class="note"><b>Desbloqueado:</b> la cadena «El lado oscuro».</p>' : r.stage === 's3' ? '<p class="note"><b>Desbloqueado:</b> la Fase 2 de la Etapa 3: el Mundial.</p>' : r.stage === 's2' ? '<p class="note"><b>Desbloqueado:</b> el equipo especial Caos y la Etapa 3.</p>' : '<p class="note"><b>Desbloqueado:</b> la Etapa 2, Cadenas, Infinito y nuevos equipos especiales.</p>') : ''}
-      <button class="cta" id="toGacha">Ir al gacha</button><button class="ghost" id="toMenu">Menú</button>`, win ? (r.kind === 'story' ? 'ill25' : 'ill27') : 'ill14');
+    const what = r.kind === 'infinite' ? `${TX('Has llegado a la oleada')} ${r.index + 1} ${TX('(récord:')} ${Profile.data.infBest}).`
+      : `${TX('Victorias:')} ${r.wins}${r.kind !== 'special' ? TX(' de ') + r.schedule.length : ''}.`;
+    screen(`${runHeader()}<h2>${win ? (r.kind === 'story' ? TX('¡Etapa completada!') : r.kind === 'chain' ? TX('¡Cadena completada!') : TX('¡Victoria!')) : TX('Fin de la partida')}</h2>
+      <p class="note">${what} ${TX('Has ganado')} <b>${r.coinsEarned} ${TX('monedas')}</b> ${TX('y')} <b>${r.ticketsEarned} ${TX('tickets')}</b>${TX(', que se quedan en tu perfil.')}<br>
+      ${TX('Las técnicas, habilidades y fichajes temporales se pierden.')}</p>
+      ${win && r.kind === 'story' ? (r.stage === 's4' ? '<p class="note"><b>' + TX('Desbloqueado:') + '</b> ' + TX('la cadena «El lado oscuro».') + '</p>' : r.stage === 's3' ? '<p class="note"><b>' + TX('Desbloqueado:') + '</b> ' + TX('la Fase 2 de la Etapa 3: el Mundial.') + '</p>' : r.stage === 's2' ? '<p class="note"><b>' + TX('Desbloqueado:') + '</b> ' + TX('el equipo especial Caos y la Etapa 3.') + '</p>' : '<p class="note"><b>' + TX('Desbloqueado:') + '</b> ' + TX('la Etapa 2, Cadenas, Infinito y nuevos equipos especiales.') + '</p>') : ''}
+      <button class="cta" id="toGacha">${TX('Ir al gacha')}</button><button class="ghost" id="toMenu">${TX('Menú')}</button>`, win ? (r.kind === 'story' ? 'ill25' : 'ill27') : 'ill14');
     const end = () => { Run.clear(); api.run = null; };
     $('toGacha').onclick = () => { end(); renderGacha(); };
     $('toMenu').onclick = () => { end(); renderMenu(); };
   }
   function renderQuickEnd(s, rayo) {
     const a = s.score.A, b = s.score.B;
-    screen(`<img class="finimg" src="ui/fin.png" alt="Fin del partido"><h2>${a > b ? '¡Victoria!' : a < b ? 'Derrota' : 'Empate'}</h2>
+    screen(`<img class="finimg" src="ui/fin.png" alt="${TX('Fin del partido')}"><h2>${a > b ? TX('¡Victoria!') : a < b ? TX('Derrota') : TX('Empate')}</h2>
       ${scoreLine(s)}
-      <p class="note">El partido rápido no da monedas ni tickets, pero las victorias cuentan para el Rayo Raimon.${rayo ? '<br><b>⚡ ¡Has ganado un Rayo Raimon!</b>' : ''}</p>
-      <button class="cta" id="again">Otro partido rápido</button><button class="ghost" id="toMenu">Menú</button>`, a > b ? 'ill27' : a < b ? 'ill15' : 'ill28');
+      <p class="note">${TX('El partido rápido no da monedas ni tickets, pero las victorias cuentan para el Rayo Raimon.')}${rayo ? '<br><b>' + TX('⚡ ¡Has ganado un Rayo Raimon!') + '</b>' : ''}</p>
+      <button class="cta" id="again">${TX('Otro partido rápido')}</button><button class="ghost" id="toMenu">${TX('Menú')}</button>`, a > b ? 'ill27' : a < b ? 'ill15' : 'ill28');
     $('again').onclick = startQuick; $('toMenu').onclick = renderMenu;
   }
 
@@ -825,7 +831,7 @@ const App = (() => {
   const cCrest = key => key === YOU ? `<img class="ccrest" src="${myCrestUrl()}" alt="">` : `<img class="ccrest" src="ui/crest${crestOf(key)}.png" alt="">`;
   const bar = (v, cls) => `<span class="cbar ${cls || ''}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
   const money = n => '💰 ' + (Career.data && Career.data.devMoney && n >= 9999999 ? '∞' : n);
-  const WEEK_LABEL = { C: 'Semana de Copa', P1: 'Playoff de ascenso · semifinales', P2: 'Playoff de ascenso · final' };
+  const WEEK_LABEL = { C: TX('Semana de Copa'), P1: TX('Playoff de ascenso · semifinales'), P2: TX('Playoff de ascenso · final') };
   function renderCareer() {
     const c = Career.data;
     if (!c) return renderCareerNew();
@@ -835,28 +841,28 @@ const App = (() => {
     tutorial('career');
     const nm = Career.nextMatch(), d = Career.myDiv(), mgr = PLAYER(c.manager), wt = Career.weekType();
     const act = (k, A) => `<button class="ghost big act-${k}" data-act="${k}">${A.name}<small>${A.desc}</small></button>`;
-    const kindTxt = !nm ? '' : nm.type === 'liga' ? `Jornada ${nm.j + 1}` : nm.type === 'copa' ? `Copa · ${CUP_ROUND[nm.round]}` : nm.type === 'semi' ? 'Playoff · semifinal' : 'Playoff · ¡FINAL!';
-    const cupTxt = !c.cup ? 'La Copa empieza la temporada que viene' : c.cup.winner ? (c.cup.winner === YOU ? '¡Campeones de Copa!' : 'Campeón de Copa: ' + Career.teamName(c.cup.winner)) : c.cup.out ? 'Eliminados de la Copa: se juega sin ti' : 'Siguiente ronda: ' + CUP_ROUND[c.cup.round];
+    const kindTxt = !nm ? '' : nm.type === 'liga' ? `${TX('Jornada')} ${nm.j + 1}` : nm.type === 'copa' ? `${TX('Copa ·')} ${CUP_ROUND[nm.round]}` : nm.type === 'semi' ? TX('Playoff · semifinal') : TX('Playoff · ¡FINAL!');
+    const cupTxt = !c.cup ? TX('La Copa empieza la temporada que viene') : c.cup.winner ? (c.cup.winner === YOU ? TX('¡Campeones de Copa!') : TX('Campeón de Copa: ') + Career.teamName(c.cup.winner)) : c.cup.out ? TX('Eliminados de la Copa: se juega sin ti') : TX('Siguiente ronda: ') + CUP_ROUND[c.cup.round];
     const sponsor = Math.round((8 + c.fame * 0.5) * DIV_SPONSOR[d]);
-    screen(`${top('Modo Carrera')}
-      ${c.migrated ? '<p class="note cmsg">Tu carrera se ha adaptado a las ligas de 10 equipos: la temporada actual empieza de nuevo (conservas plantilla, fama y dinero).</p>' : ''}
-      <div class="chead"><img class="ccrest big" src="${myCrestUrl()}" alt=""><span id="cMgr"></span><div><b>${esc(c.school)}</b><small>Mánager: ${esc(mgr.name)} · Temporada ${c.season}${c.goal ? ' · ★ Campeón de Primera' : ''}</small></div></div>
+    screen(`${top(TX('Modo Carrera'))}
+      ${c.migrated ? '<p class="note cmsg">' + TX('Tu carrera se ha adaptado a las ligas de 10 equipos: la temporada actual empieza de nuevo (conservas plantilla, fama y dinero).') + '</p>' : ''}
+      <div class="chead"><img class="ccrest big" src="${myCrestUrl()}" alt=""><span id="cMgr"></span><div><b>${esc(c.school)}</b><small>${TX('Mánager:')} ${esc(mgr.name)} ${TX('· Temporada')} ${c.season}${c.goal ? TX(' · ★ Campeón de Primera') : ''}</small></div></div>
       <div class="cstats">
-        <div><label>Fama</label>${bar(c.fame, c.fame < 15 ? 'bad' : '')}<small>${c.fame}/100${c.fame < 15 ? ' · ¡ojo!' : ''}</small></div>
-        <div><label>Forma</label>${bar(c.forma, c.forma < 50 ? 'warn' : 'ok')}<small>${c.forma} %</small></div>
-        <div><label>Dinero</label><b class="cmoney">${money(c.money)}</b><small>+${sponsor}/semana</small></div>
+        <div><label>${TX('Fama')}</label>${bar(c.fame, c.fame < 15 ? 'bad' : '')}<small>${c.fame}/100${c.fame < 15 ? TX(' · ¡ojo!') : ''}</small></div>
+        <div><label>${TX('Forma')}</label>${bar(c.forma, c.forma < 50 ? 'warn' : 'ok')}<small>${c.forma} %</small></div>
+        <div><label>${TX('Dinero')}</label><b class="cmoney">${money(c.money)}</b><small>+${sponsor}${TX('/semana')}</small></div>
       </div>
-      <p class="cweek">Semana <b>${c.week}</b>/${WEEKS} · ${DIV_NAME[d]} División · ${Career.myPos()}º · 🏆 ${esc(cupTxt)}</p>
-      ${nm ? `<div class="cnext">${cCrest(nm.rival)}<div><b>${kindTxt}: ${esc(Career.teamName(nm.rival))}</b><small>${nm.home ? 'En casa' : 'Fuera'} · tu media ${Career.myRating()} · rival ${Career.rating(nm.rival)}${nm.ko ? ' · si hay empate, penaltis' : ''}</small></div></div>`
-        : `<div class="cnext free"><span class="cicon">${wt === 'C' ? '🏆' : '📣'}</span><div><b>${WEEK_LABEL[wt] || 'Semana libre'}</b><small>${wt === 'C' ? esc(cupTxt) : d === 1 ? 'En Primera no hay playoff: aprovecha para entrenar.' : 'No juegas el playoff esta temporada: se juega sin ti.'}</small></div></div>`}
-      <h3>Actividad de la semana <small>${nm ? 'después juegas el partido' : 'y pasa la semana'}</small></h3>
+      <p class="cweek">${TX('Semana')} <b>${c.week}</b>/${WEEKS} · ${DIV_NAME[d]} ${TX('División ·')} ${ordTx(Career.myPos())} · 🏆 ${esc(cupTxt)}</p>
+      ${nm ? `<div class="cnext">${cCrest(nm.rival)}<div><b>${kindTxt}: ${esc(Career.teamName(nm.rival))}</b><small>${nm.home ? TX('En casa') : TX('Fuera')} ${TX('· tu media')} ${Career.myRating()} ${TX('· rival')} ${Career.rating(nm.rival)}${nm.ko ? TX(' · si hay empate, penaltis') : ''}</small></div></div>`
+        : `<div class="cnext free"><span class="cicon">${wt === 'C' ? '🏆' : '📣'}</span><div><b>${WEEK_LABEL[wt] || TX('Semana libre')}</b><small>${wt === 'C' ? esc(cupTxt) : d === 1 ? TX('En Primera no hay playoff: aprovecha para entrenar.') : TX('No juegas el playoff esta temporada: se juega sin ti.')}</small></div></div>`}
+      <h3>${TX('Actividad de la semana')} <small>${nm ? TX('después juegas el partido') : TX('y pasa la semana')}</small></h3>
       <div class="grid2">${Object.entries(ACTIVITIES).map(([k, A]) => act(k, A)).join('')}</div>
-      <div id="cTrain" hidden><p class="note">¿Qué entrenáis esta semana? (+${2 + c.fac.campo} a todo el equipo)</p><div class="opts">${STAT_KEYS.map(k => `<button data-st="${k}">${STAT_LABEL[k]}</button>`).join('')}</div></div>
-      <div class="grid2 cnav"><button class="ghost" id="cSquad">👥 Plantilla</button><button class="ghost" id="cMarket">💸 Fichajes${(c.scout || []).length ? ' (' + c.scout.length + ' ojeados)' : ''}</button>
-        <button class="ghost" id="cClub">🏟️ Club</button><button class="ghost" id="cTable">📊 Clasificación</button>
-        <button class="ghost" id="cCal">📅 Calendario</button><button class="ghost" id="cCup">🏆 Copa</button>
-        <button class="ghost" id="cHall">🏛️ Salón de la fama</button><button class="ghost" id="cSave">💾 Guardar</button></div>
-      <button class="ghost" id="cQuit">Abandonar carrera</button>`, 'bg_green');
+      <div id="cTrain" hidden><p class="note">${TX('¿Qué entrenáis esta semana? (+')}${2 + c.fac.campo} ${TX('a todo el equipo)')}</p><div class="opts">${STAT_KEYS.map(k => `<button data-st="${k}">${STAT_LABEL[k]}</button>`).join('')}</div></div>
+      <div class="grid2 cnav"><button class="ghost" id="cSquad">${TX('👥 Plantilla')}</button><button class="ghost" id="cMarket">${TX('💸 Fichajes')}${(c.scout || []).length ? ' (' + c.scout.length + TX(' ojeados)') : ''}</button>
+        <button class="ghost" id="cClub">${TX('🏟️ Club')}</button><button class="ghost" id="cTable">${TX('📊 Clasificación')}</button>
+        <button class="ghost" id="cCal">${TX('📅 Calendario')}</button><button class="ghost" id="cCup">${TX('🏆 Copa')}</button>
+        <button class="ghost" id="cHall">${TX('🏛️ Salón de la fama')}</button><button class="ghost" id="cSave">${TX('💾 Guardar')}</button></div>
+      <button class="ghost" id="cQuit">${TX('Abandonar carrera')}</button>`, 'bg_green');
     c.migrated = false;
     $('cMgr').appendChild(face(Sprites.refOf(mgr), 40));
     const after = msg => {
@@ -882,58 +888,58 @@ const App = (() => {
     $('cHall').onclick = () => renderHall(renderCareer);
     $('cQuit').onclick = () => {
       if ($('cQuit').dataset.sure) { Career.clear(); renderMenu(); return; }
-      $('cQuit').dataset.sure = 1; $('cQuit').textContent = '¿Seguro? Toca otra vez para borrarla';
+      $('cQuit').dataset.sure = 1; $('cQuit').textContent = TX('¿Seguro? Toca otra vez para borrarla');
     };
     $('back').onclick = renderMenu;
   }
   function renderCareerCup() {
     const c = Career.data, C = c.cup;
     const rounds = C ? C.rounds.map((res, i) => `<h3>${CUP_ROUND[i]}</h3><div class="cres">${res.map(poLine).join('')}</div>`).reverse().join('') : '';
-    const next = C && !C.winner ? `<h3>${CUP_ROUND[C.round]} <small>semana ${CUP_WEEKS[C.round]}</small></h3><div class="cres">${C.ties.map(([a, b]) => `<p class="${a === YOU || b === YOU ? 'you' : ''}">${esc(Career.teamName(a))} – ${esc(Career.teamName(b))}</p>`).join('')}${C.round === 0 ? `<p><small>Esperan en octavos: ${C.byes.map(k => esc(Career.teamName(k))).join(', ')}</small></p>` : ''}</div>` : '';
-    screen(`${top('Copa Inazuma')}
-      <p class="note">Los 30 equipos de las 3 divisiones, a partido único (con penaltis si hay empate). Ganarla da dinero, fama y <b>10 tickets</b> para el gacha.</p>
-      ${!C ? '<p class="note">La Copa empieza la temporada que viene.</p>' : C.winner ? `<p class="note cmsg gold">🏆 Campeón: <b>${esc(Career.teamName(C.winner))}</b></p>` : C.out ? '<p class="note cmsg bad">Tu club está eliminado.</p>' : ''}
+    const next = C && !C.winner ? `<h3>${CUP_ROUND[C.round]} <small>${TX('semana')} ${CUP_WEEKS[C.round]}</small></h3><div class="cres">${C.ties.map(([a, b]) => `<p class="${a === YOU || b === YOU ? 'you' : ''}">${esc(Career.teamName(a))} – ${esc(Career.teamName(b))}</p>`).join('')}${C.round === 0 ? `<p><small>${TX('Esperan en octavos:')} ${C.byes.map(k => esc(Career.teamName(k))).join(', ')}</small></p>` : ''}</div>` : '';
+    screen(`${top(TX('Copa Inazuma'))}
+      <p class="note">${TX('Los 30 equipos de las 3 divisiones, a partido único (con penaltis si hay empate). Ganarla da dinero, fama y')} <b>${TX('10 tickets')}</b> ${TX('para el gacha.')}</p>
+      ${!C ? '<p class="note">' + TX('La Copa empieza la temporada que viene.') + '</p>' : C.winner ? `<p class="note cmsg gold">${TX('🏆 Campeón:')} <b>${esc(Career.teamName(C.winner))}</b></p>` : C.out ? '<p class="note cmsg bad">' + TX('Tu club está eliminado.') + '</p>' : ''}
       ${next}${rounds}`, 'bg_green');
     $('back').onclick = renderCareer;
   }
   function renderCareerCupRound(res) {
     const c = Career.data, i = c.cup ? c.cup.rounds.length - 1 : 0;
-    screen(`<h2>Copa Inazuma · ${CUP_ROUND[i]}</h2>${c.cup && c.cup.winner ? `<p class="note cmsg gold">🏆 Campeón: <b>${esc(Career.teamName(c.cup.winner))}</b></p>` : ''}
-      <div class="cres">${res.map(poLine).join('')}</div>${bottom('<button class="cta" id="cNext">Continuar</button>')}`, 'bg_green');
+    screen(`<h2>${TX('Copa Inazuma ·')} ${CUP_ROUND[i]}</h2>${c.cup && c.cup.winner ? `<p class="note cmsg gold">${TX('🏆 Campeón:')} <b>${esc(Career.teamName(c.cup.winner))}</b></p>` : ''}
+      <div class="cres">${res.map(poLine).join('')}</div>${bottom('<button class="cta" id="cNext">' + TX('Continuar') + '</button>')}`, 'bg_green');
     $('cNext').onclick = renderCareer;
   }
   function renderHall(back) {
     const list = Career.hall(), c = Career.data;
     const row = (r, now) => `<div class="cpl fac"><img class="ccrest big" src="${ClubCrest.url(r.crest || { shape: 'escudo', c1: '#1f4fc0', c2: '#e8c21a', sym: 'rayo' }, r.school)}" alt=""><div class="cplb"><b>${esc(r.school)}</b>
-      <small>${now ? 'En curso' : new Date(r.date).toLocaleDateString('es-ES')} · mánager ${esc((PLAYER(r.manager) || {}).name || '?')} · ${(CAREER_DIFF[r.diff] || CAREER_DIFF.normal).name}</small>
-      <span class="cst">${r.seasons} temporadas · mejor división: ${DIV_NAME[r.best]}${r.goal ? ' · ★ campeón de Primera' : ''}${r.closed ? ' · club cerrado' : ''}</span>
-      <span class="cst">Títulos: ${r.titles.length ? r.titles.map(esc).join(', ') : 'ninguno'}${r.scorer ? ' · máximo goleador: ' + esc(PLAYER(r.scorer[0]).name) + ' (' + r.scorer[1] + ')' : ''}</span></div></div>`;
+      <small>${now ? TX('En curso') : new Date(r.date).toLocaleDateString('es-ES')} ${TX('· mánager')} ${esc((PLAYER(r.manager) || {}).name || '?')} · ${(CAREER_DIFF[r.diff] || CAREER_DIFF.normal).name}</small>
+      <span class="cst">${r.seasons} ${TX('temporadas · mejor división:')} ${DIV_NAME[r.best]}${r.goal ? TX(' · ★ campeón de Primera') : ''}${r.closed ? TX(' · club cerrado') : ''}</span>
+      <span class="cst">${TX('Títulos:')} ${r.titles.length ? r.titles.map(esc).join(', ') : 'ninguno'}${r.scorer ? TX(' · máximo goleador: ') + esc(PLAYER(r.scorer[0]).name) + ' (' + r.scorer[1] + ')' : ''}</span></div></div>`;
     const cur = c && c.history.length ? row({ school: c.school, manager: c.manager, crest: c.crest, seasons: c.history.length, titles: c.titles.map(t => t.name), best: Math.min(...c.history.map(h => h.div)), goal: c.goal, diff: c.diff,
       scorer: (m => m && m.goals ? [m.id, m.goals] : null)(c.squad.slice().sort((a, b) => b.goals - a.goals)[0]) }, true) : '';
-    screen(`${top('Salón de la fama')}<p class="note">Tus carreras de mánager: las terminadas, las abandonadas y la que llevas ahora.</p>
-      <div class="csquad">${cur}${list.map(r => row(r)).join('') || (cur ? '' : '<p class="note">Aún no hay ninguna carrera terminada.</p>')}</div>`, 'bg_team');
+    screen(`${top(TX('Salón de la fama'))}<p class="note">${TX('Tus carreras de mánager: las terminadas, las abandonadas y la que llevas ahora.')}</p>
+      <div class="csquad">${cur}${list.map(r => row(r)).join('') || (cur ? '' : '<p class="note">' + TX('Aún no hay ninguna carrera terminada.') + '</p>')}</div>`, 'bg_team');
     $('back').onclick = back;
   }
   // Resultados de los playoffs en los que no jugabas
   function renderCareerPOInfo() {
     const c = Career.data;
     const rows = [2, 3].map(d => { const P = c.po[d]; const r = (P.finalRes ? [P.finalRes] : P.res) || [];
-      return `<h3>Playoff · ${DIV_NAME[d]}</h3><div class="cres">${r.map(poLine).join('')}</div>`; }).join('');
-    screen(`<h2>Playoffs de ascenso</h2>${rows}${bottom('<button class="cta" id="cNext">Continuar</button>')}`, 'bg_green');
+      return `<h3>${TX('Playoff ·')} ${DIV_NAME[d]}</h3><div class="cres">${r.map(poLine).join('')}</div>`; }).join('');
+    screen(`<h2>${TX('Playoffs de ascenso')}</h2>${rows}${bottom('<button class="cta" id="cNext">' + TX('Continuar') + '</button>')}`, 'bg_green');
     $('cNext').onclick = renderCareer;
   }
-  const poLine = ([a, b, ga, gb, pens, w]) => `<p class="${a === YOU || b === YOU ? 'you' : ''}">${esc(Career.teamName(a))} <b>${ga} - ${gb}</b> ${esc(Career.teamName(b))}${pens ? ` <small>(pen. ${pens[0]}-${pens[1]})</small>` : ''} → <b>${esc(Career.teamName(w))}</b></p>`;
+  const poLine = ([a, b, ga, gb, pens, w]) => `<p class="${a === YOU || b === YOU ? 'you' : ''}">${esc(Career.teamName(a))} <b>${ga} - ${gb}</b> ${esc(Career.teamName(b))}${pens ? ` <small>${TX('(pen.')} ${pens[0]}-${pens[1]})</small>` : ''} → <b>${esc(Career.teamName(w))}</b></p>`;
   function renderCareerNew() {
     let pick = MANAGERS[0];
-    screen(`${top('Nueva carrera')}
-      <p class="note">Eres el <b>mánager</b> de un club de instituto a punto de desaparecer. Empiezas en <b>Tercera División</b> con 7 chavales normales.<br>
-      3 divisiones de 10 equipos. Los 2 primeros suben y del 3º al 6º juegan un <b>playoff</b> por la tercera plaza; los 3 últimos bajan. Ficha jugadores, mejora el club y gana la <b>Primera</b>… pero si la fama llega a 0, cierran el club.</p>
-      <h3>Elige a tu mánager</h3><div class="cmgrs" id="cMgrs"></div>
-      <h3>Nombre del instituto</h3><div class="giftin"><input id="cSchool" type="text" maxlength="24" value="Instituto Inazuma" autocomplete="off" spellcheck="false" style="text-transform:none"></div>
-      <h3>Dificultad</h3><div class="opts" id="cDiff">${Object.entries(CAREER_DIFF).map(([k, D]) => `<button data-diff="${k}" aria-pressed="${k === 'normal'}">${D.name}</button>`).join('')}</div>
-      <p class="note">La equipación y el escudo se eligen después en «Club». Ganar ligas, la Copa o ascender da tickets para el gacha.</p>
-      ${Career.hall().length ? '<button class="ghost" id="cHall">🏛️ Salón de la fama</button>' : ''}
-      ${bottom('<button class="cta" id="cGo">Empezar carrera</button>')}`, 'bg_title');
+    screen(`${top(TX('Nueva carrera'))}
+      <p class="note">${TX('Eres el')} <b>${TX('mánager')}</b> ${TX('de un club de instituto a punto de desaparecer. Empiezas en')} <b>${TX('Tercera División')}</b> ${TX('con 7 chavales normales.')}<br>
+      ${TX('3 divisiones de 10 equipos. Los 2 primeros suben y del 3º al 6º juegan un')} <b>${TX('playoff')}</b> ${TX('por la tercera plaza; los 3 últimos bajan. Ficha jugadores, mejora el club y gana la')} <b>${TX('Primera')}</b>${TX('… pero si la fama llega a 0, cierran el club.')}</p>
+      <h3>${TX('Elige a tu mánager')}</h3><div class="cmgrs" id="cMgrs"></div>
+      <h3>${TX('Nombre del instituto')}</h3><div class="giftin"><input id="cSchool" type="text" maxlength="24" value="Instituto Inazuma" autocomplete="off" spellcheck="false" style="text-transform:none"></div>
+      <h3>${TX('Dificultad')}</h3><div class="opts" id="cDiff">${Object.entries(CAREER_DIFF).map(([k, D]) => `<button data-diff="${k}" aria-pressed="${k === 'normal'}">${D.name}</button>`).join('')}</div>
+      <p class="note">${TX('La equipación y el escudo se eligen después en «Club». Ganar ligas, la Copa o ascender da tickets para el gacha.')}</p>
+      ${Career.hall().length ? '<button class="ghost" id="cHall">' + TX('🏛️ Salón de la fama') + '</button>' : ''}
+      ${bottom('<button class="cta" id="cGo">' + TX('Empezar carrera') + '</button>')}`, 'bg_title');
     let diff = 'normal';
     body.querySelectorAll('[data-diff]').forEach(b => b.onclick = () => { diff = b.dataset.diff; body.querySelectorAll('[data-diff]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
     if ($('cHall')) $('cHall').onclick = () => renderHall(renderCareerNew);
@@ -945,31 +951,31 @@ const App = (() => {
       box.appendChild(b);
     });
     $('cSchool').addEventListener('keydown', e => e.stopPropagation());
-    $('cGo').onclick = () => { Career.create(pick, $('cSchool').value.trim() || 'Instituto Inazuma', diff); Sound.sfx('reveal'); renderCareerClub(true); };
+    $('cGo').onclick = () => { Career.create(pick, $('cSchool').value.trim() || TX('Instituto Inazuma'), diff); Sound.sfx('reveal'); renderCareerClub(true); };
     $('back').onclick = renderMenu;
   }
   /* ---------- Mundial de Carrera ---------- */
   const wcCrest = k => k === 'JP' ? '<img class="ccrest" src="ui/crest3016.png" alt="">' : `<img class="ccrest" src="ui/crest${crestOf(k)}.png" alt="">`;
-  const wcName = k => k === 'JP' ? 'Inazuma Japón' : k;
+  const wcName = k => k === 'JP' ? TX('Inazuma Japón') : k;
   function renderWC(last) {
     const c = Career.data, w = c.wc; tutorial('wc');
     if (w.state === 'call') {
       const cands = Career.wcCandidates(), sel = new Set(w.pick || []);
-      screen(`${top('Mundial · Convocatoria', 'cBack', 'Club')}
-        <div class="chead"><img class="ccrest big" src="ui/crest3016.png" alt=""><div><b>Inazuma Japón</b><small>Mundial · temporada ${w.season} · eres el seleccionador</small></div></div>
-        <p class="note">Convoca a <b>10 jugadores</b> (dos equipos de 5): los de tu club y los mejores de las ligas (los que juegan en Primera y en los equipos de arriba destacan más). Antes de cada partido eliges qué 5 juegan.</p>
-        <div class="sortrow"><span id="wcN"></span><button class="ghost mini" id="wcAuto">⚡ Los 10 mejores</button></div>
+      screen(`${top(TX('Mundial · Convocatoria'), 'cBack', TX('Club'))}
+        <div class="chead"><img class="ccrest big" src="ui/crest3016.png" alt=""><div><b>${TX('Inazuma Japón')}</b><small>${TX('Mundial · temporada')} ${w.season} ${TX('· eres el seleccionador')}</small></div></div>
+        <p class="note">${TX('Convoca a')} <b>${TX('10 jugadores')}</b> ${TX('(dos equipos de 5): los de tu club y los mejores de las ligas (los que juegan en Primera y en los equipos de arriba destacan más). Antes de cada partido eliges qué 5 juegan.')}</p>
+        <div class="sortrow"><span id="wcN"></span><button class="ghost mini" id="wcAuto">${TX('⚡ Los 10 mejores')}</button></div>
         <div class="pgrid" id="wcL"></div>
-        ${bottom('<button class="cta" id="wcGo" disabled>🌍 Empezar el Mundial</button>')}`, 'bg_team');
+        ${bottom('<button class="cta" id="wcGo" disabled>' + TX('🌍 Empezar el Mundial') + '</button>')}`, 'bg_team');
       const draw = () => {
         const L = $('wcL'); L.innerHTML = '';
         cands.forEach(x => {
-          const pd = PLAYER(x.id), el = tile(x.id, `<span class="slot">${x.club === YOU ? 'Tu club' : esc(Career.teamName(x.club))} · media ${Career.wcScore(x.id)}</span>`);
+          const pd = PLAYER(x.id), el = tile(x.id, `<span class="slot">${x.club === YOU ? TX('Tu club') : esc(Career.teamName(x.club))} ${TX('· media')} ${Career.wcScore(x.id)}</span>`);
           if (sel.has(x.id)) el.classList.add('sel');
-          el.onclick = () => { if (sel.has(x.id)) sel.delete(x.id); else if (sel.size < 10) sel.add(x.id); else return UI.toast('Ya tienes 10: quita uno antes'); Sound.sfx('click'); w.pick = [...sel]; draw(); };
+          el.onclick = () => { if (sel.has(x.id)) sel.delete(x.id); else if (sel.size < 10) sel.add(x.id); else return UI.toast(TX('Ya tienes 10: quita uno antes')); Sound.sfx('click'); w.pick = [...sel]; draw(); };
           L.appendChild(el);
         });
-        $('wcN').textContent = sel.size + ' de 10 convocados'; $('wcGo').disabled = sel.size !== 10;
+        $('wcN').textContent = sel.size + TX(' de 10 convocados'); $('wcGo').disabled = sel.size !== 10;
       };
       $('wcAuto').onclick = () => {
         const roles = FORMATIONS[c.formation].roles, pool = cands.map(x => x.id);
@@ -979,49 +985,49 @@ const App = (() => {
         w.pick = [...sel]; Sound.sfx('reveal'); draw();
       };
       $('wcGo').onclick = () => { Career.wcStart([...sel]); Sound.sfx('reveal'); renderWC(); };
-      $('cBack').onclick = () => UI.toast('Primero convoca a tu selección');
+      $('cBack').onclick = () => UI.toast(TX('Primero convoca a tu selección'));
       draw(); return;
     }
-    const tableHtmlWC = () => w.group ? `<table class="ctable"><tr><th></th><th></th><th>Grupo</th><th>Pts</th><th>DG</th></tr>${Career.wcTable().map((r, i) =>
+    const tableHtmlWC = () => w.group ? `<table class="ctable"><tr><th></th><th></th><th>${TX('Grupo')}</th><th>${TX('Pts')}</th><th>DG</th></tr>${Career.wcTable().map((r, i) =>
       `<tr class="${r.key === 'JP' ? 'you' : ''} ${i < 2 ? 'zup' : ''}"><td>${i + 1}</td><td>${wcCrest(r.key)}</td><td class="tn">${esc(wcName(r.key))}</td><td><b>${r.pts}</b></td><td>${r.gf - r.gc > 0 ? '+' : ''}${r.gf - r.gc}</td></tr>`).join('')}</table>` : '';
-    const lastHtml = last ? `<div class="cvs"><div>${wcCrest('JP')}<b>Japón</b></div><span>${last.gA} - ${last.gB}</span><div>${wcCrest(last.opp)}<b>${esc(last.opp)}</b></div></div>
-      ${last.pens ? `<p class="cweek">Penaltis: <b>${last.pens[0]} - ${last.pens[1]}</b></p>` : ''}${last.msg ? `<p class="note cmsg ${w.state === 'out' ? 'bad' : 'gold'}">${esc(last.msg)}</p>` : ''}` : '';
+    const lastHtml = last ? `<div class="cvs"><div>${wcCrest('JP')}<b>${TX('Japón')}</b></div><span>${last.gA} - ${last.gB}</span><div>${wcCrest(last.opp)}<b>${esc(last.opp)}</b></div></div>
+      ${last.pens ? `<p class="cweek">${TX('Penaltis:')} <b>${last.pens[0]} - ${last.pens[1]}</b></p>` : ''}${last.msg ? `<p class="note cmsg ${w.state === 'out' ? 'bad' : 'gold'}">${esc(last.msg)}</p>` : ''}` : '';
     if (w.state === 'out' || w.state === 'champion') {
       const R = w.reward || {};
-      screen(`<h2>${w.state === 'champion' ? '🏆 ¡Campeones del mundo!' : 'Fin del Mundial'}</h2>${lastHtml}
-        <p class="cweek">Resultado: <b>${{ campeón: 'Campeones', final: 'Subcampeones', semi: 'Semifinalistas', grupo: 'Fase de grupos' }[w.place]}</b></p>
-        <p class="note cmsg gold">Fama ${R.fame >= 0 ? '+' : ''}${R.fame} · +${R.money} 💰 para tu club · +${R.tickets} 🎟️ para el gacha</p>
-        <div class="cres">${w.log.map(l => `<p>${l.r}: Japón <b>${l.gA} - ${l.gB}</b> ${esc(l.opp)}${l.pens ? ` (pen. ${l.pens[0]}-${l.pens[1]})` : ''}</p>`).join('')}</div>
+      screen(`<h2>${w.state === 'champion' ? TX('🏆 ¡Campeones del mundo!') : TX('Fin del Mundial')}</h2>${lastHtml}
+        <p class="cweek">${TX('Resultado:')} <b>${{ campeón: TX('Campeones'), final: TX('Subcampeones'), semi: TX('Semifinalistas'), grupo: TX('Fase de grupos') }[w.place]}</b></p>
+        <p class="note cmsg gold">${TX('Fama')} ${R.fame >= 0 ? '+' : ''}${R.fame} · +${R.money} ${TX('💰 para tu club · +')}${R.tickets} ${TX('🎟️ para el gacha')}</p>
+        <div class="cres">${w.log.map(l => `<p>${l.r}${TX(': Japón')} <b>${l.gA} - ${l.gB}</b> ${esc(l.opp)}${l.pens ? ` ${TX('(pen.')} ${l.pens[0]}-${l.pens[1]})` : ''}</p>`).join('')}</div>
         ${tableHtmlWC()}
-        ${bottom('<button class="cta" id="wcEnd">Volver al club</button>')}`, w.state === 'champion' ? 'ill27' : 'bg_green');
+        ${bottom('<button class="cta" id="wcEnd">' + TX('Volver al club') + '</button>')}`, w.state === 'champion' ? 'ill27' : 'bg_green');
       $('wcEnd').onclick = () => { Career.wcClose(); Sound.music('menu'); renderCareer(); };
       return;
     }
-    const stage = w.state === 'group' ? `Fase de grupos · partido ${w.round + 1} de 3` : w.state === 'semi' ? 'Semifinal' : '¡FINAL!';
-    screen(`${top('Mundial · ' + (w.state === 'group' ? 'Grupo' : w.state === 'semi' ? 'Semifinal' : 'Final'), 'cBack', 'Club')}
+    const stage = w.state === 'group' ? `${TX('Fase de grupos · partido')} ${w.round + 1} ${TX('de 3')}` : w.state === 'semi' ? TX('Semifinal') : TX('¡FINAL!');
+    screen(`${top(TX('Mundial · ') + (w.state === 'group' ? TX('Grupo') : w.state === 'semi' ? TX('Semifinal') : TX('Final')), 'cBack', TX('Club'))}
       ${lastHtml}
-      <div class="cvs"><div>${wcCrest('JP')}<b>Inazuma Japón</b><small>media ${Career.wcRating('JP')}</small></div><span>VS</span><div>${wcCrest(w.opp)}<b>${esc(w.opp)}</b><small>media ${Career.wcRating(w.opp)}</small></div></div>
-      <p class="cweek">${stage}${w.state !== 'group' ? ' · si hay empate, penaltis' : ''}</p>
-      <div class="cres"><p>Juegan: ${w.squad.map(id => esc(PLAYER(id).name)).join(', ')}</p></div><button class="ghost" id="wcLine">👥 Alineación (10 convocados · 2 equipos)</button>
+      <div class="cvs"><div>${wcCrest('JP')}<b>${TX('Inazuma Japón')}</b><small>${TX('media')} ${Career.wcRating('JP')}</small></div><span>VS</span><div>${wcCrest(w.opp)}<b>${esc(w.opp)}</b><small>${TX('media')} ${Career.wcRating(w.opp)}</small></div></div>
+      <p class="cweek">${stage}${w.state !== 'group' ? TX(' · si hay empate, penaltis') : ''}</p>
+      <div class="cres"><p>${TX('Juegan:')} ${w.squad.map(id => esc(PLAYER(id).name)).join(', ')}</p></div><button class="ghost" id="wcLine">${TX('👥 Alineación (10 convocados · 2 equipos)')}</button>
       ${tableHtmlWC()}
-      ${bottom('<div class="grid2"><button class="cta" id="wcPlay">⚽ Jugar<small>tú controlas</small></button><button class="cta" id="wcSim">📋 Simular<small>como seleccionador</small></button></div>')}`, 'bg_vs');
+      ${bottom('<div class="grid2"><button class="cta" id="wcPlay">' + TX('⚽ Jugar') + '<small>' + TX('tú controlas') + '</small></button><button class="cta" id="wcSim">' + TX('📋 Simular') + '<small>' + TX('como seleccionador') + '</small></button></div>')}`, 'bg_vs');
     $('wcLine').onclick = () => renderWCLine();
     $('wcPlay').onclick = () => { api.mode = 'wc'; startMatch(Career.wcTeams(), w.state !== 'group', TEAM_FIELD[w.opp] || 'normal', w.state === 'final' ? 'match_final' : 'match_hard', w.opp); };
     $('wcSim').onclick = () => { const s = Career.wcSim(), r = Career.wcResult(s.gA, s.gB); Sound.sfx(r.gA > r.gB ? 'reveal' : 'click'); renderWC(r); };
-    $('cBack').onclick = () => UI.toast('Termina el Mundial para volver al club');
+    $('cBack').onclick = () => UI.toast(TX('Termina el Mundial para volver al club'));
   }
   function renderCareerPre(msg) {
     const c = Career.data, nm = Career.nextMatch(), d = Career.myDiv();
-    const title = nm.type === 'liga' ? 'Partido de liga' : nm.type === 'copa' ? 'Copa · ' + CUP_ROUND[nm.round] : nm.type === 'semi' ? 'Playoff · semifinal' : 'Playoff · FINAL';
-    screen(`${top(title, 'cBack', 'Club')}
+    const title = nm.type === 'liga' ? TX('Partido de liga') : nm.type === 'copa' ? TX('Copa · ') + CUP_ROUND[nm.round] : nm.type === 'semi' ? TX('Playoff · semifinal') : TX('Playoff · FINAL');
+    screen(`${top(title, 'cBack', TX('Club'))}
       ${msg ? `<p class="note cmsg">${esc(msg)}</p>` : ''}
-      <div class="cvs"><div>${cCrest(YOU)}<b>${esc(c.school)}</b><small>media ${Career.myRating()}</small></div><span>VS</span><div>${cCrest(nm.rival)}<b>${esc(Career.teamName(nm.rival))}</b><small>media ${Career.rating(nm.rival)}</small></div></div>
-      <p class="cweek">${nm.type === 'liga' ? `Jornada ${nm.j + 1} de 9` : nm.type === 'copa' ? `Copa Inazuma · ${CUP_ROUND[nm.round]} · a partido único, con penaltis` : 'Eliminatoria: si hay empate, penaltis'} · ${DIV_NAME[d]} · ${nm.home ? 'en casa' : 'fuera'} · forma ${c.forma} %</p>
-      <button class="ghost" id="cLine">👥 Alineación (${c.formation} · ${FORMATIONS[c.formation].name})</button>
-      <h3>Táctica <small>cuenta sobre todo al simular</small></h3>
+      <div class="cvs"><div>${cCrest(YOU)}<b>${esc(c.school)}</b><small>${TX('media')} ${Career.myRating()}</small></div><span>VS</span><div>${cCrest(nm.rival)}<b>${esc(Career.teamName(nm.rival))}</b><small>${TX('media')} ${Career.rating(nm.rival)}</small></div></div>
+      <p class="cweek">${nm.type === 'liga' ? `${TX('Jornada')} ${nm.j + 1} ${TX('de 9')}` : nm.type === 'copa' ? `${TX('Copa Inazuma ·')} ${CUP_ROUND[nm.round]} ${TX('· a partido único, con penaltis')}` : TX('Eliminatoria: si hay empate, penaltis')} · ${DIV_NAME[d]} · ${nm.home ? TX('en casa') : 'fuera'} ${TX('· forma')} ${c.forma} %</p>
+      <button class="ghost" id="cLine">${TX('👥 Alineación (')}${c.formation} · ${FORMATIONS[c.formation].name})</button>
+      <h3>${TX('Táctica')} <small>${TX('cuenta sobre todo al simular')}</small></h3>
       <div class="opts">${Object.entries(TACTICS).map(([k, t]) => `<button data-tac="${k}" aria-pressed="${c.tactic === k}">${t.name}</button>`).join('')}</div>
       <p class="note" id="cTacD">${TACTICS[c.tactic].desc}</p>
-      ${bottom('<div class="grid2"><button class="cta" id="cPlay">⚽ Jugar<small>tú controlas</small></button><button class="cta" id="cSim">📋 Simular<small>como mánager</small></button></div>')}`, 'bg_vs');
+      ${bottom('<div class="grid2"><button class="cta" id="cPlay">' + TX('⚽ Jugar') + '<small>' + TX('tú controlas') + '</small></button><button class="cta" id="cSim">' + TX('📋 Simular') + '<small>' + TX('como mánager') + '</small></button></div>')}`, 'bg_vs');
     body.querySelectorAll('[data-tac]').forEach(b => b.onclick = () => {
       c.tactic = b.dataset.tac; Career.save(); body.querySelectorAll('[data-tac]').forEach(x => x.setAttribute('aria-pressed', x === b)); $('cTacD').textContent = TACTICS[c.tactic].desc;
     });
@@ -1032,27 +1038,27 @@ const App = (() => {
       startMatch(Career.matchTeams(), !!nm.ko, TEAM_FIELD[nm.rival], nm.ko && (nm.type !== 'copa' || nm.round >= 3) ? 'match_final' : { 1: 'match_hard', 2: 'match_mid', 3: 'match_easy' }[d], nm.rival);
     };
     $('cSim').onclick = () => { if (!Career.lineupOk()) Career.autoLineup(); renderCareerSim(Career.simulateMine(c.tactic)); };
-    $('cBack').onclick = () => UI.toast('Primero juega o simula el partido de esta semana');
+    $('cBack').onclick = () => UI.toast(TX('Primero juega o simula el partido de esta semana'));
   }
   function renderCareerSim(r) {
     const c = Career.data;
-    screen(`<h2>Simulación</h2>
+    screen(`<h2>${TX('Simulación')}</h2>
       <div class="cvs sim"><div>${cCrest(YOU)}<b>${esc(c.school)}</b></div><span id="cSc">0 - 0</span><div>${cCrest(r.rival)}<b>${esc(Career.teamName(r.rival))}</b></div></div>
       <p class="cweek" id="cMin">0'</p><div class="cfeed" id="cFeed"></div>
-      ${bottom('<button class="ghost" id="cSkip">Saltar al final ▶▶</button><button class="cta" id="cDone" hidden>Continuar</button>')}`, 'bg_vs');
+      ${bottom('<button class="ghost" id="cSkip">' + TX('Saltar al final ▶▶') + '</button><button class="cta" id="cDone" hidden>' + TX('Continuar') + '</button>')}`, 'bg_vs');
     let min = 0, i = 0, a = 0, b = 0, done = false;
     Sound.music('match_mid');
     const feed = $('cFeed');
     const show = e => {
       if (e.type === 'goal') { if (e.team === 'A') a++; else b++; $('cSc').textContent = a + ' - ' + b; Sound.sfx('goal'); }
-      const line = e.type === 'pens' ? `🥅 <b>Penaltis: ${e.a} - ${e.b}</b> · ${e.a > e.b ? '¡pasáis!' : 'eliminados…'}`
-        : e.type === 'goal' ? `⚽ <b>¡Gol${e.team === 'A' ? '' : ' rival'}!</b> ${esc(e.name)}${e.tech ? ' con <b>' + esc(e.tech) + '</b>' : ''}` : `🧤 Parada de ${esc(e.name || 'el portero')}`;
+      const line = e.type === 'pens' ? `🥅 <b>${TX('Penaltis:')} ${e.a} - ${e.b}</b> · ${e.a > e.b ? TX('¡pasáis!') : TX('eliminados…')}`
+        : e.type === 'goal' ? `⚽ <b>${TX('¡Gol')}${e.team === 'A' ? '' : ' rival'}!</b> ${esc(e.name)}${e.tech ? ' ' + TX('con') + ' <b>' + esc(e.tech) + '</b>' : ''}` : `${TX('🧤 Parada de')} ${esc(e.name || TX('el portero'))}`;
       feed.insertAdjacentHTML('afterbegin', `<p class="${e.team === 'B' ? 'rival' : 'mine'}"><i>${e.min}'</i> ${line}</p>`);
     };
     const finish = () => {
       if (done) return; done = true; clearInterval(iv);
       while (i < r.events.length) show(r.events[i++]);
-      $('cMin').textContent = 'Final'; Sound.sfx('whistleEnd');
+      $('cMin').textContent = TX('Final'); Sound.sfx('whistleEnd');
       $('cSkip').hidden = true; $('cDone').hidden = false;
     };
     const iv = setInterval(() => {
@@ -1070,28 +1076,28 @@ const App = (() => {
   const careerWon = out => out.gA > out.gB || (out.gA === out.gB && out.pens && out.pens[0] > out.pens[1]);
   const jingleFor = out => Sound.jingle(careerWon(out) ? 'win' : out.gA === out.gB && !out.pens ? null : 'lose');
   function tableHtml(d, rows) {
-    return `<table class="ctable"><tr><th></th><th></th><th>Equipo</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>DG</th><th>Pts</th></tr>${rows.map((r, i) =>
+    return `<table class="ctable"><tr><th></th><th></th><th>${TX('Equipo')}</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>DG</th><th>${TX('Pts')}</th></tr>${rows.map((r, i) =>
       `<tr class="${r.key === YOU ? 'you' : ''} ${d > 1 && i < 2 ? 'zup' : ''} ${d > 1 && i >= 2 && i < 6 ? 'zpo' : ''} ${d < 3 && i >= rows.length - 3 ? 'zdown' : ''}"><td>${i + 1}</td><td>${cCrest(r.key)}</td><td class="tn">${esc(Career.teamName(r.key))}</td><td>${r.pj}</td><td>${r.g}</td><td>${r.e}</td><td>${r.p}</td><td>${r.gf - r.gc > 0 ? '+' : ''}${r.gf - r.gc}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table>
-      <p class="note ckey">${d > 1 ? '<span class="zup">■</span> ascenso · <span class="zpo">■</span> playoff · ' : ''}${d < 3 ? '<span class="zdown">■</span> descenso' : 'Tercera: los 3 últimos pierden fama'}</p>`;
+      <p class="note ckey">${d > 1 ? '<span class="zup">■</span> ' + TX('ascenso ·') + ' <span class="zpo">■</span> ' + TX('playoff ·') + ' ' : ''}${d < 3 ? '<span class="zdown">■</span> ' + TX('descenso') : TX('Tercera: los 3 últimos pierden fama')}</p>`;
   }
   function renderCareerJornada(out) {
     const c = Career.data, d = Career.myDiv(), win = careerWon(out), draw = out.gA === out.gB && !out.pens;
     const isPO = out.type !== 'L';
-    screen(`<h2>${win ? '¡Victoria!' : draw ? 'Empate' : 'Derrota'}</h2>
+    screen(`<h2>${win ? TX('¡Victoria!') : draw ? TX('Empate') : TX('Derrota')}</h2>
       <div class="cvs"><div>${cCrest(YOU)}<b>${esc(c.school)}</b></div><span>${out.gA} - ${out.gB}</span><div>${cCrest(out.rival)}<b>${esc(Career.teamName(out.rival))}</b></div></div>
-      ${out.pens ? `<p class="cweek">Penaltis: <b>${out.pens[0]} - ${out.pens[1]}</b></p>` : ''}
-      <p class="cweek">Fama ${out.fame >= 0 ? '+' : ''}${out.fame} · Taquilla +${out.money} 💰 · Forma ${c.forma} %</p>
+      ${out.pens ? `<p class="cweek">${TX('Penaltis:')} <b>${out.pens[0]} - ${out.pens[1]}</b></p>` : ''}
+      <p class="cweek">${TX('Fama')} ${out.fame >= 0 ? '+' : ''}${out.fame} ${TX('· Taquilla +')}${out.money} ${TX('💰 · Forma')} ${c.forma} %</p>
       ${out.prog && out.prog.length ? `<p class="note cprog">${out.prog.map(x => `${x.d > 0 ? '📈' : '📉'} ${esc(PLAYER(x.id).name)} ${x.d > 0 ? '+1' : '−1'} ${STAT_LABEL[x.k]}`).join(' · ')}</p>` : ''}
-      ${c.over ? '<p class="note cmsg bad">La fama ha llegado a 0…</p>' : ''}
-      ${out.vencido ? `<div class="cnext vencido" id="cVen"><span id="cVenF"></span><div><b>¡${esc(PLAYER(out.vencido.id).name)} quiere unirse a tu club!</b><small>Jugaba en ${esc(Career.teamName(out.vencido.key))} · ${PLAYER(out.vencido.id).role} · ${rchip(PLAYER(out.vencido.id).rarity)}</small>
-        <button class="cta" id="cVenOk">Fichar por ${out.vencido.price} 💰</button></div></div>` : ''}
-      ${out.cupWinner ? `<p class="note cmsg gold">🏆 ${out.cupWinner === YOU ? '<b>¡Campeones de la Copa Inazuma!</b> +10 🎟️ para el gacha' : 'Campeón de Copa: ' + esc(Career.teamName(out.cupWinner))}</p>` : ''}
-      ${out.type === 'C' ? `<h3>Copa Inazuma · ${CUP_ROUND[out.cupRound]}</h3><div class="cres">${(out.results.cup || []).map(poLine).join('')}</div>`
-        : isPO ? `<h3>Playoff de ascenso · ${DIV_NAME[d]}</h3><div class="cres">${(out.results[d] || []).map(poLine).join('')}</div>`
-        : `<h3>Resultados de la jornada · ${DIV_NAME[d]}</h3>
+      ${c.over ? '<p class="note cmsg bad">' + TX('La fama ha llegado a 0…') + '</p>' : ''}
+      ${out.vencido ? `<div class="cnext vencido" id="cVen"><span id="cVenF"></span><div><b>${TX('¡')}${esc(PLAYER(out.vencido.id).name)} ${TX('quiere unirse a tu club!')}</b><small>${TX('Jugaba en')} ${esc(Career.teamName(out.vencido.key))} · ${PLAYER(out.vencido.id).role} · ${rchip(PLAYER(out.vencido.id).rarity)}</small>
+        <button class="cta" id="cVenOk">${TX('Fichar por')} ${out.vencido.price} 💰</button></div></div>` : ''}
+      ${out.cupWinner ? `<p class="note cmsg gold">🏆 ${out.cupWinner === YOU ? '<b>' + TX('¡Campeones de la Copa Inazuma!') + '</b> ' + TX('+10 🎟️ para el gacha') : TX('Campeón de Copa: ') + esc(Career.teamName(out.cupWinner))}</p>` : ''}
+      ${out.type === 'C' ? `<h3>${TX('Copa Inazuma ·')} ${CUP_ROUND[out.cupRound]}</h3><div class="cres">${(out.results.cup || []).map(poLine).join('')}</div>`
+        : isPO ? `<h3>${TX('Playoff de ascenso ·')} ${DIV_NAME[d]}</h3><div class="cres">${(out.results[d] || []).map(poLine).join('')}</div>`
+        : `<h3>${TX('Resultados de la jornada ·')} ${DIV_NAME[d]}</h3>
       <div class="cres">${out.results[d].map(([a, b, ga, gb]) => `<p class="${a === YOU || b === YOU ? 'you' : ''}">${esc(Career.teamName(a))} <b>${ga} - ${gb}</b> ${esc(Career.teamName(b))}</p>`).join('')}</div>
-      <h3>Clasificación</h3>${tableHtml(d, Career.standings(d))}`}
-      ${bottom('<button class="cta" id="cNext">Continuar</button>')}`, win ? 'ill27' : draw ? 'bg_green' : 'ill14');
+      <h3>${TX('Clasificación')}</h3>${tableHtml(d, Career.standings(d))}`}
+      ${bottom('<button class="cta" id="cNext">' + TX('Continuar') + '</button>')}`, win ? 'ill27' : draw ? 'bg_green' : 'ill14');
     if (out.vencido) {
       $('cVenF').appendChild(face(Sprites.refOf(PLAYER(out.vencido.id)), 48));
       $('cVenOk').onclick = () => { const r = Career.sign(out.vencido.id, out.vencido.price, out.vencido.key); UI.toast(r.msg, 2200); if (r.ok) { Sound.sfx('reveal'); $('cVen').remove(); } };
@@ -1105,25 +1111,25 @@ const App = (() => {
   }
   function renderCareerSeason(sum) {
     const c = Career.data, d = sum.div;
-    const msg = sum.goal ? '<p class="note cmsg gold">🏆 <b>¡Campeones de Primera División!</b> Has completado la carrera. Tu club entra en el salón de la fama… y puedes seguir jugando temporadas para siempre (los rivales mejoran cada año).</p>'
-      : sum.champion ? `<p class="note cmsg gold">🏆 ¡Campeones de ${DIV_NAME[d]}!</p>` : '';
-    const move = sum.moves.includes('up') ? `<p class="note cmsg gold">⬆️ ¡Ascenso a ${DIV_NAME[d - 1]}!${sum.playoff ? ' (por el playoff)' : ''}</p>` : sum.moves.includes('down') ? `<p class="note cmsg bad">⬇️ Descenso a ${DIV_NAME[d + 1]}…</p>` : sum.warning ? '<p class="note cmsg bad">El director no está contento: últimos de Tercera.</p>' : '';
+    const msg = sum.goal ? '<p class="note cmsg gold">🏆 <b>' + TX('¡Campeones de Primera División!') + '</b> ' + TX('Has completado la carrera. Tu club entra en el salón de la fama… y puedes seguir jugando temporadas para siempre (los rivales mejoran cada año).') + '</p>'
+      : sum.champion ? `<p class="note cmsg gold">${TX('🏆 ¡Campeones de')} ${DIV_NAME[d]}!</p>` : '';
+    const move = sum.moves.includes('up') ? `<p class="note cmsg gold">${TX('⬆️ ¡Ascenso a')} ${DIV_NAME[d - 1]}!${sum.playoff ? TX(' (por el playoff)') : ''}</p>` : sum.moves.includes('down') ? `<p class="note cmsg bad">${TX('⬇️ Descenso a')} ${DIV_NAME[d + 1]}…</p>` : sum.warning ? '<p class="note cmsg bad">' + TX('El director no está contento: últimos de Tercera.') + '</p>' : '';
     const names = ids => ids.map(id => esc(PLAYER(id).name)).join(', ') || 'nadie';
-    screen(`<h2>Fin de la temporada ${sum.season}</h2>
-      <p class="cweek">${DIV_NAME[d]} División · puesto <b>${sum.pos}º</b> · fama ${sum.fame >= 0 ? '+' : ''}${sum.fame} · premio +${sum.money} 💰</p>
+    screen(`<h2>${TX('Fin de la temporada')} ${sum.season}</h2>
+      <p class="cweek">${DIV_NAME[d]} ${TX('División · puesto')} <b>${ordTx(sum.pos)}</b> ${TX('· fama')} ${sum.fame >= 0 ? '+' : ''}${sum.fame} ${TX('· premio +')}${sum.money} 💰</p>
       ${msg}${move}
-      ${sum.cupWinner ? `<p class="note">🏆 Copa Inazuma: ${sum.cupWinner === YOU ? '<b>¡tu club!</b>' : esc(Career.teamName(sum.cupWinner))}</p>` : ''}
-      ${sum.wc ? '<p class="note cmsg gold">🌍 <b>¡Llega el Mundial!</b> Te han nombrado seleccionador de Inazuma Japón: convoca a los mejores de las ligas.</p>' : ''}
-      ${sum.tickets ? `<p class="note cmsg gold">🎟️ +${sum.tickets} tickets para el gacha por tus logros de la temporada</p>` : ''}
-      ${c.over ? '<p class="note cmsg bad">La fama ha llegado a 0 y el director cierra el club.</p>' : ''}
-      <h3>Ascensos y descensos</h3>
-      <p class="note">⬆️ A Primera: ${sum.promoted[1].map(k => esc(Career.teamName(k))).join(', ')}<br>⬆️ A Segunda: ${sum.promoted[2].map(k => esc(Career.teamName(k))).join(', ')}<br>
-      ⬇️ A Segunda: ${sum.relegated[1].map(k => esc(Career.teamName(k))).join(', ')}<br>⬇️ A Tercera: ${sum.relegated[2].map(k => esc(Career.teamName(k))).join(', ')}</p>
-      <h3>Tu plantilla</h3>
-      <p class="note">🎓 Se gradúan (${LAST_YEAR}º curso): ${names(sum.grads)}<br>🌱 Llegan de la cantera: ${names(sum.youth)}<br>📈 El resto pasa de curso y gana experiencia: <b>+${sum.growth || 1} en todas sus stats</b>.</p>
-      ${(sum.pendingYouth || []).length ? `<p class="note cmsg gold">🌱 ${names(sum.pendingYouth)} ${sum.pendingYouth.length > 1 ? 'quieren' : 'quiere'} entrar, pero la plantilla está llena: ahora eliges si haces hueco.</p>` : ''}
+      ${sum.cupWinner ? `<p class="note">${TX('🏆 Copa Inazuma:')} ${sum.cupWinner === YOU ? '<b>' + TX('¡tu club!') + '</b>' : esc(Career.teamName(sum.cupWinner))}</p>` : ''}
+      ${sum.wc ? '<p class="note cmsg gold">🌍 <b>' + TX('¡Llega el Mundial!') + '</b> ' + TX('Te han nombrado seleccionador de Inazuma Japón: convoca a los mejores de las ligas.') + '</p>' : ''}
+      ${sum.tickets ? `<p class="note cmsg gold">🎟️ +${sum.tickets} ${TX('tickets para el gacha por tus logros de la temporada')}</p>` : ''}
+      ${c.over ? '<p class="note cmsg bad">' + TX('La fama ha llegado a 0 y el director cierra el club.') + '</p>' : ''}
+      <h3>${TX('Ascensos y descensos')}</h3>
+      <p class="note">${TX('⬆️ A Primera:')} ${sum.promoted[1].map(k => esc(Career.teamName(k))).join(', ')}<br>${TX('⬆️ A Segunda:')} ${sum.promoted[2].map(k => esc(Career.teamName(k))).join(', ')}<br>
+      ${TX('⬇️ A Segunda:')} ${sum.relegated[1].map(k => esc(Career.teamName(k))).join(', ')}<br>${TX('⬇️ A Tercera:')} ${sum.relegated[2].map(k => esc(Career.teamName(k))).join(', ')}</p>
+      <h3>${TX('Tu plantilla')}</h3>
+      <p class="note">${TX('🎓 Se gradúan ({0}):', yearTx(LAST_YEAR))} ${names(sum.grads)}<br>${TX('🌱 Llegan de la cantera:')} ${names(sum.youth)}<br>${TX('📈 El resto pasa de curso y gana experiencia:')} <b>+${sum.growth || 1} ${TX('en todas sus stats')}</b>.</p>
+      ${(sum.pendingYouth || []).length ? `<p class="note cmsg gold">🌱 ${names(sum.pendingYouth)} ${sum.pendingYouth.length > 1 ? 'quieren' : 'quiere'} ${TX('entrar, pero la plantilla está llena: ahora eliges si haces hueco.')}</p>` : ''}
       ${sum.goal ? hallHtml() : ''}
-      ${bottom(`<button class="cta" id="cNext">${c.over ? 'Ver resumen' : sum.goal ? 'Seguir jugando (infinito)' : 'Empezar temporada ' + c.season}</button>`)}`, sum.champion || sum.moves.includes('up') ? 'ill25' : 'bg_team');
+      ${bottom(`<button class="cta" id="cNext">${c.over ? TX('Ver resumen') : sum.goal ? TX('Seguir jugando (infinito)') : TX('Empezar temporada ') + c.season}</button>`)}`, sum.champion || sum.moves.includes('up') ? 'ill25' : 'bg_team');
     if (sum.champion || sum.moves.includes('up')) Sound.jingle('win');
     $('cNext').onclick = () => { Sound.music('menu'); c.over ? renderCareerOver() : renderCareer(); };
   }
@@ -1132,16 +1138,16 @@ const App = (() => {
     const c = Career.data, kid = (c.pendingYouth || [])[0];
     if (!kid) return next();
     const pd = PLAYER(kid.id);
-    screen(`<h2>🌱 Llega un juvenil</h2>
-      <p class="note"><b>${esc(pd.name)}</b> (${ROLE_LABEL[pd.role]}, 1º curso) quiere entrar en el club, pero tu plantilla está llena (${SQUAD_MAX}/${SQUAD_MAX}). ¿Le haces hueco?</p>
+    screen(`<h2>${TX('🌱 Llega un juvenil')}</h2>
+      <p class="note"><b>${esc(pd.name)}</b> (${ROLE_LABEL[pd.role]}${TX(', 1º curso) quiere entrar en el club, pero tu plantilla está llena (')}${SQUAD_MAX}/${SQUAD_MAX}${TX('). ¿Le haces hueco?')}</p>
       <div class="csquad" id="yKid"></div>
-      <h3>Elige a quién dejas ir</h3>
-      <p class="note">Ordenados de peor a mejor. Se va del club sin cobrar nada.</p>
+      <h3>${TX('Elige a quién dejas ir')}</h3>
+      <p class="note">${TX('Ordenados de peor a mejor. Se va del club sin cobrar nada.')}</p>
       <div class="csquad" id="ySquad"></div>
-      ${bottom(`<button class="ghost" id="yNo">No, que ${esc(pd.name)} se vaya a otro instituto</button>`)}`, 'bg_team');
-    $('yKid').appendChild(playerRow(kid.id, `<span class="cst">1º curso · de la cantera</span>`, kid));
+      ${bottom(`<button class="ghost" id="yNo">${TX('No, que')} ${esc(pd.name)} ${TX('se vaya a otro instituto')}</button>`)}`, 'bg_team');
+    $('yKid').appendChild(playerRow(kid.id, `<span class="cst">${TX('1º curso · de la cantera')}</span>`, kid));
     c.squad.slice().sort((a, b) => Career.ovr(a) - Career.ovr(b)).forEach(m => {
-      const el = playerRow(m.id, `<span class="cst">${m.year}º curso${c.lineup.includes(m.id) ? ' · <b>titular</b>' : ''}</span><button class="ghost mini">Dejar ir</button>`, m);
+      const el = playerRow(m.id, `<span class="cst">${yearTx(m.year)}${c.lineup.includes(m.id) ? ' · <b>' + TX('titular') + '</b>' : ''}</span><button class="ghost mini">${TX('Dejar ir')}</button>`, m);
       el.querySelector('button').onclick = () => { const r = Career.resolveYouth(kid.id, m.id); if (r.ok) { UI.toast(r.msg, 2000); Sound.sfx('reveal'); renderYouthChoice(next); } };
       $('ySquad').appendChild(el);
     });
@@ -1149,21 +1155,21 @@ const App = (() => {
   }
   function hallHtml() {
     const c = Career.data;
-    return `<h3>Salón de la fama</h3><p class="note">${esc(c.school)} · mánager ${esc(PLAYER(c.manager).name)}<br>
-      Temporadas: <b>${c.history.length}</b> · Títulos: <b>${c.titles.length}</b>${c.titles.length ? ' (' + c.titles.map(t => esc(t.name) + ' T' + t.season).join(', ') + ')' : ''}<br>
-      Recorrido: ${c.history.map(h => 'T' + h.season + ' ' + DIV_NAME[h.div][0] + h.pos + 'º' + (h.up ? '⬆' : h.down ? '⬇' : '')).join(' · ') || '—'}</p>`;
+    return `<h3>${TX('Salón de la fama')}</h3><p class="note">${esc(c.school)} ${TX('· mánager')} ${esc(PLAYER(c.manager).name)}<br>
+      ${TX('Temporadas:')} <b>${c.history.length}</b> ${TX('· Títulos:')} <b>${c.titles.length}</b>${c.titles.length ? ' (' + c.titles.map(t => esc(t.name) + ' ' + TX('T{0}', t.season)).join(', ') + ')' : ''}<br>
+      ${TX('Recorrido:')} ${c.history.map(h => TX('T{0}', h.season) + ' ' + DIV_NAME[h.div][0] + ordTx(h.pos) + (h.up ? '⬆' : h.down ? '⬇' : '')).join(' · ') || '—'}</p>`;
   }
   function renderCareerOver() {
-    screen(`<h2>Fin de la carrera</h2><p class="note cmsg bad">La fama del club ha llegado a 0 y el director ha cerrado el club de fútbol.</p>
+    screen(`<h2>${TX('Fin de la carrera')}</h2><p class="note cmsg bad">${TX('La fama del club ha llegado a 0 y el director ha cerrado el club de fútbol.')}</p>
       ${hallHtml()}
-      ${bottom('<div class="grid2"><button class="cta" id="cNew">Nueva carrera</button><button class="ghost" id="cMenu">Menú</button></div>')}`, 'ill15');
+      ${bottom('<div class="grid2"><button class="cta" id="cNew">' + TX('Nueva carrera') + '</button><button class="ghost" id="cMenu">' + TX('Menú') + '</button></div>')}`, 'ill15');
     $('cNew').onclick = () => { Career.clear(); renderCareerNew(); };
     $('cMenu').onclick = renderMenu;
   }
   function renderCareerTable(d, back) {
     const c = Career.data;
-    const po = c.po && c.po[d] ? `<h3>Playoff</h3><div class="cres">${[...(c.po[d].res || []), ...(c.po[d].finalRes ? [c.po[d].finalRes] : [])].map(poLine).join('') || '<p>Semifinales: ' + c.po[d].semis.map(([a, b]) => esc(Career.teamName(a)) + ' – ' + esc(Career.teamName(b))).join(' · ') + '</p>'}</div>` : '';
-    screen(`${top('Clasificación')}
+    const po = c.po && c.po[d] ? `<h3>${TX('Playoff')}</h3><div class="cres">${[...(c.po[d].res || []), ...(c.po[d].finalRes ? [c.po[d].finalRes] : [])].map(poLine).join('') || '<p>' + TX('Semifinales:') + ' ' + c.po[d].semis.map(([a, b]) => esc(Career.teamName(a)) + ' – ' + esc(Career.teamName(b))).join(' · ') + '</p>'}</div>` : '';
+    screen(`${top(TX('Clasificación'))}
       <div class="opts">${[1, 2, 3].map(k => `<button data-dv="${k}" aria-pressed="${k === d}">${DIV_NAME[k]}</button>`).join('')}</div>
       ${tableHtml(d, Career.standings(d))}${po}`, 'bg_green');
     body.querySelectorAll('[data-dv]').forEach(b => b.onclick = () => renderCareerTable(+b.dataset.dv, back));
@@ -1176,16 +1182,16 @@ const App = (() => {
       if (t === 'C') {
         const r = CUP_WEEKS.indexOf(w), C = c.cup, played = C && C.rounds[r], mine = played && played.find(x => x[0] === YOU || x[1] === YOU);
         const txt = mine ? `${esc(Career.teamName(mine[0] === YOU ? mine[1] : mine[0]))} <b>${mine[0] === YOU ? mine[2] + ' - ' + mine[3] : mine[3] + ' - ' + mine[2]}</b>${mine[5] === YOU ? ' ✓' : ' ✗'}`
-          : C && C.round === r && Career.cupTie() ? 'vs ' + esc(Career.teamName(Career.cupTie().find(k => k !== YOU))) : C && (C.out || C.winner) && r >= C.round ? '<small>(sin ti)</small>' : '';
-        return `<p class="${w === c.week ? 'now' : ''}"><i>S${w}</i> 🏆 Copa · ${CUP_ROUND[r]} ${txt}</p>`;
+          : C && C.round === r && Career.cupTie() ? 'vs ' + esc(Career.teamName(Career.cupTie().find(k => k !== YOU))) : C && (C.out || C.winner) && r >= C.round ? '<small>' + TX('(sin ti)') + '</small>' : '';
+        return `<p class="${w === c.week ? 'now' : ''}"><i>${TX('S{0}', w)}</i> ${TX('🏆 Copa ·')} ${CUP_ROUND[r]} ${txt}</p>`;
       }
-      if (t !== 'L') return `<p class="${w === c.week ? 'now' : ''}"><i>S${w}</i> ${t === 'P1' ? 'Playoff · semifinales' : 'Playoff · final'} <small>(3º a 6º de Segunda y Tercera)</small></p>`;
+      if (t !== 'L') return `<p class="${w === c.week ? 'now' : ''}"><i>${TX('S{0}', w)}</i> ${t === 'P1' ? TX('Playoff · semifinales') : TX('Playoff · final')} <small>${TX('(3º a 6º de Segunda y Tercera)')}</small></p>`;
       const m = c.fix[d][j].find(p => p.includes(YOU)), rv = m[0] === YOU ? m[1] : m[0];
       const res = c.results[d][j].find(r => r[0] === YOU || r[1] === YOU);
       const sc = res ? (res[0] === YOU ? res[2] + ' - ' + res[3] : res[3] + ' - ' + res[2]) : '';
-      return `<p class="${w === c.week ? 'now' : ''}"><i>S${w}</i> J${j + 1} ${m[0] === YOU ? 'vs' : 'en'} ${cCrest(rv)} ${esc(Career.teamName(rv))} ${sc ? '<b>' + sc + '</b>' : ''}</p>`;
+      return `<p class="${w === c.week ? 'now' : ''}"><i>${TX('S{0}', w)}</i> ${TX('J{0}', j + 1)} ${m[0] === YOU ? 'vs' : TX('en')} ${cCrest(rv)} ${esc(Career.teamName(rv))} ${sc ? '<b>' + sc + '</b>' : ''}</p>`;
     }).join('');
-    screen(`${top('Calendario')}<p class="cweek">Temporada ${c.season} · ${DIV_NAME[d]} División</p><div class="cres ccal">${rows}</div>`, 'bg_green');
+    screen(`${top(TX('Calendario'))}<p class="cweek">${TX('Temporada')} ${c.season} · ${DIV_NAME[d]} ${TX('División')}</p><div class="cres ccal">${rows}</div>`, 'bg_green');
     $('back').onclick = renderCareer;
   }
   const statsLine = m => STAT_KEYS.map(k => `${STAT_LABEL[k].slice(0, 3)} <b>${Career.stat(m, k)}</b>`).join(' · ');
@@ -1193,7 +1199,7 @@ const App = (() => {
     const pd = PLAYER(id), el = document.createElement('div'); el.className = 'cpl';
     el.appendChild(face(Sprites.refOf(pd), 48));
     m = m || Career.member(id);
-    el.insertAdjacentHTML('beforeend', `<div class="cplb"><b>${esc(pd.name)}</b> <small>${pd.role} · ${rchip(pd.rarity)} · media ${Career.ovr(m)}</small>
+    el.insertAdjacentHTML('beforeend', `<div class="cplb"><b>${esc(pd.name)}</b> <small>${RAB(pd.role)} · ${rchip(pd.rarity)} ${TX('· media')} ${Career.ovr(m)}</small>
       <span class="cst">${statsLine(m)}</span>${extra || ''}</div>`);
     return el;
   }
@@ -1201,11 +1207,11 @@ const App = (() => {
     const c = Career.data;
     if (!Career.lineupOk()) Career.autoLineup();
     const roles = FORMATIONS[c.formation].roles;
-    screen(`${top('Plantilla')}
+    screen(`${top(TX('Plantilla'))}
       ${formSelect(c)}
-      <div class="edbar"><button class="ghost" id="cAuto">⚡ Mejor equipo</button><span class="note">Media: <b>${Career.myRating()}</b> · ${c.squad.length}/${SQUAD_MAX} jugadores</span></div>
+      <div class="edbar"><button class="ghost" id="cAuto">${TX('⚡ Mejor equipo')}</button><span class="note">${TX('Media:')} <b>${Career.myRating()}</b> · ${c.squad.length}/${SQUAD_MAX} ${TX('jugadores')}</span></div>
       <div id="cPitch"></div>
-      <h3>Puesto: ${ROLE_LABEL[roles[sel]]} <small>toca un jugador para ponerlo</small></h3>
+      <h3>${TX('Puesto:')} ${ROLE_LABEL[roles[sel]]} <small>${TX('toca un jugador para ponerlo')}</small></h3>
       <div class="csquad" id="cList"></div>`, 'bg_green');
     $('cPitch').appendChild(pitch(roles, c.lineup.map((id, i) => { const m = Career.m(id), pd = PLAYER(id); return { ref: Sprites.refOf(pd), name: pd.name, rarity: pd.rarity, badge: Career.rate(m, roles[i]) }; }),
       sel, i => renderCareerSquad(back, i)));
@@ -1214,13 +1220,13 @@ const App = (() => {
     const list = $('cList');
     c.squad.slice().sort((a, b) => Career.rate(b, roles[sel]) - Career.rate(a, roles[sel])).forEach(m => {
       const at = c.lineup.indexOf(m.id);
-      const el = playerRow(m.id, `<span class="cst">${m.year}º curso${m.year >= LAST_YEAR ? ' (se gradúa al acabar)' : ''}${at >= 0 ? ' · titular (' + roles[at] + ')' : ''} · nota aquí ${Career.rate(m, roles[sel])} · ${m.games} PJ · ${m.goals} goles</span>
-        <span class="cst">⚡ ${Career.equipped(m).map(t => esc(TECH(t).name)).join(' · ') || 'sin técnicas'} <button class="ghost mini ctech">Técnicas</button></span>`, m);
+      const el = playerRow(m.id, `<span class="cst">${yearTx(m.year)}${m.year >= LAST_YEAR ? TX(' (se gradúa al acabar)') : ''}${at >= 0 ? TX(' · titular (') + RAB(roles[at]) + ')' : ''} ${TX('· nota aquí')} ${Career.rate(m, roles[sel])} · ${m.games} ${TX('PJ ·')} ${m.goals} ${TX('goles')}</span>
+        <span class="cst">⚡ ${Career.equipped(m).map(t => esc(TECH(t).name)).join(' · ') || TX('sin técnicas')} <button class="ghost mini ctech">${TX('Técnicas')}</button></span>`, m);
       el.classList.add('btn'); if (at >= 0) el.classList.add('sel');
       el.querySelector('.ctech').onclick = e => { e.stopPropagation(); renderCareerTechs(m.id, () => renderCareerSquad(back, sel)); };
       el.onclick = () => {
-        if (roles[sel] === 'POR' && !playsAs(PLAYER(m.id), 'POR')) return UI.toast('A portería solo pueden ir porteros');
-        if (at >= 0 && roles[at] === 'POR' && !playsAs(PLAYER(c.lineup[sel]), 'POR')) return UI.toast('Así la portería se quedaría sin portero');
+        if (roles[sel] === 'POR' && !playsAs(PLAYER(m.id), 'POR')) return UI.toast(TX('A portería solo pueden ir porteros'));
+        if (at >= 0 && roles[at] === 'POR' && !playsAs(PLAYER(c.lineup[sel]), 'POR')) return UI.toast(TX('Así la portería se quedaría sin portero'));
         if (at >= 0) c.lineup[at] = c.lineup[sel];
         c.lineup[sel] = m.id; Career.save(); Sound.sfx('click'); renderCareerSquad(back, sel);
       };
@@ -1231,31 +1237,31 @@ const App = (() => {
 
   function renderCareerTechs(id, back) {
     const m = Career.m(id), pd = PLAYER(id), eq = Career.equipped(m), ls = Career.learnset(id);
-    screen(`${top('Técnicas · ' + esc(pd.name))}
-      <p class="note">Elige hasta <b>${TECH_SLOTS}</b> técnicas para los partidos. Solo puedes usar las que <b>${esc(pd.name)}</b> aprende en el juego (${ls.length}).</p>
+    screen(`${top(TX('Técnicas · ') + esc(pd.name))}
+      <p class="note">${TX('Elige hasta')} <b>${TECH_SLOTS}</b> ${TX('técnicas para los partidos. Solo puedes usar las que')} <b>${esc(pd.name)}</b> ${TX('aprende en el juego (')}${ls.length}).</p>
       <div class="csquad" id="ctL"></div>`, 'bg_green');
     const L = $('ctL');
     ls.forEach(t => {
       const T = TECH(t), on = eq.includes(t), el = document.createElement('button');
       el.className = 'cpl btn' + (on ? ' sel' : '');
-      el.innerHTML = `<div class="cplb"><b>${TYPE_ICON[T.type] || '★'} ${esc(T.name)}</b> <small>${TYPE_LABEL[T.type]} · potencia ${T.power} · ${chip(T.elem)}</small><span class="cst">${on ? '✅ Equipada' : m.known.includes(t) ? 'Aprendida · toca para equipar' : 'Toca para equipar'}</span></div>`;
+      el.innerHTML = `<div class="cplb"><b>${TYPE_ICON[T.type] || '★'} ${esc(T.name)}</b> <small>${TYPE_LABEL[T.type]} ${TX('· potencia')} ${T.power} · ${chip(T.elem)}</small><span class="cst">${on ? TX('✅ Equipada') : m.known.includes(t) ? TX('Aprendida · toca para equipar') : TX('Toca para equipar')}</span></div>`;
       el.onclick = () => { Career.toggleEquip(id, t); Sound.sfx('click'); renderCareerTechs(id, back); };
       L.appendChild(el);
     });
-    if (!ls.length) L.innerHTML = '<p class="note">Este jugador no aprende técnicas.</p>';
+    if (!ls.length) L.innerHTML = '<p class="note">' + TX('Este jugador no aprende técnicas.') + '</p>';
     $('back').onclick = back;
   }
   function renderWCLine(sel = 0) {
     const c = Career.data, w = c.wc, roles = FORMATIONS[c.formation].roles;
-    screen(`${top('Mundial · Alineación')}
-      <div class="edbar"><button class="ghost" id="wlBest">⚡ Mejores 5</button><button class="ghost" id="wl2">🔄 Equipo 2 (los otros 5)</button></div>
-      <p class="note">Media: <b>${Career.wcRating('JP')}</b> · formación ${c.formation} · toca un puesto del campo y luego a un convocado.</p>
-      <div id="wlPitch"></div><h3>Puesto: ${ROLE_LABEL[roles[sel]]}</h3><div class="pgrid" id="wlL"></div>`, 'bg_green');
+    screen(`${top(TX('Mundial · Alineación'))}
+      <div class="edbar"><button class="ghost" id="wlBest">${TX('⚡ Mejores 5')}</button><button class="ghost" id="wl2">${TX('🔄 Equipo 2 (los otros 5)')}</button></div>
+      <p class="note">${TX('Media:')} <b>${Career.wcRating('JP')}</b> ${TX('· formación')} ${c.formation} ${TX('· toca un puesto del campo y luego a un convocado.')}</p>
+      <div id="wlPitch"></div><h3>${TX('Puesto:')} ${ROLE_LABEL[roles[sel]]}</h3><div class="pgrid" id="wlL"></div>`, 'bg_green');
     $('wlPitch').appendChild(pitch(roles, w.squad.map(id => ({ ref: Sprites.refOf(PLAYER(id)), name: PLAYER(id).name, rarity: PLAYER(id).rarity, badge: Career.wcScore(id) })), sel, i => renderWCLine(i)));
     (w.call || w.squad).forEach(id => {
-      const at = w.squad.indexOf(id), el = tile(id, `<span class="slot">${at >= 0 ? 'Juega · ' + roles[at] : 'Banquillo'} · media ${Career.wcScore(id)}</span>`);
+      const at = w.squad.indexOf(id), el = tile(id, `<span class="slot">${at >= 0 ? TX('Juega · ') + RAB(roles[at]) : TX('Banquillo')} ${TX('· media')} ${Career.wcScore(id)}</span>`);
       if (at >= 0) el.classList.add('sel');
-      el.onclick = () => { if (Career.wcSet(sel, id) === false) return UI.toast('A portería solo pueden ir porteros'); Sound.sfx('click'); renderWCLine(Math.min(4, sel + 1)); };
+      el.onclick = () => { if (Career.wcSet(sel, id) === false) return UI.toast(TX('A portería solo pueden ir porteros')); Sound.sfx('click'); renderWCLine(Math.min(4, sel + 1)); };
       $('wlL').appendChild(el);
     });
     $('wlBest').onclick = () => { if (w.call) Career.wcBest(); Sound.sfx('reveal'); renderWCLine(sel); };
@@ -1268,17 +1274,17 @@ const App = (() => {
   function renderCareerMarket(tab = 'libres') {
     const c = Career.data, err = Career.canSign();
     mkDiv = mkDiv || Career.myDiv();
-    const tabs = [['ojeados', `Ojeados (${(c.scout || []).length})`], ['libres', 'Libres'], ['clubes', 'Otros clubes'], ['fuera', '🌍 Fuera'], ['vender', 'Vender']];
-    const roleF = `<div class="opts small">${[['', 'Todos'], ['POR', 'POR'], ['DEF', 'DEF'], ['MED', 'MED'], ['DEL', 'DEL']].map(([v, t]) => `<button data-role="${v}" aria-pressed="${mkRole === v}">${t}</button>`).join('')}</div>`;
-    screen(`${top('Fichajes')}
-      <p class="cweek">${money(c.money)} · plantilla ${c.squad.length}/${SQUAD_MAX}${err ? ' · <b>llena</b>' : ''}</p>
+    const tabs = [['ojeados', `${TX('Ojeados (')}${(c.scout || []).length})`], ['libres', TX('Libres')], ['clubes', TX('Otros clubes')], ['fuera', TX('🌍 Fuera')], ['vender', TX('Vender')]];
+    const roleF = `<div class="opts small">${[['', TX('Todos')], ...ROLES4.map(r => [r, RAB(r)])].map(([v, t]) => `<button data-role="${v}" aria-pressed="${mkRole === v}">${t}</button>`).join('')}</div>`;
+    screen(`${top(TX('Fichajes'))}
+      <p class="cweek">${money(c.money)} ${TX('· plantilla')} ${c.squad.length}/${SQUAD_MAX}${err ? ' · <b>' + TX('llena') + '</b>' : ''}</p>
       <div class="opts">${tabs.map(([k, t]) => `<button data-tab="${k}" aria-pressed="${k === tab}">${t}</button>`).join('')}</div>
       <div id="mkHead"></div><div class="csquad" id="mkList"></div>`, 'bg_green');
     body.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => renderCareerMarket(b.dataset.tab));
     $('back').onclick = renderCareer;
     const list = $('mkList'), head = $('mkHead');
     const buyBtn = (id, price, from, label) => {
-      const pd = PLAYER(id), el = playerRow(id, `<span class="cst">${from ? 'En ' + esc(Career.teamName(from)) + ' · ' : ''}${label || ''}</span><button class="cta mini">${from ? 'Negociar' : 'Fichar · ' + price + ' 💰'}</button>`);
+      const pd = PLAYER(id), el = playerRow(id, `<span class="cst">${from ? TX('En ') + esc(Career.teamName(from)) + ' · ' : ''}${label || ''}</span><button class="cta mini">${from ? TX('Negociar') : TX('Fichar · ') + price + ' 💰'}</button>`);
       el.querySelector('button').onclick = () => {
         if (from) return renderNegotiation(from, id, tab);
         const r = Career.sign(id, price); UI.toast(r.msg, 2200); if (r.ok) { Sound.sfx('reveal'); renderCareerMarket(tab); }
@@ -1287,34 +1293,34 @@ const App = (() => {
     };
     const roleOk = id => !mkRole || PLAYER(id).role === mkRole;
     if (tab === 'ojeados') {
-      head.innerHTML = '<p class="note">Joyas que han encontrado tus ojeadores: mucho más baratas que en el mercado, pero solo durante unas semanas. Usa la actividad «Ojear» para buscar más.</p>';
-      if (!(c.scout || []).length) list.innerHTML = '<p class="note">Aún no hay nadie ojeado.</p>';
-      (c.scout || []).forEach(s => list.appendChild(buyBtn(s.id, s.price, null, `Disponible hasta la semana ${Math.min(WEEKS, s.until)}`)));
+      head.innerHTML = '<p class="note">' + TX('Joyas que han encontrado tus ojeadores: mucho más baratas que en el mercado, pero solo durante unas semanas. Usa la actividad «Ojear» para buscar más.') + '</p>';
+      if (!(c.scout || []).length) list.innerHTML = '<p class="note">' + TX('Aún no hay nadie ojeado.') + '</p>';
+      (c.scout || []).forEach(s => list.appendChild(buyBtn(s.id, s.price, null, `${TX('Disponible hasta la semana')} ${Math.min(WEEKS, s.until)}`)));
     } else if (tab === 'libres') {
-      head.innerHTML = '<p class="note">Agentes libres de esta semana (la lista cambia cada semana). Se fichan al momento, sin negociar.</p>' + roleF;
+      head.innerHTML = '<p class="note">' + TX('Agentes libres de esta semana (la lista cambia cada semana). Se fichan al momento, sin negociar.') + '</p>' + roleF;
       const mk = Career.marketList();
-      mk.libres.filter(roleOk).forEach(id => { const el = buyBtn(id, Math.round(Career.value(id) * 0.8 / 5) * 5, null, id === mk.star ? '⭐ Oportunidad de la semana' : ''); if (id === mk.star) el.classList.add('sel'); list.appendChild(el); });
+      mk.libres.filter(roleOk).forEach(id => { const el = buyBtn(id, Math.round(Career.value(id) * 0.8 / 5) * 5, null, id === mk.star ? TX('⭐ Oportunidad de la semana') : ''); if (id === mk.star) el.classList.add('sel'); list.appendChild(el); });
     } else if (tab === 'clubes') {
-      head.innerHTML = `<p class="note">Haz una oferta a otro club. Sus estrellas cuestan más, y a los clubes de divisiones superiores no les gusta vender a uno de abajo. Si te pasas de tacaño, cortan la negociación hasta la semana siguiente.</p>
+      head.innerHTML = `<p class="note">${TX('Haz una oferta a otro club. Sus estrellas cuestan más, y a los clubes de divisiones superiores no les gusta vender a uno de abajo. Si te pasas de tacaño, cortan la negociación hasta la semana siguiente.')}</p>
         <div class="opts">${[1, 2, 3].map(k => `<button data-mdv="${k}" aria-pressed="${k === mkDiv}">${DIV_NAME[k]}</button>`).join('')}</div>${roleF}`;
       Career.clubPlayers(mkDiv).filter(x => roleOk(x.id)).sort((a, b) => Career.value(b.id, b.key) - Career.value(a.id, a.key))
-        .forEach(x => list.appendChild(buyBtn(x.id, 0, x.key, 'valor aprox. ' + Career.value(x.id, x.key) + ' 💰' + (x.star ? ' · ⭐ su estrella: pedirán más' : ''))));
+        .forEach(x => list.appendChild(buyBtn(x.id, 0, x.key, TX('valor aprox. ') + Career.value(x.id, x.key) + ' 💰' + (x.star ? TX(' · ⭐ su estrella: pedirán más') : ''))));
     } else if (tab === 'fuera') {
       const countries = [...new Set(GAME.players.filter(p => p.abroad).map(p => p.abroad))].sort();
       mkAbroad = countries.includes(mkAbroad) ? mkAbroad : '';
-      head.innerHTML = `<p class="note">Jugadores <b>fuera del país</b>: las selecciones del mundo del Inazuma 3. Se fichan al momento, pero el traspaso internacional cuesta un 30 % más.</p>
-        <div class="pfsel" style="grid-template-columns:1fr"><select id="mkCountry"><option value="">Todos los países</option>${countries.map(k => `<option value="${esc(k)}" ${k === mkAbroad ? 'selected' : ''}>${esc(k)}</option>`).join('')}</select></div>${roleF}`;
+      head.innerHTML = `<p class="note">${TX('Jugadores')} <b>${TX('fuera del país')}</b>${TX(': las selecciones del mundo del Inazuma 3. Se fichan al momento, pero el traspaso internacional cuesta un 30 % más.')}</p>
+        <div class="pfsel" style="grid-template-columns:1fr"><select id="mkCountry"><option value="">${TX('Todos los países')}</option>${countries.map(k => `<option value="${esc(k)}" ${k === mkAbroad ? 'selected' : ''}>${esc(k)}</option>`).join('')}</select></div>${roleF}`;
       $('mkCountry').onchange = e => { mkAbroad = e.target.value; renderCareerMarket(tab); };
       const ids = Career.abroadList(mkAbroad).filter(p => roleOk(p.id)).sort((a, b) => Career.value(b.id) - Career.value(a.id));
-      if (!ids.length) list.innerHTML = '<p class="note">No queda nadie disponible con ese filtro.</p>';
-      ids.slice(0, 60).forEach(p => list.appendChild(buyBtn(p.id, Career.abroadPrice(p.id), null, '🌍 Fuera del país · ' + esc(p.abroad))));
+      if (!ids.length) list.innerHTML = '<p class="note">' + TX('No queda nadie disponible con ese filtro.') + '</p>';
+      ids.slice(0, 60).forEach(p => list.appendChild(buyBtn(p.id, Career.abroadPrice(p.id), null, TX('🌍 Fuera del país · ') + esc(p.abroad))));
     } else {
-      head.innerHTML = `<p class="note">Vender: un club paga el 70 % de su valor. Liberar: se va gratis (para hacer hueco). Mínimo ${SQUAD_MIN} jugadores.</p>`;
+      head.innerHTML = `<p class="note">${TX('Vender: un club paga el 70 % de su valor. Liberar: se va gratis (para hacer hueco). Mínimo')} ${SQUAD_MIN} ${TX('jugadores.')}</p>`;
       c.squad.forEach(m => {
-        const el = playerRow(m.id, `<span class="cst">${m.year}º curso · valor ${Career.value(m.id)} 💰</span><span class="row2"><button class="ghost mini" data-sell>Vender · ${Math.round(Career.value(m.id) * 0.7 / 5) * 5} 💰</button><button class="ghost mini" data-rel>Liberar</button></span>`, m);
+        const el = playerRow(m.id, `<span class="cst">${yearTx(m.year)} ${TX('· valor')} ${Career.value(m.id)} 💰</span><span class="row2"><button class="ghost mini" data-sell>${TX('Vender ·')} ${Math.round(Career.value(m.id) * 0.7 / 5) * 5} 💰</button><button class="ghost mini" data-rel>${TX('Liberar')}</button></span>`, m);
         el.querySelector('[data-sell]').onclick = () => { const r = Career.sell(m.id); UI.toast(r.msg, 2200); if (r.ok) renderCareerMarket(tab); };
         el.querySelector('[data-rel]').onclick = e => {
-          if (!e.target.dataset.sure) { e.target.dataset.sure = 1; e.target.textContent = '¿Seguro?'; return; }
+          if (!e.target.dataset.sure) { e.target.dataset.sure = 1; e.target.textContent = TX('¿Seguro?'); return; }
           const r = Career.release(m.id); UI.toast(r.msg, 2000); if (r.ok) renderCareerMarket(tab);
         };
         list.appendChild(el);
@@ -1326,13 +1332,13 @@ const App = (() => {
   function renderNegotiation(key, id, tab) {
     const c = Career.data, pd = PLAYER(id), val = Career.value(id, key);
     let amount = Math.round(val * 0.85 / 5) * 5, counter = null;
-    screen(`${top('Negociación', 'nBack', 'Fichajes')}
+    screen(`${top(TX('Negociación'), 'nBack', TX('Fichajes'))}
       <div class="cvs"><div>${cCrest(YOU)}<b>${esc(c.school)}</b><small>${money(c.money)}</small></div><span>⇄</span><div>${cCrest(key)}<b>${esc(Career.teamName(key))}</b><small>${DIV_NAME[Career.divOf(key)]}</small></div></div>
       <div id="nPl"></div>
-      <p class="cweek">Valor de mercado aproximado: <b>${val} 💰</b></p>
+      <p class="cweek">${TX('Valor de mercado aproximado:')} <b>${val} 💰</b></p>
       <div class="negbox"><button class="ghost" data-d="-0.1">−10 %</button><b id="nAmt">${amount} 💰</b><button class="ghost" data-d="0.1">+10 %</button></div>
-      <p class="note cmsg" id="nMsg">Haz tu oferta.</p>
-      ${bottom('<div class="grid2"><button class="cta" id="nOffer">Ofertar</button><button class="cta" id="nCounter" hidden>Aceptar</button></div>')}`, 'bg_vs');
+      <p class="note cmsg" id="nMsg">${TX('Haz tu oferta.')}</p>
+      ${bottom('<div class="grid2"><button class="cta" id="nOffer">' + TX('Ofertar') + '</button><button class="cta" id="nCounter" hidden>' + TX('Aceptar') + '</button></div>')}`, 'bg_vs');
     $('nPl').appendChild(playerRow(id));
     const upd = () => { $('nAmt').textContent = amount + ' 💰'; };
     body.querySelectorAll('[data-d]').forEach(b => b.onclick = () => { amount = Math.max(5, Math.round(amount * (1 + +b.dataset.d) / 5) * 5); upd(); });
@@ -1341,14 +1347,14 @@ const App = (() => {
       if (r.ok) { Sound.sfx('reveal'); renderCareerMarket(tab); } else $('nMsg').textContent = r.msg;
     };
     $('nOffer').onclick = () => {
-      if (amount > c.money) { $('nMsg').textContent = 'No tienes tanto dinero.'; return; }
+      if (amount > c.money) { $('nMsg').textContent = TX('No tienes tanto dinero.'); return; }
       const r = Career.offer(key, id, amount);
       if (r.res === 'accept') return done(amount);
       $('nMsg').textContent = r.msg;
-      if (r.res === 'counter') { counter = r.price; $('nCounter').hidden = false; $('nCounter').textContent = 'Aceptar ' + counter + ' 💰'; }
+      if (r.res === 'counter') { counter = r.price; $('nCounter').hidden = false; $('nCounter').textContent = TX('Aceptar ') + counter + ' 💰'; }
       if (r.res === 'closed' || (r.res === 'reject' && /cierra/.test(r.msg))) { $('nOffer').disabled = true; $('nCounter').hidden = true; }
     };
-    $('nCounter').onclick = () => { if (counter > c.money) { $('nMsg').textContent = 'No tienes tanto dinero.'; return; } const r = Career.offer(key, id, counter); if (r.res === 'accept') done(counter); else $('nMsg').textContent = r.msg; };
+    $('nCounter').onclick = () => { if (counter > c.money) { $('nMsg').textContent = TX('No tienes tanto dinero.'); return; } const r = Career.offer(key, id, counter); if (r.res === 'accept') done(counter); else $('nMsg').textContent = r.msg; };
     $('nBack').onclick = () => renderCareerMarket(tab);
   }
 
@@ -1356,16 +1362,16 @@ const App = (() => {
   function renderCareerClub(first) {
     const c = Career.data;
     const sw = (k, v) => `<div class="swatches">${KIT_COLORS.map(col => `<button class="sw" data-k="${k}" data-c="${col}" style="background:${col}" aria-pressed="${v === col}"></button>`).join('')}</div>`;
-    screen(`${top(first ? 'Tu club' : 'Club', 'back', first ? 'Listo' : 'Volver')}
+    screen(`${top(first ? TX('Tu club') : TX('Club'), 'back', first ? TX('Listo') : TX('Volver'))}
       <div class="clubpv"><img class="ccrest huge" id="crPv" src="${myCrestUrl()}" alt=""><span id="kitPv"></span><div><b>${esc(c.school)}</b><small>${money(c.money)}</small></div></div>
-      <h3>Equipación</h3><p class="note">Camiseta</p>${sw('a', c.kit.a)}<p class="note">Mangas y pantalón</p>${sw('b', c.kit.b)}
-      <h3>Escudo</h3>
+      <h3>${TX('Equipación')}</h3><p class="note">${TX('Camiseta')}</p>${sw('a', c.kit.a)}<p class="note">${TX('Mangas y pantalón')}</p>${sw('b', c.kit.b)}
+      <h3>${TX('Escudo')}</h3>
       <div class="opts">${CREST_SHAPES.map(s => `<button data-shape="${s}" aria-pressed="${c.crest.shape === s}">${s[0].toUpperCase() + s.slice(1)}</button>`).join('')}</div>
-      <p class="note">Color de fondo</p>${sw('c1', c.crest.c1)}<p class="note">Color del borde y símbolo</p>${sw('c2', c.crest.c2)}
-      <div class="opts syms">${[['iniciales', 'Iniciales'], ...Object.entries(CREST_SYMBOLS)].map(([k, s]) => `<button data-sym="${k}" aria-pressed="${c.crest.sym === k}">${s}</button>`).join('')}</div>
-      ${first ? '' : `<h3>Mejoras del club</h3><div class="csquad">${Object.entries(FACILITIES).map(([k, F]) => { const lv = c.fac[k], cost = F.cost[lv];
-        return `<div class="cpl fac"><div class="cplb"><b>${F.name}</b> <small>nivel ${lv}/${F.cost.length}</small><span class="cst">${F.desc}</span></div>${cost != null ? `<button class="cta mini" data-up="${k}" ${c.money < cost ? 'disabled' : ''}>Mejorar · ${cost} 💰</button>` : '<span class="cst">Máximo</span>'}</div>`; }).join('')}</div>`}
-      ${first ? bottom('<button class="cta" id="cDone">¡A jugar!</button>') : ''}`, 'bg_green');
+      <p class="note">${TX('Color de fondo')}</p>${sw('c1', c.crest.c1)}<p class="note">${TX('Color del borde y símbolo')}</p>${sw('c2', c.crest.c2)}
+      <div class="opts syms">${[['iniciales', TX('Iniciales')], ...Object.entries(CREST_SYMBOLS)].map(([k, s]) => `<button data-sym="${k}" aria-pressed="${c.crest.sym === k}">${s}</button>`).join('')}</div>
+      ${first ? '' : `<h3>${TX('Mejoras del club')}</h3><div class="csquad">${Object.entries(FACILITIES).map(([k, F]) => { const lv = c.fac[k], cost = F.cost[lv];
+        return `<div class="cpl fac"><div class="cplb"><b>${F.name}</b> <small>${TX('nivel')} ${lv}/${F.cost.length}</small><span class="cst">${F.desc}</span></div>${cost != null ? `<button class="cta mini" data-up="${k}" ${c.money < cost ? 'disabled' : ''}>${TX('Mejorar ·')} ${cost} 💰</button>` : '<span class="cst">' + TX('Máximo') + '</span>'}</div>`; }).join('')}</div>`}
+      ${first ? bottom('<button class="cta" id="cDone">' + TX('¡A jugar!') + '</button>') : ''}`, 'bg_green');
     const ref = Sprites.refOf(PLAYER(c.lineup && c.lineup[2] || c.squad[0].id));
     const drawPv = () => { const k = $('kitPv'); k.innerHTML = ''; k.appendChild(Sprites.kitPreview(ref, c.kit, 2)); $('crPv').src = myCrestUrl(); };
     drawPv();
@@ -1384,7 +1390,7 @@ const App = (() => {
   const snapshot = () => Cloud.snapshot();
   const restore = o => Cloud.restore(o);
   const slotKey = i => 'inazuma-slot-' + i;
-  const reloadGame = (t = 'Cargando tu partida…') => { screen(`<div class="title"><img class="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>${t}</span></div>`, 'bg_title'); setTimeout(() => location.reload(), 350); };
+  const reloadGame = (t = TX('Cargando tu partida…')) => { screen(`<div class="title"><img class="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>${t}</span></div>`, 'bg_title'); setTimeout(() => location.reload(), 350); };
   async function packCode(obj) {
     const json = JSON.stringify(obj);
     try {
@@ -1402,27 +1408,27 @@ const App = (() => {
     const ds = new DecompressionStream('gzip'), r = new Blob([buf]).stream().pipeThrough(ds);
     return JSON.parse(await new Response(r).text());
   }
-  const describe = o => { const d = Cloud.describe(o || {}); return `${d.players} jugadores · ${d.tickets} 🎟️${d.career ? ' · Carrera: ' + esc(d.career) : ''}`; };
+  const describe = o => { const d = Cloud.describe(o || {}); return `${d.players} ${TX('jugadores ·')} ${d.tickets} 🎟️${d.career ? TX(' · Carrera: ') + esc(d.career) : ''}`; };
   const ago = t => { if (!t) return ''; const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'ahora mismo' : m < 60 ? 'hace ' + m + ' min' : m < 1440 ? 'hace ' + Math.round(m / 60) + ' h' : new Date(t).toLocaleDateString('es-ES'); };
   // Línea de estado de la cuenta (menú y pantalla de cuenta)
   function cloudLine() {
     if (!Cloud.enabled()) return '';
     const S = Cloud.state;
-    if (!Cloud.loggedIn()) return `<p class="cloudst warn">Invitado · tu partida solo está en este móvil. <b>Crea una cuenta</b> para no perderla.</p>`;
-    if (Cloud.expired() || S.status === 'expired') return `<p class="cloudst warn">👤 ${esc(Cloud.user())} · sesión caducada: <b>vuelve a entrar</b> para guardar en la nube.</p>`;
-    if (S.status === 'conflict') return `<p class="cloudst warn">👤 ${esc(Cloud.user())} · hay dos versiones de tu partida: <b>elige cuál conservar</b>.</p>`;
-    if (S.status === 'offline') return `<p class="cloudst warn">👤 ${esc(Cloud.user())} · sin conexión: se guardará en la nube al volver internet.</p>`;
+    if (!Cloud.loggedIn()) return `<p class="cloudst warn">${TX('Invitado · tu partida solo está en este móvil.')} <b>${TX('Crea una cuenta')}</b> ${TX('para no perderla.')}</p>`;
+    if (Cloud.expired() || S.status === 'expired') return `<p class="cloudst warn">👤 ${esc(Cloud.user())} ${TX('· sesión caducada:')} <b>${TX('vuelve a entrar')}</b> ${TX('para guardar en la nube.')}</p>`;
+    if (S.status === 'conflict') return `<p class="cloudst warn">👤 ${esc(Cloud.user())} ${TX('· hay dos versiones de tu partida:')} <b>${TX('elige cuál conservar')}</b>.</p>`;
+    if (S.status === 'offline') return `<p class="cloudst warn">👤 ${esc(Cloud.user())} ${TX('· sin conexión: se guardará en la nube al volver internet.')}</p>`;
     if (S.status === 'error') return `<p class="cloudst warn">👤 ${esc(Cloud.user())} · ${esc(S.msg)}</p>`;
-    if (S.status === 'saving') return `<p class="cloudst">👤 ${esc(Cloud.user())} · guardando en la nube…</p>`;
-    return `<p class="cloudst ok">👤 ${esc(Cloud.user())}${Cloud.via() === 'google' ? ' (Google)' : ''} · ☁️ guardado en la nube${S.lastOk ? ' ' + ago(S.lastOk) : ''}</p>`;
+    if (S.status === 'saving') return `<p class="cloudst">👤 ${esc(Cloud.user())} ${TX('· guardando en la nube…')}</p>`;
+    return `<p class="cloudst ok">👤 ${esc(Cloud.user())}${Cloud.via() === 'google' ? TX(' (Google)') : ''} ${TX('· ☁️ guardado en la nube')}${S.lastOk ? ' ' + ago(S.lastOk) : ''}</p>`;
   }
   // Refresca la línea de estado si está en pantalla; avisa una vez si aparece un conflicto
   let lastCloudStatus = Cloud.state.status;
   Cloud.onChange(S => {
     document.querySelectorAll('[data-cloudline]').forEach(el => { el.innerHTML = cloudLine(); });
     if (S.status !== lastCloudStatus) {
-      if (S.status === 'conflict') UI.toast('Tu partida ha cambiado en otro dispositivo. Elige cuál conservar en 👤 Cuenta.', 3500);
-      else if (S.status === 'expired') UI.toast('Sesión caducada: vuelve a entrar en 👤 Cuenta', 3000);
+      if (S.status === 'conflict') UI.toast(TX('Tu partida ha cambiado en otro dispositivo. Elige cuál conservar en 👤 Cuenta.'), 3500);
+      else if (S.status === 'expired') UI.toast(TX('Sesión caducada: vuelve a entrar en 👤 Cuenta'), 3000);
     }
     lastCloudStatus = S.status;
   });
@@ -1430,9 +1436,9 @@ const App = (() => {
   /* ---------- Cuenta: entrar, crear cuenta y estado ---------- */
   function renderAccount(back = renderMenu, mode) {
     if (!Cloud.enabled()) {
-      screen(`${top('Cuenta')}<p class="note">Las cuentas todavía no están activadas en esta versión del juego. Tu partida se guarda en este móvil.</p>
-        <button class="ghost" id="aOld">📦 Traer partida de la versión antigua</button>
-        <button class="ghost" id="aBackup">💾 Copias y código de partida</button>`, 'bg_green');
+      screen(`${top(TX('Cuenta'))}<p class="note">${TX('Las cuentas todavía no están activadas en esta versión del juego. Tu partida se guarda en este móvil.')}</p>
+        <button class="ghost" id="aOld">${TX('📦 Traer partida de la versión antigua')}</button>
+        <button class="ghost" id="aBackup">${TX('💾 Copias y código de partida')}</button>`, 'bg_green');
       $('aOld').onclick = () => renderTransfer(() => renderAccount(back));
       $('aBackup').onclick = () => renderSaves(() => renderAccount(back));
       $('back').onclick = back; return;
@@ -1440,59 +1446,59 @@ const App = (() => {
     if (Cloud.state.conflict) return renderConflict(() => renderAccount(back));
     if (!Cloud.loggedIn() || Cloud.expired()) return renderLogin(back, mode || (Cloud.expired() ? 'in' : Profile.data.firstDone ? 'up' : 'in'));
     const S = Cloud.state;
-    screen(`${top('Cuenta')}
+    screen(`${top(TX('Cuenta'))}
       <div data-cloudline>${cloudLine()}</div>
-      <p class="note">Tu partida (plantilla, gacha, Historia, Carrera y la partida en curso) se guarda <b>sola</b> en la nube cada vez que cambia. En otro móvil u ordenador, entra con tu usuario y contraseña y la tendrás igual.</p>
-      <div class="grid2"><button class="cta" id="aNow">☁️ Guardar ahora</button><button class="ghost" id="aOut">Cerrar sesión</button></div>
+      <p class="note">${TX('Tu partida (plantilla, gacha, Historia, Carrera y la partida en curso) se guarda')} <b>${TX('sola')}</b> ${TX('en la nube cada vez que cambia. En otro móvil u ordenador, entra con tu usuario y contraseña y la tendrás igual.')}</p>
+      <div class="grid2"><button class="cta" id="aNow">${TX('☁️ Guardar ahora')}</button><button class="ghost" id="aOut">${TX('Cerrar sesión')}</button></div>
       <p class="note" id="aMsg"></p>
-      <details class="adv"><summary>Opciones avanzadas</summary>
-        <p class="note">Copias extra que se quedan solo en este navegador, por si quieres volver a un punto anterior.</p>
-        <button class="ghost" id="aBackup">💾 Copias en este móvil</button>
+      <details class="adv"><summary>${TX('Opciones avanzadas')}</summary>
+        <p class="note">${TX('Copias extra que se quedan solo en este navegador, por si quieres volver a un punto anterior.')}</p>
+        <button class="ghost" id="aBackup">${TX('💾 Copias en este móvil')}</button>
       </details>
-      <button class="ghost" id="aOld">📦 Traer partida de la versión antigua</button>`, 'bg_green');
+      <button class="ghost" id="aOld">${TX('📦 Traer partida de la versión antigua')}</button>`, 'bg_green');
     $('aOld').onclick = () => renderTransfer(() => renderAccount(back));
     const msg = t => { $('aMsg').textContent = t; };
     $('aNow').onclick = async () => {
-      msg('Guardando…'); if (Career.data) Career.save(); Profile.save(); saveSettings();
+      msg(TX('Guardando…')); if (Career.data) Career.save(); Profile.save(); saveSettings();
       const r = await Cloud.push(true);
-      if (r === 'uploaded' || r === 'same') { msg('Guardado en la nube ✓'); Sound.sfx('reveal'); }
+      if (r === 'uploaded' || r === 'same') { msg(TX('Guardado en la nube ✓')); Sound.sfx('reveal'); }
       else if (r === 'conflict') renderConflict(() => renderAccount(back));
-      else msg(Cloud.state.msg || 'No se ha podido guardar ahora. Se reintentará solo.');
+      else msg(Cloud.state.msg || TX('No se ha podido guardar ahora. Se reintentará solo.'));
     };
     $('aOut').onclick = async () => {
       const b = $('aOut');
-      if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = '¿Seguro?'; msg('Se guardará tu partida en la nube y este móvil quedará vacío para que pueda entrar otra cuenta. Toca otra vez para confirmar.'); return; }
-      msg('Guardando antes de salir…');
+      if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = TX('¿Seguro?'); msg(TX('Se guardará tu partida en la nube y este móvil quedará vacío para que pueda entrar otra cuenta. Toca otra vez para confirmar.')); return; }
+      msg(TX('Guardando antes de salir…'));
       const r = await Cloud.signOut();
       if (!r.ok) {
-        msg(r.msg + ' Si sales igualmente, perderás lo que no se haya subido.');
-        b.textContent = 'Salir igualmente'; b.onclick = async () => { await Cloud.signOut({ force: true }); reloadGame('Sesión cerrada'); };
+        msg(r.msg + TX(' Si sales igualmente, perderás lo que no se haya subido.'));
+        b.textContent = TX('Salir igualmente'); b.onclick = async () => { await Cloud.signOut({ force: true }); reloadGame(TX('Sesión cerrada')); };
         return;
       }
-      reloadGame('Sesión cerrada');
+      reloadGame(TX('Sesión cerrada'));
     };
     $('aBackup').onclick = () => renderSaves(() => renderAccount(back));
     $('back').onclick = back;
   }
   function renderLogin(back = renderMenu, mode = 'in') {
     const up = mode === 'up', first = !Profile.data.firstDone, expired = Cloud.loggedIn() && Cloud.expired();
-    screen(`${top(up ? 'Crear cuenta' : 'Iniciar sesión')}
-      <div class="grid2 tabs"><button class="ghost" id="tIn" aria-pressed="${!up}">Ya tengo cuenta</button><button class="ghost" id="tUp" aria-pressed="${up}">Crear cuenta</button></div>
-      ${up ? `<p class="note">Con una cuenta tu partida se guarda en la nube y la recuperas en cualquier móvil u ordenador.${Profile.data.firstDone ? ' <b>Tu progreso actual se pasará a la cuenta.</b>' : ''}</p>`
-        : `<p class="note">${expired ? 'Tu sesión se ha cerrado. Entra otra vez para seguir guardando en la nube.' : 'Entra con la misma forma que usaste al crear la cuenta.'}</p>`}
-      <button class="gbtn" id="aGoogle" type="button"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.2C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.6 28.5c-.5-1.4-.8-2.9-.8-4.5s.3-3.1.8-4.5l-7.9-6.2C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.2 1.5-5 2.3-8.2 2.3-6.2 0-11.5-4.1-13.4-9.8l-7.9 6.2C6.6 42.6 14.6 48 24 48z"/></svg>Continuar con Google</button>
-      <p class="gsep"><span>o con usuario y contraseña</span></p>
+    screen(`${top(up ? TX('Crear cuenta') : TX('Iniciar sesión'))}
+      <div class="grid2 tabs"><button class="ghost" id="tIn" aria-pressed="${!up}">${TX('Ya tengo cuenta')}</button><button class="ghost" id="tUp" aria-pressed="${up}">${TX('Crear cuenta')}</button></div>
+      ${up ? `<p class="note">${TX('Con una cuenta tu partida se guarda en la nube y la recuperas en cualquier móvil u ordenador.')}${Profile.data.firstDone ? ' <b>' + TX('Tu progreso actual se pasará a la cuenta.') + '</b>' : ''}</p>`
+        : `<p class="note">${expired ? TX('Tu sesión se ha cerrado. Entra otra vez para seguir guardando en la nube.') : TX('Entra con la misma forma que usaste al crear la cuenta.')}</p>`}
+      <button class="gbtn" id="aGoogle" type="button"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.2C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.6 28.5c-.5-1.4-.8-2.9-.8-4.5s.3-3.1.8-4.5l-7.9-6.2C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.2 1.5-5 2.3-8.2 2.3-6.2 0-11.5-4.1-13.4-9.8l-7.9 6.2C6.6 42.6 14.6 48 24 48z"/></svg>${TX('Continuar con Google')}</button>
+      <p class="gsep"><span>${TX('o con usuario y contraseña')}</span></p>
       <form class="aform" id="aForm" autocomplete="on">
-        <label>Usuario<input id="aUser" name="username" type="text" maxlength="16" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="ej.: fran_10" value="${expired ? esc(Cloud.user() || '') : ''}"></label>
-        <label>Contraseña<input id="aPass" name="password" type="password" maxlength="72" autocomplete="${up ? 'new-password' : 'current-password'}" placeholder="mínimo 6 caracteres"></label>
-        ${up ? '<label>Repite la contraseña<input id="aPass2" type="password" maxlength="72" autocomplete="new-password"></label>' : ''}
-        <label class="showpw"><input type="checkbox" id="aShow"> Mostrar contraseña</label>
-        <button class="cta" id="aGo" type="submit">${up ? 'Crear cuenta' : 'Entrar'}</button>
+        <label>${TX('Usuario')}<input id="aUser" name="username" type="text" maxlength="16" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="${TX('ej.: fran_10')}" value="${expired ? esc(Cloud.user() || '') : ''}"></label>
+        <label>${TX('Contraseña')}<input id="aPass" name="password" type="password" maxlength="72" autocomplete="${up ? 'new-password' : 'current-password'}" placeholder="${TX('mínimo 6 caracteres')}"></label>
+        ${up ? '<label>' + TX('Repite la contraseña') + '<input id="aPass2" type="password" maxlength="72" autocomplete="new-password"></label>' : ''}
+        <label class="showpw"><input type="checkbox" id="aShow"> ${TX('Mostrar contraseña')}</label>
+        <button class="cta" id="aGo" type="submit">${up ? TX('Crear cuenta') : TX('Entrar')}</button>
       </form>
       <p class="giftmsg" id="aMsg"></p>
-      ${up ? '<p class="note">Con usuario y contraseña, apúntala: como no usamos correo, <b>no se puede recuperar</b> si la olvidas. Con Google no hay contraseña que recordar.</p>' : ''}
-      <button class="ghost" id="aOld">📦 ¿Jugabas en la versión antigua? Trae tu partida</button>
-      ${first ? '<button class="ghost big" id="aGuest">Jugar como invitado<small>Tu partida solo se guardará en este móvil</small></button>' : ''}`, 'bg_green');
+      ${up ? '<p class="note">' + TX('Con usuario y contraseña, apúntala: como no usamos correo,') + ' <b>' + TX('no se puede recuperar') + '</b> ' + TX('si la olvidas. Con Google no hay contraseña que recordar.') + '</p>' : ''}
+      <button class="ghost" id="aOld">${TX('📦 ¿Jugabas en la versión antigua? Trae tu partida')}</button>
+      ${first ? '<button class="ghost big" id="aGuest">' + TX('Jugar como invitado') + '<small>' + TX('Tu partida solo se guardará en este móvil') + '</small></button>' : ''}`, 'bg_green');
     const form = $('aForm'), m = $('aMsg'), go = $('aGo');
     form.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') back(); }));
     $('aShow').onchange = e => form.querySelectorAll('input[type=password],input[data-pw]').forEach(i => { i.dataset.pw = 1; i.type = e.target.checked ? 'text' : 'password'; });
@@ -1502,23 +1508,23 @@ const App = (() => {
     form.onsubmit = async e => {
       e.preventDefault(); if (go.disabled) return;
       const u = $('aUser').value, p = $('aPass').value;
-      if (up && p !== $('aPass2').value) return say('Las contraseñas no coinciden.');
-      go.disabled = true; say(up ? 'Creando cuenta…' : 'Entrando…', true);
+      if (up && p !== $('aPass2').value) return say(TX('Las contraseñas no coinciden.'));
+      go.disabled = true; say(up ? TX('Creando cuenta…') : TX('Entrando…'), true);
       if (Career.data) Career.save(); Profile.save(); saveSettings();
       const r = up ? await Cloud.signUp(u, p) : await Cloud.signIn(u, p);
       if (!r.ok) { go.disabled = false; Sound.sfx('click'); return say(r.msg); }
-      say('Comprobando tu partida…', true);
-      afterSync(await Cloud.sync(), back, up ? '¡Cuenta creada! Tu partida ya se guarda en la nube.' : '¡Hola, ' + Cloud.user() + '!');
+      say(TX('Comprobando tu partida…'), true);
+      afterSync(await Cloud.sync(), back, up ? TX('¡Cuenta creada! Tu partida ya se guarda en la nube.') : TX('¡Hola, ') + Cloud.user() + '!');
     };
     $('aGoogle').onclick = async () => {
       const g = $('aGoogle'); if (g.disabled) return;
-      g.disabled = true; say('Abriendo Google…', true);
+      g.disabled = true; say(TX('Abriendo Google…'), true);
       if (Career.data) Career.save(); Profile.save(); saveSettings();
       const r = await Cloud.signInGoogle();
       if (r.redirect) return;   // la página se va a Google y vuelve sola
       if (!r.ok) { g.disabled = false; return say(r.msg || ''); }
-      say('Comprobando tu partida…', true);
-      afterSync(await Cloud.sync(), back, '¡Hola, ' + Cloud.user() + '!');
+      say(TX('Comprobando tu partida…'), true);
+      afterSync(await Cloud.sync(), back, TX('¡Hola, ') + Cloud.user() + '!');
     };
     if ($('aGuest')) $('aGuest').onclick = () => { Cloud.chooseGuest(); renderMenu(); };
     $('aOld').onclick = () => renderTransfer(() => renderLogin(back, mode));
@@ -1527,11 +1533,11 @@ const App = (() => {
   }
   // Qué hacer tras sincronizar
   function afterSync(r, next, hello) {
-    if (r === 'downloaded') return reloadGame('Cargando tu partida de la nube…');
+    if (r === 'downloaded') return reloadGame(TX('Cargando tu partida de la nube…'));
     if (r === 'conflict') return renderConflict(next);
     if (hello) UI.toast(hello, 2500);
-    if (r === 'offline') UI.toast('Sin conexión: tu partida se subirá cuando vuelva internet', 3000);
-    if (r === 'error') UI.toast(Cloud.state.msg || 'Error con la nube; se reintentará', 3000);
+    if (r === 'offline') UI.toast(TX('Sin conexión: tu partida se subirá cuando vuelva internet'), 3000);
+    if (r === 'error') UI.toast(Cloud.state.msg || TX('Error con la nube; se reintentará'), 3000);
     Sound.sfx('reveal'); next();
   }
   // Dos versiones distintas: el jugador elige; la otra se guarda como copia en este móvil por si acaso
@@ -1539,64 +1545,64 @@ const App = (() => {
     const C = Cloud.state.conflict; if (!C) return next();
     const card = (id, title, d, when, cls) => `<button class="cpl conf ${cls}" id="${id}"><span class="cplb"><b>${title}</b>
       <span class="cst">${when}</span>
-      <span class="cst">👥 <b>${d.players}</b> jugadores · 🎟️ ${d.tickets} · 🪙 ${d.coins}</span>
-      <span class="cst">Victorias: ${d.wins} · Etapas completadas: ${d.etapas}</span>
-      ${d.career ? `<span class="cst">Carrera: ${esc(d.career)}</span>` : ''}</span></button>`;
-    screen(`<div class="top"><h2>¿Qué partida conservas?</h2></div>
-      <p class="note">Tu cuenta <b>${esc(Cloud.user())}</b> tiene una partida en la nube distinta de la de este móvil. Elige con cuál sigues. La otra se guarda como copia en este móvil (Cuenta → Opciones avanzadas), así que no se pierde.</p>
-      ${card('cCloud', '☁️ La de la nube', C.cloudInfo, C.cloudDate ? 'Guardada el ' + new Date(C.cloudDate).toLocaleString('es-ES') : '', '')}
-      ${card('cLocal', '📱 La de este móvil', C.localInfo, 'La que tienes ahora aquí', '')}
+      <span class="cst">👥 <b>${d.players}</b> ${TX('jugadores · 🎟️')} ${d.tickets} · 🪙 ${d.coins}</span>
+      <span class="cst">${TX('Victorias:')} ${d.wins} ${TX('· Etapas completadas:')} ${d.etapas}</span>
+      ${d.career ? `<span class="cst">${TX('Carrera:')} ${esc(d.career)}</span>` : ''}</span></button>`;
+    screen(`<div class="top"><h2>${TX('¿Qué partida conservas?')}</h2></div>
+      <p class="note">${TX('Tu cuenta')} <b>${esc(Cloud.user())}</b> ${TX('tiene una partida en la nube distinta de la de este móvil. Elige con cuál sigues. La otra se guarda como copia en este móvil (Cuenta → Opciones avanzadas), así que no se pierde.')}</p>
+      ${card('cCloud', TX('☁️ La de la nube'), C.cloudInfo, C.cloudDate ? TX('Guardada el ') + new Date(C.cloudDate).toLocaleString('es-ES') : '', '')}
+      ${card('cLocal', TX('📱 La de este móvil'), C.localInfo, TX('La que tienes ahora aquí'), '')}
       <p class="note" id="cMsg"></p>`, 'bg_green');
     const keepCopy = (data, label) => { try { localStorage.setItem(slotKey(3), JSON.stringify({ date: Date.now(), data, label })); } catch (_) {} };
-    $('cCloud').onclick = async () => { keepCopy(C.local, 'Copia del móvil'); await Cloud.resolve('cloud'); reloadGame('Cargando tu partida de la nube…'); };
+    $('cCloud').onclick = async () => { keepCopy(C.local, TX('Copia del móvil')); await Cloud.resolve('cloud'); reloadGame(TX('Cargando tu partida de la nube…')); };
     $('cLocal').onclick = async () => {
-      keepCopy(C.cloud.data, 'Copia de la nube'); $('cMsg').textContent = 'Subiendo la partida de este móvil…';
+      keepCopy(C.cloud.data, TX('Copia de la nube')); $('cMsg').textContent = TX('Subiendo la partida de este móvil…');
       const r = await Cloud.resolve('local');
-      if (r === 'uploaded' || r === 'same') { UI.toast('Guardada en la nube ✓', 2000); next(); }
+      if (r === 'uploaded' || r === 'same') { UI.toast(TX('Guardada en la nube ✓'), 2000); next(); }
       else if (r === 'conflict') renderConflict(next);
-      else { $('cMsg').textContent = (Cloud.state.msg || 'No se ha podido subir') + ' Se reintentará más tarde.'; setTimeout(next, 1800); }
+      else { $('cMsg').textContent = (Cloud.state.msg || TX('No se ha podido subir')) + TX(' Se reintentará más tarde.'); setTimeout(next, 1800); }
     };
   }
 
   function renderSaves(back = renderMenu) {
     const slots = [1, 2, 3].map(i => { try { return JSON.parse(localStorage.getItem(slotKey(i)) || 'null'); } catch (_) { return null; } });
-    screen(`${top('Copias en este móvil')}
-      <p class="note">Copias que se quedan <b>solo en este navegador</b>, para volver a un punto anterior. ${Cloud.enabled() ? 'Para llevar tu partida a otro dispositivo usa tu <b>cuenta</b>.' : ''}</p>
-      <div class="csquad">${slots.map((s, i) => `<div class="cpl fac"><div class="cplb"><b>Ranura ${i + 1}${s && s.label ? ' · ' + esc(s.label) : ''}</b><span class="cst">${s ? new Date(s.date).toLocaleString('es-ES') + ' · ' + describe(s.data) : 'Vacía'}</span></div>
-        <span class="row2"><button class="cta mini" data-save="${i + 1}">Guardar</button>${s ? `<button class="ghost mini" data-load="${i + 1}">Cargar</button>` : ''}</span></div>`).join('')}</div>
-      <details class="adv"><summary>Código de partida (sin cuenta)</summary>
-      <button class="ghost" id="sExport">📤 Sacar código de mi partida</button>
-      <textarea id="sCode" rows="4" placeholder="Pega aquí un código de partida para cargarlo" spellcheck="false"></textarea>
-      <div class="grid2"><button class="ghost" id="sCopy">Copiar</button><button class="cta" id="sImport">📥 Cargar este código</button></div>
-      <button class="ghost" id="sLink">🔗 Copiar enlace de transferencia<small>Ábrelo en el otro dispositivo y se carga solo</small></button></details>
+    screen(`${top(TX('Copias en este móvil'))}
+      <p class="note">${TX('Copias que se quedan')} <b>${TX('solo en este navegador')}</b>${TX(', para volver a un punto anterior.')} ${Cloud.enabled() ? TX('Para llevar tu partida a otro dispositivo usa tu') + ' <b>' + TX('cuenta') + '</b>.' : ''}</p>
+      <div class="csquad">${slots.map((s, i) => `<div class="cpl fac"><div class="cplb"><b>${TX('Ranura')} ${i + 1}${s && s.label ? ' · ' + esc(s.label) : ''}</b><span class="cst">${s ? new Date(s.date).toLocaleString('es-ES') + ' · ' + describe(s.data) : TX('Vacía')}</span></div>
+        <span class="row2"><button class="cta mini" data-save="${i + 1}">${TX('Guardar')}</button>${s ? `<button class="ghost mini" data-load="${i + 1}">${TX('Cargar')}</button>` : ''}</span></div>`).join('')}</div>
+      <details class="adv"><summary>${TX('Código de partida (sin cuenta)')}</summary>
+      <button class="ghost" id="sExport">${TX('📤 Sacar código de mi partida')}</button>
+      <textarea id="sCode" rows="4" placeholder="${TX('Pega aquí un código de partida para cargarlo')}" spellcheck="false"></textarea>
+      <div class="grid2"><button class="ghost" id="sCopy">${TX('Copiar')}</button><button class="cta" id="sImport">${TX('📥 Cargar este código')}</button></div>
+      <button class="ghost" id="sLink">${TX('🔗 Copiar enlace de transferencia')}<small>${TX('Ábrelo en el otro dispositivo y se carga solo')}</small></button></details>
       <p class="note" id="sMsg"></p>`, 'bg_green');
     const msg = t => { $('sMsg').textContent = t; };
     const ta = $('sCode'); ta.addEventListener('keydown', e => e.stopPropagation());
     body.querySelectorAll('[data-save]').forEach(b => b.onclick = () => {
       if (Career.data) Career.save(); Profile.save(); saveSettings();
-      try { localStorage.setItem(slotKey(b.dataset.save), JSON.stringify({ date: Date.now(), data: snapshot() })); UI.toast('Partida guardada en la ranura ' + b.dataset.save); Sound.sfx('reveal'); renderSaves(back); }
-      catch (_) { msg('No se ha podido guardar (el navegador no deja más espacio).'); }
+      try { localStorage.setItem(slotKey(b.dataset.save), JSON.stringify({ date: Date.now(), data: snapshot() })); UI.toast(TX('Partida guardada en la ranura ') + b.dataset.save); Sound.sfx('reveal'); renderSaves(back); }
+      catch (_) { msg(TX('No se ha podido guardar (el navegador no deja más espacio).')); }
     });
     // Cargar una copia: se escribe como cambio normal, así con cuenta también se sube a la nube
     const load = o => { SAVE_KEYS.forEach(k => { try { if (o[k] != null) localStorage.setItem(k, o[k]); else localStorage.removeItem(k); } catch (_) {} }); Cloud.push(true).finally(() => reloadGame()); };
     body.querySelectorAll('[data-load]').forEach(b => b.onclick = () => {
-      if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = '¿Seguro?'; msg('Cargar sustituye tu partida actual. Toca otra vez para confirmar.'); return; }
-      msg('Cargando…'); load(slots[+b.dataset.load - 1].data);
+      if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = TX('¿Seguro?'); msg(TX('Cargar sustituye tu partida actual. Toca otra vez para confirmar.')); return; }
+      msg(TX('Cargando…')); load(slots[+b.dataset.load - 1].data);
     });
-    $('sExport').onclick = async () => { ta.value = await packCode(snapshot()); ta.select(); msg('Código creado: cópialo y guárdalo (por ejemplo en tus notas). Para cargarlo, pégalo aquí en el otro dispositivo.'); };
-    $('sCopy').onclick = async () => { ta.select(); try { await navigator.clipboard.writeText(ta.value); msg('Copiado.'); } catch (_) { try { document.execCommand('copy'); msg('Copiado.'); } catch (__) { msg('Selecciónalo y cópialo a mano.'); } } };
+    $('sExport').onclick = async () => { ta.value = await packCode(snapshot()); ta.select(); msg(TX('Código creado: cópialo y guárdalo (por ejemplo en tus notas). Para cargarlo, pégalo aquí en el otro dispositivo.')); };
+    $('sCopy').onclick = async () => { ta.select(); try { await navigator.clipboard.writeText(ta.value); msg('Copiado.'); } catch (_) { try { document.execCommand('copy'); msg('Copiado.'); } catch (__) { msg(TX('Selecciónalo y cópialo a mano.')); } } };
     $('sLink').onclick = async () => {
       if (Career.data) Career.save(); Profile.save(); saveSettings();
       const link = location.origin + location.pathname + '#partida=' + encodeURIComponent(await packCode(snapshot()));
       ta.value = link;
-      try { await navigator.clipboard.writeText(link); msg('Enlace copiado. Mándatelo (WhatsApp, notas…) y ábrelo en el otro dispositivo.'); }
-      catch (_) { ta.select(); msg('Copia el enlace del recuadro y ábrelo en el otro dispositivo.'); }
+      try { await navigator.clipboard.writeText(link); msg(TX('Enlace copiado. Mándatelo (WhatsApp, notas…) y ábrelo en el otro dispositivo.')); }
+      catch (_) { ta.select(); msg(TX('Copia el enlace del recuadro y ábrelo en el otro dispositivo.')); }
     };
     $('sImport').onclick = async () => {
-      if (!ta.value.trim()) return msg('Pega primero un código.');
+      if (!ta.value.trim()) return msg(TX('Pega primero un código.'));
       const rr = await readCode(ta.value); if (rr.error) return msg(rr.error.replace(/<[^>]+>/g, ''));
       const o = rr.data;
-      msg('¡Partida cargada! Reiniciando…'); load(o);
+      msg(TX('¡Partida cargada! Reiniciando…')); load(o);
     };
     $('back').onclick = back;
   }
@@ -1617,55 +1623,55 @@ const App = (() => {
   const findCode = txt => findCodes(txt)[0] || '';
   async function readCode(txt) {
     const cs = findCodes(txt);
-    if (!cs.length) return { error: 'No encuentro ningún código. Tiene que empezar por <b>IRZ1:</b> y es un texto largo.' };
+    if (!cs.length) return { error: TX('No encuentro ningún código. Tiene que empezar por') + ' <b>' + 'IRZ1:' + '</b> ' + TX('y es un texto largo.') };
     let o = null;
     for (const c of cs) { try { o = await unpackCode(c); break; } catch (_) {} }
-    if (!o) return { error: 'El código está <b>incompleto o roto</b>. Vuelve a la versión antigua, toca «Copiar» y pégalo entero.' };
-    if (!o['inazuma-perfil'] && !o['inazuma-carrera']) return { error: 'Ese código no tiene ninguna partida dentro.' };
+    if (!o) return { error: TX('El código está') + ' <b>' + TX('incompleto o roto') + '</b>' + TX('. Vuelve a la versión antigua, toca «Copiar» y pégalo entero.') };
+    if (!o['inazuma-perfil'] && !o['inazuma-carrera']) return { error: TX('Ese código no tiene ninguna partida dentro.') };
     return { data: o };
   }
   function renderTransfer(back = renderMenu, preset = '') {
     const sync = Cloud.enabled();
-    screen(`${top('Traer mi partida')}
-      <p class="note">Si jugabas en la <b>versión antigua</b> del juego (o en otro móvil sin cuenta), sigue estos pasos para traer tu partida aquí.</p>
+    screen(`${top(TX('Traer mi partida'))}
+      <p class="note">${TX('Si jugabas en la')} <b>${TX('versión antigua')}</b> ${TX('del juego (o en otro móvil sin cuenta), sigue estos pasos para traer tu partida aquí.')}</p>
       <ol class="steps">
-        <li><b>Abre la versión antigua</b> con este botón.<a class="ghost linkbtn" id="tOpen" href="${OLD_URL}" target="_blank" rel="noopener">🔗 Abrir la versión antigua</a></li>
-        <li>Allí toca <b>💾 Guardar / cargar</b> → <b>📤 Sacar código de mi partida</b> → <b>Copiar</b>.</li>
-        <li>Vuelve a esta pestaña y toca <b>📋 Pegar</b> (o mantén el dedo en el recuadro y elige «Pegar»).</li>
-        <li>Revisa que es tu partida y toca <b>Cargar</b>.${sync ? ' Después crea tu cuenta para no tener que hacer esto nunca más.' : ''}</li>
+        <li><b>${TX('Abre la versión antigua')}</b> ${TX('con este botón.')}<a class="ghost linkbtn" id="tOpen" href="${OLD_URL}" target="_blank" rel="noopener">${TX('🔗 Abrir la versión antigua')}</a></li>
+        <li>${TX('Allí toca')} <b>${TX('💾 Guardar / cargar')}</b> → <b>${TX('📤 Sacar código de mi partida')}</b> → <b>${TX('Copiar')}</b>.</li>
+        <li>${TX('Vuelve a esta pestaña y toca')} <b>${TX('📋 Pegar')}</b> ${TX('(o mantén el dedo en el recuadro y elige «Pegar»).')}</li>
+        <li>${TX('Revisa que es tu partida y toca')} <b>${TX('Cargar')}</b>.${sync ? TX(' Después crea tu cuenta para no tener que hacer esto nunca más.') : ''}</li>
       </ol>
-      <textarea id="tCode" rows="4" placeholder="Pega aquí el código (empieza por IRZ1:)" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
-      <div class="grid2"><button class="ghost" id="tPaste">📋 Pegar</button><button class="cta" id="tCheck">Comprobar</button></div>
+      <textarea id="tCode" rows="4" placeholder="${TX('Pega aquí el código (empieza por IRZ1:)')}" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+      <div class="grid2"><button class="ghost" id="tPaste">${TX('📋 Pegar')}</button><button class="cta" id="tCheck">${TX('Comprobar')}</button></div>
       <div id="tOut"></div>
-      ${Profile.data.firstDone ? '<p class="note">⚠️ Cargar sustituye la partida que tienes ahora en este dispositivo.</p>' : ''}`, 'bg_green');
+      ${Profile.data.firstDone ? '<p class="note">' + TX('⚠️ Cargar sustituye la partida que tienes ahora en este dispositivo.') + '</p>' : ''}`, 'bg_green');
     const ta = $('tCode'), out = $('tOut');
     ta.addEventListener('keydown', e => e.stopPropagation());
     if (preset) ta.value = preset;
     const check = async () => {
-      if (!ta.value.trim()) { out.innerHTML = '<p class="giftmsg bad">Primero pega el código.</p>'; return; }
-      out.innerHTML = '<p class="giftmsg ok">Leyendo el código…</p>';
+      if (!ta.value.trim()) { out.innerHTML = '<p class="giftmsg bad">' + TX('Primero pega el código.') + '</p>'; return; }
+      out.innerHTML = '<p class="giftmsg ok">' + TX('Leyendo el código…') + '</p>';
       const r = await readCode(ta.value);
       if (r.error) { out.innerHTML = `<p class="giftmsg bad">${r.error}</p>`; Sound.sfx('click'); return; }
       const d = Cloud.describe(r.data);
-      out.innerHTML = `<div class="cpl conf"><span class="cplb"><b>✅ Partida encontrada</b>
-        <span class="cst">👥 <b>${d.players}</b> jugadores · 🎟️ ${d.tickets} · 🪙 ${d.coins}</span>
-        <span class="cst">Victorias: ${d.wins} · Etapas completadas: ${d.etapas}</span>
-        ${d.career ? `<span class="cst">Carrera: ${esc(d.career)}</span>` : ''}</span></div>
-        <button class="cta" id="tLoad">📥 Cargar esta partida</button>`;
+      out.innerHTML = `<div class="cpl conf"><span class="cplb"><b>${TX('✅ Partida encontrada')}</b>
+        <span class="cst">👥 <b>${d.players}</b> ${TX('jugadores · 🎟️')} ${d.tickets} · 🪙 ${d.coins}</span>
+        <span class="cst">${TX('Victorias:')} ${d.wins} ${TX('· Etapas completadas:')} ${d.etapas}</span>
+        ${d.career ? `<span class="cst">${TX('Carrera:')} ${esc(d.career)}</span>` : ''}</span></div>
+        <button class="cta" id="tLoad">${TX('📥 Cargar esta partida')}</button>`;
       Sound.sfx('reveal');
       $('tLoad').onclick = async () => {
         $('tLoad').disabled = true;
         // Copia de seguridad de lo que había, por si acaso
-        if (Profile.data.firstDone) { try { localStorage.setItem(slotKey(3), JSON.stringify({ date: Date.now(), data: snapshot(), label: 'Antes de traer la partida' })); } catch (_) {} }
+        if (Profile.data.firstDone) { try { localStorage.setItem(slotKey(3), JSON.stringify({ date: Date.now(), data: snapshot(), label: TX('Antes de traer la partida') })); } catch (_) {} }
         SAVE_KEYS.forEach(k => { try { if (r.data[k] != null) localStorage.setItem(k, r.data[k]); else if (k !== 'inazuma-ajustes' && k !== 'inazuma-sonido') localStorage.removeItem(k); } catch (_) {} });
         try { localStorage.setItem('inazuma-traida', '1'); } catch (_) {}
         if (Cloud.loggedIn()) { await Cloud.push(true); }
-        reloadGame('¡Partida traída! Cargando…');
+        reloadGame(TX('¡Partida traída! Cargando…'));
       };
     };
     $('tPaste').onclick = async () => {
       try { const t = await navigator.clipboard.readText(); if (t) { ta.value = t; check(); return; } } catch (_) {}
-      ta.focus(); out.innerHTML = '<p class="giftmsg bad">Tu navegador no deja pegar con el botón: mantén el dedo en el recuadro y elige «Pegar».</p>';
+      ta.focus(); out.innerHTML = '<p class="giftmsg bad">' + TX('Tu navegador no deja pegar con el botón: mantén el dedo en el recuadro y elige «Pegar».') + '</p>';
     };
     ta.addEventListener('paste', () => setTimeout(check, 50));
     $('tCheck').onclick = check;
@@ -1682,11 +1688,11 @@ const App = (() => {
   /* ---------- Códigos de regalo ---------- */
   function renderGift() {
     const P = Profile.data, used = Object.entries(P.codes || {}).sort((x, y) => y[1] - x[1]);
-    screen(`${top('Código de regalo')}${wallet()}
-      <p class="note">Escribe un código para recibir su premio. Cada código se puede canjear una vez.</p>
-      <div class="giftin"><input id="gcode" type="text" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CÓDIGO"><button class="cta" id="gok">Canjear</button></div>
+    screen(`${top(TX('Código de regalo'))}${wallet()}
+      <p class="note">${TX('Escribe un código para recibir su premio. Cada código se puede canjear una vez.')}</p>
+      <div class="giftin"><input id="gcode" type="text" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="${TX('CÓDIGO')}"><button class="cta" id="gok">${TX('Canjear')}</button></div>
       <p class="giftmsg" id="gmsg"></p>
-      ${used.length ? `<h3>Canjeados</h3><p class="note">${used.map(([k, t]) => `<b>${esc(k)}</b> · ${new Date(t).toLocaleDateString('es-ES')}`).join('<br>')}</p>` : ''}`, 'bg_green');
+      ${used.length ? `<h3>${TX('Canjeados')}</h3><p class="note">${used.map(([k, t]) => `<b>${esc(k)}</b> · ${new Date(t).toLocaleDateString('es-ES')}`).join('<br>')}</p>` : ''}`, 'bg_green');
     const inp = $('gcode');
     const go = () => {
       const r = Profile.redeem(inp.value), m = $('gmsg');
@@ -1703,43 +1709,50 @@ const App = (() => {
   function renderSettings() {
     const c = Sound.cfg;
     const keys = Object.keys(TRACKS);
-    const ROLE_NAMES = { menu: 'Menús', intro: 'Intro', match: 'Partido rápido', match_easy: 'Etapa 1 · inicio', match_mid: 'Etapa 1 · mitad', match_hard: 'Etapa 1 · recta final',
-      match_final: 'Etapa 1 · final y jefes', s2_easy: 'Etapa 2 · inicio', s2_mid: 'Etapa 2 · mitad', s2_hard: 'Etapa 2 · recta final', s2_final: 'Etapa 2 · final y jefes',
-      match_special: 'Equipos especiales', goal: 'Gol', win: 'Victoria', lose: 'Derrota' };
+    const ROLE_NAMES = { menu: TX('Menús'), intro: TX('Intro'), match: TX('Partido rápido'), match_easy: TX('Etapa 1 · inicio'), match_mid: TX('Etapa 1 · mitad'), match_hard: TX('Etapa 1 · recta final'),
+      match_final: TX('Etapa 1 · final y jefes'), s2_easy: TX('Etapa 2 · inicio'), s2_mid: TX('Etapa 2 · mitad'), s2_hard: TX('Etapa 2 · recta final'), s2_final: TX('Etapa 2 · final y jefes'),
+      match_special: TX('Equipos especiales'), goal: TX('Gol'), win: TX('Victoria'), lose: TX('Derrota') };
     // Desplegable con las pistas agrupadas como en el juego
     const grouped = jingles => TRACK_GROUPS.filter(g => (g === 'Jingles') === jingles).map(g => `<optgroup label="${g}">${keys.filter(k => TRACKS[k].group === g)
       .map(k => `<option value="${k}">${TRACKS[k].name}</option>`).join('')}</optgroup>`).join('');
     const sel = (role, jingles, extra = []) => `<div class="group"><label>${ROLE_NAMES[role]}</label>
       <select data-role="${role}">${extra.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}${grouped(jingles)}</select></div>`;
-    const rnd = [['random', 'Aleatorio (temas de partido)']], none = [['', 'Ninguno']];
-    screen(`${top('Ajustes')}
-      <h3>Partido</h3>
-      ${opts('Duración del partido', 'minutes', [[2, '2 min'], [3, '3 min'], [5, '5 min']])}
-      ${opts('Supertécnicas', 'techMode', [['boton', 'Con botón'], ['auto', 'Automáticas']])}
-      ${opts('Cámara lenta en supertécnicas', 'slowmo', [[1, 'Sí'], [0, 'No']])}
-      ${opts('Cambio automático de jugador', 'autoSwitch', [[1, 'Sí'], [0, 'No']])}
-      <h3>Controles</h3>
-      ${opts('Botones en pantalla', 'controls', [['auto', 'Auto'], ['tactil', 'Siempre'], ['teclado', 'Nunca (PC)']])}
-      <p class="keys"><b>Mando:</b> stick o cruceta para moverte · RT esprint · A pase (mantén = fuerte) · X tiro (mantén) · B profundidad / entrada · Y supertécnica · LT cambiar técnica · RB regate · LB cambiar jugador · Start pausa.<br>
-      <b>Móvil:</b> joystick a la izquierda (a tope = esprint). Mantén Pase para un pase fuerte y usa Regate para un recorte rápido sin técnica. Para cambiar de jugador apunta con el joystick y pulsa Cambiar (también cambia solo al ir a por el balón).<br>
-      <b>PC:</b> WASD/flechas · Shift esprint · J pase (mantén = pase fuerte) o entrada · K profundidad · I regate · L tiro (mantener) · Espacio técnica · Q cambiar · P pausa</p>
-      <h3>Sonido</h3>
-      <div class="mixer"><label>🎵 Música <b id="mvT">${Math.round((c.music ? c.mv ?? 1 : 0) * 100)} %</b><input type="range" id="mvR" min="0" max="100" step="5" value="${Math.round((c.music ? c.mv ?? 1 : 0) * 100)}"></label>
-        <label>🔊 Efectos <b id="svT">${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)} %</b><input type="range" id="svR" min="0" max="100" step="5" value="${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)}"></label></div>
-      <p class="note">La música sale de tus archivos del Inazuma 1 y 2, reconstruida desde las partituras del juego. Los nombres son los de la colección de música del Inazuma 2.</p>
-      ${opts('Intro al abrir el juego', 'intro', [[1, 'Sí'], [0, 'No']])}
-      <button class="ghost" id="seeIntro">▶ Ver la intro</button>
-      <div class="group"><label>Rivales con tema propio</label><div class="opts"><button id="tt1" aria-pressed="${c.teamThemes !== false}">Su música</button><button id="tt0" aria-pressed="${c.teamThemes === false}">La de la etapa</button></div></div>
-      <details class="roles"><summary>Elegir música de cada momento</summary>
+    const rnd = [['random', TX('Aleatorio (temas de partido)')]], none = [['', TX('Ninguno')]];
+    screen(`${top(TX('Ajustes'))}
+      <div class="group"><label>${TX('🌐 Idioma · Language')}</label><div class="opts">${Object.entries(I18N.LANGS).map(([k, n]) => `<button data-lang="${k}" aria-pressed="${I18N.lang === k}">${n}</button>`).join('')}</div></div>
+      <h3>${TX('Partido')}</h3>
+      ${opts(TX('Duración del partido'), 'minutes', [[2, TX('2 min')], [3, TX('3 min')], [5, TX('5 min')]])}
+      ${opts(TX('Supertécnicas'), 'techMode', [['boton', TX('Con botón')], ['auto', TX('Automáticas')]])}
+      ${opts(TX('Cámara lenta en supertécnicas'), 'slowmo', [[1, TX('Sí')], [0, TX('No')]])}
+      ${opts(TX('Cambio automático de jugador'), 'autoSwitch', [[1, TX('Sí')], [0, TX('No')]])}
+      <h3>${TX('Controles')}</h3>
+      ${opts(TX('Botones en pantalla'), 'controls', [['auto', TX('Auto')], ['tactil', TX('Siempre')], ['teclado', TX('Nunca (PC)')]])}
+      <p class="keys"><b>${TX('Mando:')}</b> ${TX('stick o cruceta para moverte · RT esprint · A pase (mantén = fuerte) · X tiro (mantén) · B profundidad / entrada · Y supertécnica · LT cambiar técnica · RB regate · LB cambiar jugador · Start pausa.')}<br>
+      <b>${TX('Móvil:')}</b> ${TX('joystick a la izquierda (a tope = esprint). Mantén Pase para un pase fuerte y usa Regate para un recorte rápido sin técnica. Para cambiar de jugador apunta con el joystick y pulsa Cambiar (también cambia solo al ir a por el balón).')}<br>
+      <b>${TX('PC:')}</b> ${TX('WASD/flechas · Shift esprint · J pase (mantén = pase fuerte) o entrada · K profundidad · I regate · L tiro (mantener) · Espacio técnica · Q cambiar · P pausa')}</p>
+      <h3>${TX('Sonido')}</h3>
+      <div class="mixer"><label>${TX('🎵 Música')} <b id="mvT">${Math.round((c.music ? c.mv ?? 1 : 0) * 100)} %</b><input type="range" id="mvR" min="0" max="100" step="5" value="${Math.round((c.music ? c.mv ?? 1 : 0) * 100)}"></label>
+        <label>${TX('🔊 Efectos')} <b id="svT">${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)} %</b><input type="range" id="svR" min="0" max="100" step="5" value="${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)}"></label></div>
+      <p class="note">${TX('La música sale de tus archivos del Inazuma 1 y 2, reconstruida desde las partituras del juego. Los nombres son los de la colección de música del Inazuma 2.')}</p>
+      ${opts(TX('Intro al abrir el juego'), 'intro', [[1, TX('Sí')], [0, TX('No')]])}
+      <button class="ghost" id="seeIntro">${TX('▶ Ver la intro')}</button>
+      <div class="group"><label>${TX('Rivales con tema propio')}</label><div class="opts"><button id="tt1" aria-pressed="${c.teamThemes !== false}">${TX('Su música')}</button><button id="tt0" aria-pressed="${c.teamThemes === false}">${TX('La de la etapa')}</button></div></div>
+      <details class="roles"><summary>${TX('Elegir música de cada momento')}</summary>
       ${sel('menu', false)}${sel('intro', false)}${sel('match', false, rnd)}${['match_easy', 'match_mid', 'match_hard', 'match_final', 's2_easy', 's2_mid', 's2_hard', 's2_final', 'match_special'].map(r => sel(r, false, rnd)).join('')}
       ${sel('goal', true, none)}${sel('win', true, none)}${sel('lose', true, none)}
-      <button class="ghost" id="resetRoles">Volver a la música de serie</button></details>
-      <h3>Escuchar <small>toca para oír cada pista</small></h3>
+      <button class="ghost" id="resetRoles">${TX('Volver a la música de serie')}</button></details>
+      <h3>${TX('Escuchar')} <small>${TX('toca para oír cada pista')}</small></h3>
       ${TRACK_GROUPS.map(g => `<details class="tgroup"><summary>${g} <small>${keys.filter(k => TRACKS[k].group === g).length}</small></summary><div class="tracks">${keys.filter(k => TRACKS[k].group === g).map(k => `<button class="ghost" data-play="${k}">▶ ${TRACKS[k].name}</button>`).join('')}</div></details>`).join('')}
-      <button class="ghost" id="stopAll">Parar</button>
-      ${settings.dev ? '<button class="ghost" id="toDev">🛠 Modo desarrollador</button>' : ''}
-      <p class="note">Inazuma Rogue v${VERSION} · fan game gratuito y no oficial. Inazuma Eleven es de Level-5.</p>`);
+      <button class="ghost" id="stopAll">${TX('Parar')}</button>
+      ${settings.dev ? '<button class="ghost" id="toDev">' + TX('🛠 Modo desarrollador') + '</button>' : ''}
+      <p class="note">${TX('Inazuma Rogue v')}${VERSION} ${TX('· fan game gratuito y no oficial. Inazuma Eleven es de Level-5.')}</p>`);
     bindOpts(settings, k => { saveSettings(); if (k === 'controls') Controls.apply(); });
+    body.querySelectorAll('[data-lang]').forEach(b => b.onclick = () => {
+      if (b.dataset.lang === I18N.lang) return;
+      I18N.set(b.dataset.lang); Sound.sfx('click');
+      screen(`<div class="title"><img class="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>${b.dataset.lang === 'en' ? 'Changing language…' : 'Cambiando el idioma…'}</span></div>`, 'bg_title');
+      setTimeout(() => location.reload(), 250);
+    });
     if ($('toDev')) $('toDev').onclick = () => { Sound.stop(0.2); renderDev(); };
     $('mvR').oninput = e => { const v = +e.target.value / 100; Sound.setVol('music', v); $('mvT').textContent = e.target.value + ' %'; };
     $('svR').oninput = e => { const v = +e.target.value / 100; Sound.setVol('sfx', v); $('svT').textContent = e.target.value + ' %'; };
@@ -1748,7 +1761,7 @@ const App = (() => {
     $('seeIntro').onclick = () => { Sound.stop(0.2); playIntro(renderSettings); };
     $('tt1').onclick = () => { Sound.setTeamThemes(true); renderSettings(); };
     $('tt0').onclick = () => { Sound.setTeamThemes(false); renderSettings(); };
-    $('resetRoles').onclick = () => { Object.entries(Sound.DEF_ROLES).forEach(([r, k]) => Sound.setRole(r, k)); renderSettings(); UI.toast('Música de serie'); };
+    $('resetRoles').onclick = () => { Object.entries(Sound.DEF_ROLES).forEach(([r, k]) => Sound.setRole(r, k)); renderSettings(); UI.toast(TX('Música de serie')); };
     body.querySelectorAll('[data-play]').forEach(b => b.onclick = () => Sound.preview(b.dataset.play));
     $('stopAll').onclick = () => Sound.stop(0.2);
     $('back').onclick = () => { Sound.stop(0.2); renderMenu(); };
@@ -1757,21 +1770,21 @@ const App = (() => {
   /* ---------- Modo desarrollador (20 toques en la versión) ---------- */
   function renderDevClub() {
     const c = Career.data;
-    screen(`${top('Elegir club')}<p class="note">Ocupas el sitio del club que elijas: su división, su nombre y sus jugadores. Ellos se quedan con tu plantilla. La temporada empieza de nuevo.</p>
-      ${[1, 2, 3].map(d => `<h3>${DIV_NAME[d]}</h3><div class="modes">${c.divs[d].filter(k => k !== YOU).map(k => `<button class="mode" data-club="${esc(k)}">${Sprites.crest(crestOf(k))}<span class="mt"><b>${esc(Career.teamName(k))}</b><small>media ${Career.rating(k)}</small></span></button>`).join('')}</div>`).join('')}`);
-    body.querySelectorAll('[data-club]').forEach(b => b.onclick = () => { Career.devTakeClub(b.dataset.club); Sound.sfx('reveal'); UI.toast('Ahora eres ' + Career.data.school, 1800); renderCareer(); });
+    screen(`${top(TX('Elegir club'))}<p class="note">${TX('Ocupas el sitio del club que elijas: su división, su nombre y sus jugadores. Ellos se quedan con tu plantilla. La temporada empieza de nuevo.')}</p>
+      ${[1, 2, 3].map(d => `<h3>${DIV_NAME[d]}</h3><div class="modes">${c.divs[d].filter(k => k !== YOU).map(k => `<button class="mode" data-club="${esc(k)}">${Sprites.crest(crestOf(k))}<span class="mt"><b>${esc(Career.teamName(k))}</b><small>${TX('media')} ${Career.rating(k)}</small></span></button>`).join('')}</div>`).join('')}`);
+    body.querySelectorAll('[data-club]').forEach(b => b.onclick = () => { Career.devTakeClub(b.dataset.club); Sound.sfx('reveal'); UI.toast(TX('Ahora eres ') + Career.data.school, 1800); renderCareer(); });
     $('back').onclick = renderDev;
   }
   function renderDevSign() {
-    screen(`${top('Fichar gratis')}<p class="note">Busca cualquier jugador del gacha y tócalo para meterlo en tu plantilla de Carrera (sin límite).</p>
-      <div class="pfbar"><div class="pfq"><input id="dsQ" type="search" placeholder="Buscar por nombre o mote…" autocomplete="off"></div></div><div class="pgrid" id="dsL"></div>`);
+    screen(`${top(TX('Fichar gratis'))}<p class="note">${TX('Busca cualquier jugador del gacha y tócalo para meterlo en tu plantilla de Carrera (sin límite).')}</p>
+      <div class="pfbar"><div class="pfq"><input id="dsQ" type="search" placeholder="${TX('Buscar por nombre o mote…')}" autocomplete="off"></div></div><div class="pgrid" id="dsL"></div>`);
     const draw = () => {
       const q = norm($('dsQ').value.trim()), L = $('dsL'); L.innerHTML = '';
-      if (q.length < 2) { L.innerHTML = '<p class="note">Escribe al menos 2 letras.</p>'; return; }
+      if (q.length < 2) { L.innerHTML = '<p class="note">' + TX('Escribe al menos 2 letras.') + '</p>'; return; }
       GAME.players.filter(p => p.cs && p.gacha !== false && (norm(p.name).includes(q) || norm(p.full).includes(q))).slice(0, 40).forEach(p => {
-        const inSq = !!Career.m(p.id), el = tile(p.id, `<span class="slot">${inSq ? 'Ya está en tu club' : 'Fichar gratis'}</span>`);
+        const inSq = !!Career.m(p.id), el = tile(p.id, `<span class="slot">${inSq ? TX('Ya está en tu club') : TX('Fichar gratis')}</span>`);
         if (inSq) el.classList.add('sel');
-        el.onclick = () => { if (Career.devSign(p.id)) { Sound.sfx('reveal'); UI.toast(p.name + ' se une a ' + Career.data.school, 1400); draw(); } };
+        el.onclick = () => { if (Career.devSign(p.id)) { Sound.sfx('reveal'); UI.toast(p.name + TX(' se une a ') + Career.data.school, 1400); draw(); } };
         L.appendChild(el);
       });
     };
@@ -1781,64 +1794,64 @@ const App = (() => {
   function renderDev() {
     const P = Profile.data;
     const b = (id, t, sub = '') => `<button class="ghost big" id="${id}">${t}<small>${sub}</small></button>`;
-    screen(`${top('Desarrollador')}
-      <p class="note">v${VERSION} · ${GAME.players.filter(p => p.gacha !== false).length} jugadores en el gacha · ${Object.keys(GAME.techniques).length} técnicas (${LEG_TECHS.length} legendarias) · ${GAME.teams.length} equipos rivales</p>
+    screen(`${top(TX('Desarrollador'))}
+      <p class="note">v${VERSION} · ${GAME.players.filter(p => p.gacha !== false).length} ${TX('jugadores en el gacha ·')} ${Object.keys(GAME.techniques).length} ${TX('técnicas (')}${LEG_TECHS.length} ${TX('legendarias) ·')} ${GAME.teams.length} ${TX('equipos rivales')}</p>
       ${wallet()}
-      <h3>Recursos</h3>
-      <div class="grid2">${b('dTick', '+1000 tickets')}${b('dCoin', '+100.000 monedas')}${b('dRayo', '+10 Rayos')}${b('dPity', 'Épica asegurada', 'la próxima tirada')}</div>
-      <h3>Colección</h3>
-      <div class="grid2">${b('dAll', 'Todos los jugadores')}${b('dStars', 'Todos a 5 ★')}${b('dTechs', 'Todas las técnicas', 'legendarias')}${b('dTrain', 'Entrenar al máximo')}</div>
-      <h3>Progreso</h3>
-      <div class="grid2">${b('dStory', 'Completar todas las etapas', '1, 2 y 3 · abre todo')}${b('dChains', 'Completar las cadenas', '×5 con medalla de oro')}${b('dRun', 'Borrar partida', 'en curso')}${b('dReset', 'Borrar perfil', 'empezar de cero')}</div>
-      <h3>Carrera</h3>
-      ${Career.data ? `<p class="note">${esc(Career.data.school)} · temporada ${Career.data.season} · ${DIV_NAME[Career.myDiv()]} · ${money(Career.data.money)}</p>
-      <div class="grid2">${b('dMoney', Career.data.devMoney ? '💰 Dinero infinito: SÍ' : '💰 Dinero infinito: NO', 'toca para cambiar')}${b('dClub', 'Elegir club', 'ocupas su sitio y sus jugadores')}
-        ${b('dSign', 'Fichar gratis', 'cualquier jugador')}${b('dFame', 'Fama y forma al 100')}
-        ${b('dWC', '🌍 Empezar el Mundial', 'ahora mismo')}${b('dSeason', 'Terminar temporada', 'simula lo que queda')}
-        ${b('dDiv1', 'Subir a Primera', 'la temporada empieza de nuevo')}${b('dDiv3', 'Bajar a Tercera', 'la temporada empieza de nuevo')}</div>`
-        : `<p class="note">No hay ninguna carrera empezada.</p><div class="grid2">${b('dNewCar', 'Crear carrera rápida', 'normal, con Nelly')}</div>`}
-      <h3>Modo</h3>
-      <div class="grid2">${b('dOff', 'Salir del modo', 'desarrollador')}</div>
-      <h3>Partido</h3>
-      ${opts('Velocidad del juego', 'speed', [[0.5, '50 %'], [0.75, '75 % (normal)'], [1, '100 %']])}
-      ${opts('Datos en pantalla (FPS, recargas…)', 'debug', [[1, 'Sí'], [0, 'No']])}
-      ${opts('Botón «Ganar ahora» en la pausa', 'devWin', [[1, 'Sí'], [0, 'No']])}
-      <h3>Gacha</h3>
-      <div class="grid2">${b('dLeg', 'Legendario asegurado', (P.devLeg ? P.devLeg + ' pendientes · ' : '') + 'las próximas 10 tiradas')}</div>
-      <button class="ghost" id="dSim">Simular 1000 tiradas en cada gacha <small>(no gasta nada)</small></button>
+      <h3>${TX('Recursos')}</h3>
+      <div class="grid2">${b('dTick', TX('+1000 tickets'))}${b('dCoin', TX('+100.000 monedas'))}${b('dRayo', TX('+10 Rayos'))}${b('dPity', TX('Épica asegurada'), TX('la próxima tirada'))}</div>
+      <h3>${TX('Colección')}</h3>
+      <div class="grid2">${b('dAll', TX('Todos los jugadores'))}${b('dStars', TX('Todos a 5 ★'))}${b('dTechs', TX('Todas las técnicas'), 'legendarias')}${b('dTrain', TX('Entrenar al máximo'))}</div>
+      <h3>${TX('Progreso')}</h3>
+      <div class="grid2">${b('dStory', TX('Completar todas las etapas'), TX('1, 2 y 3 · abre todo'))}${b('dChains', TX('Completar las cadenas'), TX('×5 con medalla de oro'))}${b('dRun', TX('Borrar partida'), TX('en curso'))}${b('dReset', TX('Borrar perfil'), TX('empezar de cero'))}</div>
+      <h3>${TX('Carrera')}</h3>
+      ${Career.data ? `<p class="note">${esc(Career.data.school)} ${TX('· temporada')} ${Career.data.season} · ${DIV_NAME[Career.myDiv()]} · ${money(Career.data.money)}</p>
+      <div class="grid2">${b('dMoney', Career.data.devMoney ? TX('💰 Dinero infinito: SÍ') : TX('💰 Dinero infinito: NO'), TX('toca para cambiar'))}${b('dClub', TX('Elegir club'), TX('ocupas su sitio y sus jugadores'))}
+        ${b('dSign', TX('Fichar gratis'), TX('cualquier jugador'))}${b('dFame', TX('Fama y forma al 100'))}
+        ${b('dWC', TX('🌍 Empezar el Mundial'), 'ahora mismo')}${b('dSeason', TX('Terminar temporada'), TX('simula lo que queda'))}
+        ${b('dDiv1', TX('Subir a Primera'), TX('la temporada empieza de nuevo'))}${b('dDiv3', TX('Bajar a Tercera'), TX('la temporada empieza de nuevo'))}</div>`
+        : `<p class="note">${TX('No hay ninguna carrera empezada.')}</p><div class="grid2">${b('dNewCar', TX('Crear carrera rápida'), TX('normal, con Nelly'))}</div>`}
+      <h3>${TX('Modo')}</h3>
+      <div class="grid2">${b('dOff', TX('Salir del modo'), 'desarrollador')}</div>
+      <h3>${TX('Partido')}</h3>
+      ${opts(TX('Velocidad del juego'), 'speed', [[0.5, '50 %'], [0.75, TX('75 % (normal)')], [1, '100 %']])}
+      ${opts(TX('Datos en pantalla (FPS, recargas…)'), 'debug', [[1, TX('Sí')], [0, TX('No')]])}
+      ${opts(TX('Botón «Ganar ahora» en la pausa'), 'devWin', [[1, TX('Sí')], [0, TX('No')]])}
+      <h3>${TX('Gacha')}</h3>
+      <div class="grid2">${b('dLeg', TX('Legendario asegurado'), (P.devLeg ? P.devLeg + TX(' pendientes · ') : '') + TX('las próximas 10 tiradas'))}</div>
+      <button class="ghost" id="dSim">${TX('Simular 1000 tiradas en cada gacha')} <small>${TX('(no gasta nada)')}</small></button>
       <div id="simOut" class="note"></div>`);
     if (settings.speed == null) settings.speed = 0.75;
     bindOpts(settings, saveSettings);
     const done = msg => { Profile.save(); Sound.sfx('reveal'); UI.toast(msg, 1400); renderDev(); };
-    $('dTick').onclick = () => { P.tickets += 1000; done('+1000 tickets'); };
-    $('dCoin').onclick = () => { P.coins += 100000; done('+100.000 monedas'); };
-    $('dRayo').onclick = () => { P.rayos += 10; done('+10 Rayos Raimon'); };
-    $('dPity').onclick = () => { P.pity = 9; done('La próxima tirada será épica o mejor'); };
-    $('dAll').onclick = () => { GAME.players.forEach(p => { if (p.gacha !== false && !P.coll[p.id]) P.coll[p.id] = { stars: 1, up: {} }; }); done('Colección completa'); };
-    $('dStars').onclick = () => { Object.values(P.coll).forEach(o => { o.stars = MAX_STARS; }); done('Todos con 5 estrellas'); };
-    $('dTechs').onclick = () => { LEG_TECHS.forEach(t => { P.techs[t] = 1; }); done('Todas las técnicas legendarias'); };
-    $('dTrain').onclick = () => { Object.values(P.coll).forEach(o => STAT_KEYS.forEach(k => { o.up[k] = 40; })); done('Entrenamiento al máximo'); };
-    $('dStory').onclick = () => { ['s1', 's2', 's3', 's4'].forEach(k => { P.story[k] = P.story[k] || {}; P.story[k].done = true; P.story[k].best = Math.max(P.story[k].best || 0, 9); }); done('Etapas 1, 2 y 3 completadas'); };
-    $('dChains').onclick = () => { CHAINS.forEach(ch => { P.chains[ch.key] = Math.max(P.chains[ch.key] || 0, 5); }); done('Cadenas completadas con oro'); };
-    $('dLeg').onclick = () => { P.devLeg = (P.devLeg || 0) + 10; done('Las próximas 10 tiradas serán legendarias'); };
+    $('dTick').onclick = () => { P.tickets += 1000; done(TX('+1000 tickets')); };
+    $('dCoin').onclick = () => { P.coins += 100000; done(TX('+100.000 monedas')); };
+    $('dRayo').onclick = () => { P.rayos += 10; done(TX('+10 Rayos Raimon')); };
+    $('dPity').onclick = () => { P.pity = 9; done(TX('La próxima tirada será épica o mejor')); };
+    $('dAll').onclick = () => { GAME.players.forEach(p => { if (p.gacha !== false && !P.coll[p.id]) P.coll[p.id] = { stars: 1, up: {} }; }); done(TX('Colección completa')); };
+    $('dStars').onclick = () => { Object.values(P.coll).forEach(o => { o.stars = MAX_STARS; }); done(TX('Todos con 5 estrellas')); };
+    $('dTechs').onclick = () => { LEG_TECHS.forEach(t => { P.techs[t] = 1; }); done(TX('Todas las técnicas legendarias')); };
+    $('dTrain').onclick = () => { Object.values(P.coll).forEach(o => STAT_KEYS.forEach(k => { o.up[k] = 40; })); done(TX('Entrenamiento al máximo')); };
+    $('dStory').onclick = () => { ['s1', 's2', 's3', 's4'].forEach(k => { P.story[k] = P.story[k] || {}; P.story[k].done = true; P.story[k].best = Math.max(P.story[k].best || 0, 9); }); done(TX('Etapas 1, 2 y 3 completadas')); };
+    $('dChains').onclick = () => { CHAINS.forEach(ch => { P.chains[ch.key] = Math.max(P.chains[ch.key] || 0, 5); }); done(TX('Cadenas completadas con oro')); };
+    $('dLeg').onclick = () => { P.devLeg = (P.devLeg || 0) + 10; done(TX('Las próximas 10 tiradas serán legendarias')); };
     const cdone = msg => { Career.save(); done(msg); };
     if (Career.data) {
       const C = Career.data;
-      $('dMoney').onclick = () => { C.devMoney = !C.devMoney; if (!C.devMoney) C.money = Math.min(C.money, 5000); cdone(C.devMoney ? 'Dinero infinito activado' : 'Dinero infinito desactivado'); };
-      $('dFame').onclick = () => { C.fame = 100; C.forma = 100; cdone('Fama y forma al 100'); };
+      $('dMoney').onclick = () => { C.devMoney = !C.devMoney; if (!C.devMoney) C.money = Math.min(C.money, 5000); cdone(C.devMoney ? TX('Dinero infinito activado') : TX('Dinero infinito desactivado')); };
+      $('dFame').onclick = () => { C.fame = 100; C.forma = 100; cdone(TX('Fama y forma al 100')); };
       $('dWC').onclick = () => { C.wc = Career.wcCreate(C.season); Career.save(); Sound.sfx('reveal'); renderCareer(); };
       $('dSeason').onclick = () => { const sum = Career.devEndSeason(); Sound.music('menu'); if (sum) renderCareerSeason(sum); else renderCareer(); };
-      $('dDiv1').onclick = () => { Career.devToDiv(1); cdone('Ahora estás en Primera'); };
-      $('dDiv3').onclick = () => { Career.devToDiv(3); cdone('Ahora estás en Tercera'); };
+      $('dDiv1').onclick = () => { Career.devToDiv(1); cdone(TX('Ahora estás en Primera')); };
+      $('dDiv3').onclick = () => { Career.devToDiv(3); cdone(TX('Ahora estás en Tercera')); };
       $('dClub').onclick = () => renderDevClub();
       $('dSign').onclick = () => renderDevSign();
-    } else $('dNewCar').onclick = () => { Career.create(13, 'Instituto Inazuma'); done('Carrera creada'); };
-    $('dRun').onclick = () => { Run.clear(); api.run = null; done('Partida en curso borrada'); };
+    } else $('dNewCar').onclick = () => { Career.create(13, TX('Instituto Inazuma')); done(TX('Carrera creada')); };
+    $('dRun').onclick = () => { Run.clear(); api.run = null; done(TX('Partida en curso borrada')); };
     let resetArm = false;
     $('dReset').onclick = () => {
-      if (!resetArm) { resetArm = true; $('dReset').firstChild.textContent = '¿Seguro? Toca otra vez'; return; }
+      if (!resetArm) { resetArm = true; $('dReset').firstChild.textContent = TX('¿Seguro? Toca otra vez'); return; }
       try { localStorage.removeItem('inazuma-perfil'); } catch (_) {}
-      Run.clear(); api.run = null; api.myTeam = null; Profile.load(); UI.toast('Perfil borrado', 1400); renderMenu();
+      Run.clear(); api.run = null; api.myTeam = null; Profile.load(); UI.toast(TX('Perfil borrado'), 1400); renderMenu();
     };
     $('dOff').onclick = () => { settings.dev = false; settings.debug = 0; saveSettings(); renderMenu(); };
     $('dSim').onclick = () => {
@@ -1848,7 +1861,7 @@ const App = (() => {
           const t = Gacha.rollTier(pity >= 9); if (t === 'epica' || t === 'legendaria') pity = 0; else pity++;
           if (t === 'legendaria' && Math.random() < 0.5) c.tec++; else c[t]++;
         }
-        return `<b>${esc(B.name)}</b>: ${c.comun} comunes · ${c.rara} raras · ${c.epica} épicas · ${c.legendaria} legendarios · ${c.tec} técnicas`;
+        return `<b>${esc(B.name)}</b>: ${c.comun} ${TX('comunes ·')} ${c.rara} ${TX('raras ·')} ${c.epica} ${TX('épicas ·')} ${c.legendaria} ${TX('legendarios ·')} ${c.tec} ${TX('técnicas')}`;
       });
       $('simOut').innerHTML = rows.join('<br>');
     };
@@ -1886,7 +1899,7 @@ const App = (() => {
     };
     el.hidden = false; stage.innerHTML = ''; say('');
     el.querySelector('.in-skip').onclick = e => { e.stopPropagation(); finish(); };
-    layer(`<img class="in-logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><p class="in-tap">${Controls.pc() ? 'Haz clic o pulsa una tecla' : 'Toca para empezar'}</p>`, 'in-center');
+    layer(`<img class="in-logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><p class="in-tap">${Controls.pc() ? TX('Haz clic o pulsa una tecla') : TX('Toca para empezar')}</p>`, 'in-center');
     el.onclick = () => {
       el.onclick = null; Sound.unlock(); Sound.music('intro');
       const n = GAME.players.filter(p => p.gacha !== false).length;
@@ -1894,7 +1907,7 @@ const App = (() => {
       // Final: logo; tocar durante las imágenes salta directamente aquí
       const end = () => {
         timers.forEach(clearTimeout); boom(); say('');
-        layer(`<img class="in-logo slam" src="ui/logo_rogue.png" alt="Inazuma Rogue"><p class="in-sub">5 contra 5 · roguelite</p><p class="in-tap">${Controls.pc() ? 'Haz clic o pulsa una tecla' : 'Toca para continuar'}</p>`, 'in-center in-final');
+        layer(`<img class="in-logo slam" src="ui/logo_rogue.png" alt="Inazuma Rogue"><p class="in-sub">${TX('5 contra 5 · roguelite')}</p><p class="in-tap">${Controls.pc() ? TX('Haz clic o pulsa una tecla') : TX('Toca para continuar')}</p>`, 'in-center in-final');
         el.onclick = finish;
       };
       el.onclick = end;
@@ -1909,11 +1922,11 @@ const App = (() => {
         say(t, sub); return d;
       };
       const S = [
-        [0, () => { layer('', 'in-slide'); boom(); slide('bg_title', 'Un fan game de Inazuma Eleven', 'kbZoom'); }],
-        [T * 0.8, () => slide('ill05', 'Fútbol 5 contra 5', 'kbA', 'En tiempo real · en el móvil y en el PC')],
-        [T * 1.8, () => slide('ill22', 'Modo roguelite', 'kbB', 'Cada partida es distinta: vidas, mejoras y jefes')],
-        [T * 2.8, () => { boom(); slide('ill31', `Más de ${miles} jugadores`, 'kbA', 'Del Inazuma 1, 2 y 3, cada uno con su cara y sus técnicas'); }],
-        [T * 3.8, () => { boom(); faces(ie3, '¡Llega el Inazuma 3!', 'Inazuma Japón y las selecciones del mundo: Unicorn, Orpheus, Little Gigant…'); }],
+        [0, () => { layer('', 'in-slide'); boom(); slide('bg_title', TX('Un fan game de Inazuma Eleven'), 'kbZoom'); }],
+        [T * 0.8, () => slide('ill05', TX('Fútbol 5 contra 5'), 'kbA', TX('En tiempo real · en el móvil y en el PC'))],
+        [T * 1.8, () => slide('ill22', TX('Modo roguelite'), 'kbB', TX('Cada partida es distinta: vidas, mejoras y jefes'))],
+        [T * 2.8, () => { boom(); slide('ill31', `${TX('Más de')} ${miles} ${TX('jugadores')}`, 'kbA', TX('Del Inazuma 1, 2 y 3, cada uno con su cara y sus técnicas')); }],
+        [T * 3.8, () => { boom(); faces(ie3, TX('¡Llega el Inazuma 3!'), TX('Inazuma Japón y las selecciones del mundo: Unicorn, Orpheus, Little Gigant…')); }],
         [T * 4.8, () => {
           const d = layer('<div class="in-mach"></div>', 'in-slide');
           [1, 2, 3].forEach((id, i) => {
@@ -1924,22 +1937,22 @@ const App = (() => {
             drawMachine(cv, st); crest.onload = () => drawMachine(cv, st);
             d.firstChild.appendChild(cv);
           });
-          say('Máquina de gachapón', 'Gira la manivela: Héroes, Rivales y Villanos');
+          say(TX('Máquina de gachapón'), TX('Gira la manivela: Héroes, Rivales y Villanos'));
         }],
-        [T * 5.8, () => { boom(); faces(stars, 'Legendarios de verdad', 'Media de 90 o más desde el primer día'); }],
-        [T * 6.8, () => slide('bg_team', 'Supertécnicas legendarias', 'kbA', 'Elige cuál usar en cada momento: animación propia y cámara lenta')],
-        [T * 7.8, () => slide('ill23', 'Modo Carrera', 'kbB', 'Eres el mánager: tus jugadores mejoran (o bajan) según cómo jueguen')],
+        [T * 5.8, () => { boom(); faces(stars, TX('Legendarios de verdad'), TX('Media de 90 o más desde el primer día')); }],
+        [T * 6.8, () => slide('bg_team', TX('Supertécnicas legendarias'), 'kbA', TX('Elige cuál usar en cada momento: animación propia y cámara lenta'))],
+        [T * 7.8, () => slide('ill23', TX('Modo Carrera'), 'kbB', TX('Eres el mánager: tus jugadores mejoran (o bajan) según cómo jueguen'))],
         [T * 8.8, () => {
-          const d = slide('bg_vs', '🌍 El Mundial', 'kbA', 'Cada 3 temporadas: convoca a 10 y lleva a Inazuma Japón a lo más alto');
+          const d = slide('bg_vs', TX('🌍 El Mundial'), 'kbA', TX('Cada 3 temporadas: convoca a 10 y lleva a Inazuma Japón a lo más alto'));
           d.insertAdjacentHTML('beforeend', `<div class="in-faces in-crests">${[3016, 3053, 3054, 3055, 3057, 3050, 3021, 3058, 3059, 3060, 3061, 3052].map((c, i) => `<img src="ui/crest${c}.png" alt="" style="animation-delay:${i * 0.08}s">`).join('')}</div>`);
         }],
-        [T * 9.8, () => slide('ill25', 'La historia, en 3 etapas', 'kbB', 'Del Fútbol Frontier a la Academia Alius… y al Mundial')],
+        [T * 9.8, () => slide('ill25', TX('La historia, en 3 etapas'), 'kbB', TX('Del Fútbol Frontier a la Academia Alius… y al Mundial'))],
         [T * 10.8, () => {
-          const d = slide('bg_vs', 'Cadenas, especiales e Infinito', 'kbB', 'Rivales cada vez más duros');
+          const d = slide('bg_vs', TX('Cadenas, especiales e Infinito'), 'kbB', TX('Rivales cada vez más duros'));
           d.insertAdjacentHTML('beforeend', `<div class="in-faces in-crests">${crests.map((c, i) => `<img src="ui/crest${c}.png" alt="" style="animation-delay:${i * 0.08}s">`).join('')}</div>`);
         }],
-        [T * 11.8, () => slide('ill15', 'Banda sonora original', 'kbA', `${nTracks} temas del Inazuma 1 y 2`)],
-        [T * 12.8, () => { boom(); slide('ill03', '¿Preparado?', 'kbB', 'Forma tu equipo y llega a la cima'); }],
+        [T * 11.8, () => slide('ill15', TX('Banda sonora original'), 'kbA', `${nTracks} ${TX('temas del Inazuma 1 y 2')}`)],
+        [T * 12.8, () => { boom(); slide('ill03', TX('¿Preparado?'), 'kbB', TX('Forma tu equipo y llega a la cima')); }],
         [T * 13.8, end],
       ];
       S.forEach(([ms, fn]) => at(ms, fn));
@@ -1968,15 +1981,15 @@ const App = (() => {
     const start = () => { if (settings.intro !== 0 && !pend) playIntro(first); else first(); };
     if (!Cloud.enabled() || (!(Cloud.loggedIn() && !Cloud.expired()) && !Cloud.pendingRedirect())) return start();
     // Con cuenta: mira la nube antes de empezar (máximo unos segundos; si no hay internet, se juega igual)
-    screen(`<div class="title"><img class="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>Comprobando tu partida…</span></div>`, 'bg_title');
+    screen(`<div class="title"><img class="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue"><span>${TX('Comprobando tu partida…')}</span></div>`, 'bg_title');
     let done = false;
-    const fallback = setTimeout(() => { if (!done) { done = true; UI.toast('La nube tarda en responder: juegas con la partida de este móvil', 3000); start(); } }, 8000);
+    const fallback = setTimeout(() => { if (!done) { done = true; UI.toast(TX('La nube tarda en responder: juegas con la partida de este móvil'), 3000); start(); } }, 8000);
     Cloud.sync().then(r => {
-      if (done) { if (r === 'downloaded') reloadGame('Cargando tu partida de la nube…'); return; }
+      if (done) { if (r === 'downloaded') reloadGame(TX('Cargando tu partida de la nube…')); return; }
       done = true; clearTimeout(fallback);
-      if (r === 'downloaded') return reloadGame('Cargando tu partida de la nube…');
+      if (r === 'downloaded') return reloadGame(TX('Cargando tu partida de la nube…'));
       if (r === 'conflict') return renderConflict(start);
-      if (r === 'offline') UI.toast('Sin conexión: tu partida se subirá cuando vuelva internet', 3000);
+      if (r === 'offline') UI.toast(TX('Sin conexión: tu partida se subirá cuando vuelva internet'), 3000);
       start();
     });
   };

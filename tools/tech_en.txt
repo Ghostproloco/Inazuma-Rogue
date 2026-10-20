@@ -1,0 +1,240 @@
+# Nombres en inglés de las técnicas (versión europea cuando se conoce; si no, traducción).
+# Formato: nombre en español|nombre en inglés. Lo aplica tools/i18n_data.py a gamedata.json.
+Regate múltiple|Multi Dribble
+Entrada huracán|Hurricane Tackle
+Torbellino dragón|Dragon Whirlwind
+Espejismo de balón|Illusion Ball
+Acelerón|Speed Burst
+Rueda infernal|Hell Wheel
+Corte flamígero|Flame Cut
+Zigzag chispeante|Zigzag Spark
+Equilibrismo|Balancing Act
+Maldición|Curse
+Superarmadillo|Super Armadillo
+Niebla venenosa|Poison Fog
+Escáner ataque|Scan Attack
+Confusión|Confusion
+Potenciación|Power Up
+Espejismo|Mirage
+Regate topo|Mole Dribble
+Remolino cortante|Cutting Whirl
+Giro de mono|Monkey Turn
+El muro|The Wall
+Barrido defensivo|Defensive Sweep
+Giro bobina|Coil Turn
+Sismo|Earthquake
+Robo rápido|Quick Draw
+Telaraña|Spider Web
+Ciclón|Cyclone
+Bola falsa|Fake Ball
+Ataque sombrío|Shadow Attack
+Pisotón de sumo|Sumo Stomp
+Embestida|Killer Slide
+Flecha huracán|Hurricane Arrow
+Corte giratorio|Spinning Cut
+Escáner defensa|Scan Defence
+Gravedad|Gravity
+Doppelgänger|Doppelgänger
+Trama|Plot
+Vendimia|Harvest
+Apisonadora|Steamroller
+Trampolín relámpago|Inazuma Drop
+Remate dragón|Dragon Crash
+Remate combinado|Twin Boost
+Tornado de fuego|Fire Tornado
+Chut de 100 toques|Hundred-Touch Kick
+Chut granada|Grenade Shot
+Triángulo letal|Death Zone
+Tiro fantasma|Phantom Shoot
+Remate halcón|Falcon Crash
+Ataque meteorito|Meteor Attack
+Remate serpiente|Serpent Shot
+Tiro giratorio|Spinning Shoot
+Tiro del cometa|Comet Shot
+Disparo rodante|Rolling Kick
+Remate múltiple|Multi Shot
+Tiro dinamita|Dynamite Shot
+Remate misil|Missile Shot
+Remate espiral|Spiral Shot
+Chut congelante|Freezing Shot
+Atajo tornado|Tornado Catch
+Mano celestial|God Hand
+Escudo de fuerza|Force Shield
+Despeje de fuego|Fire Punch
+Campo de fuerza|Force Field
+Espiral distorsión|Warp Spiral
+Puño vengativo|Fist of Justice
+Deslizamiento|Sliding Save
+Defensa triple|Triple Defence
+Despeje a presión|Power Clear
+Bloque dureza|Hard Block
+Escudo fuerza total|Full Power Shield
+Despeje de leñador|Woodcutter Clear
+Torbellino|Whirlwind
+Despeje cohete|Rocket Punch
+Garra salvaje|Wild Claw
+Muralla gigante|Giant Wall
+Hojarasca|Leaf Storm
+Cuchilla asesina|Killer Blade
+Muralla tsunami|Tsunami Wall
+Despeje explosivo|Explosive Punch
+Mano mágica|Majin The Hand
+Muralla infinita|Infinite Wall
+Pase cruzado|Cross Pass
+Rapto divino|Heavenly Rapture
+Psicorremate|Psycho Shot
+Ataque cóndor|Condor Dive
+Balón rodante|Rolling Ball
+Triángulo Z|Triangle Z
+Bateo total|Full Swing
+Disparo con rebotes|Bouncing Shot
+Cabezazo kung-fu|Kung Fu Head
+Tiro cegador|Blinding Shot
+Flecha divina|Divine Arrow
+Tornado inverso|Reverse Tornado
+Remate Tarzán|Tarzan Kick
+Sabiduría divina|Divine Wisdom
+Tornado dragón|Dragon Tornado
+Bola de fango|Mud Ball
+Pájaro de fuego|Firebird
+Ruptura relámpago|Inazuma Break
+Tiro galáctico|Galaxy Shot
+Pingüino emp. n.º2|Emperor Penguin No. 2
+Hora celestial|Heavenly Time
+Coz|Back Kick
+Entrada tormenta|Storm Tackle
+Luna creciente|Crescent Moon
+Truco de magia|Magic Trick
+Fénix|Phoenix
+Tiro chispadraco|Spark Dragon Shot
+Tornado oscuro|Dark Tornado
+Mega terremoto|Mega Quake
+Ataque afilado|Sharp Attack
+Sorpresa|Surprise
+Ventisca eterna|Eternal Blizzard
+Tormenta de fuego|Firestorm
+Remate tsunami|Tsunami Boost
+Triángulo letal 2|Death Zone 2
+La Tierra|The Earth
+Arco iris luminoso|Shining Rainbow
+Astro remate|Astro Break
+Bomba acrobática|Acrobat Bomb
+Técnica kung-fu|Kung Fu Technique
+Granada doble|Double Grenade
+Cabezazo yoyó|Yo-yo Header
+Remate en V|V Shot
+Tiro pirueta|Pirouette Shot
+Cañón dragón|Dragon Cannon
+Zapatazo dual|Dual Strike
+Aullido de lobo|Wolf Howl
+Pingüino emperador n.º1|Emperor Penguin No. 1
+Lecho de rosas|Bed of Roses
+Golf total|Full Golf
+Chut de 200 toques|Two-Hundred-Touch Kick
+Dragón terrestre|Earth Dragon
+Tripegaso|Triple Pegasus
+Supertrampolín r.|Super Inazuma Drop
+Rayo de Ganímedes|Ganymede Ray
+Relámpago saltón|Leaping Lightning
+Remate del águila|Eagle Shot
+Baile de mariposas|Butterfly Dance
+Disparo cósmico|Cosmic Shot
+Remate de Gaia|Gaia Break
+Empuje gemelo F|Twin Boost F
+Remate de seguridad|Safety Shot
+Supernova|Supernova
+Pingüino espacial|Space Penguin
+Remate guiverno|Wyvern Crash
+Ventisca guiverno|Wyvern Blizzard
+Fuego cruzado|Crossfire
+Fénix oscuro|Dark Phoenix
+Empuje trillizo|Triple Boost
+Neo tiro galáctico|Neo Galaxy Shot
+Remate asalto|Assault Shot
+Disparo sagrado|Sacred Shot
+Tiro torre de Osaka|Osaka Tower Shot
+Cañón de meteoritos|Meteor Cannon
+Lanza de Odín|Spear of Odin
+Llamarada atómica|Atomic Flare
+Balón iceberg|Iceberg Ball
+Ventisca de fuego|Fire Blizzard
+Regate espejismo|Mirage Dribble
+Descodificación|Decoding
+Avance flamígero|Flame Advance
+Carrera a 3 piernas|Three-Legged Race
+Regate aurora|Aurora Dribble
+Pared solitaria|Lone Wall
+Tuya-mía doble|Double Give-and-Go
+Pompa de chicle|Bubble Gum
+Prima donna|Prima Donna
+Armadillo circense|Circus Armadillo
+Coz 2|Back Kick 2
+Sprint triple|Triple Sprint
+Acelerrelámpago|Lightning Accel
+Aikido|Aikido
+Sorteo de balón|Ball Raffle
+Tornado venenoso|Poison Tornado
+Teleportación|Teleport
+Lluvia de meteoros|Meteor Shower
+Cruz del Sur|Southern Cross
+Regate rítmico|Rhythm Dribble
+Paipay gigante|Giant Fan
+Pantalla ígnea|Fire Screen
+Bomba géiser|Geyser Bomb
+Cometa|Comet
+Paisaje helado|Frozen Landscape
+Defensa múltiple|Multi Defence
+Voltereta circense|Circus Somersault
+Gravedad grave|Heavy Gravity
+Torre inexpugnable|Impregnable Tower
+Flash de fotones|Photon Flash
+Gravitación|Gravitation
+Dúo magma|Magma Duo
+Superpeonza|Super Spinning Top
+Bombazo|Big Bomb
+Corte volcánico|Volcano Cut
+Superpisotón de sumo|Super Sumo Stomp
+Robo planeta|Planet Steal
+Zona sigma|Sigma Zone
+Ciclón doble|Double Cyclone
+Emboscada defensiva|Defensive Ambush
+Baile de llamas|Flame Dance
+Cinto astral|Astral Belt
+Escudo corporal|Body Shield
+Zona de seguridad|Safety Zone
+Aplanadora|Bulldozer
+Olor embriagador|Intoxicating Scent
+Cortafuegos|Firewall
+Bloqueo ballena|Whale Block
+Campo torbellino|Whirlwind Field
+Tren loco|Crazy Train
+Rompehielos|Icebreaker
+Torre perfecta|Perfect Tower
+Manos infinitas|Infinite Hands
+Mandril|Mandrill
+Cabezonería|Stubborn Head
+Cortina aurora|Aurora Curtain
+Escudo protector|Protective Shield
+Lanzallamas|Flamethrower
+Colmillo de pantera|Panther Fang
+Destrozataladros|Drill Smasher
+Parada múltiple|Multi Save
+Uñas afiladas|Sharp Claws
+Bloqueo doble|Double Block
+Puños voladores|Flying Fists
+Tormenta de pétalos|Petal Storm
+Salto del cisne|Swan Leap
+Trimano celestial|Triple God Hand
+Agujero negro|Black Hole
+Muralla de escudos|Shield Wall
+Agujero de gusano|Wormhole
+Muro dimensional|Dimension Wall
+Constelación estelar|Star Constellation
+Superpuño invencible|Invincible Super Fist
+Combustión|Combustion
+Bloque de hielo|Ice Block
+Presa|Dam
+Súper relámpago|Super Lightning
+Chut de los 100 toques|Hundred-Touch Kick
+Escudo de fuerza total|Full Power Shield
+Pingüino emp. n.º1|Emperor Penguin No. 1

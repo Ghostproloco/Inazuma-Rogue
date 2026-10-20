@@ -39,3 +39,9 @@ Notas:
 
 ## Traer la partida de la versión antigua
 En la pantalla de bienvenida (y en 👤 Cuenta) está **«¿Jugabas en la versión antigua?»**: abre la versión antigua con un botón, explica dónde sacar el código y lo carga al pegarlo. También sirve un **enlace de transferencia** (`…/juego/#partida=IRZ1:…`), que se crea en Cuenta → Copias y código de partida.
+
+## Idiomas (español e inglés)
+- El jugador elige el idioma en **Ajustes → 🌐 Idioma · Language** (o con el botón de la bienvenida). La primera vez se usa el del navegador.
+- En el código, los textos se escriben en español dentro de `TX('…')` (huecos `{0}`, `{1}`… para números o nombres) y su traducción va en `src/en.js`.
+- Técnicas y equipos llevan su nombre en inglés en `gamedata.json` (`name_en`), puesto con `python3 tools/i18n_data.py` a partir de `tools/tech_en.txt`.
+- Para textos nuevos: escríbelos con `TX('…')`, ejecuta `node tools/i18n_sync.js missing` para ver los que faltan y añádelos con `node tools/i18n_sync.js add archivo.txt` (líneas `"clave"|traducción`). `test/i18n.js` avisa si falta alguno y juega una partida en inglés.

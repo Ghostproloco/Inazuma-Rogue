@@ -13,6 +13,8 @@ const Controls = (() => {
   return { apply, isTouch, pc: () => !isTouch() };
 })();
 
+// Textos fijos del HTML (data-tx en shell.html), para la traducción: TX('Saltar ▶▶') TX('Tú') TX('Rival') TX('Pausa') TX('Espacio') TX('Técnica')
+
 /* ---------- Sin zoom en el navegador ----------
    El iPhone ignora «user-scalable=no», así que se bloquean a mano: pellizco
    y, en ordenador, Ctrl + rueda o Ctrl + / Ctrl -. */
@@ -84,8 +86,8 @@ const Input = (() => {
   // LB cambiar jugador · LT cambiar técnica · RT esprint · Start pausa · stick izquierdo o cruceta para moverte
   const GP = { 0: 'A', 1: 'B', 3: 'tech', 5: 'dribble', 4: 'switch', 6: 'techNext' };
   let gpPrev = [], gpState = { x: 0, y: 0, sprint: false, shoot: false, pass: false };
-  addEventListener('gamepadconnected', e => { try { UI.toast('🎮 Mando conectado: ' + (e.gamepad.id || '').split('(')[0].trim().slice(0, 30), 2200); } catch (_) {} document.body.classList.add('gamepad'); });
-  addEventListener('gamepaddisconnected', () => { try { UI.toast('Mando desconectado', 1600); } catch (_) {} if (![...(navigator.getGamepads ? navigator.getGamepads() : [])].some(Boolean)) document.body.classList.remove('gamepad'); });
+  addEventListener('gamepadconnected', e => { try { UI.toast(TX('🎮 Mando conectado: ') + (e.gamepad.id || '').split('(')[0].trim().slice(0, 30), 2200); } catch (_) {} document.body.classList.add('gamepad'); });
+  addEventListener('gamepaddisconnected', () => { try { UI.toast(TX('Mando desconectado'), 1600); } catch (_) {} if (![...(navigator.getGamepads ? navigator.getGamepads() : [])].some(Boolean)) document.body.classList.remove('gamepad'); });
   function pollPad() {
     const pads = navigator.getGamepads ? navigator.getGamepads() : [];
     const g = [...pads].find(p => p && p.connected);
@@ -128,35 +130,35 @@ const Input = (() => {
 const Pad = (() => {
   const SETS = {
     attack: [
-      { label: 'Tiro', sub: 'mantener', cls: 'big', hold: true },
-      { label: 'Pase', sub: 'mantén', cls: 's2', action: 'A', holdPass: true },
-      { label: 'Técnica', cls: 's3 fire', action: 'tech', tech: true },
+      { label: TX('Tiro'), sub: 'mantener', cls: 'big', hold: true },
+      { label: TX('Pase'), sub: TX('mantén'), cls: 's2', action: 'A', holdPass: true },
+      { label: TX('Técnica'), cls: 's3 fire', action: 'tech', tech: true },
       { label: '⇄', cls: 's6 tnext', action: 'techNext' },
       { label: 'Profund.', cls: 's4', action: 'B' },
-      { label: 'Regate', cls: 's5', action: 'dribble' },
+      { label: TX('Regate'), cls: 's5', action: 'dribble' },
     ],
     gk: [
-      { label: 'Despeje', sub: 'suelta', cls: 'big', hold: true },
-      { label: 'Pase', sub: 'mantén', cls: 's2', action: 'A', holdPass: true },
-      { label: 'Saque<br>largo', cls: 's4', action: 'B' },
+      { label: TX('Despeje'), sub: 'suelta', cls: 'big', hold: true },
+      { label: TX('Pase'), sub: TX('mantén'), cls: 's2', action: 'A', holdPass: true },
+      { label: TX('Saque<br>largo'), cls: 's4', action: 'B' },
     ],
     defense: [
-      { label: 'Entrada', cls: 'big', action: 'A' },
-      { label: 'Cambiar', cls: 's2', action: 'switch' },
-      { label: 'Técnica', cls: 's3 fire', action: 'tech', tech: true },
+      { label: TX('Entrada'), cls: 'big', action: 'A' },
+      { label: TX('Cambiar'), cls: 's2', action: 'switch' },
+      { label: TX('Técnica'), cls: 's3 fire', action: 'tech', tech: true },
       { label: '⇄', cls: 's6 tnext', action: 'techNext' },
     ],
   };
   const pad = document.getElementById('pad'), kh = document.getElementById('keyhud');
   const KEYS = {
-    attack: '<b>WASD</b> mover · <b>Shift</b> esprint · <b>J</b> pase (mantén = fuerte) · <b>K</b> profundidad · <b>I</b> regate · <b>L</b> tiro (mantén) · <b>U</b> cambiar técnica',
-    defense: '<b>WASD</b> mover · <b>Shift</b> esprint · <b>J</b> entrada · <b>Q</b> cambiar · <b>U</b> cambiar técnica',
-    gk: '<b>Portero</b>: <b>WASD</b> mover por el área · <b>J</b> pase (mantén = fuerte) · <b>K</b> saque largo · <b>L</b> despeje',
+    attack: '<b>WASD</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K</b> ' + TX('profundidad ·') + ' <b>I</b> ' + TX('regate ·') + ' <b>L</b> ' + TX('tiro (mantén) ·') + ' <b>U</b> ' + TX('cambiar técnica'),
+    defense: '<b>WASD</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J</b> ' + TX('entrada ·') + ' <b>Q</b> ' + TX('cambiar ·') + ' <b>U</b> ' + TX('cambiar técnica'),
+    gk: '<b>' + TX('Portero') + '</b>: <b>WASD</b> ' + TX('mover por el área ·') + ' <b>J</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K</b> ' + TX('saque largo ·') + ' <b>L</b> ' + TX('despeje'),
   };
   let mode = null, techBtn = null, techLbl = null, lastName = null, lastKH = null, dribBtn = null, lastDrib = -1, nextBtn = null;
   function render(m) {
     if (m === mode) return;
-    kh.querySelector('.kh-keys').innerHTML = KEYS[m] + ' · <b>P</b> pausa';
+    kh.querySelector('.kh-keys').innerHTML = KEYS[m] + ' · <b>P</b> ' + TX('pausa');
     mode = m; pad.innerHTML = ''; techBtn = null; dribBtn = null; nextBtn = null; lastDrib = -1; lastName = null;
     Input.holdShoot(false); Input.holdPass(false);
     SETS[m].forEach(b => {
@@ -184,7 +186,7 @@ const Pad = (() => {
       const t = kh.querySelector('.kh-tech');
       t.classList.toggle('off', !ctx); t.classList.toggle('ready', !!(ctx && ctx.ready));
       t.dataset.elem = ctx ? ctx.tech.elem : '';
-      t.querySelector('span').textContent = ctx ? ctx.tech.name : 'Sin técnica';
+      t.querySelector('span').textContent = ctx ? ctx.tech.name : TX('Sin técnica');
       t.style.setProperty('--cd', ctx && !ctx.ready ? ctx.frac.toFixed(2) : 0);
     }
     if (!techBtn) return;
@@ -224,13 +226,13 @@ const UI = (() => {
     const el = $('dbg'); if (!App.settings.debug) { el.hidden = true; return; }
     if (now - dbgT < 250) return; dbgT = now; el.hidden = false;
     const me = Logic.controlled(s), b = s.ball;
-    el.textContent = `FPS ${fps.toFixed(0)} · velocidad ${GAME_SPEED} · ${s.settings.difficulty}\n` +
-      `balón ${Math.hypot(b.vx, b.vy).toFixed(1)} m/s · z ${b.z.toFixed(1)}${b.shot ? ' · tiro ' + b.shot.power.toFixed(0) : ''}\n` +
-      `${me.name}: ${me.techs.map(t => t.name + ' ' + Math.ceil(me.cd[t.id] || 0) + 's').join(' · ') || 'sin técnicas'}`;
+    el.textContent = `FPS ${fps.toFixed(0)} ${TX('· velocidad')} ${GAME_SPEED} · ${s.settings.difficulty}${'\\n'}` +
+      `${TX('balón')} ${Math.hypot(b.vx, b.vy).toFixed(1)} ${TX('m/s · z')} ${b.z.toFixed(1)}${b.shot ? TX(' · tiro ') + b.shot.power.toFixed(0) : ''}${'\\n'}` +
+      `${me.name}: ${me.techs.map(t => t.name + ' ' + Math.ceil(me.cd[t.id] || 0) + 's').join(' · ') || TX('sin técnicas')}`;
   }
   function update(s) {
     debug(s);
-    const clock = (s.golden ? 'Oro ' : '') + Math.floor(s.time / 60) + ':' + String(Math.floor(s.time % 60)).padStart(2, '0');
+    const clock = (s.golden ? TX('Oro ') : '') + Math.floor(s.time / 60) + ':' + String(Math.floor(s.time % 60)).padStart(2, '0');
     if (last.clock !== clock) { $('clock').textContent = clock; last.clock = clock; }
     if (last.a !== s.score.A) { $('sA').textContent = s.score.A; last.a = s.score.A; }
     if (last.b !== s.score.B) { $('sB').textContent = s.score.B; last.b = s.score.B; }
@@ -249,7 +251,7 @@ const UI = (() => {
     c.className = 'cutin'; void c.offsetWidth;
     c.className = 'cutin on ' + (EL(elem).css || 'neutro') + (team === 'B' ? ' rival' : '');
     c.querySelector('.ci-txt b').textContent = name;
-    c.querySelector('.ci-txt small').textContent = (team === 'B' ? 'Rival · ' : '') + (TYPE_TXT[kind] || 'Supertécnica');
+    c.querySelector('.ci-txt small').textContent = (team === 'B' ? TX('Rival · ') : '') + (TYPE_TXT[kind] || TX('Supertécnica'));
     const slot = c.querySelector('.ci-face'); slot.innerHTML = '';
     if (ref) slot.appendChild(Sprites.face(ref, 80));
     clearTimeout(cutT);
@@ -640,30 +642,30 @@ class MatchScene extends Phaser.Scene {
       switch (e.type) {
         case 'goal':
           Sound.sfx('goal'); Sound.jingle(e.team === 'A' ? 'goal' : null);
-          UI.banner(e.team === 'A' ? '¡Gol!' : 'Gol de ' + s.teams.B.name, e.team === 'A' ? '' : 'rival', 1800);
+          UI.banner(e.team === 'A' ? TX('¡Gol!') : TX('Gol de ') + s.teams.B.name, e.team === 'A' ? '' : 'rival', 1800);
           this.cameras.main.shake(260, 0.006);
           break;
-        case 'golden': UI.banner('¡Gol de oro!', 'gold', 1600); UI.toast('El primero que marque, gana', 2000); break;
+        case 'golden': UI.banner(TX('¡Gol de oro!'), 'gold', 1600); UI.toast(TX('El primero que marque, gana'), 2000); break;
         case 'save':
           Sound.sfx('save');
-          if (e.elem) { this.cameras.main.shake(220, 0.008); UI.banner('¡Parada!', 'gold', 900); }
-          UI.toast(e.team === 'A' ? '¡Paradón!' : '¡Para el portero rival!');
+          if (e.elem) { this.cameras.main.shake(220, 0.008); UI.banner(TX('¡Parada!'), 'gold', 900); }
+          UI.toast(e.team === 'A' ? TX('¡Paradón!') : TX('¡Para el portero rival!'));
           this.fxRing(e.x * PX, e.y * PX, e.elem ? EL(e.elem).main : 0xffffff, e.big ? 3.4 : 2, e.y * PX + 5);
           if (e.elem) this.burst(e.elem, e.x * PX, e.y * PX - 10, 26, e.y * PX + 6);
           break;
-        case 'catch': UI.toast(e.team === 'A' ? 'Tu portero la atrapa' : 'El portero rival la atrapa'); break;
-        case 'beaten': UI.toast('¡La técnica supera al portero!'); break;
+        case 'catch': UI.toast(e.team === 'A' ? TX('Tu portero la atrapa') : TX('El portero rival la atrapa')); break;
+        case 'beaten': UI.toast(TX('¡La técnica supera al portero!')); break;
         case 'setpiece': {
           Sound.sfx('whistle');
-          const who = e.team === 'A' ? 'para ti' : 'para ' + s.teams.B.name;
-          const T = { banda: 'Saque de banda', puerta: 'Saque de puerta', corner: 'Córner', offside: '¡Fuera de juego!' }[e.kind];
+          const who = e.team === 'A' ? TX('para ti') : 'para ' + s.teams.B.name;
+          const T = { banda: TX('Saque de banda'), puerta: TX('Saque de puerta'), corner: TX('Córner'), offside: TX('¡Fuera de juego!') }[e.kind];
           if (e.kind === 'offside' || e.kind === 'corner') UI.banner(T, e.kind === 'offside' ? 'flag' : 'gold', 1100);
           UI.toast(T + ' ' + who, 1400);
           break;
         }
         case 'tackle':
           Sound.sfx(e.ok ? 'tackle' : 'whiff');
-          if (e.ok) { this.dust.setDepth(e.y * PX + 5); this.dust.explode(14, e.x * PX, e.y * PX); if (e.team === 'A') UI.toast('¡Entrada!'); }
+          if (e.ok) { this.dust.setDepth(e.y * PX + 5); this.dust.explode(14, e.x * PX, e.y * PX); if (e.team === 'A') UI.toast(TX('¡Entrada!')); }
           break;
         case 'shot': Sound.sfx('kick'); break;
         case 'dribble': Sound.sfx('whiff'); this.dust.setDepth(e.y * PX - 1); this.dust.explode(6, e.x * PX, e.y * PX); break;
@@ -690,9 +692,9 @@ class MatchScene extends Phaser.Scene {
         case 'blockOk':
           this.fxRing(e.x * PX, e.y * PX, EL(e.elem).main, 2.6, e.y * PX + 5);
           this.burst(e.elem, e.x * PX, e.y * PX - 14, 24, e.y * PX + 3);
-          if (e.team === 'A') UI.toast('¡Bloqueo!');
+          if (e.team === 'A') UI.toast(TX('¡Bloqueo!'));
           break;
-        case 'dodgeFail': UI.toast('¡' + e.name + ' lee el regate!'); break;
+        case 'dodgeFail': UI.toast(TX('¡') + e.name + TX(' lee el regate!')); break;
         case 'msg': UI.toast(e.text); break;
         case 'end': Sound.sfx('whistleEnd'); App.matchEnded(s); break;
       }

@@ -1,7 +1,7 @@
 const fs = require('fs'), vm = require('vm');
 const S = require('path').join(__dirname,'..','src')+'/';
 const store = {};
-const ctx = { Sprites: { collFile: pd => 'c' + String(pd.cs[0]).padStart(2, '0') + '.png' }, console, Math, JSON, Object, Array, Set, Map, localStorage: { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; } } };
+const ctx = { TX: (s, ...a) => a.length ? s.replace(/\{(\d+)\}/g, (m, i) => a[i]) : s, TXn: (n, a, b) => (n === 1 ? a : b).replace('{0}', n), Sprites: { collFile: pd => 'c' + String(pd.cs[0]).padStart(2, '0') + '.png' }, console, Math, JSON, Object, Array, Set, Map, localStorage: { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; } } };
 ctx.GAME = JSON.parse(fs.readFileSync(require('path').join(__dirname,'..','juego','gamedata.json'), 'utf8'));
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(S + 'logic.js', 'utf8') + '\n' + fs.readFileSync(S + 'run.js', 'utf8') + '\nthis.Logic=Logic;this.Run=Run;this.Profile=Profile;this.Gacha=Gacha;this.STAGE_ORDER=STAGE_ORDER;this.rivalTeam=rivalTeam;this.TEAM=TEAM;', ctx);

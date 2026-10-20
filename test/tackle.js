@@ -1,7 +1,7 @@
 // Entradas: nadie se queda congelado al robar ni al cambiar de jugador
 const fs = require('fs'), vm = require('vm'), path = require('path');
 const S = path.join(__dirname, '..', 'src') + '/';
-const ctx = { console, Math, JSON, Object, Array, Set, Map, localStorage: { getItem: () => null, setItem: () => {} } };
+const ctx = { TX: (s, ...a) => a.length ? s.replace(/\{(\d+)\}/g, (m, i) => a[i]) : s, TXn: (n, a, b) => (n === 1 ? a : b).replace('{0}', n), console, Math, JSON, Object, Array, Set, Map, localStorage: { getItem: () => null, setItem: () => {} } };
 ctx.GAME = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'juego', 'gamedata.json'), 'utf8'));
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(S + 'logic.js', 'utf8') + '\n' + fs.readFileSync(S + 'run.js', 'utf8') + '\nthis.Logic=Logic;this.rivalTeam=rivalTeam;', ctx);
@@ -34,7 +34,7 @@ for (let n = 0; n < 60; n++) {
   for (let i = 0; i < 300 && !(busy(def) && !def.tackle); i++) { Logic.update(s, idle(), 1 / 60); s.events.length = 0; def.x = holder.x + 1.5; def.y = holder.y; if (s.ball.owner !== holder) Logic._t.take(s, holder); }
   Logic._t.take(s, def);   // se queda el balón (rebote, balón suelto…) mientras preparaba la entrada
   let still = 0;
-  for (let i = 0; i < 60; i++) { Logic.update(s, idle(), 1 / 60); s.events.length = 0; if (s.ball.owner === def && Math.hypot(def.dvx, def.dvy) < 0.1 && def.stun <= 0) still++; if (s.ball.owner === def && def.tackle) tackleWithBall++; }
+  for (let i = 0; i < 60; i++) { Logic.update(s, idle(), 1 / 60); s.events.length = 0; if (s.ball.owner === def && Math.hypot(def.dvx, def.dvy) < 0.1 && def.stun <= 0) still++; if (s.ball.owner === def && def.tackle && !def.tackle.ok) tackleWithBall++; }
   stuckSum += still;
 }
 ok(stuckSum / 60 < 8, 'con el balón no se queda parado (media ' + (stuckSum / 60).toFixed(1) + ' fotogramas quieto)');

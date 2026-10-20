@@ -6,7 +6,7 @@
    ===================================================================== */
 const CAREER_KEY = 'inazuma-carrera';
 const YOU = 'TU';                               // clave de tu club en las tablas
-const DIV_NAME = { 1: 'Primera', 2: 'Segunda', 3: 'Tercera' };
+const DIV_NAME = { 1: TX('Primera'), 2: TX('Segunda'), 3: TX('Tercera') };
 const DIV_FACTOR = { 1: 0.95, 2: 0.85, 3: 0.72 }; // fuerza de los rivales según la división
 const DIV_DIFF = { 1: 'dificil', 2: 'medio', 3: 'facil' };
 const DIV_TICKET = { 1: 170, 2: 105, 3: 60 };   // taquilla por victoria
@@ -22,30 +22,30 @@ const SCHED = [null, 'L', 'L', 'C', 'L', 'L', 'C', 'L', 'L', 'C', 'L', 'L', 'C',
 const WEEKS = SCHED.length - 1;
 const LEAGUE_WEEKS = SCHED.map((t, w) => t === 'L' ? w : null).filter(w => w != null);
 const CUP_WEEKS = SCHED.map((t, w) => t === 'C' ? w : null).filter(w => w != null);   // 5 rondas
-const CUP_ROUND = ['Dieciseisavos', 'Octavos', 'Cuartos', 'Semifinal', 'Final'];
-const CAREER_DIFF = { facil: { name: 'Fácil', mul: 0.93, shift: -1 }, normal: { name: 'Normal', mul: 1, shift: 0 }, dificil: { name: 'Difícil', mul: 1.07, shift: 1 } };
+const CUP_ROUND = [TX('Dieciseisavos'), TX('Octavos'), TX('Cuartos'), TX('Semifinal'), TX('Final')];
+const CAREER_DIFF = { facil: { name: TX('Fácil'), mul: 0.93, shift: -1 }, normal: { name: TX('Normal'), mul: 1, shift: 0 }, dificil: { name: TX('Difícil'), mul: 1.07, shift: 1 } };
 const HOF_KEY = 'inazuma-salon';
 const MANAGERS = [13, 14, 15, 212, 21440];      // Nelly, Celia, Silvia, Seymour Hillman (1 y 2)
 const SQUAD_MAX = 12, SQUAD_MIN = 7;
 const LAST_YEAR = 6;   // los jugadores se gradúan (se van) al acabar 6º curso
 const YEAR_GROWTH = 1; // puntos que sube cada stat al pasar de curso
 const TACTICS = {
-  equilibrada: { name: 'Equilibrada', desc: 'Sin riesgos', for: 1, ag: 1, forma: 0 },
-  ofensiva:    { name: 'Ofensiva', desc: 'Más goles a favor… y en contra', for: 1.28, ag: 1.22, forma: 0 },
-  defensiva:   { name: 'Defensiva', desc: 'Encerrarse atrás', for: 0.78, ag: 0.72, forma: 0 },
-  presion:     { name: 'Presión alta', desc: 'Roba arriba, cansa más', for: 1.12, ag: 0.9, forma: -6 },
+  equilibrada: { name: TX('Equilibrada'), desc: TX('Sin riesgos'), for: 1, ag: 1, forma: 0 },
+  ofensiva:    { name: TX('Ofensiva'), desc: TX('Más goles a favor… y en contra'), for: 1.28, ag: 1.22, forma: 0 },
+  defensiva:   { name: TX('Defensiva'), desc: TX('Encerrarse atrás'), for: 0.78, ag: 0.72, forma: 0 },
+  presion:     { name: TX('Presión alta'), desc: TX('Roba arriba, cansa más'), for: 1.12, ag: 0.9, forma: -6 },
 };
 const ACTIVITIES = {
-  entrenar: { name: 'Entrenar', desc: 'Sube una estadística a todo el equipo', forma: -12 },
-  tecnicas: { name: 'Practicar técnicas', desc: 'Pueden aprender supertécnicas nuevas', forma: -8 },
-  ojear:    { name: 'Ojear', desc: 'Busca joyas baratas por la ciudad', forma: 0 },
-  descansar:{ name: 'Descansar', desc: 'Recupera la forma del equipo', forma: 35 },
+  entrenar: { name: TX('Entrenar'), desc: TX('Sube una estadística a todo el equipo'), forma: -12 },
+  tecnicas: { name: TX('Practicar técnicas'), desc: TX('Pueden aprender supertécnicas nuevas'), forma: -8 },
+  ojear:    { name: TX('Ojear'), desc: TX('Busca joyas baratas por la ciudad'), forma: 0 },
+  descansar:{ name: TX('Descansar'), desc: TX('Recupera la forma del equipo'), forma: 35 },
 };
 const FACILITIES = {
-  campo:     { name: 'Campo de entrenamiento', desc: '+1 extra en cada entrenamiento por nivel', cost: [300, 800, 1800] },
-  ojeadores: { name: 'Red de ojeadores', desc: 'Más joyas al ojear y de mejor nivel', cost: [250, 650, 1500] },
-  spa:       { name: 'Enfermería', desc: 'Descansar recupera más y los partidos cansan menos', cost: [200, 550, 1200] },
-  estadio:   { name: 'Estadio', desc: '+25 % de taquilla por nivel', cost: [400, 1000, 2200] },
+  campo:     { name: TX('Campo de entrenamiento'), desc: TX('+1 extra en cada entrenamiento por nivel'), cost: [300, 800, 1800] },
+  ojeadores: { name: TX('Red de ojeadores'), desc: TX('Más joyas al ojear y de mejor nivel'), cost: [250, 650, 1500] },
+  spa:       { name: TX('Enfermería'), desc: TX('Descansar recupera más y los partidos cansan menos'), cost: [200, 550, 1200] },
+  estadio:   { name: TX('Estadio'), desc: TX('+25 % de taquilla por nivel'), cost: [400, 1000, 2200] },
 };
 // Equipación y escudo
 const KIT_COLORS = ['#e8c21a', '#f2f2f2', '#d8361a', '#1f4fc0', '#2f9a3a', '#ff7a1a', '#7a3ad8', '#222222', '#3fb6e8', '#ff8ac0', '#8a5a2a', '#0e2a6a'];
@@ -104,7 +104,7 @@ const Career = {
 
   /* ---------- Crear ---------- */
   create(manager, school, diff = 'normal') {
-    const c = this.data = { v: 2, diff, manager, school: school || 'Instituto Inazuma', season: 1, week: 1, fame: 25, money: 300, forma: 100,
+    const c = this.data = { v: 2, diff, manager, school: school || TX('Instituto Inazuma'), season: 1, week: 1, fame: 25, money: 300, forma: 100,
       squad: [], formation: '1-2-1-1', lineup: null, tactic: 'equilibrada', divs: JSON.parse(JSON.stringify(CAREER_START)),
       titles: [], history: [], over: null, goal: false, lastActivity: null, log: [] };
     c.divs[3].push(YOU);
@@ -325,7 +325,7 @@ const Career = {
       const k = STAT_KEYS.includes(statKey) ? statKey : 'tiro', n = 2 + c.fac.campo;
       c.squad.forEach(m => { m.up[k] = (m.up[k] || 0) + n; });
       const lucky = pickR(c.squad), k2 = pickR(STAT_KEYS); lucky.up[k2] = (lucky.up[k2] || 0) + 1;
-      msg = `Entrenamiento de ${STAT_LABEL[k]}: +${n} a todo el equipo. ${PLAYER(lucky.id).name} destaca (+1 ${STAT_LABEL[k2]}).`;
+      msg = `${TX('Entrenamiento de')} ${STAT_LABEL[k]}: +${n} ${TX('a todo el equipo.')} ${PLAYER(lucky.id).name} ${TX('destaca (+1')} ${STAT_LABEL[k2]}).`;
     } else if (act === 'tecnicas') {
       const learned = [];
       c.squad.forEach(m => {
@@ -334,7 +334,7 @@ const Career = {
         if (next != null && cRnd() < 0.45) { m.known.push(next); learned.push(pd.name.split(' ')[0] + ': ' + TECH(next).name); }
         m.up.control = (m.up.control || 0) + 1;
       });
-      msg = learned.length ? '¡Supertécnicas nuevas! ' + learned.join(' · ') : 'Nadie ha aprendido nada nuevo esta vez, pero todos mejoran el control (+1).';
+      msg = learned.length ? TX('¡Supertécnicas nuevas! ') + learned.join(' · ') : TX('Nadie ha aprendido nada nuevo esta vez, pero todos mejoran el control (+1).');
     } else if (act === 'ojear') {
       const n = 3 + (c.fac.ojeadores >= 2 ? 1 : 0), lvl = c.fac.ojeadores;
       const want = { comun: 1, rara: 0.6 + lvl * 0.25, epica: 0.12 + lvl * 0.12, legendaria: lvl >= 3 ? 0.03 : 0 };
@@ -345,8 +345,8 @@ const Career = {
         found.push(p.id);
       }
       c.scout = found.map(id => ({ id, price: Math.round(this.value(id) * 0.55), until: c.week + 3 }));
-      msg = `Tus ojeadores han encontrado ${found.length} jugadores. Míralos en Fichajes → Ojeados (baratos, pero solo durante 3 semanas).`;
-    } else if (act === 'descansar') msg = 'El equipo descansa y recupera la forma.';
+      msg = `${TX('Tus ojeadores han encontrado')} ${found.length} ${TX('jugadores. Míralos en Fichajes → Ojeados (baratos, pero solo durante 3 semanas).')}`;
+    } else if (act === 'descansar') msg = TX('El equipo descansa y recupera la forma.');
     const fm = act === 'descansar' ? A.forma + c.fac.spa * 8 : A.forma;
     c.forma = Math.max(10, Math.min(100, c.forma + fm));
     c.lastActivity = act;
@@ -384,7 +384,7 @@ const Career = {
       C.rounds.push(res); out.results.cup = res; out.cupRound = C.round;
       const win = res.map(r => r[5]).concat(C.round === 0 ? C.byes : []);
       if (!win.includes(YOU) && (C.ties.some(p => p.includes(YOU)))) C.out = true;
-      if (win.length === 1) { C.winner = win[0]; out.cupWinner = win[0]; if (win[0] === YOU) c.titles.push({ season: c.season, name: 'Copa Inazuma' }); }
+      if (win.length === 1) { C.winner = win[0]; out.cupWinner = win[0]; if (win[0] === YOU) c.titles.push({ season: c.season, name: TX('Copa Inazuma') }); }
       else { const w = win.sort(() => cRnd() - 0.5); C.ties = []; for (let i = 0; i < w.length; i += 2) C.ties.push([w[i], w[i + 1]]); }
       C.round++;
     } else if ((t === 'P1' || t === 'P2') && c.po) {
@@ -465,11 +465,11 @@ const Career = {
     const up2 = [...table[2].slice(0, 2), poW[2]], up3 = [...table[3].slice(0, 2), poW[3]];
     const down1 = table[1].slice(-3), down2 = table[2].slice(-3);
     const pos = sum.pos;
-    if (pos === 1) { sum.champion = true; c.titles.push({ season: c.season, name: 'Liga ' + DIV_NAME[d] }); sum.fame += 15; sum.money += DIV_PRIZE[d]; }
+    if (pos === 1) { sum.champion = true; c.titles.push({ season: c.season, name: TX('Liga ') + DIV_NAME[d] }); sum.fame += 15; sum.money += DIV_PRIZE[d]; }
     else sum.money += Math.round(DIV_PRIZE[d] * Math.max(0.08, (11 - pos) / 20));
     sum.cupWinner = c.cup && c.cup.winner;
     if (d === 1 && pos === 1 && !c.goal) { c.goal = true; sum.goal = true; }
-    if (d > 1 && up2.concat(up3).includes(YOU)) { sum.moves.push('up'); sum.fame += 10; if (poW[d] === YOU) { sum.playoff = true; c.titles.push({ season: c.season, name: 'Playoff de ascenso' }); } }
+    if (d > 1 && up2.concat(up3).includes(YOU)) { sum.moves.push('up'); sum.fame += 10; if (poW[d] === YOU) { sum.playoff = true; c.titles.push({ season: c.season, name: TX('Playoff de ascenso') }); } }
     if (d < 3 && (d === 1 ? down1 : down2).includes(YOU)) { sum.moves.push('down'); sum.fame -= 15; }
     if (d === 3 && pos >= 8) { sum.fame -= c.season === 1 ? 4 : 12; sum.warning = true; }   // el primer año, el director es comprensivo
     c.divs[1] = c.divs[1].filter(k => !down1.includes(k)).concat(up2);
@@ -523,12 +523,12 @@ const Career = {
   resolveYouth(youthId, releaseId) {
     const c = this.data, i = (c.pendingYouth || []).findIndex(m => m.id === youthId); if (i < 0) return { ok: false };
     const kid = c.pendingYouth.splice(i, 1)[0];
-    if (releaseId == null) { this.save(); return { ok: true, msg: PLAYER(kid.id).name + ' se va a otro instituto.' }; }
+    if (releaseId == null) { this.save(); return { ok: true, msg: PLAYER(kid.id).name + TX(' se va a otro instituto.') }; }
     const out = c.squad.find(m => m.id === releaseId); if (!out) { c.pendingYouth.splice(i, 0, kid); return { ok: false }; }
     c.squad = c.squad.filter(m => m !== out); c.squad.push(kid);
     if (c.lineup.includes(releaseId)) this.autoLineup();   // solo se recoloca si se iba un titular
-    c.news.unshift(`T${c.season}: ${PLAYER(out.id).name} deja el club y entra ${PLAYER(kid.id).name} de la cantera`); c.news.length = Math.min(c.news.length, 20);
-    this.save(); return { ok: true, msg: PLAYER(kid.id).name + ' entra en la plantilla.' };
+    c.news.unshift(`${TX('T{0}', c.season)}: ${PLAYER(out.id).name} ${TX('deja el club y entra')} ${PLAYER(kid.id).name} ${TX('de la cantera')}`); c.news.length = Math.min(c.news.length, 20);
+    this.save(); return { ok: true, msg: PLAYER(kid.id).name + TX(' entra en la plantilla.') };
   },
 
   /* ---------- Fichajes ---------- */
@@ -570,12 +570,12 @@ const Career = {
   },
   canSign() {
     const c = this.data;
-    if (c.squad.length >= SQUAD_MAX) return 'Tu plantilla está llena (máximo ' + SQUAD_MAX + '). Vende o libera a alguien.';
+    if (c.squad.length >= SQUAD_MAX) return TX('Tu plantilla está llena (máximo ') + SQUAD_MAX + TX('). Vende o libera a alguien.');
     return null;
   },
   sign(id, price, from) {
     const c = this.data, err = this.canSign(); if (err) return { ok: false, msg: err };
-    if (c.money < price) return { ok: false, msg: 'No tienes dinero suficiente.' };
+    if (c.money < price) return { ok: false, msg: TX('No tienes dinero suficiente.') };
     c.money -= price;
     const pd = PLAYER(id), fromClub = from && c.clubs[from];
     const year = 1 + Math.floor(cRnd() * (LAST_YEAR - 1));   // nunca llega alguien a punto de irse
@@ -587,9 +587,9 @@ const Career = {
     }
     c.scout = (c.scout || []).filter(s => s.id !== id);
     if (c.market) c.market.libres = c.market.libres.filter(x => x !== id);
-    c.news.unshift(`T${c.season} S${c.week}: fichaje de ${pd.name} por ${price} 💰${from ? ' (' + this.teamName(from) + ')' : ''}`); c.news.length = Math.min(c.news.length, 20);
+    c.news.unshift(`${TX('T{0} S{1}', c.season, c.week)}${TX(': fichaje de')} ${pd.name} ${TX('por')} ${price} 💰${from ? ' (' + this.teamName(from) + ')' : ''}`); c.news.length = Math.min(c.news.length, 20);
     this.save();
-    return { ok: true, msg: `¡${pd.name} ficha por ${c.school}! (${year}º curso)` };
+    return { ok: true, msg: `${TX('¡')}${pd.name} ${TX('ficha por')} ${c.school}! (${TX('{0}º curso', year)})` };
   },
   replacement(role, maxAvg) {
     const pool = this.freePool(p => p.role === role && this.sumIE(p) / STAT_KEYS.length <= maxAvg);
@@ -599,7 +599,7 @@ const Career = {
   // Negociación con un club: acepta, rechaza o contraoferta
   offer(key, id, amount) {
     const c = this.data, k = key + ':' + id, N = c.neg[k] = c.neg[k] && c.neg[k].week === c.week ? c.neg[k] : { week: c.week, tries: 0, closed: false, counter: null };
-    if (N.closed) return { res: 'closed', msg: `${this.teamName(key)} no quiere seguir negociando esta semana.` };
+    if (N.closed) return { res: 'closed', msg: `${this.teamName(key)} ${TX('no quiere seguir negociando esta semana.')}` };
     const club = c.clubs[key], best = club.slice().sort((a, b) => this.sumIE(PLAYER(b.id)) - this.sumIE(PLAYER(a.id)))[0];
     let ask = this.value(id, key);
     if (best && best.id === id) ask *= 1.5;                           // su estrella cuesta más
@@ -611,37 +611,37 @@ const Career = {
     if (amount >= ask) { this.save(); return { res: 'accept', price: amount }; }
     if (amount >= ask * 0.8 && N.tries < 3) {
       N.counter = Math.round((ask * (1 + cRnd() * 0.08)) / 5) * 5;
-      this.save(); return { res: 'counter', price: N.counter, msg: `${this.teamName(key)} pide ${N.counter} 💰.` };
+      this.save(); return { res: 'counter', price: N.counter, msg: `${this.teamName(key)} ${TX('pide')} ${N.counter} 💰.` };
     }
     if (N.tries >= 3) N.closed = true;
     this.save();
-    return { res: 'reject', msg: N.closed ? `${this.teamName(key)} se cansa y cierra la negociación hasta la semana que viene.` : `${this.teamName(key)} rechaza la oferta: es demasiado poco.` };
+    return { res: 'reject', msg: N.closed ? `${this.teamName(key)} ${TX('se cansa y cierra la negociación hasta la semana que viene.')}` : `${this.teamName(key)} ${TX('rechaza la oferta: es demasiado poco.')}` };
   },
   // Vender: un club de la liga paga el 70 % de su valor
   sell(id) {
     const c = this.data;
-    if (c.squad.length <= SQUAD_MIN) return { ok: false, msg: `Necesitas al menos ${SQUAD_MIN} jugadores.` };
+    if (c.squad.length <= SQUAD_MIN) return { ok: false, msg: `${TX('Necesitas al menos')} ${SQUAD_MIN} ${TX('jugadores.')}` };
     const pd = PLAYER(id), price = Math.round(this.value(id) * 0.7 / 5) * 5;
     const buyers = Object.keys(c.clubs).filter(k => c.divs[this.myDiv()].includes(k) || c.divs[Math.max(1, this.myDiv() - 1)].includes(k));
     const buyer = pickR(buyers);
     c.squad = c.squad.filter(m => m.id !== id); c.money += price;
     if (c.lineup.includes(id)) this.autoLineup();
-    c.news.unshift(`T${c.season} S${c.week}: ${pd.name} vendido al ${this.teamName(buyer)} por ${price} 💰`);
+    c.news.unshift(`${TX('T{0} S{1}', c.season, c.week)}: ${pd.name} ${TX('vendido al')} ${this.teamName(buyer)} ${TX('por')} ${price} 💰`);
     this.save();
-    return { ok: true, msg: `${pd.name} se va al ${this.teamName(buyer)} por ${price} 💰.` };
+    return { ok: true, msg: `${pd.name} ${TX('se va al')} ${this.teamName(buyer)} ${TX('por')} ${price} 💰.` };
   },
   release(id) {
     const c = this.data;
-    if (c.squad.length <= SQUAD_MIN) return { ok: false, msg: `Necesitas al menos ${SQUAD_MIN} jugadores.` };
+    if (c.squad.length <= SQUAD_MIN) return { ok: false, msg: `${TX('Necesitas al menos')} ${SQUAD_MIN} ${TX('jugadores.')}` };
     c.squad = c.squad.filter(m => m.id !== id); if (c.lineup.includes(id)) this.autoLineup(); this.save();
-    return { ok: true, msg: `${PLAYER(id).name} deja el club.` };
+    return { ok: true, msg: `${PLAYER(id).name} ${TX('deja el club.')}` };
   },
   upgrade(k) {
     const c = this.data, F = FACILITIES[k], lv = c.fac[k];
-    if (lv >= F.cost.length) return { ok: false, msg: 'Ya está al máximo.' };
-    if (c.money < F.cost[lv]) return { ok: false, msg: 'No tienes dinero suficiente.' };
+    if (lv >= F.cost.length) return { ok: false, msg: TX('Ya está al máximo.') };
+    if (c.money < F.cost[lv]) return { ok: false, msg: TX('No tienes dinero suficiente.') };
     c.money -= F.cost[lv]; c.fac[k]++; this.save();
-    return { ok: true, msg: `${F.name}: nivel ${c.fac[k]}.` };
+    return { ok: true, msg: `${F.name}${TX(': nivel')} ${c.fac[k]}.` };
   },
 
   // Equipos para jugar tu partido de la semana
@@ -723,7 +723,7 @@ const Career = {
   },
   wcTeams() {
     const w = this.data.wc, roles = FORMATIONS[this.data.formation].roles, pos = layout(roles);
-    const A = { name: 'Inazuma Japón', players: w.squad.map((id, i) => {
+    const A = { name: TX('Inazuma Japón'), players: w.squad.map((id, i) => {
       const m = this.m(id), pd = PLAYER(id);
       let techs = (m ? m.known : pd.moves.map(x => x[0]).filter(t => TECH(t))).slice().sort((a, b) => TECH(b).power - TECH(a).power).slice(0, TECH_SLOTS);
       if (roles[i] === 'POR') { const gk = keeperTech(pd, techs); if (gk != null) techs = [gk, ...techs].slice(0, TECH_SLOTS); }
@@ -740,28 +740,28 @@ const Career = {
       add('JP', gA, gB); add(opp, gB, gA);
       const others = w.group.teams.filter(k => k !== 'JP' && k !== opp), s = this.simScore(this.wcRating(others[0]), this.wcRating(others[1]), undefined, undefined, 14);
       add(others[0], s[0], s[1]); add(others[1], s[1], s[0]);
-      w.log.push({ r: 'Grupo', opp, gA, gB, other: [others[0], others[1], s[0], s[1]] });
+      w.log.push({ r: TX('Grupo'), opp, gA, gB, other: [others[0], others[1], s[0], s[1]] });
       w.round++;
       if (w.round < 3) { w.opp = w.group.teams[w.round + 1]; }
       else {
         const rank = this.wcTable().map(r => r.key);
-        if (rank.indexOf('JP') < 2) { w.state = 'semi'; w.opp = w.rest.shift(); msg = '¡Pasáis a semifinales!'; }
-        else { w.state = 'out'; w.place = 'grupo'; msg = 'Eliminados en la fase de grupos'; }
+        if (rank.indexOf('JP') < 2) { w.state = 'semi'; w.opp = w.rest.shift(); msg = TX('¡Pasáis a semifinales!'); }
+        else { w.state = 'out'; w.place = 'grupo'; msg = TX('Eliminados en la fase de grupos'); }
       }
     } else {
       if (gA === gB) pens = this.penalties(this.wcRating('JP'), this.wcRating(opp));
       const won = gA > gB || (pens && pens[0] > pens[1]);
-      w.log.push({ r: w.state === 'semi' ? 'Semifinal' : 'Final', opp, gA, gB, pens });
+      w.log.push({ r: w.state === 'semi' ? TX('Semifinal') : TX('Final'), opp, gA, gB, pens });
       if (w.state === 'semi') {
-        if (won) { w.state = 'final'; w.opp = w.rest.includes('Little Gigant') ? 'Little Gigant' : w.rest.shift(); msg = '¡A la final!'; }
-        else { w.state = 'out'; w.place = 'semi'; msg = 'Eliminados en semifinales'; }
-      } else { w.state = won ? 'champion' : 'out'; w.place = won ? 'campeón' : 'final'; msg = won ? '¡Campeones del mundo!' : 'Subcampeones del mundo'; }
+        if (won) { w.state = 'final'; w.opp = w.rest.includes('Little Gigant') ? 'Little Gigant' : w.rest.shift(); msg = TX('¡A la final!'); }
+        else { w.state = 'out'; w.place = 'semi'; msg = TX('Eliminados en semifinales'); }
+      } else { w.state = won ? 'champion' : 'out'; w.place = won ? 'campeón' : 'final'; msg = won ? TX('¡Campeones del mundo!') : TX('Subcampeones del mundo'); }
     }
     if (w.state === 'out' || w.state === 'champion') {
       const R = { campeón: [20, 2500, 15], final: [10, 1200, 8], semi: [5, 600, 4], grupo: [0, 200, 1] }[w.place];
       c.fame = Math.min(100, c.fame + R[0]); c.money += R[1]; Profile.data.tickets += R[2]; Profile.save();
       w.reward = { fame: R[0], money: R[1], tickets: R[2] };
-      if (w.place === 'campeón') c.titles.push({ season: w.season, name: 'Mundial con Inazuma Japón' });
+      if (w.place === 'campeón') c.titles.push({ season: w.season, name: TX('Mundial con Inazuma Japón') });
     }
     this.save();
     return { gA, gB, pens, msg, opp };

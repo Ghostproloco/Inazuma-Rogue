@@ -96,7 +96,7 @@ const Logic = (() => {
     b.ang = p.aim;
     p.holdT = 0; p.think = 0.2 + rnd() * 0.25;
     if (p.team === 'A') s.controlledId = p.id;   // también el portero, mientras tenga el balón
-    if (p.role === 'POR' && p.team === 'A') { s.gkHold = 0; if (!s.gkHint) { s.gkHint = true; s.events.push({ type: 'msg', text: 'Tu portero tiene el balón: pasa (J) o despeja (L)' }); } }
+    if (p.role === 'POR' && p.team === 'A') { s.gkHold = 0; if (!s.gkHint) { s.gkHint = true; s.events.push({ type: 'msg', text: TX('Tu portero tiene el balón: pasa (J) o despeja (L)') }); } }
     syncBall(s, 1);
   }
 
@@ -198,7 +198,7 @@ const Logic = (() => {
     const list = p.techs.filter(t => t.type === c.tech.type); if (list.length < 2) return;
     const i = list.findIndex(t => t.id === c.tech.id), n = list[(i + 1) % list.length];
     p.techPick = p.techPick || {}; p.techPick[c.tech.type] = n.id;
-    s.events.push({ type: 'msg', text: 'Técnica: ' + n.name });
+    s.events.push({ type: 'msg', text: TX('Técnica: ') + n.name });
   }
   const techChoices = (s, p) => { const c = p && contextTech(s, p); return c ? p.techs.filter(t => t.type === c.tech.type).length : 0; };
 
@@ -241,13 +241,13 @@ const Logic = (() => {
     if (s.tech) return false;
     const c = contextTech(s, p);
     const say = text => { if (!quiet) s.events.push({ type: 'msg', text }); return false; };
-    if (!c) return say(s.ball.owner === p ? p.name + ' no tiene técnica de tiro ni de regate' : p.name + ' no tiene técnica de bloqueo');
+    if (!c) return say(s.ball.owner === p ? p.name + TX(' no tiene técnica de tiro ni de regate') : p.name + TX(' no tiene técnica de bloqueo'));
     if (!c.ready) return say(c.tech.name + ' recargando');
     const t = c.tech;
-    if (t.type === 'tiro' && goalDist(p) > 24) return say('Acércate más a la portería');
+    if (t.type === 'tiro' && goalDist(p) > 24) return say(TX('Acércate más a la portería'));
     if (t.type === 'bloqueo') {
       const h = s.ball.owner;
-      if (!h || h.team === p.team || dist(h, p) > 4.5) return say('Acércate al rival que lleva el balón');
+      if (!h || h.team === p.team || dist(h, p) > 4.5) return say(TX('Acércate al rival que lleva el balón'));
     }
     return startTech(s, p, t, aimX);
   }
@@ -300,7 +300,7 @@ const Logic = (() => {
           : clamp(0.72 + (p.control + techEff(D.tech, p.bonus.regate) * 1.2 - o.defense) / 50, 0.4, 0.95);
         if (rnd() < chance || s.ball.owner !== p) {
           o.stun = D.tech.plain ? 0.55 : 0.9; o.tackle = null;
-          if (D.tech.plain) { p.invuln = 0.45; if (p.team === 'A') s.events.push({ type: 'msg', text: '¡Regate!' }); }
+          if (D.tech.plain) { p.invuln = 0.45; if (p.team === 'A') s.events.push({ type: 'msg', text: TX('¡Regate!') }); }
           else s.events.push({ type: 'knock', x: o.x, y: o.y, elem: D.tech.elem });
         } else {   // el defensa lee el regate y se queda el balón
           take(s, o); p.stun = D.tech.plain ? 0.45 : 0.6; p.kickLock = 0.5; p.dash = null;
@@ -317,7 +317,7 @@ const Logic = (() => {
           h.stun = 0.9; h.kickLock = 0.5; h.dash = null;
           take(s, p);
           s.events.push({ type: 'blockOk', x: p.x, y: p.y, elem: D.tech.elem, team: p.team, name: D.tech.name });
-        } else s.events.push({ type: 'msg', text: '¡' + h.name + ' resiste el bloqueo!' });
+        } else s.events.push({ type: 'msg', text: TX('¡') + h.name + TX(' resiste el bloqueo!') });
         D.t = 0;
       }
     }
@@ -327,7 +327,7 @@ const Logic = (() => {
   /* ---------- Regate normal (sin técnica) ----------
      Un recorte rápido con el balón: si hay un rival delante, intenta superarlo
      (control contra defensa); si sale bien, el rival pierde el equilibrio. */
-  const DRIBBLE = { name: 'Regate', type: 'regate', power: 0, elem: 'neutro', plain: true };
+  const DRIBBLE = { name: TX('Regate'), type: 'regate', power: 0, elem: 'neutro', plain: true };
   const DRIBBLE_CD = 2.6;   // segundos entre regates normales
   function dribble(s, p, dir) {
     if (s.ball.owner !== p || (p.dribbleCd || 0) > 0 || p.stun > 0 || p.dash) return false;
@@ -376,7 +376,7 @@ const Logic = (() => {
     }
     if (T.t <= 0) {
       p.tackle = null; p.recover = T.ok ? 0.1 : 0.4;
-      if (!T.ok && p.team === 'A' && p.id === s.controlledId) s.events.push({ type: 'msg', text: 'Entrada fallida' });
+      if (!T.ok && p.team === 'A' && p.id === s.controlledId) s.events.push({ type: 'msg', text: TX('Entrada fallida') });
     }
   }
 
@@ -888,7 +888,7 @@ const Logic = (() => {
       if (b.offside && best.id === b.offside) { offsideCall(s, best); return; }
       const prevTeam = b.lastTeam;
       take(s, best);
-      if (best.team !== prevTeam && best.team === 'A') s.events.push({ type: 'msg', text: '¡Balón recuperado!' });
+      if (best.team !== prevTeam && best.team === 'A') s.events.push({ type: 'msg', text: TX('¡Balón recuperado!') });
     }
   }
 
@@ -904,7 +904,7 @@ const Logic = (() => {
       if (rnd() < rate * dt) {
         h.stun = 0.45; h.kickLock = 0.4;
         take(s, d);
-        if (d.team === 'A') s.events.push({ type: 'msg', text: '¡Robo!' });
+        if (d.team === 'A') s.events.push({ type: 'msg', text: TX('¡Robo!') });
         return;
       }
     }

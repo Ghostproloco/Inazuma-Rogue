@@ -39,7 +39,7 @@ const Cloud = (() => {
     finally { applying = false; }
   }
   function hash(o) {   // huella corta de la partida para saber si ha cambiado
-    const s = SAVE_KEYS.map(k => k + '=' + (o && o[k] != null ? o[k] : '')).join('\u0001');
+    const s = SAVE_KEYS.map(k => k + '=' + (o && o[k] != null ? o[k] : '')).join('\\u0001');
     let h1 = 0x811c9dc5, h2 = 0x1000193;
     for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = Math.imul(h2 ^ c, 2246822519); }
     return (h1 >>> 0).toString(36) + (h2 >>> 0).toString(36) + ':' + s.length;
@@ -54,7 +54,7 @@ const Cloud = (() => {
       const p = JSON.parse(o['inazuma-perfil'] || '{}'), cr = o['inazuma-carrera'] ? JSON.parse(o['inazuma-carrera']) : null;
       const st = p.story || {}, etapas = ['s1', 's2', 's3', 's4'].filter(k => st[k] && st[k].done).length;
       return { players: Object.keys(p.coll || {}).length, tickets: p.tickets || 0, coins: p.coins || 0, wins: p.wins || 0, etapas,
-        career: cr ? (cr.school || 'Carrera') + ' · temporada ' + (cr.season || 1) : '' };
+        career: cr ? (cr.school || TX('Carrera')) + TX(' · temporada ') + (cr.season || 1) : '' };
     } catch (_) { return { players: 0, tickets: 0, coins: 0, wins: 0, etapas: 0, career: '' }; }
   }
 
@@ -66,7 +66,7 @@ const Cloud = (() => {
   const state = { status: 'idle', msg: '', lastOk: meta.lastOk || 0, conflict: null };
   const listeners = new Set();
   function setStatus(status, msg) { state.status = status; state.msg = msg || ''; listeners.forEach(f => { try { f(state); } catch (_) {} }); }
-  const EXPIRED_MSG = 'Tu sesión se ha cerrado. Vuelve a entrar para seguir guardando en la nube.';
+  const EXPIRED_MSG = TX('Tu sesión se ha cerrado. Vuelve a entrar para seguir guardando en la nube.');
 
   /* ---------- Firebase (se carga solo si hace falta) ---------- */
   const enabled = () => !!(CFG.apiKey && CFG.projectId);
@@ -118,30 +118,30 @@ const Cloud = (() => {
   /* ---------- Cuentas ---------- */
   const cleanUser = u => String(u || '').trim().toLowerCase();
   function checkUser(u) {
-    if (u.length < 3 || u.length > 16) return 'El nombre de usuario debe tener entre 3 y 16 letras o números.';
-    if (!/^[a-z0-9_]+$/.test(u)) return 'Usa solo letras sin tildes, números y guion bajo (_). Sin espacios ni ñ.';
+    if (u.length < 3 || u.length > 16) return TX('El nombre de usuario debe tener entre 3 y 16 letras o números.');
+    if (!/^[a-z0-9_]+$/.test(u)) return TX('Usa solo letras sin tildes, números y guion bajo (_). Sin espacios ni ñ.');
     return '';
   }
   const emailOf = u => u + '@' + EMAIL_DOMAIN;
   const nameOf = u => String(u.displayName || (u.email || '').split('@')[0] || 'jugador').slice(0, 24);
   function authError(e, signup) {
     const c = String((e && e.code) || '');
-    if (c === 'auth/email-already-in-use') return 'Ese nombre de usuario ya está cogido. Prueba con otro.';
-    if (c === 'auth/invalid-credential' || c === 'auth/wrong-password' || c === 'auth/user-not-found' || c === 'auth/invalid-login-credentials') return 'Usuario o contraseña incorrectos.';
-    if (c === 'auth/weak-password') return 'La contraseña es demasiado corta (mínimo 6 caracteres).';
-    if (c === 'auth/too-many-requests') return 'Demasiados intentos seguidos. Espera un poco y vuelve a probar.';
-    if (c === 'auth/network-request-failed') return 'No hay conexión. Prueba otra vez cuando tengas internet.';
-    if (c === 'auth/user-disabled') return 'Esta cuenta está desactivada.';
-    if (c === 'auth/unauthorized-domain') return 'Esta web no está autorizada en Firebase (Authentication → Configuración → Dominios autorizados).';
-    if (c === 'auth/operation-not-allowed') return 'Esta forma de entrar no está activada en Firebase (Authentication → Método de inicio de sesión).';
-    if (c === 'auth/account-exists-with-different-credential') return 'Ya hay una cuenta con ese correo de otra forma.';
-    return (signup ? 'No se ha podido crear la cuenta' : 'No se ha podido entrar') + (c ? ' (' + c.replace('auth/', '') + ').' : '.');
+    if (c === 'auth/email-already-in-use') return TX('Ese nombre de usuario ya está cogido. Prueba con otro.');
+    if (c === 'auth/invalid-credential' || c === 'auth/wrong-password' || c === 'auth/user-not-found' || c === 'auth/invalid-login-credentials') return TX('Usuario o contraseña incorrectos.');
+    if (c === 'auth/weak-password') return TX('La contraseña es demasiado corta (mínimo 6 caracteres).');
+    if (c === 'auth/too-many-requests') return TX('Demasiados intentos seguidos. Espera un poco y vuelve a probar.');
+    if (c === 'auth/network-request-failed') return TX('No hay conexión. Prueba otra vez cuando tengas internet.');
+    if (c === 'auth/user-disabled') return TX('Esta cuenta está desactivada.');
+    if (c === 'auth/unauthorized-domain') return TX('Esta web no está autorizada en Firebase (Authentication → Configuración → Dominios autorizados).');
+    if (c === 'auth/operation-not-allowed') return TX('Esta forma de entrar no está activada en Firebase (Authentication → Método de inicio de sesión).');
+    if (c === 'auth/account-exists-with-different-credential') return TX('Ya hay una cuenta con ese correo de otra forma.');
+    return (signup ? TX('No se ha podido crear la cuenta') : TX('No se ha podido entrar')) + (c ? ' (' + c.replace('auth/', '') + ').' : '.');
   }
-  const offlineMsg = 'No se puede conectar con el servidor de cuentas. Comprueba tu internet.';
+  const offlineMsg = TX('No se puede conectar con el servidor de cuentas. Comprueba tu internet.');
   async function signUp(username, password) {
-    if (!enabled()) return { ok: false, msg: 'Las cuentas aún no están activadas en esta versión del juego.' };
+    if (!enabled()) return { ok: false, msg: TX('Las cuentas aún no están activadas en esta versión del juego.') };
     const u = cleanUser(username), bad = checkUser(u); if (bad) return { ok: false, msg: bad };
-    if (String(password || '').length < 6) return { ok: false, msg: 'La contraseña debe tener al menos 6 caracteres.' };
+    if (String(password || '').length < 6) return { ok: false, msg: TX('La contraseña debe tener al menos 6 caracteres.') };
     if (!await ready()) return { ok: false, msg: offlineMsg };
     try {
       const c = await auth.createUserWithEmailAndPassword(emailOf(u), password);
@@ -150,14 +150,14 @@ const Cloud = (() => {
     } catch (e) { return { ok: false, msg: authError(e, true) }; }
   }
   async function signIn(username, password) {
-    if (!enabled()) return { ok: false, msg: 'Las cuentas aún no están activadas en esta versión del juego.' };
-    const u = cleanUser(username); if (!u || !password) return { ok: false, msg: 'Escribe tu usuario y tu contraseña.' };
+    if (!enabled()) return { ok: false, msg: TX('Las cuentas aún no están activadas en esta versión del juego.') };
+    const u = cleanUser(username); if (!u || !password) return { ok: false, msg: TX('Escribe tu usuario y tu contraseña.') };
     if (!await ready()) return { ok: false, msg: offlineMsg };
     try { const c = await auth.signInWithEmailAndPassword(emailOf(u), password); return startSession(c.user, u, 'password'); }
     catch (e) { return { ok: false, msg: authError(e, false) }; }
   }
   async function signInGoogle() {
-    if (!enabled()) return { ok: false, msg: 'Las cuentas aún no están activadas en esta versión del juego.' };
+    if (!enabled()) return { ok: false, msg: TX('Las cuentas aún no están activadas en esta versión del juego.') };
     if (!await ready()) return { ok: false, msg: offlineMsg };
     const provider = new firebase.auth.GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
@@ -167,7 +167,7 @@ const Cloud = (() => {
       if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request' || c === 'auth/user-cancelled') return { ok: false, msg: '' };
       if (c === 'auth/popup-blocked' || c === 'auth/operation-not-supported-in-this-environment' || c === 'auth/web-storage-unsupported') {
         meta.redirect = true; saveMeta();
-        try { await auth.signInWithRedirect(provider); return { ok: false, redirect: true, msg: 'Abriendo Google…' }; }
+        try { await auth.signInWithRedirect(provider); return { ok: false, redirect: true, msg: TX('Abriendo Google…') }; }
         catch (e2) { meta.redirect = false; saveMeta(); return { ok: false, msg: authError(e2, false) }; }
       }
       return { ok: false, msg: authError(e, false) };
@@ -182,7 +182,7 @@ const Cloud = (() => {
   async function signOut({ keepLocal = false, force = false } = {}) {
     if (loggedIn() && !meta.expired && !force) {
       const r = await push(true);
-      if (r !== 'uploaded' && r !== 'same') return { ok: false, msg: r === 'conflict' ? 'Hay otra versión de tu partida en la nube. Resuélvelo antes de salir.' : 'No se ha podido subir tu última partida (¿sin conexión?).' };
+      if (r !== 'uploaded' && r !== 'same') return { ok: false, msg: r === 'conflict' ? TX('Hay otra versión de tu partida en la nube. Resuélvelo antes de salir.') : TX('No se ha podido subir tu última partida (¿sin conexión?).') };
     }
     signingOut = true;
     try { if (await ready()) await auth.signOut(); } catch (_) {}
@@ -226,8 +226,8 @@ const Cloud = (() => {
   function synced(rev, data) { meta.owner = meta.uid; meta.rev = rev; meta.hash = hash(data); meta.lastOk = state.lastOk = Date.now(); saveMeta(); }
   function failStatus(r) {
     if (r && r.expired) { meta.expired = true; saveMeta(); setStatus('expired', EXPIRED_MSG); }
-    else if (r && r.offline) setStatus('offline', 'Sin conexión: se guardará en la nube cuando vuelva internet.');
-    else setStatus('error', 'Error al guardar en la nube (' + ((r && r.code) || '?') + '). Se reintentará.');
+    else if (r && r.offline) setStatus('offline', TX('Sin conexión: se guardará en la nube cuando vuelva internet.'));
+    else setStatus('error', TX('Error al guardar en la nube (') + ((r && r.code) || '?') + TX('). Se reintentará.'));
   }
   // Sube la partida del móvil. «overRev» = pisar a propósito esa versión de la nube (cuando el jugador elige la del móvil).
   let pushing = null, again = false;
@@ -268,14 +268,14 @@ const Cloud = (() => {
   function conflict(row) {
     const local = snapshot();
     state.conflict = { cloud: row, local, cloudInfo: describe(row.data || {}), localInfo: describe(local), cloudDate: row.updated_at };
-    setStatus('conflict', 'Hay dos versiones distintas de tu partida.');
+    setStatus('conflict', TX('Hay dos versiones distintas de tu partida.'));
     return 'conflict';
   }
   // Al arrancar o al iniciar sesión: decide si subir, bajar o preguntar.
   // Devuelve 'off' | 'offline' | 'expired' | 'error' | 'same' | 'uploaded' | 'downloaded' | 'conflict'
   async function sync() {
     if (!enabled()) return 'off';
-    if (!await ready()) { if (loggedIn()) setStatus('offline', 'Sin conexión: se guardará en la nube cuando vuelva internet.'); return loggedIn() ? 'offline' : 'off'; }
+    if (!await ready()) { if (loggedIn()) setStatus('offline', TX('Sin conexión: se guardará en la nube cuando vuelva internet.')); return loggedIn() ? 'offline' : 'off'; }
     if (!loggedIn()) return 'off';
     if (meta.expired) { setStatus('expired', EXPIRED_MSG); return 'expired'; }
     setStatus('saving');

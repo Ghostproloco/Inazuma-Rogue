@@ -518,18 +518,18 @@ html,body,button,.act,#shell{touch-action:manipulation}
 <div id="shell">
   <div id="app"></div>
   <div id="touch"></div>
-  <div id="intro" hidden><div class="in-stage"></div><div class="in-cap"></div><div class="in-flash"></div><button class="ghost in-skip">Saltar ▶▶</button></div>
+  <div id="intro" hidden><div class="in-stage"></div><div class="in-cap"></div><div class="in-flash"></div><button class="ghost in-skip" data-tx>Saltar ▶▶</button></div>
   <div class="hud" id="hud" hidden>
     <div class="score">
-      <div class="team"><img id="cA" src="ui/crest1.png" alt=""><span id="nA">Tú</span></div>
+      <div class="team"><img id="cA" src="ui/crest1.png" alt=""><span id="nA" data-tx>Tú</span></div>
       <div class="goals"><span id="sA">0</span>–<span id="sB">0</span></div>
-      <div class="team"><span id="nB">Rival</span><img id="cB" src="ui/crest2.png" alt=""></div>
+      <div class="team"><span id="nB" data-tx>Rival</span><img id="cB" src="ui/crest2.png" alt=""></div>
       <div class="clock" id="clock">3:00</div>
     </div>
   </div>
-  <button id="pauseBtn" aria-label="Pausa">II</button>
+  <button id="pauseBtn" aria-label="Pausa" data-tx-aria>II</button>
   <div id="stick" class="rest" hidden><div id="knob"></div></div>
-  <div id="keyhud" hidden><div class="kh-keys"></div><div class="kh-tech off"><b>Espacio</b> <span>Técnica</span><i></i></div></div>
+  <div id="keyhud" hidden><div class="kh-keys"></div><div class="kh-tech off"><b data-tx>Espacio</b> <span data-tx>Técnica</span><i></i></div></div>
   <div id="pad" hidden></div>
   <div id="cine"><i class="lb t"></i><i class="lb b"></i></div>
   <div class="cutin" id="cutin"><div class="ci-in"><div class="ci-face"></div><div class="ci-txt"><small></small><b></b></div></div></div>

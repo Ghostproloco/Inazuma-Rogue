@@ -12,18 +12,18 @@ const EVO = id => GAME.evo[String(id)];
 const RIVAL_ORDER = GAME.teams.filter(t => t.kind === 'story').map(t => t.key);   // Etapa 1, en orden de la historia
 const STAGE_ORDER = { s1: RIVAL_ORDER, s2: GAME.teams.filter(t => t.kind === 'story2').map(t => t.key),   // Etapa 2: Inazuma Eleven 2
   s3: GAME.teams.filter(t => t.kind === 'story3').map(t => t.key), s4: GAME.teams.filter(t => t.kind === 'story4').map(t => t.key) };   // Etapa 3: fase 1 y fase 2
-const STAGE_NAME = { s1: 'Etapa 1', s2: 'Etapa 2', s3: 'Etapa 3 · Fase 1', s4: 'Etapa 3 · Fase 2' };
+const STAGE_NAME = { s1: TX('Etapa 1'), s2: TX('Etapa 2'), s3: TX('Etapa 3 · Fase 1'), s4: TX('Etapa 3 · Fase 2') };
 const NATIONS = GAME.teams.filter(t => t.kind === 'story3' || t.kind === 'story4').map(t => t.key);
 
 /* ---------- Formaciones de 5 ---------- */
 const FORMATIONS = {
-  '1-2-1-1': { name: 'Defensiva',    roles: ['POR', 'DEF', 'DEF', 'MED', 'DEL'] },
-  '1-1-2-1': { name: 'Equilibrada',  roles: ['POR', 'DEF', 'MED', 'MED', 'DEL'] },
-  '1-1-1-2': { name: 'Ofensiva',     roles: ['POR', 'DEF', 'MED', 'DEL', 'DEL'] },
-  '1-2-0-2': { name: 'Directa',      roles: ['POR', 'DEF', 'DEF', 'DEL', 'DEL'] },
-  '1-0-2-2': { name: 'Ataque total', roles: ['POR', 'MED', 'MED', 'DEL', 'DEL'] },
-  '1-2-2-0': { name: 'Muralla',      roles: ['POR', 'DEF', 'DEF', 'MED', 'MED'] },
-  '1-3-0-1': { name: 'Cerrojo',      roles: ['POR', 'DEF', 'DEF', 'DEF', 'DEL'] },
+  '1-2-1-1': { name: TX('Defensiva'),    roles: ['POR', 'DEF', 'DEF', 'MED', 'DEL'] },
+  '1-1-2-1': { name: TX('Equilibrada'),  roles: ['POR', 'DEF', 'MED', 'MED', 'DEL'] },
+  '1-1-1-2': { name: TX('Ofensiva'),     roles: ['POR', 'DEF', 'MED', 'DEL', 'DEL'] },
+  '1-2-0-2': { name: TX('Directa'),      roles: ['POR', 'DEF', 'DEF', 'DEL', 'DEL'] },
+  '1-0-2-2': { name: TX('Ataque total'), roles: ['POR', 'MED', 'MED', 'DEL', 'DEL'] },
+  '1-2-2-0': { name: TX('Muralla'),      roles: ['POR', 'DEF', 'DEF', 'MED', 'MED'] },
+  '1-3-0-1': { name: TX('Cerrojo'),      roles: ['POR', 'DEF', 'DEF', 'DEF', 'DEL'] },
 };
 const SPREAD = { 1: [0], 2: [-7, 7], 3: [-10, 0, 10] };
 const DEPTH = { POR: 1.2, DEF: 11, MED: 21, DEL: 31 };
@@ -60,39 +60,39 @@ const SPECIALS = [   // equipos especiales: se abren al avanzar en la Etapa 1
   { key: 'Caos', unlock: 'done2', boost: 1.2 },
 ];
 const CHAINS = [   // cadenas: desafíos cortos, sin recuperar vidas
-  { key: 'elemental', name: 'Desafío elemental', desc: 'Un equipo de cada elemento: viento, bosque, fuego y montaña.', teams: ['Airosos', 'Guardabosques', 'Ardientes', 'Montañeros'], lives: 2, factor: 1.0 },
-  { key: 'centella', name: 'Liga Centella', desc: 'Cuatro selecciones de estrellas, cada una más dura.', teams: ['Jets Centella', 'Cohetes Centella', 'Pistolas Centella', 'Bombas Centella'], lives: 2, factor: 1.02 },
-  { key: 'final', name: 'Camino a Zeus', desc: 'Kirkwood, Royal Academy y Zeus, uno detrás de otro y al máximo.', teams: ['Kirkwood', 'Royal Academy', 'Zeus'], lives: 1, factor: 1.08 },
-  { key: 'gira', name: 'Gira de la Caravana', desc: 'Las paradas de la Caravana Inazuma por Japón.', teams: ['Alpino', 'Claustro Sagrado', 'Fauxshore', 'Royal Academy Redux'], lives: 2, factor: 1.03 },
-  { key: 'alius', name: 'Invasión Alius', desc: 'Los equipos de la Academia Alius, de Géminis a Génesis.', teams: ['Tormenta de Géminis', 'Épsilon', 'Épsilon Plus', 'Génesis'], lives: 2, factor: 1.06 },
-  { key: 'royal', name: 'El regreso del Royal', desc: 'Royal Academy, su versión Redux y los Emperadores Oscuros.', teams: ['Royal Academy', 'Royal Academy Redux', 'Emperadores Oscuros'], lives: 1, factor: 1.08 },
-  { key: 'fuego', name: 'Fuego y hielo', desc: 'Prominence, Polvo de Diamantes y su fusión, Caos.', teams: ['Prominence', 'Polvo de Diamantes', 'Caos'], lives: 1, factor: 1.12, needs: 's2' },
-  { key: 'oscuro', name: 'El lado oscuro', desc: 'Team D, Dark Angel, Demons Z y el Ogro: los villanos del 3.', teams: ['Team D', 'Dark Angel', 'Demons Z', 'The Ogre'], lives: 1, factor: 1.12, needs: 's4' },
-  { key: 'dioses', name: 'Dioses y alienígenas', desc: 'Zeus, Ultra Zeus y Génesis: lo más duro del 1 y del 2.', teams: ['Zeus', 'Ultra Zeus', 'Génesis'], lives: 1, factor: 1.15, needs: 's2' },
+  { key: 'elemental', name: TX('Desafío elemental'), desc: TX('Un equipo de cada elemento: viento, bosque, fuego y montaña.'), teams: ['Airosos', 'Guardabosques', 'Ardientes', 'Montañeros'], lives: 2, factor: 1.0 },
+  { key: 'centella', name: TX('Liga Centella'), desc: TX('Cuatro selecciones de estrellas, cada una más dura.'), teams: ['Jets Centella', 'Cohetes Centella', 'Pistolas Centella', 'Bombas Centella'], lives: 2, factor: 1.02 },
+  { key: 'final', name: TX('Camino a Zeus'), desc: TX('Kirkwood, Royal Academy y Zeus, uno detrás de otro y al máximo.'), teams: ['Kirkwood', 'Royal Academy', 'Zeus'], lives: 1, factor: 1.08 },
+  { key: 'gira', name: TX('Gira de la Caravana'), desc: TX('Las paradas de la Caravana Inazuma por Japón.'), teams: ['Alpino', 'Claustro Sagrado', 'Fauxshore', 'Royal Academy Redux'], lives: 2, factor: 1.03 },
+  { key: 'alius', name: TX('Invasión Alius'), desc: TX('Los equipos de la Academia Alius, de Géminis a Génesis.'), teams: ['Tormenta de Géminis', 'Épsilon', 'Épsilon Plus', 'Génesis'], lives: 2, factor: 1.06 },
+  { key: 'royal', name: TX('El regreso del Royal'), desc: TX('Royal Academy, su versión Redux y los Emperadores Oscuros.'), teams: ['Royal Academy', 'Royal Academy Redux', 'Emperadores Oscuros'], lives: 1, factor: 1.08 },
+  { key: 'fuego', name: TX('Fuego y hielo'), desc: TX('Prominence, Polvo de Diamantes y su fusión, Caos.'), teams: ['Prominence', 'Polvo de Diamantes', 'Caos'], lives: 1, factor: 1.12, needs: 's2' },
+  { key: 'oscuro', name: TX('El lado oscuro'), desc: TX('Team D, Dark Angel, Demons Z y el Ogro: los villanos del 3.'), teams: ['Team D', 'Dark Angel', 'Demons Z', 'The Ogre'], lives: 1, factor: 1.12, needs: 's4' },
+  { key: 'dioses', name: TX('Dioses y alienígenas'), desc: TX('Zeus, Ultra Zeus y Génesis: lo más duro del 1 y del 2.'), teams: ['Zeus', 'Ultra Zeus', 'Génesis'], lives: 1, factor: 1.15, needs: 's2' },
 ];
 const STAGES = [
-  { key: 's1', name: 'Etapa 1 · Inazuma Eleven', available: true },
-  { key: 's2', name: 'Etapa 2 · Inazuma Eleven 2', available: true, needs: 's1', note: 'Completa la Etapa 1' },
-  { key: 's3', name: 'Etapa 3 · Fase 1', available: true, needs: 's2', note: 'Completa la Etapa 2' },
-  { key: 's4', name: 'Etapa 3 · Fase 2 · el Mundial', available: true, needs: 's3', note: 'Completa la Fase 1 de la Etapa 3' },
+  { key: 's1', name: TX('Etapa 1 · Inazuma Eleven'), available: true },
+  { key: 's2', name: TX('Etapa 2 · Inazuma Eleven 2'), available: true, needs: 's1', note: TX('Completa la Etapa 1') },
+  { key: 's3', name: TX('Etapa 3 · Fase 1'), available: true, needs: 's2', note: TX('Completa la Etapa 2') },
+  { key: 's4', name: TX('Etapa 3 · Fase 2 · el Mundial'), available: true, needs: 's3', note: TX('Completa la Fase 1 de la Etapa 3') },
 ];
 const ROLE_TYPE = { POR: 'parada', DEF: 'bloqueo', MED: 'regate', DEL: 'tiro' };
 const STAT_KEYS = ['tiro', 'control', 'defensa', 'rapidez', 'fisico'];
-const STAT_LABEL = { tiro: 'Tiro', control: 'Control', defensa: 'Defensa', rapidez: 'Rapidez', fisico: 'Físico' };
+const STAT_LABEL = { tiro: TX('Tiro'), control: TX('Control'), defensa: TX('Defensa'), rapidez: TX('Rapidez'), fisico: TX('Físico') };
 const RARITY = {
-  comun:      { label: 'Común',      rate: 60, dupCoins: 10 },
-  rara:       { label: 'Rara',       rate: 28, dupCoins: 25 },
-  epica:      { label: 'Épica',      rate: 10, dupCoins: 60 },
-  legendaria: { label: 'Legendaria', rate: 2,  dupCoins: 150 },
+  comun:      { label: TX('Común'),      rate: 60, dupCoins: 10 },
+  rara:       { label: TX('Rara'),       rate: 28, dupCoins: 25 },
+  epica:      { label: TX('Épica'),      rate: 10, dupCoins: 60 },
+  legendaria: { label: TX('Legendaria'), rate: 2,  dupCoins: 150 },
 };
 const MAX_STARS = 5;
 const TECH_SLOTS = 2;   // técnicas equipadas por jugador
 
 /* ---------- Gachas por equipos y técnicas legendarias ---------- */
 const BANNERS = [
-  { id: 1, name: 'Héroes', crest: 1, desc: 'Raimon en todas sus versiones, Inazuma Japón, los Veteranos y los amigos de Ciudad Inazuma' },
-  { id: 2, name: 'Rivales', crest: 2, desc: 'Los equipos del Fútbol Frontier, la gira por Japón y las selecciones del mundo' },
-  { id: 3, name: 'Villanos', crest: 41, desc: 'Zeus, la Academia Alius, los Emperadores Oscuros, el Ogro, Team D y los demonios' },
+  { id: 1, name: TX('Héroes'), crest: 1, desc: TX('Raimon en todas sus versiones, Inazuma Japón, los Veteranos y los amigos de Ciudad Inazuma') },
+  { id: 2, name: TX('Rivales'), crest: 2, desc: TX('Los equipos del Fútbol Frontier, la gira por Japón y las selecciones del mundo') },
+  { id: 3, name: TX('Villanos'), crest: 41, desc: TX('Zeus, la Academia Alius, los Emperadores Oscuros, el Ogro, Team D y los demonios') },
 ];
 // Las técnicas más chetadas (potencia 100 o más), una por nombre
 const LEG_TECHS = (() => {
@@ -103,17 +103,19 @@ const LEG_TECHS = (() => {
 })();
 
 // Habilidades pasivas: nombres del juego, efectos nuestros (provisionales)
+// Nombres de las habilidades, para traducirlos al mostrarlos: TX('Tiro+') TX('Rapidez+') TX('Defensa+') TX('Portero+') TX('Ataque+')
+// TX('Recobro') TX('Fuerza veloz') TX('Fuerza de tiro') TX('Fuerza defensiva') TX('Ultratécnica')
 const PASSIVES = {
-  'Tiro+':            { desc: '+6 de tiro', apply: m => { m.kick += 6; } },
-  'Rapidez+':         { desc: '+6 % de velocidad', apply: m => { m.speed *= 1.06; } },
-  'Defensa+':         { desc: '+6 de defensa', apply: m => { m.defense += 6; } },
-  'Portero+':         { desc: '+6 de portero', apply: m => { m.gk += 6; } },
-  'Ataque+':          { desc: '+4 de tiro y control', apply: m => { m.kick += 4; m.control += 4; } },
-  'Recobro':          { desc: 'Recupera aguante un 60 % más rápido', apply: m => { m.bonus.recobro = 1.6; } },
-  'Fuerza veloz':     { desc: '+10 a las técnicas de regate', apply: m => { m.bonus.regate = 10; } },
-  'Fuerza de tiro':   { desc: '+10 a las técnicas de tiro', apply: m => { m.bonus.tiro = 10; } },
-  'Fuerza defensiva': { desc: '+10 a las técnicas de bloqueo', apply: m => { m.bonus.bloqueo = 10; } },
-  'Ultratécnica':     { desc: 'Las técnicas recargan un 20 % antes', apply: m => { m.bonus.cdMul = 0.8; } },
+  'Tiro+':            { desc: TX('+6 de tiro'), apply: m => { m.kick += 6; } },
+  'Rapidez+':         { desc: TX('+6 % de velocidad'), apply: m => { m.speed *= 1.06; } },
+  'Defensa+':         { desc: TX('+6 de defensa'), apply: m => { m.defense += 6; } },
+  'Portero+':         { desc: TX('+6 de portero'), apply: m => { m.gk += 6; } },
+  'Ataque+':          { desc: TX('+4 de tiro y control'), apply: m => { m.kick += 4; m.control += 4; } },
+  'Recobro':          { desc: TX('Recupera aguante un 60 % más rápido'), apply: m => { m.bonus.recobro = 1.6; } },
+  'Fuerza veloz':     { desc: TX('+10 a las técnicas de regate'), apply: m => { m.bonus.regate = 10; } },
+  'Fuerza de tiro':   { desc: TX('+10 a las técnicas de tiro'), apply: m => { m.bonus.tiro = 10; } },
+  'Fuerza defensiva': { desc: TX('+10 a las técnicas de bloqueo'), apply: m => { m.bonus.bloqueo = 10; } },
+  'Ultratécnica':     { desc: TX('Las técnicas recargan un 20 % antes'), apply: m => { m.bonus.cdMul = 0.8; } },
 };
 
 /* ---------- Estadísticas ---------- */
@@ -195,18 +197,18 @@ const DIFF_MUL = { facil: 1.08, medio: 1.13, dificil: 1.2 };   // fácil = el an
 /* Premios: tickets, coins (monedas), rayos, leg (próximas tiradas legendarias aseguradas), epica (próximas tiradas épicas o mejor),
    player (nombre completo de un jugador: se une a tu plantilla o sube una estrella). "desde" y "hasta" son opcionales (AAAA-MM-DD). */
 const GIFT_CODES = {
-  APERTURA2026:      { tickets: 20, coins: 500, desc: 'Código de apertura' },
-  RAYOINAZUMA:       { rayos: 3, coins: 300, desc: 'Tres Rayos Raimon' },
-  TORNADOFUEGO:      { tickets: 15, desc: 'Tickets ardientes' },
-  PINGUINOEMPERADOR: { coins: 1500, rayos: 1, desc: 'Monedas del pingüino' },
-  RAIMON11:          { tickets: 11, coins: 1100, desc: 'Once de Raimon' },
-  MANODIOS:          { player: 'Mark Evans', tickets: 5, desc: 'El portero legendario' },
-  ALIUS:             { player: 'Xene', coins: 500, desc: 'Llega de la Academia Alius' },
-  CARAVANA:          { epica: 3, tickets: 10, desc: 'Tres tiradas épicas o mejores' },
-  FFI2026:           { tickets: 30, desc: 'Torneo internacional' },
-  MUNDIAL:           { tickets: 20, rayos: 2, coins: 1000, desc: 'Premio del Mundial' },
-  LEYENDA:           { leg: 1, tickets: 10, desc: 'Una tirada legendaria asegurada' },
-  PESCADINHA:        { tickets: 100, coins: 1000, rayos: 3, player: 'Karl Kappa (Papi Gavi)', desc: 'Para Papi Gavi: Kappa legendario, vale para cualquier puesto' },
+  APERTURA2026:      { tickets: 20, coins: 500, desc: TX('Código de apertura') },
+  RAYOINAZUMA:       { rayos: 3, coins: 300, desc: TX('Tres Rayos Raimon') },
+  TORNADOFUEGO:      { tickets: 15, desc: TX('Tickets ardientes') },
+  PINGUINOEMPERADOR: { coins: 1500, rayos: 1, desc: TX('Monedas del pingüino') },
+  RAIMON11:          { tickets: 11, coins: 1100, desc: TX('Once de Raimon') },
+  MANODIOS:          { player: 'Mark Evans', tickets: 5, desc: TX('El portero legendario') },
+  ALIUS:             { player: 'Xene', coins: 500, desc: TX('Llega de la Academia Alius') },
+  CARAVANA:          { epica: 3, tickets: 10, desc: TX('Tres tiradas épicas o mejores') },
+  FFI2026:           { tickets: 30, desc: TX('Torneo internacional') },
+  MUNDIAL:           { tickets: 20, rayos: 2, coins: 1000, desc: TX('Premio del Mundial') },
+  LEYENDA:           { leg: 1, tickets: 10, desc: TX('Una tirada legendaria asegurada') },
+  PESCADINHA:        { tickets: 100, coins: 1000, rayos: 3, player: 'Karl Kappa (Papi Gavi)', desc: TX('Para Papi Gavi: Kappa legendario, vale para cualquier puesto') },
 };
 const normCode = c => String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 
@@ -232,12 +234,12 @@ const Profile = {
   // Canjea un código de regalo: cada código sirve una vez por partida guardada
   redeem(raw) {
     const k = normCode(raw), G = GIFT_CODES[k];
-    if (!k) return { ok: false, msg: 'Escribe un código' };
-    if (!G) return { ok: false, msg: 'Ese código no existe' };
-    if (this.data.codes[k]) return { ok: false, msg: 'Ya canjeaste este código' };
+    if (!k) return { ok: false, msg: TX('Escribe un código') };
+    if (!G) return { ok: false, msg: TX('Ese código no existe') };
+    if (this.data.codes[k]) return { ok: false, msg: TX('Ya canjeaste este código') };
     const today = new Date().toISOString().slice(0, 10);
-    if (G.hasta && today > G.hasta) return { ok: false, msg: 'Este código ha caducado' };
-    if (G.desde && today < G.desde) return { ok: false, msg: 'Este código todavía no está activo' };
+    if (G.hasta && today > G.hasta) return { ok: false, msg: TX('Este código ha caducado') };
+    if (G.desde && today < G.desde) return { ok: false, msg: TX('Este código todavía no está activo') };
     const P = this.data;
     P.tickets += G.tickets || 0; P.coins += G.coins || 0; P.rayos += G.rayos || 0;
     if (G.leg) P.giftLeg = (P.giftLeg || 0) + G.leg;
@@ -248,9 +250,9 @@ const Profile = {
       if (pd) { const o = P.coll[pd.id]; if (!o) P.coll[pd.id] = { stars: 1, up: {} }; else if (o.stars < MAX_STARS) o.stars++; else P.coins += 200; who = pd; }
     }
     P.codes[k] = Date.now(); this.save();
-    const parts = [who && '⭐ ' + who.name, G.leg && G.leg + ' tirada' + (G.leg > 1 ? 's' : '') + ' legendaria' + (G.leg > 1 ? 's' : ''), G.epica && G.epica + ' tiradas épicas o mejores',
-      G.tickets && G.tickets + ' 🎟️ tickets', G.coins && G.coins + ' 🪙 monedas', G.rayos && G.rayos + ' ⚡ Rayos'].filter(Boolean);
-    return { ok: true, msg: '¡Código canjeado! ' + parts.join(' y '), code: k, gift: G };
+    const parts = [who && '⭐ ' + who.name, G.leg && TXn(G.leg, '{0} tirada legendaria', '{0} tiradas legendarias'), G.epica && G.epica + TX(' tiradas épicas o mejores'),
+      G.tickets && G.tickets + TX(' 🎟️ tickets'), G.coins && G.coins + TX(' 🪙 monedas'), G.rayos && G.rayos + TX(' ⚡ Rayos')].filter(Boolean);
+    return { ok: true, msg: TX('¡Código canjeado! ') + parts.join(TX(' y ')), code: k, gift: G };
   },
   owned(id) { return this.data.coll[id] || null; },
   ids() { return Object.keys(this.data.coll).map(Number); },
@@ -386,7 +388,7 @@ const Run = {
       lives = R.lives; name = STAGE_NAME[opts.stage || 's1'];
     } else if (kind === 'special') { schedule = [opts.team]; lives = 1; name = opts.team; }
     else if (kind === 'chain') { const C = CHAINS.find(c => c.key === opts.chain); schedule = C.teams.slice(); lives = C.lives; name = C.name; }
-    else if (kind === 'infinite') { schedule = [Run.infiniteTeam(0)]; lives = 2; name = 'Infinito'; }
+    else if (kind === 'infinite') { schedule = [Run.infiniteTeam(0)]; lives = 2; name = TX('Infinito'); }
     const roster = lineupIds.map(id => runMember(id));
     return { kind, diff, name, stage: opts.stage || 's1', chain: opts.chain || null, schedule, index: 0, lives, maxLives: lives, wins: 0, coinsEarned: 0, ticketsEarned: 0,
       roster, lineup: roster.map((_, i) => i), formation: opts.formation || '1-2-1-1', state: 'map', rewards: null, last: null };
@@ -429,7 +431,7 @@ const Run = {
   matchTeams(run) {
     const F = FORMATIONS[run.formation] || FORMATIONS['1-2-1-1'];
     const pos = layout(F.roles);
-    const A = { name: 'Tu equipo', players: run.lineup.slice(0, 5).map((ri, i) => {
+    const A = { name: TX('Tu equipo'), players: run.lineup.slice(0, 5).map((ri, i) => {
       const m = run.roster[ri], pd = PLAYER(m.id);
       return Object.assign(buildMatchPlayer(m.id, F.roles[i], Run.memberStat(m), m.techs, m.passives, i, pos[i]),
         { sprite: { file: Sprites.collFile(pd), row: pd.cs[1] } });

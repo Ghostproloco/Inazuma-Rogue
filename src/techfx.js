@@ -78,7 +78,7 @@ const PAL = {
   mal: { main: 0xa040ff, tints: [0xf0d0ff, 0xc080ff, 0x8020e0, 0x300060] },
   hielo: { main: 0x8fe9ff, tints: [0xffffff, 0xd8f6ff, 0x8fe9ff, 0x2f7ab0] },
 };
-const TYPE_TXT = { tiro: 'Supertécnica de tiro', parada: 'Supertécnica de portero', regate: 'Supertécnica de regate', bloqueo: 'Supertécnica de bloqueo' };
+const TYPE_TXT = { tiro: TX('Supertécnica de tiro'), parada: TX('Supertécnica de portero'), regate: TX('Supertécnica de regate'), bloqueo: TX('Supertécnica de bloqueo') };
 
 class TechFX {
   constructor(scene) {

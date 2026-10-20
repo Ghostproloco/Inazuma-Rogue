@@ -65,7 +65,7 @@ function makeFirebase() {
 function device(store) {
   class Storage { constructor() { this._ = store || {}; } getItem(k) { return k in this._ ? this._[k] : null; } setItem(k, v) { this._[k] = String(v); } removeItem(k) { delete this._[k]; } }
   const ls = new Storage();
-  const ctx = { Storage, localStorage: ls, setTimeout, clearTimeout, JSON, Math, Date, Object, Array, Set, String, Promise, console,
+  const ctx = { TX: (s, ...a) => a.length ? s.replace(/\{(\d+)\}/g, (m, i) => a[i]) : s, TXn: (n, a, b) => (n === 1 ? a : b).replace('{0}', n), Storage, localStorage: ls, setTimeout, clearTimeout, JSON, Math, Date, Object, Array, Set, String, Promise, console,
     Blob, Response, CompressionStream, DecompressionStream, btoa, atob, Uint8Array,
     CLOUD_CONFIG: { apiKey: 'AIzaFake', authDomain: 'x.firebaseapp.com', projectId: 'x', appId: '1:1:web:1' } };
   ctx.firebase = device.fb[store ? 'same' : 'new']();
