@@ -841,6 +841,7 @@ const EN_TEXT = {
   'Supertécnica de tiro': 'Shot special move',
   'Supertécnicas': 'Special moves',
   'Supertécnicas legendarias': 'Legendary special moves',
+  'Supertécnicas más espectaculares: unas 70 técnicas tienen ahora su propia animación (tiros, paradas, regates y bloqueos).': 'Flashier special moves: about 70 moves now have their own animation (shots, saves, dribbles and blocks).',
   'Sustituye a': 'Replaces',
   'Suya': 'Theirs',
   'S{0}': 'W{0}',

@@ -33,6 +33,19 @@ const FAM_RULES = {
 // Técnicas famosas con animación propia (van antes que las familias)
 const SIG_RULES = {
   tiro: [
+    ['fantasma', /fantasma/i],
+    ['cohete', /misil|cohete/i],
+    ['explosivo', /dinamita|granada|bomba acrob/i],
+    ['bate', /bateo|golf/i],
+    ['kungfu', /kung-?fu/i],
+    ['psiquico', /psico/i],
+    ['tarzan', /tarz[áa]n/i],
+    ['rosas', /rosas/i],
+    ['mariposas', /mariposa/i],
+    ['tormentaF', /tormenta de fuego|llamarada/i],
+    ['torre', /torre de osaka|torre/i],
+    ['rebotes', /rebote/i],
+    ['fango', /fango/i],
     ['lobo', /aullido de lobo/i],
     ['divino', /sabidur[íi]a divina|disparo sagrado|flecha divina|rapto divino/i],
     ['fenix', /f[ée]nix|p[áa]jaro de fuego/i],
@@ -48,6 +61,14 @@ const SIG_RULES = {
     ['relampago', /rel[áa]mpago|trampol[íi]n/i],
   ],
   parada: [
+    ['llamas', /lanzallamas|combusti/i],
+    ['petalos', /p[ée]talos|hojarasca/i],
+    ['cisne', /cisne/i],
+    ['constelacion', /constelaci|estelar/i],
+    ['taladro', /taladr/i],
+    ['cohetep', /cohete/i],
+    ['punos', /pu[ñn]os voladores/i],
+    ['hielop', /bloque de hielo/i],
     ['trimano', /trimano/i],
     ['manoceleste', /mano celestial/i],
     ['manomagica', /mano m[áa]gica/i],
@@ -58,8 +79,29 @@ const SIG_RULES = {
   regate: [
     ['hora', /hora celestial/i],
     ['espejismo', /espejismo/i],
+    ['lluviaR', /meteor/i],
+    ['flama', /flam[íi]g|infernal|[íi]gnea|llamas/i],
+    ['remolino', /torbellino|tornado|remolino|hurac[áa]n|tormenta|cicl[óo]n/i],
+    ['chispa', /chispeante|rel[áa]mpago|acelerrel/i],
+    ['armadillo', /armadillo/i],
+    ['chicle', /chicle|pompa/i],
+    ['luna', /luna/i],
+    ['aurora', /aurora|cruz del sur/i],
+    ['paipay', /paipay|abanico/i],
+    ['geiser', /g[ée]iser/i],
+    ['topo', /topo/i],
+    ['triple', /3 piernas|triple/i],
   ],
   bloqueo: [
+    ['telarana', /telara/i],
+    ['ballena', /ballena/i],
+    ['tren', /tren/i],
+    ['sumo', /sumo|apisonad|aplanad/i],
+    ['fuegoB', /llamas|volc[áa]n|cortafuegos|bombazo/i],
+    ['fotones', /fot[óo]n/i],
+    ['torbellinoB', /cicl[óo]n|torbellino|bobina|peonza|giratorio/i],
+    ['niebla', /olor|embriag|niebla/i],
+    ['doppel', /doppel|sombr/i],
     ['murobloq', /^el muro$|torre/i],
     ['terremoto', /terremoto|sismo/i],
     ['gravedad', /graved|gravit/i],
@@ -137,9 +179,11 @@ class TechFX {
         break;
       case 'blockOk': {
         const fam = famOf({ type: 'bloqueo', name: e.name || '' });
-        const kind = { tierra: 'rocks', hielo: 'icerocks', murobloq: 'wall', terremoto: 'quake', gravedad: 'gravity' }[fam] || 'slash';
-        this.impacts.push({ kind, x: e.x * PX, y: e.y * PX, elem: e.elem, t: 0, life: kind === 'slash' ? 0.7 : 0.9 });
-        if (kind !== 'slash') this.sc.cameras.main.shake(220, kind === 'quake' ? 0.012 : 0.007);
+        const kind = { tierra: 'rocks', hielo: 'icerocks', murobloq: 'wall', terremoto: 'quake', gravedad: 'gravity', telarana: 'web', ballena: 'whale', tren: 'train',
+          sumo: 'stomp', fuegoB: 'firewall', fotones: 'flashb', torbellinoB: 'whirl', niebla: 'mist', doppel: 'doppel' }[fam] || 'slash';
+        this.impacts.push({ kind, x: e.x * PX, y: e.y * PX, elem: e.elem, t: 0, life: kind === 'slash' ? 0.7 : kind === 'train' || kind === 'whale' ? 1.1 : 0.9 });
+        if (['rocks', 'icerocks', 'wall', 'quake', 'gravity', 'whale', 'train', 'stomp'].includes(kind)) this.sc.cameras.main.shake(220, kind === 'quake' || kind === 'stomp' || kind === 'train' ? 0.012 : 0.007);
+        if (kind === 'flashb') this.sc.cameras.main.flash(160, 255, 255, 230);
         break;
       }
       case 'knock': this.impacts.push({ kind: 'puff', x: e.x * PX, y: e.y * PX, elem: e.elem, t: 0, life: 0.45 }); break;
@@ -208,12 +252,14 @@ class TechFX {
       v.hist = v.hist || [];
       v.hist.unshift({ x: p.x * PX, y: p.y * PX - p.z * PX });
       if (v.hist.length > 14) v.hist.length = 14;
+      if (v.spr && v.spr.alpha < 1 && !(p.dash && /armadillo|topo/.test(famOf(p.dash.tech)))) v.spr.setAlpha(1);   // vuelve a verse tras rodar o excavar
       if (!p.dash) continue;
       if (p.dash.tech.plain) {   // regate normal: solo una estela suave
         [3, 6].forEach((j, i) => { const h = v.hist[j]; if (h) clone(v, h.x, h.y, 0.28 - i * 0.1, 0xffffff); });
         continue;
       }
       const E = EL(p.dash.tech.elem), fam = famOf(p.dash.tech), px = p.x * PX, py = p.y * PX;
+      if (this.dashSig(fam, E, p, v, px, py, time, clone)) continue;
       if (fam === 'hora') {
         this.dim.fillAlpha = Math.max(this.dim.fillAlpha, 0.55);
         this.clock(gA, px, py - 22, 34, time, E);
@@ -489,6 +535,7 @@ class TechFX {
     }
   }
   sigWindup(key, E, x, y, k, time, v, clone) {
+    if (this.sigWindup2(key, E, x, y, k, time, v, clone)) return true;
     const gN = this.gN, gA = this.gA;
     if (key === 'lobo') {
       gA.fillStyle(E.main, 0.25).fillCircle(x, y - 70, 50 * k + 16);
@@ -565,6 +612,7 @@ class TechFX {
     return false;
   }
   sigFlight(key, E, bx, by, time) {
+    if (this.sigFlight2(key, E, bx, by, time)) return true;
     const gN = this.gN, gA = this.gA, T = this.trail, n = T.length;
     if (key === 'lobo') {
       for (let j = 1; j < n; j++) { const w = 22 * (1 - j / n) + 2; gA.lineStyle(w, E.main, 0.35).lineBetween(T[j - 1].x, T[j - 1].y, T[j].x, T[j].y); }
@@ -644,6 +692,7 @@ class TechFX {
     return false;
   }
   sigParada(key, E, x, y, age, time, team, pulse) {
+    if (this.sigParada2(key, E, x, y, age, time, team, pulse)) return true;
     const gN = this.gN, gA = this.gA, s = (0.4 + 0.6 * age) * (1 + pulse * 0.35);
     const fy = y + (team === 'B' ? 18 : -18);
     if (key === 'manoceleste' || key === 'trimano') {
@@ -680,6 +729,319 @@ class TechFX {
       gN.fillStyle(0x08000f, 0.95).fillCircle(x, fy, 26 * s);
       for (let i = 0; i < 4; i++) { const a = time / (140 - i * 20) + i * 1.5; gA.lineStyle(4, i % 2 ? 0xff9040 : 0xa040ff, 0.85); gA.beginPath(); gA.arc(x, fy, (30 + i * 9) * s, a, a + 3.6, false); gA.strokePath(); }
       return true;
+    }
+    return false;
+  }
+
+  /* ---------- Más técnicas con animación propia (según su nombre) ---------- */
+  ghost(g, x, y, s, alpha, time) {   // fantasma: sábana ondulante con ojos
+    const w = 22 * s, h = 30 * s, pts = [];
+    for (let i = 0; i <= 10; i++) { const a = Math.PI + i / 10 * Math.PI; pts.push({ x: x + Math.cos(a) * w, y: y - h * 0.4 + Math.sin(a) * w }); }
+    for (let i = 0; i <= 8; i++) { const t = i / 8; pts.push({ x: x + w - t * 2 * w, y: y + h * 0.5 + Math.sin(t * Math.PI * 4 + time / 80) * 4 * s }); }
+    g.fillStyle(0xeef4ff, alpha).fillPoints(pts, true); g.lineStyle(2, 0x6a7aa8, alpha).strokePoints(pts, true);
+    g.fillStyle(0x101830, alpha).fillEllipse(x - 7 * s, y - h * 0.45, 6 * s, 9 * s).fillEllipse(x + 7 * s, y - h * 0.45, 6 * s, 9 * s);
+    g.fillStyle(0x101830, alpha * 0.8).fillEllipse(x, y - h * 0.1, 7 * s, 9 * s);
+  }
+  rocket(g, x, y, a, s, E) {   // cohete apuntando en el ángulo a
+    const c = Math.cos(a), sn = Math.sin(a), P = (f, l) => ({ x: x + c * f * s - sn * l * s, y: y + sn * f * s + c * l * s });
+    const body = [P(18, 0), P(8, -6), P(-14, -6), P(-14, 6), P(8, 6)];
+    g.fillStyle(0xe8e8f0, 1).fillPoints(body, true); g.lineStyle(2, 0x404058, 1).strokePoints(body, true);
+    g.fillStyle(0xe8361a, 1).fillTriangle(P(18, 0).x, P(18, 0).y, P(8, -6).x, P(8, -6).y, P(8, 6).x, P(8, 6).y);
+    g.fillStyle(0xe8361a, 1).fillTriangle(P(-8, -6).x, P(-8, -6).y, P(-16, -13).x, P(-16, -13).y, P(-14, -6).x, P(-14, -6).y);
+    g.fillTriangle(P(-8, 6).x, P(-8, 6).y, P(-16, 13).x, P(-16, 13).y, P(-14, 6).x, P(-14, 6).y);
+    g.fillStyle(0x3fb6e8, 1).fillCircle(P(2, 0).x, P(2, 0).y, 3 * s);
+    const f = 8 + Math.random() * 8; this.gA.fillStyle(E.tints[0], 0.9).fillTriangle(P(-14, -4).x, P(-14, -4).y, P(-14, 4).x, P(-14, 4).y, P(-14 - f, 0).x, P(-14 - f, 0).y);
+  }
+  dynamite(g, x, y, s, time) {
+    [-9, 0, 9].forEach((o, i) => { g.fillStyle(0xd0302a, 1).fillRoundedRect(x + o * s - 4 * s, y - 14 * s, 8 * s, 26 * s, 2 * s); g.lineStyle(1.5, 0x5a1010, 1).strokeRoundedRect(x + o * s - 4 * s, y - 14 * s, 8 * s, 26 * s, 2 * s); });
+    g.fillStyle(0x3a2a1a, 1).fillRect(x - 13 * s, y - 2 * s, 26 * s, 4 * s);
+    g.lineStyle(2, 0x5a4a30, 1).lineBetween(x, y - 14 * s, x + 6 * s, y - 24 * s);
+    for (let i = 0; i < 5; i++) { const a = Math.random() * 6.28, r = 3 + Math.random() * 7; this.gA.fillStyle(i % 2 ? 0xfff1a0 : 0xff7a1a, 1).fillCircle(x + 6 * s + Math.cos(a) * r, y - 24 * s + Math.sin(a) * r, 1.6); }
+  }
+  petal(g, x, y, a, s, col) {
+    const c = Math.cos(a), sn = Math.sin(a), P = (f, l) => ({ x: x + c * f * s - sn * l * s, y: y + sn * f * s + c * l * s });
+    g.fillStyle(col, 0.95).fillTriangle(P(-5, 0).x, P(-5, 0).y, P(0, -3).x, P(0, -3).y, P(6, 0).x, P(6, 0).y).fillTriangle(P(-5, 0).x, P(-5, 0).y, P(0, 3).x, P(0, 3).y, P(6, 0).x, P(6, 0).y);
+  }
+  rose(g, x, y, s) {
+    g.fillStyle(0x2c7d2c, 1).fillTriangle(x - 10 * s, y + 6 * s, x, y + 2 * s, x - 2 * s, y + 10 * s).fillTriangle(x + 10 * s, y + 6 * s, x, y + 2 * s, x + 2 * s, y + 10 * s);
+    g.fillStyle(0xc81a4a, 1).fillCircle(x, y, 9 * s); g.fillStyle(0xe8406a, 1).fillCircle(x - 2 * s, y - 2 * s, 6 * s); g.fillStyle(0xff7a9a, 1).fillCircle(x - 1 * s, y - 3 * s, 3 * s);
+    g.lineStyle(1.5, 0x7a0a2a, 1).strokeCircle(x, y, 9 * s);
+  }
+  butterfly(g, x, y, s, flap, col, col2) {
+    const f = 0.35 + 0.65 * Math.abs(flap);
+    g.fillStyle(col, 0.95).fillEllipse(x - 7 * s * f, y - 4 * s, 12 * s * f, 12 * s).fillEllipse(x + 7 * s * f, y - 4 * s, 12 * s * f, 12 * s);
+    g.fillStyle(col2, 0.95).fillEllipse(x - 5 * s * f, y + 5 * s, 8 * s * f, 8 * s).fillEllipse(x + 5 * s * f, y + 5 * s, 8 * s * f, 8 * s);
+    g.fillStyle(0x201010, 1).fillRect(x - 1, y - 8 * s, 2, 16 * s);
+  }
+  flame(g, x, y, h, col, col2, time, seed = 0) {   // llama de 3 lenguas
+    const sw = Math.sin(time / 70 + seed) * h * 0.12;
+    g.fillStyle(col, 0.9).fillTriangle(x - h * 0.35, y, x + h * 0.35, y, x + sw, y - h);
+    g.fillStyle(col2, 0.95).fillTriangle(x - h * 0.18, y, x + h * 0.18, y, x + sw * 0.6, y - h * 0.6);
+  }
+  web(g, x, y, r, a, col) {
+    for (let i = 0; i < 8; i++) { const t = a + i / 8 * Math.PI * 2; g.lineStyle(1.5, col, 0.9).lineBetween(x, y, x + Math.cos(t) * r, y + Math.sin(t) * r * 0.6); }
+    for (let k = 1; k <= 3; k++) { const pts = []; for (let i = 0; i <= 8; i++) { const t = a + i / 8 * Math.PI * 2; pts.push({ x: x + Math.cos(t) * r * k / 3, y: y + Math.sin(t) * r * 0.6 * k / 3 }); } g.lineStyle(1.5, col, 0.85).strokePoints(pts); }
+  }
+  star5(g, x, y, r, col, a = -Math.PI / 2) {
+    const pts = []; for (let i = 0; i < 10; i++) { const rr = i % 2 ? r * 0.42 : r, t = a + i * Math.PI / 5; pts.push({ x: x + Math.cos(t) * rr, y: y + Math.sin(t) * rr }); }
+    g.fillStyle(col, 0.95).fillPoints(pts, true);
+  }
+  heading(T, bx, by) { const q = T[Math.min(3, T.length - 1)] || { x: bx, y: by + 1 }; return Math.atan2(by - q.y, bx - q.x); }
+
+  sigWindup2(key, E, x, y, k, time, v, clone) {
+    const gN = this.gN, gA = this.gA;
+    switch (key) {
+      case 'fantasma':
+        gN.fillStyle(0x10102a, 0.35).fillEllipse(x, y + 4, 90, 26);
+        [-1, 1].forEach((sg, i) => this.ghost(gA, x + sg * (24 + Math.sin(time / 200 + i) * 8), y - 40 - k * 20 + Math.sin(time / 120 + i * 2) * 6, 0.9 + k * 0.3, 0.55, time));
+        this.ghost(gN, x, y - 64 - k * 26, 1.1 + k * 0.4, 0.8, time);
+        return true;
+      case 'cohete': {
+        gA.fillStyle(0xffd23a, 0.25).fillCircle(x, y - 20, 40);
+        for (let i = 0; i < 6; i++) { const r = 8 + ((time / 10 + i * 12) % 40); gN.fillStyle(0xb8b8c0, 0.5 * (1 - r / 50)).fillCircle(x - 30 + i * 12, y + 4 - r * 0.3, r * 0.4); }
+        this.rocket(gN, x, y - 40 - k * 40, -Math.PI / 2, 1.3 + k * 0.4, E);
+        return true;
+      }
+      case 'explosivo':
+        this.dynamite(gN, x, y - 48 - k * 10, 1.4 + k * 0.5, time);
+        gA.lineStyle(3, 0xffd23a, 0.6 + 0.4 * Math.sin(time / 40)).strokeCircle(x, y - 48, 30 + k * 10);
+        return true;
+      case 'bate': {   // palo que se arma hacia atrás
+        const a = -2.4 + k * 0.5 + Math.sin(time / 90) * 0.05, L = 46;
+        gN.lineStyle(8, 0x8a5a2a, 1).lineBetween(x, y - 26, x + Math.cos(a) * L, y - 26 + Math.sin(a) * L);
+        gN.lineStyle(3, 0xd8a868, 1).lineBetween(x, y - 26, x + Math.cos(a) * L, y - 26 + Math.sin(a) * L);
+        gA.lineStyle(4, E.tints[0], 0.6); gA.beginPath(); gA.arc(x, y - 26, L, a, a + 2.2, false); gA.strokePath();
+        return true;
+      }
+      case 'kungfu':
+        for (let i = 0; i < 3; i++) { const r = 14 + ((time / 5 + i * 22) % 66); gA.lineStyle(4, E.tints[1], 0.9 * (1 - r / 80)).strokeEllipse(x, y - 30, r * 2, r * 1.2); }
+        [-1, 1].forEach(sg => this.hand(gN, x + sg * (38 - k * 12), y - 40 + Math.sin(time / 60 + sg) * 6, 0.55, E, true));
+        gA.fillStyle(0xffffff, 0.6).fillCircle(x, y - 30, 8 + k * 6);
+        return true;
+      case 'psiquico':
+        gA.fillStyle(0x6020c0, 0.3).fillCircle(x, y - 40, 60);
+        for (let i = 0; i < 4; i++) { const r = 10 + ((time / 8 + i * 18) % 72); gA.lineStyle(3, 0xd080ff, 0.9 * (1 - r / 82)).strokeCircle(x, y - 40, r); }
+        gN.fillStyle(0xffffff, 0.95).fillEllipse(x, y - 70, 34, 18); gN.fillStyle(0x8020e0, 1).fillCircle(x, y - 70, 7); gN.fillStyle(0x100020, 1).fillCircle(x, y - 70, 3.5);
+        gN.lineStyle(2, 0x401070, 1).strokeEllipse(x, y - 70, 34, 18);
+        return true;
+      case 'tarzan': {   // liana desde arriba y hojas
+        const a = Math.sin(time / 260) * 0.6, L = 150, tx = x + Math.sin(a) * 40, ty = y - 40;
+        gN.lineStyle(5, 0x5a3a1a, 1).lineBetween(x - 20, y - 40 - L, tx, ty); gN.lineStyle(2, 0x2c7d2c, 1).lineBetween(x - 20, y - 40 - L, tx, ty);
+        for (let i = 0; i < 6; i++) { const t = i / 6, lx = x - 20 + (tx - x + 20) * t, ly = y - 40 - L + L * t; this.petal(gN, lx + 6, ly, 0.6 + i, 1.3, 0x52b83e); }
+        for (let i = 0; i < 8; i++) { const fy = y - 120 + ((time / 9 + i * 19) % 130); this.petal(gN, x - 60 + i * 16 + Math.sin(time / 200 + i) * 8, fy, time / 300 + i, 1.1, i % 2 ? 0x9ee860 : 0x52b83e); }
+        return true;
+      }
+      case 'rosas':
+        for (let i = 0; i < 18; i++) { const a = time / 400 + i * 0.7, r = 20 + (i % 4) * 14; this.petal(gN, x + Math.cos(a) * r, y - 30 + Math.sin(a) * r * 0.55, a * 2, 1.4, i % 3 ? 0xe8406a : 0xff9ab0); }
+        this.rose(gN, x, y - 54 - k * 16, 1.2 + k * 0.6);
+        return true;
+      case 'mariposas':
+        for (let i = 0; i < 6; i++) { const a = time / 500 + i * 1.05, r = 26 + (i % 2) * 18; this.butterfly(gN, x + Math.cos(a) * r, y - 40 + Math.sin(a) * r * 0.5 - k * 14, 1.1, Math.sin(time / 50 + i), i % 2 ? E.tints[1] : 0xff9ab0, E.main); }
+        return true;
+      case 'tormentaF':
+        gA.fillStyle(0xff3010, 0.25).fillCircle(x, y - 40, 70);
+        for (let i = 0; i < 12; i++) { const a = time / 250 + i * 0.52, r = 26 + (i % 3) * 16; this.flame(gA, x + Math.cos(a) * r, y - 20 + Math.sin(a) * r * 0.45, 22 + (i % 3) * 8 + k * 10, 0xff5a10, 0xfff1a0, time, i); }
+        return true;
+      case 'torre': {   // la torre se levanta detrás
+        const h = 40 + k * 120, bx = x - 14;
+        gN.fillStyle(0x6a6a7a, 1).fillRect(bx, y - h, 28, h); gN.lineStyle(2, 0x2a2a3a, 1).strokeRect(bx, y - h, 28, h);
+        for (let i = 0; i < Math.floor(h / 18); i++) gN.fillStyle(0xfff0a0, 0.9).fillRect(bx + 6 + (i % 2) * 10, y - 14 - i * 18, 6, 7);
+        gN.fillStyle(0x4a4a5a, 1).fillTriangle(bx - 8, y - h, bx + 36, y - h, x, y - h - 26);
+        gA.fillStyle(0xffd23a, 0.9).fillCircle(x, y - h - 26, 4 + Math.sin(time / 60) * 2);
+        return true;
+      }
+      case 'rebotes':
+        for (let i = 0; i < 4; i++) { const t = ((time / 500 + i * 0.25) % 1), bx2 = x - 60 + t * 120, by2 = y - 20 - Math.abs(Math.sin(t * Math.PI * 3)) * 60; gA.fillStyle(E.tints[0], 0.9).fillCircle(bx2, by2, 6); gA.lineStyle(2, E.main, 0.6).strokeEllipse(bx2, y - 20, 18 * (1 - t) + 4, 6); }
+        this.gather(E, x, y - 18, k, time);
+        return true;
+      case 'fango':
+        for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2 + time / 600, r = 20 + k * 30; gN.fillStyle(i % 2 ? 0x6e4622 : 0x8a5a2a, 0.95).fillCircle(x + Math.cos(a) * r, y - 20 + Math.sin(a) * r * 0.5, 7 + (i % 3) * 2); }
+        gN.fillStyle(0x5a3a1a, 1).fillCircle(x, y - 34, 10 + k * 10);
+        return true;
+    }
+    return false;
+  }
+  sigFlight2(key, E, bx, by, time) {
+    const gN = this.gN, gA = this.gA, T = this.trail, n = T.length, a = this.heading(T, bx, by);
+    const tail = (w0, col, al) => { for (let j = 1; j < n; j++) gA.lineStyle(w0 * (1 - j / n) + 2, col, al).lineBetween(T[j - 1].x, T[j - 1].y, T[j].x, T[j].y); };
+    switch (key) {
+      case 'fantasma':
+        for (let j = 4; j < n; j += 6) this.ghost(gA, T[j].x + Math.sin(time / 90 + j) * 10, T[j].y, 0.6, 0.35 * (1 - j / n), time);
+        this.ghost(gN, bx, by - 4, 0.8, 0.85, time);
+        return true;
+      case 'cohete':
+        for (let j = 1; j < n; j++) { const p = T[j], r = 3 + j * 0.9; gN.fillStyle(0xc8c8d0, 0.55 * (1 - j / n)).fillCircle(p.x + Math.sin(j * 1.3) * 3, p.y, r); }
+        this.rocket(gN, bx, by, a, 1.1, E);
+        return true;
+      case 'explosivo':
+        tail(14, 0xff7a1a, 0.45);
+        for (let i = 0; i < 6; i++) { const t = Math.random() * 6.28, r = 8 + Math.random() * 14; gA.fillStyle(i % 2 ? 0xfff1a0 : 0xff5a10, 0.9).fillCircle(bx + Math.cos(t) * r, by + Math.sin(t) * r, 2); }
+        this.dynamite(gN, bx, by, 0.75, time);
+        return true;
+      case 'bate':
+        tail(10, E.main, 0.4);
+        for (let j = 3; j < n; j += 3) gA.lineStyle(2, 0xffffff, 0.7 * (1 - j / n)).strokeCircle(T[j].x, T[j].y, 6 + j);
+        gA.fillStyle(0xffffff, 0.85).fillCircle(bx, by, 10);
+        return true;
+      case 'kungfu':
+        tail(16, E.main, 0.4);
+        for (let j = 2; j < n; j += 5) gA.lineStyle(3, E.tints[0], 0.8 * (1 - j / n)).strokeEllipse(T[j].x, T[j].y, 26 - j * 0.4, 12);
+        this.hand(gN, bx, by - 2, 0.42, E, true);
+        return true;
+      case 'psiquico':
+        tail(14, 0x8020e0, 0.4);
+        for (let i = 0; i < 3; i++) { const r = 8 + ((time / 6 + i * 10) % 30); gA.lineStyle(2, 0xd080ff, 0.9 * (1 - r / 38)).strokeCircle(bx, by, r); }
+        gA.fillStyle(0xf0d0ff, 0.9).fillCircle(bx, by, 8);
+        return true;
+      case 'tarzan':
+        tail(12, 0x52b83e, 0.4);
+        for (let j = 2; j < n; j += 3) this.petal(gN, T[j].x + Math.sin(j + time / 80) * 10, T[j].y, time / 150 + j, 1.2, j % 2 ? 0x9ee860 : 0x52b83e);
+        gA.fillStyle(0xe2ffa8, 0.8).fillCircle(bx, by, 10);
+        return true;
+      case 'rosas':
+        for (let j = 1; j < n; j += 1) this.petal(gN, T[j].x + Math.sin(j * 0.8 + time / 70) * 12, T[j].y, time / 120 + j, 1.1, j % 3 ? 0xe8406a : 0xff9ab0);
+        this.rose(gN, bx, by, 1.1);
+        return true;
+      case 'mariposas':
+        [3, 8, 13, 18].forEach((j, i) => { const p = T[j]; if (p) this.butterfly(gN, p.x + (i % 2 ? 14 : -14), p.y + Math.sin(time / 60 + i) * 6, 0.9, Math.sin(time / 45 + i), i % 2 ? E.tints[1] : 0xff9ab0, E.main); });
+        gA.fillStyle(E.tints[0], 0.8).fillCircle(bx, by, 9);
+        return true;
+      case 'tormentaF':
+        for (let j = 1; j < n; j += 2) this.flame(gA, T[j].x + Math.sin(j) * 6, T[j].y + 6, 22 * (1 - j / n) + 6, 0xff5a10, 0xfff1a0, time, j);
+        gA.fillStyle(0xfff1a0, 0.9).fillCircle(bx, by, 11);
+        return true;
+      case 'torre':
+        tail(18, 0xffd23a, 0.4);
+        gN.fillStyle(0x6a6a7a, 1).fillRect(bx - 6, by - 26, 12, 26); gN.fillStyle(0x4a4a5a, 1).fillTriangle(bx - 9, by - 26, bx + 9, by - 26, bx, by - 38);
+        gA.fillStyle(0xffffff, 0.85).fillCircle(bx, by, 9);
+        return true;
+      case 'rebotes':
+        tail(10, E.main, 0.4);
+        for (let j = 4; j < n; j += 6) gA.lineStyle(3, E.tints[0], 0.8 * (1 - j / n)).strokeEllipse(T[j].x, T[j].y + 6, 24, 8);
+        gA.fillStyle(E.tints[0], 0.9).fillCircle(bx, by - Math.abs(Math.sin(time / 60)) * 8, 10);
+        return true;
+      case 'fango':
+        for (let j = 1; j < n; j += 2) gN.fillStyle(j % 4 ? 0x6e4622 : 0x8a5a2a, 0.8 * (1 - j / n)).fillCircle(T[j].x + Math.sin(j * 1.7) * 8, T[j].y, 5 + (1 - j / n) * 6);
+        gN.fillStyle(0x5a3a1a, 1).fillCircle(bx, by, 13); gN.fillStyle(0x8a5a2a, 1).fillCircle(bx - 3, by - 3, 6);
+        return true;
+    }
+    return false;
+  }
+  sigParada2(key, E, x, y, age, time, team, pulse) {
+    const gN = this.gN, gA = this.gA, s = (0.4 + 0.6 * age) * (1 + pulse * 0.35), fy = y + (team === 'B' ? 18 : -18), dir = team === 'B' ? 1 : -1;
+    switch (key) {
+      case 'llamas':
+        gA.fillStyle(0xff3010, 0.3).fillCircle(x, fy, 50 * s);
+        for (let i = 0; i < 9; i++) { const fx = x - 52 * s + i * 13 * s; this.flame(gA, fx, fy + 14 * s, (30 + (i % 3) * 12) * s, 0xff5a10, 0xfff1a0, time, i); }
+        return true;
+      case 'petalos':
+        for (let i = 0; i < 22; i++) { const a = time / 300 + i * 0.29, r = (14 + (i % 5) * 9) * s; this.petal(gN, x + Math.cos(a) * r, fy + Math.sin(a) * r * 0.6, a * 3, 1.4 * s, i % 3 ? E.tints[1] : 0xff9ab0); }
+        return true;
+      case 'cisne': {
+        const flap = 0.8 + 0.2 * Math.sin(time / 90);
+        this.wing(gN, x, fy, -1, 58 * s, flap, PAL.luz); this.wing(gN, x, fy, 1, 58 * s, flap, PAL.luz);
+        gN.lineStyle(6 * s, 0xffffff, 1).beginPath(); gN.arc(x + 6 * s, fy - 22 * s, 14 * s, Math.PI * 0.6, Math.PI * 1.9, false); gN.strokePath();
+        gN.fillStyle(0xff9a20, 1).fillTriangle(x + 18 * s, fy - 30 * s, x + 26 * s, fy - 28 * s, x + 18 * s, fy - 25 * s);
+        return true;
+      }
+      case 'constelacion': {
+        gN.fillStyle(0x080828, 0.55).fillCircle(x, fy, 60 * s);
+        const P = [[-40, -10], [-18, -30], [6, -12], [26, -34], [44, -6], [14, 18], [-22, 16]].map(([a, b]) => ({ x: x + a * s, y: fy + b * s }));
+        gA.lineStyle(2, 0xb0c8ff, 0.8).strokePoints(P, true);
+        P.forEach((q, i) => this.star5(gA, q.x, q.y, (6 + Math.sin(time / 90 + i) * 2) * s, i % 2 ? 0xffffff : 0xfff0a0, time / 500));
+        return true;
+      }
+      case 'taladro': {
+        gA.fillStyle(E.main, 0.25).fillCircle(x, fy, 44 * s);
+        const L = 56 * s, w = 22 * s;
+        gN.fillStyle(0x9aa0b0, 1).fillTriangle(x - w, fy, x + w, fy, x, fy + dir * L);
+        for (let i = 1; i < 6; i++) { const t = (i / 6 + time / 300) % 1, yy = fy + dir * L * t, ww = w * (1 - t); gN.lineStyle(2, 0x404858, 1).lineBetween(x - ww, yy, x + ww, yy + dir * 6); }
+        gN.lineStyle(2, 0x303848, 1).strokeTriangle(x - w, fy, x + w, fy, x, fy + dir * L);
+        return true;
+      }
+      case 'cohetep':
+        for (let i = 0; i < 5; i++) { const r = 6 + ((time / 6 + i * 10) % 40); gN.fillStyle(0xc8c8d0, 0.5 * (1 - r / 46)).fillCircle(x + Math.sin(i) * 10, fy - dir * (20 + r), r * 0.5); }
+        this.hand(gN, x, fy, 1.15 * s, E, true);
+        gA.fillStyle(0xffd23a, 0.9).fillTriangle(x - 12 * s, fy - dir * 22 * s, x + 12 * s, fy - dir * 22 * s, x, fy - dir * (40 + Math.random() * 10) * s);
+        return true;
+      case 'punos':
+        for (let i = 0; i < 5; i++) { const a = time / 160 + i * 1.26; this.hand(gN, x + Math.cos(a) * 40 * s, fy + Math.sin(a) * 22 * s, 0.5 * s, E, true); }
+        this.hand(gN, x, fy, 0.95 * s, E, true);
+        return true;
+      case 'hielop':
+        gN.fillStyle(0xd8f6ff, 0.75).fillRect(x - 44 * s, fy - 34 * s, 88 * s, 60 * s); gN.lineStyle(3, 0x2f7ab0, 1).strokeRect(x - 44 * s, fy - 34 * s, 88 * s, 60 * s);
+        gA.fillStyle(0xffffff, 0.6).fillTriangle(x - 40 * s, fy - 30 * s, x - 10 * s, fy - 30 * s, x - 40 * s, fy);
+        for (let i = 0; i < 4; i++) this.snowflake(gA, x - 30 * s + i * 20 * s, fy + 14 * s, 5 * s, 0xffffff, time / 300 + i);
+        return true;
+    }
+    return false;
+  }
+  // Regates con animación propia
+  dashSig(fam, E, p, v, px, py, time, clone) {
+    const gN = this.gN, gA = this.gA, a = p.dash.dir, H = v.hist || [];
+    const ghosts = (cols, al = 0.4) => [4, 8, 12].forEach((j, i) => { const h = H[j]; if (h) clone(v, h.x, h.y, al - i * 0.1, cols[i % cols.length]); });
+    switch (fam) {
+      case 'lluviaR':
+        for (let i = 0; i < 4; i++) { const t = ((time / 400 + i * 0.25) % 1), mx = px - 50 + i * 30 + t * 30, my = py - 150 + t * 130; gA.lineStyle(6, E.main, 0.45).lineBetween(mx, my, mx - 20, my - 34); gA.fillStyle(E.tints[0], 0.95).fillCircle(mx, my, 5); }
+        ghosts([E.main]);
+        return true;
+      case 'flama':
+        for (let j = 1; j < H.length; j += 2) this.flame(gA, H[j].x + Math.sin(j) * 4, H[j].y + 2, 24 * (1 - j / H.length) + 8, 0xff5a10, 0xfff1a0, time, j);
+        if (/rueda|infernal/i.test(p.dash.tech.name)) for (let i = 0; i < 8; i++) { const t = time / 40 + i * 0.785; gA.lineStyle(4, i % 2 ? 0xff5a10 : 0xffc23a, 0.9).lineBetween(px, py - 18, px + Math.cos(t) * 24, py - 18 + Math.sin(t) * 24); }
+        return true;
+      case 'remolino':
+        for (let i = 0; i < 7; i++) { const yy = py - i * 8, r = 10 + i * 5, ph = time * 0.03 + i * 0.7; gA.lineStyle(3, i % 2 ? E.tints[1] : E.main, 0.85).strokeEllipse(px + Math.sin(ph) * 3, yy, r * 2, r * 0.5); }
+        ghosts([E.tints[1]], 0.3);
+        return true;
+      case 'chispa': {
+        const pts = H.filter((_, j) => j % 2 === 0).map((h, j) => ({ x: h.x + (j % 2 ? 10 : -10), y: h.y - 16 }));
+        if (pts.length > 1) { gA.lineStyle(9, 0xffe040, 0.35).strokePoints(pts); gA.lineStyle(3, 0xffffff, 1).strokePoints(pts); }
+        if (Math.random() < 0.5) this.bolt(gA, px, py - 18, px + (Math.random() - 0.5) * 70, py - 18 + (Math.random() - 0.5) * 50, 0xffe040, 2);
+        ghosts([0xfff6a0], 0.35);
+        return true;
+      }
+      case 'armadillo': {   // bola acorazada que rueda
+        const r = 18, rot = time / 60;
+        gN.fillStyle(0x8a6a4a, 1).fillCircle(px, py - 16, r); gN.lineStyle(2, 0x3a2a1a, 1).strokeCircle(px, py - 16, r);
+        for (let i = 0; i < 4; i++) { const t = rot + i * 0.785; gN.lineStyle(2, 0x3a2a1a, 1).lineBetween(px + Math.cos(t) * r, py - 16 + Math.sin(t) * r, px - Math.cos(t) * r, py - 16 - Math.sin(t) * r); }
+        for (let j = 3; j < H.length; j += 3) gN.fillStyle(0xc9b98a, 0.6 * (1 - j / H.length)).fillCircle(H[j].x, H[j].y, 6);
+        if (v && v.spr) v.spr.setAlpha(0.15);
+        return true;
+      }
+      case 'chicle': {
+        const r = 22 + Math.sin(time / 90) * 4;
+        gA.fillStyle(0xff8ac0, 0.45).fillCircle(px, py - 20, r); gN.lineStyle(3, 0xff4a9a, 0.9).strokeCircle(px, py - 20, r);
+        gA.fillStyle(0xffffff, 0.7).fillEllipse(px - r * 0.4, py - 20 - r * 0.4, r * 0.5, r * 0.3);
+        ghosts([0xff9ac8], 0.3);
+        return true;
+      }
+      case 'luna':
+        gA.lineStyle(10, 0xfff0a0, 0.8); gA.beginPath(); gA.arc(px, py - 20, 30, a + 0.6, a + 0.6 + 3.6, false); gA.strokePath();
+        gA.lineStyle(4, 0xffffff, 1); gA.beginPath(); gA.arc(px, py - 20, 30, a + 0.6, a + 0.6 + 3.6, false); gA.strokePath();
+        ghosts([0xfff6c0], 0.35);
+        return true;
+      case 'aurora':
+        for (let r = 0; r < 3; r++) { const pts = H.map((h, j) => ({ x: h.x, y: h.y - 30 - r * 8 + Math.sin(j * 0.6 + time / 100 + r) * 6 })); if (pts.length > 1) gA.lineStyle(7, [0x5cff9a, 0x6fe3ff, 0xc080ff][r], 0.45).strokePoints(pts); }
+        if (/cruz/i.test(p.dash.tech.name)) [[0, -46], [-14, -30], [14, -30], [0, -14], [6, -24]].forEach(([ox, oy], i) => this.star5(gA, px + ox, py + oy, i === 4 ? 3 : 6, 0xffffff, time / 400));
+        return true;
+      case 'paipay': {   // abanico gigante que sopla
+        const ox = px - Math.cos(a) * 26, oy = py - 20 - Math.sin(a) * 26, sw = Math.sin(time / 50) * 0.4;
+        for (let i = 0; i < 7; i++) { const t = a + Math.PI - 0.9 + i * 0.3 + sw; gN.fillStyle(i % 2 ? 0xffe6b0 : 0xe8c890, 1).fillTriangle(ox, oy, ox + Math.cos(t) * 40, oy + Math.sin(t) * 40, ox + Math.cos(t + 0.3) * 40, oy + Math.sin(t + 0.3) * 40); }
+        for (let i = 0; i < 6; i++) { const o = (i - 2.5) * 8; gA.lineStyle(2, 0xffffff, 0.7).lineBetween(px - Math.sin(a) * o, py - 20 + Math.cos(a) * o, px - Math.sin(a) * o + Math.cos(a) * 36, py - 20 + Math.cos(a) * o + Math.sin(a) * 36); }
+        return true;
+      }
+      case 'geiser':
+        for (let j = 2; j < H.length; j += 3) { const h = H[j], hh = 50 * (1 - j / H.length) + 10; gN.fillStyle(0x6fc0ff, 0.6).fillRect(h.x - 6, h.y - hh, 12, hh); for (let i = 0; i < 3; i++) gN.fillStyle(0xffffff, 0.9).fillCircle(h.x + (i - 1) * 7, h.y - hh, 4); }
+        return true;
+      case 'topo':
+        for (let j = 0; j < H.length; j += 2) gN.fillStyle(j % 4 ? 0x6e4622 : 0x8a5a2a, 1).fillEllipse(H[j].x, H[j].y + 2, 16, 8);
+        gN.fillStyle(0x5a3a1a, 1).fillEllipse(px, py, 34, 14);
+        if (v && v.spr) v.spr.setAlpha(0.25);
+        return true;
+      case 'triple':
+        [-18, 18].forEach((o, i) => clone(v, px - Math.sin(a) * o, py + Math.cos(a) * o * 0.5, 0.55, i ? E.tints[1] : E.main));
+        [3, 6].forEach((j, i) => { const h = H[j]; if (h) clone(v, h.x, h.y, 0.3 - i * 0.1, 0xffffff); });
+        return true;
     }
     return false;
   }
@@ -733,6 +1095,44 @@ class TechFX {
       gN.fillStyle(0x1a0028, 0.55 * (1 - k)).fillEllipse(m.x, m.y, 120, 50);
       for (let i = 0; i < 3; i++) { const r = ((1 - k) * 60 + i * 20) % 60 + 10; gA.lineStyle(3, 0xa040ff, 0.8 * (1 - k)).strokeEllipse(m.x, m.y, r * 2, r * 0.8); }
       for (let i = -1; i <= 1; i++) { const ax = m.x + i * 24, ay = m.y - 70 + k * 50; gA.lineStyle(4, 0xc080ff, 1 - k).lineBetween(ax, ay, ax, ay + 24); gA.fillStyle(0xc080ff, 1 - k).fillTriangle(ax - 7, ay + 22, ax + 7, ay + 22, ax, ay + 32); }
+    } else if (m.kind === 'web') {
+      this.web(gN, m.x, m.y - 14, 26 + Math.min(1, k * 4) * 30, k * 0.5, 0xf4f4f4);
+      gN.lineStyle(2, 0xffffff, 1 - k);
+    } else if (m.kind === 'whale') {   // ballena que sale del suelo
+      const h = Math.sin(Math.min(1, k * 1.4) * Math.PI) * 50, wx = m.x, wy = m.y - h;
+      if (h > 2) {
+        gN.fillStyle(0x2a5aa8, 1).fillEllipse(wx, wy, 120, 54); gN.fillStyle(0xe8f0ff, 1).fillEllipse(wx + 6, wy + 12, 90, 22);
+        gN.lineStyle(3, 0x0a2a6a, 1).strokeEllipse(wx, wy, 120, 54);
+        gN.fillStyle(0x2a5aa8, 1).fillTriangle(wx - 56, wy - 4, wx - 86, wy - 26, wx - 80, wy + 12);
+        gN.fillStyle(0xffffff, 1).fillCircle(wx + 34, wy - 8, 5); gN.fillStyle(0x0a1a3a, 1).fillCircle(wx + 35, wy - 8, 2.5);
+        for (let i = 0; i < 5; i++) gN.fillStyle(0x9fe0ff, 0.9).fillCircle(wx + 20 + (i - 2) * 6, wy - 30 - Math.abs(i - 2) * -4 - k * 30, 4);
+      }
+      gN.lineStyle(3, 0x6fc0ff, 1 - k).strokeEllipse(m.x, m.y + 6, 140 * (0.5 + k), 30 * (0.5 + k));
+    } else if (m.kind === 'train') {   // tren que cruza
+      const tx = m.x - 140 + k * 280, ty = m.y - 10;
+      for (let c = 0; c < 3; c++) {
+        const x0 = tx - c * 46;
+        gN.fillStyle(c ? 0x3a6ad8 : 0xd8361a, 1).fillRect(x0 - 20, ty - 26, 42, 26); gN.lineStyle(2, 0x101820, 1).strokeRect(x0 - 20, ty - 26, 42, 26);
+        gN.fillStyle(0xfff0a0, 1).fillRect(x0 - 14, ty - 22, 10, 8).fillRect(x0 + 2, ty - 22, 10, 8);
+        gN.fillStyle(0x202020, 1).fillCircle(x0 - 10, ty + 2, 6).fillCircle(x0 + 12, ty + 2, 6);
+      }
+      gN.fillStyle(0x202020, 1).fillRect(tx + 14, ty - 40, 8, 14);
+      for (let i = 0; i < 4; i++) gN.fillStyle(0xd8d8d8, 0.7).fillCircle(tx + 18 - i * 14, ty - 46 - i * 6, 6 + i * 2);
+    } else if (m.kind === 'stomp') {   // pisotón: onda y polvo
+      for (let i = 0; i < 3; i++) gN.lineStyle(5 * (1 - k), 0x6e4622, 1 - k).strokeEllipse(m.x, m.y, (40 + i * 30) * (0.4 + k), (14 + i * 10) * (0.4 + k));
+      for (let i = 0; i < 10; i++) { const t = i / 10 * Math.PI * 2, d = 20 + k * 70; gN.fillStyle(0xc9b98a, 0.8 * (1 - k)).fillCircle(m.x + Math.cos(t) * d, m.y + Math.sin(t) * d * 0.4 - Math.sin(k * Math.PI) * 14, 7); }
+    } else if (m.kind === 'firewall') {
+      const h = Math.sin(Math.min(1, k * 1.6) * Math.PI);
+      for (let i = 0; i < 9; i++) this.flame(gA, m.x - 64 + i * 16, m.y + 4, (30 + (i % 3) * 14) * h + 4, 0xff5a10, 0xfff1a0, time, i);
+    } else if (m.kind === 'flashb') {
+      gA.fillStyle(0xffffe0, 0.8 * (1 - k)).fillCircle(m.x, m.y - 16, 30 + k * 120);
+      for (let i = 0; i < 12; i++) { const t = i / 12 * Math.PI * 2; gA.lineStyle(3, 0xffffff, 1 - k).lineBetween(m.x + Math.cos(t) * 20, m.y - 16 + Math.sin(t) * 20, m.x + Math.cos(t) * (40 + k * 120), m.y - 16 + Math.sin(t) * (40 + k * 120)); }
+    } else if (m.kind === 'whirl') {
+      for (let i = 0; i < 6; i++) { const yy = m.y - i * 10, r = 14 + i * 7, ph = time * 0.03 + i; gA.lineStyle(4, i % 2 ? E.tints[1] || 0xffffff : E.main, 0.9 * (1 - k)).strokeEllipse(m.x + Math.sin(ph) * 4, yy, r * 2 * (0.6 + k * 0.6), r * 0.5); }
+    } else if (m.kind === 'mist') {
+      for (let i = 0; i < 9; i++) { const t = i / 9 * Math.PI * 2 + time / 400, d = 16 + k * 40; gN.fillStyle(i % 2 ? 0xff9ac8 : 0xd080ff, 0.45 * (1 - k)).fillCircle(m.x + Math.cos(t) * d, m.y - 14 + Math.sin(t) * d * 0.5, 14 + k * 10); }
+    } else if (m.kind === 'doppel') {
+      for (let i = 0; i < 4; i++) { const t = i / 4 * Math.PI * 2 + k * 3, d = 30 + k * 20; gN.fillStyle(0x201030, 0.7 * (1 - k)).fillEllipse(m.x + Math.cos(t) * d, m.y - 18 + Math.sin(t) * d * 0.4, 18, 34); gN.lineStyle(2, 0xc080ff, 0.9 * (1 - k)).strokeEllipse(m.x + Math.cos(t) * d, m.y - 18 + Math.sin(t) * d * 0.4, 18, 34); gN.fillStyle(0xff3030, 0.9 * (1 - k)).fillCircle(m.x + Math.cos(t) * d - 3, m.y - 28 + Math.sin(t) * d * 0.4, 2).fillCircle(m.x + Math.cos(t) * d + 3, m.y - 28 + Math.sin(t) * d * 0.4, 2); }
     } else if (m.kind === 'puff') {
       for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; gN.fillStyle(0xe8e8e8, 0.7 * (1 - k)).fillCircle(m.x + Math.cos(a) * k * 26, m.y - 10 + Math.sin(a) * k * 12, 8 * (1 - k * 0.5)); }
     }

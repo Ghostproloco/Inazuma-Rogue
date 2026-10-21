@@ -1849,6 +1849,7 @@ const App = (() => {
     { v: '0.31.5', date: '22/10/2026', items: [
       TX('Controles: si pulsas Pase o Tiro justo antes de recibir el balón, ahora pasas o chutas al primer toque (antes hacías una entrada sin querer).'),
       TX('Pase ya no hace entradas a tus propios compañeros.'),
+      TX('Supertécnicas más espectaculares: unas 70 técnicas tienen ahora su propia animación (tiros, paradas, regates y bloqueos).'),
       TX('Nueva guía de controles (móvil, ordenador y mando) en Pausa y en Ajustes.'),
       TX('Roguelite: el partido se acaba si un equipo gana por 5 goles de diferencia.'),
       TX('Las técnicas que ganas tras cada partido ahora encajan con la posición del jugador (un portero ya no recibe técnicas de tiro).'),

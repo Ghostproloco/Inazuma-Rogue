@@ -112,7 +112,8 @@ Cómo está hecho:
 4. **Guía de controles** (móvil / ordenador / mando) en Pausa y en Ajustes (`renderControlsGuide`).
 5. **Halloween: premios por entrar 5 días** (0.31.4): 150 🍬 · 10 tickets · 1000 monedas · elegir 1 de 3 de +80 · Jim (Oscuro) id 21583. Cualquier día cuenta, además del regalo diario de 20 🍬; la elección sale de todo el juego.
 6. Pantalla de **Novedades** con la lista de cambios (al añadir versión, poner su entrada arriba de `NEWS` en `app.js`).
-7. Revisión completa del código de Halloween antes de publicar: tests + recorridos en navegador (evento, premios de entrada, jefe, controles, teclas, novedades, guía) sin errores.
+7. **Supertécnicas con animación propia** (~70 técnicas, `src/techfx.js`): traídas de la rama 0.34 (commit 83dff4b) a la 0.31.5 por petición de Fran.
+8. Revisión completa del código de Halloween antes de publicar: tests + recorridos en navegador (evento, premios de entrada, jefe, controles, teclas, novedades, guía) sin errores.
 
 ## 4. Cómo se construye y se prueba
 - Todo el código está en `src/`. `python3 build.py` lo junta en `juego/index.html`
