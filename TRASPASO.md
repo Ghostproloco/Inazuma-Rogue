@@ -83,6 +83,10 @@ Cómo está hecho:
   si la cuota está agotada avisa «La nube está saturada… tu partida está a salvo» y reintenta a los 10, 30 y 60 min (`RETRY_QUOTA`).
 - Escenarios nuevos 20–22 en `test/cloud.js`. Si aun así se queda corto, la solución es pasar Firebase al plan Blaze (de pago por uso, con alerta de gasto).
 
+### v0.31.4 · Teclas del ordenador a elegir
+- Ajustes → Controles → «Teclas del ordenador»: **Nuevas** (K tiro / cambiar, L profundidad, E técnica) o **Clásicas** (como hasta la 0.31.1: L tiro, K profundidad, Q cambiar, U técnica).
+  Z X C V (con las flechas), Q, U y E valen en las dos. `settings.keys`, `SCHEMES` en `src/view.js`; la barra de teclas y el texto de Ajustes cambian según la elección.
+
 ### v0.31.4 · Halloween: premios por entrar (5 días)
 - Respuestas de Fran: cuentan **cualquier día que entres** (no hace falta que sean seguidos), **además** del regalo diario de 20 🍬, y el día 4 sale de **todo el juego**.
 - Día 1: 150 🍬 · día 2: 10 tickets · día 3: 1000 monedas · día 4: elige 1 de 3 jugadores de media +80 (las 3 opciones se guardan) · día 5: Jim (Oscuro), id 21583.

@@ -38,10 +38,15 @@ const Input = (() => {
   const R = 36;   // recorrido del joystick (px)
   const shell = document.getElementById('shell'), touch = document.getElementById('touch');
   const stick = document.getElementById('stick'), knob = document.getElementById('knob');
-  // Dos distribuciones a la vez: J K L I (con WASD) y Z X C V (con las flechas). K/X: tiro con balón y cambiar jugador sin él
-  const KEYMAP = { KeyJ: 'A', KeyZ: 'A', KeyK: 'switch', KeyX: 'switch', KeyL: 'B', KeyC: 'B', KeyI: 'dribble', KeyV: 'dribble',
-    Space: 'tech', KeyE: 'techNext', KeyQ: 'switch', KeyU: 'techNext' };
-  const SHOOT_KEYS = ['KeyK', 'KeyX'], PASS_KEYS = ['KeyJ', 'KeyZ'];
+  // Teclas (Ajustes → «Teclas del ordenador»): «nuevas» = J pase · K tiro/cambiar · L profundidad · E técnica;
+  // «clásicas» = como hasta la 0.31.1: J pase · K profundidad · L tiro · Q cambiar · U técnica. Z X C V valen en las dos (con las flechas).
+  const COMMON = { KeyZ: 'A', KeyX: 'switch', KeyC: 'B', KeyV: 'dribble', Space: 'tech', KeyQ: 'switch', KeyU: 'techNext', KeyE: 'techNext' };
+  const SCHEMES = {
+    nuevas: { map: Object.assign({}, COMMON, { KeyJ: 'A', KeyK: 'switch', KeyL: 'B', KeyI: 'dribble' }), shoot: ['KeyK', 'KeyX'] },
+    clasicas: { map: Object.assign({}, COMMON, { KeyJ: 'A', KeyK: 'B', KeyI: 'dribble' }), shoot: ['KeyL', 'KeyX'] },
+  };
+  const scheme = () => { try { return SCHEMES[App.settings.keys] || SCHEMES.nuevas; } catch (_) { return SCHEMES.nuevas; } };
+  const PASS_KEYS = ['KeyJ', 'KeyZ'];
   let passTouch = null;
   const BLOCK = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'];
 
@@ -50,8 +55,9 @@ const Input = (() => {
     if (e.repeat) return;
     if (App.menuKey && App.menuKey(e)) return;   // teclas en menús e intro (Esc = volver…)
     keys.add(e.code);
-    if (KEYMAP[e.code]) pressed.add(KEYMAP[e.code]);
-    if (SHOOT_KEYS.includes(e.code)) pressed.add('shoot');
+    const K = scheme();
+    if (K.map[e.code]) pressed.add(K.map[e.code]);
+    if (K.shoot.includes(e.code)) pressed.add('shoot');
     if (e.code === 'KeyP' || e.code === 'Escape') App.togglePause();
   });
   addEventListener('keyup', e => keys.delete(e.code));
@@ -117,7 +123,7 @@ const Input = (() => {
     if (x || y) { const l = Math.hypot(x, y); x /= l; y /= l; }
     x += joy.x + gpState.x; y += joy.y + gpState.y;
     const out = { move: { x, y }, sprint: keys.has('ShiftLeft') || keys.has('ShiftRight') || gpState.sprint,
-      shootHeld: SHOOT_KEYS.some(k => keys.has(k)) || shootTouch !== null || gpState.shoot, passHeld: PASS_KEYS.some(k => keys.has(k)) || passTouch !== null || gpState.pass, pressed: new Set(pressed) };
+      shootHeld: scheme().shoot.some(k => keys.has(k)) || shootTouch !== null || gpState.shoot, passHeld: PASS_KEYS.some(k => keys.has(k)) || passTouch !== null || gpState.pass, pressed: new Set(pressed) };
     pressed.clear();
     return out;
   }
@@ -155,6 +161,11 @@ const Pad = (() => {
     ],
   };
   const pad = document.getElementById('pad'), kh = document.getElementById('keyhud');
+  const KEYS_CLASICAS = {
+    attack: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/C</b> ' + TX('profundidad ·') + ' <b>I/V</b> ' + TX('regate ·') + ' <b>L/X</b> ' + TX('tiro (mantén) ·') + ' <b>U</b> ' + TX('cambiar técnica'),
+    defense: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('entrada ·') + ' <b>Q/X</b> ' + TX('cambiar ·') + ' <b>U</b> ' + TX('cambiar técnica'),
+    gk: '<b>' + TX('Portero') + '</b>: <b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover por el área ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/C</b> ' + TX('saque largo ·') + ' <b>L/X</b> ' + TX('despeje'),
+  };
   const KEYS = {
     attack: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/X</b> ' + TX('tiro (mantén) ·') + ' <b>L/C</b> ' + TX('profundidad ·') + ' <b>I/V</b> ' + TX('regate ·') + ' <b>E</b> ' + TX('cambiar técnica'),
     defense: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('entrada ·') + ' <b>K/X</b> ' + TX('cambiar ·') + ' <b>E</b> ' + TX('cambiar técnica'),
@@ -164,7 +175,8 @@ const Pad = (() => {
   const down = new Set();   // dedos sobre los botones: mientras haya alguno, los botones no cambian (si no, el botón desaparecía bajo el dedo)
   function render(m) {
     if (m === mode || down.size) return;
-    kh.querySelector('.kh-keys').innerHTML = KEYS[m] + ' · <b>P</b> ' + TX('pausa');
+    let clas = false; try { clas = App.settings.keys === 'clasicas'; } catch (_) {}
+    kh.querySelector('.kh-keys').innerHTML = (clas ? KEYS_CLASICAS : KEYS)[m] + ' · <b>P</b> ' + TX('pausa');
     mode = m; pad.innerHTML = ''; techBtn = null; dribBtn = null; nextBtn = null; lastDrib = -1; lastName = null;
     Input.holdShoot(false); Input.holdPass(false);
     SETS[m].forEach(b => {

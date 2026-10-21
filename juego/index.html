@@ -819,6 +819,7 @@ const EN_TEXT = {
   'Cerrojo': 'Lockdown',
   'Clasificación': 'Standings',
   'Club': 'Club',
+  'Clásicas (L tiro)': 'Classic (L shoots)',
   'Coleccionista de sustos': 'Fright Collector',
   'Colección': 'Collection',
   'Colección completa': 'Full collection',
@@ -1246,6 +1247,7 @@ const EN_TEXT = {
   'Normal': 'Normal',
   'Nota ': 'Rating ',
   'Nueva carrera': 'New career',
+  'Nuevas (K tiro)': 'New (K shoots)',
   'Nunca (PC)': 'Never (PC)',
   'Octavos': 'Round of 16',
   'Ocupas el sitio del club que elijas: su división, su nombre y sus jugadores. Ellos se quedan con tu plantilla. La temporada empieza de nuevo.': 'You take the place of the club you choose: its division, its name and its players. They keep your squad. The season starts again.',
@@ -1436,6 +1438,7 @@ const EN_TEXT = {
   'También:': 'Also:',
   'Te han nombrado seleccionador de Inazuma Japón: convoca a los mejores de las ligas.': 'You\'ve been named Inazuma Japan coach: call up the best players from the leagues.',
   'Team D, Dark Angel, Demons Z y el Ogro: los villanos del 3.': 'Team D, Dark Angel, Demons Z and the Ogre: the villains of 3.',
+  'Teclas del ordenador': 'Computer keys',
   'Tema de partido (P15)': 'Match theme (P15)',
   'Tema épico': 'Epic Theme',
   'Temporada': 'Season',
@@ -1543,6 +1546,7 @@ const EN_TEXT = {
   'Volver al club': 'Back to the club',
   'Vuelve a esta pestaña y toca': 'Come back to this tab and tap',
   'Vuelve mañana a por el siguiente premio.': 'Come back tomorrow for the next prize.',
+  'WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o C: profundidad / saque largo · L o X: tiro (mantén) / despeje · I o V: regate · Q: cambiar jugador · Espacio: supertécnica · U: cambiar técnica · P o Esc: pausa': 'WASD or arrows to move · Shift sprint · J or Z: pass (hold = strong) / tackle · K or C: through ball / long kick · L or X: shoot (hold) / clearance · I or V: dribble · Q: switch player · Space: special move · U: change move · P or Esc: pause',
   'WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o X: tiro (mantén) / cambiar jugador · L o C: profundidad / saque largo · I o V: regate · Espacio: supertécnica · E: cambiar técnica · P o Esc: pausa': 'WASD or arrows to move · Shift sprint · J or Z: pass (hold = strong) / tackle · K or X: shoot (hold) / switch player · L or C: through ball / long kick · I or V: dribble · Space: special move · E: change move · P or Esc: pause',
   'Ya canjeaste este código': 'You\'ve already redeemed this code',
   'Ya está al máximo.': 'Already maxed out.',
@@ -1587,6 +1591,7 @@ const EN_TEXT = {
   'del juego, con un': 'from the game, with a',
   'desbloquea a Ray Dark': 'unlocks Ray Dark',
   'descenso': 'relegation',
+  'despeje': 'clearance',
   'despeje ·': 'clearance ·',
   'después juegas el partido': 'then you play the match',
   'destaca (+1': 'stands out (+1',
@@ -1669,6 +1674,7 @@ const EN_TEXT = {
   'regate ·': 'dribble ·',
   'roguelite': 'roguelite',
   'saque largo': 'long kick',
+  'saque largo ·': 'long kick ·',
   'se cansa y cierra la negociación hasta la semana que viene.': 'gets fed up and closes the negotiation until next week.',
   'se podrá elegir como mánager en el Modo Carrera, con': 'can be picked as manager in Career Mode, with',
   'se va al': 'moves to',
@@ -5112,10 +5118,15 @@ const Input = (() => {
   const R = 36;   // recorrido del joystick (px)
   const shell = document.getElementById('shell'), touch = document.getElementById('touch');
   const stick = document.getElementById('stick'), knob = document.getElementById('knob');
-  // Dos distribuciones a la vez: J K L I (con WASD) y Z X C V (con las flechas). K/X: tiro con balón y cambiar jugador sin él
-  const KEYMAP = { KeyJ: 'A', KeyZ: 'A', KeyK: 'switch', KeyX: 'switch', KeyL: 'B', KeyC: 'B', KeyI: 'dribble', KeyV: 'dribble',
-    Space: 'tech', KeyE: 'techNext', KeyQ: 'switch', KeyU: 'techNext' };
-  const SHOOT_KEYS = ['KeyK', 'KeyX'], PASS_KEYS = ['KeyJ', 'KeyZ'];
+  // Teclas (Ajustes → «Teclas del ordenador»): «nuevas» = J pase · K tiro/cambiar · L profundidad · E técnica;
+  // «clásicas» = como hasta la 0.31.1: J pase · K profundidad · L tiro · Q cambiar · U técnica. Z X C V valen en las dos (con las flechas).
+  const COMMON = { KeyZ: 'A', KeyX: 'switch', KeyC: 'B', KeyV: 'dribble', Space: 'tech', KeyQ: 'switch', KeyU: 'techNext', KeyE: 'techNext' };
+  const SCHEMES = {
+    nuevas: { map: Object.assign({}, COMMON, { KeyJ: 'A', KeyK: 'switch', KeyL: 'B', KeyI: 'dribble' }), shoot: ['KeyK', 'KeyX'] },
+    clasicas: { map: Object.assign({}, COMMON, { KeyJ: 'A', KeyK: 'B', KeyI: 'dribble' }), shoot: ['KeyL', 'KeyX'] },
+  };
+  const scheme = () => { try { return SCHEMES[App.settings.keys] || SCHEMES.nuevas; } catch (_) { return SCHEMES.nuevas; } };
+  const PASS_KEYS = ['KeyJ', 'KeyZ'];
   let passTouch = null;
   const BLOCK = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'];
 
@@ -5124,8 +5135,9 @@ const Input = (() => {
     if (e.repeat) return;
     if (App.menuKey && App.menuKey(e)) return;   // teclas en menús e intro (Esc = volver…)
     keys.add(e.code);
-    if (KEYMAP[e.code]) pressed.add(KEYMAP[e.code]);
-    if (SHOOT_KEYS.includes(e.code)) pressed.add('shoot');
+    const K = scheme();
+    if (K.map[e.code]) pressed.add(K.map[e.code]);
+    if (K.shoot.includes(e.code)) pressed.add('shoot');
     if (e.code === 'KeyP' || e.code === 'Escape') App.togglePause();
   });
   addEventListener('keyup', e => keys.delete(e.code));
@@ -5191,7 +5203,7 @@ const Input = (() => {
     if (x || y) { const l = Math.hypot(x, y); x /= l; y /= l; }
     x += joy.x + gpState.x; y += joy.y + gpState.y;
     const out = { move: { x, y }, sprint: keys.has('ShiftLeft') || keys.has('ShiftRight') || gpState.sprint,
-      shootHeld: SHOOT_KEYS.some(k => keys.has(k)) || shootTouch !== null || gpState.shoot, passHeld: PASS_KEYS.some(k => keys.has(k)) || passTouch !== null || gpState.pass, pressed: new Set(pressed) };
+      shootHeld: scheme().shoot.some(k => keys.has(k)) || shootTouch !== null || gpState.shoot, passHeld: PASS_KEYS.some(k => keys.has(k)) || passTouch !== null || gpState.pass, pressed: new Set(pressed) };
     pressed.clear();
     return out;
   }
@@ -5229,6 +5241,11 @@ const Pad = (() => {
     ],
   };
   const pad = document.getElementById('pad'), kh = document.getElementById('keyhud');
+  const KEYS_CLASICAS = {
+    attack: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/C</b> ' + TX('profundidad ·') + ' <b>I/V</b> ' + TX('regate ·') + ' <b>L/X</b> ' + TX('tiro (mantén) ·') + ' <b>U</b> ' + TX('cambiar técnica'),
+    defense: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('entrada ·') + ' <b>Q/X</b> ' + TX('cambiar ·') + ' <b>U</b> ' + TX('cambiar técnica'),
+    gk: '<b>' + TX('Portero') + '</b>: <b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover por el área ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/C</b> ' + TX('saque largo ·') + ' <b>L/X</b> ' + TX('despeje'),
+  };
   const KEYS = {
     attack: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/X</b> ' + TX('tiro (mantén) ·') + ' <b>L/C</b> ' + TX('profundidad ·') + ' <b>I/V</b> ' + TX('regate ·') + ' <b>E</b> ' + TX('cambiar técnica'),
     defense: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('entrada ·') + ' <b>K/X</b> ' + TX('cambiar ·') + ' <b>E</b> ' + TX('cambiar técnica'),
@@ -5238,7 +5255,8 @@ const Pad = (() => {
   const down = new Set();   // dedos sobre los botones: mientras haya alguno, los botones no cambian (si no, el botón desaparecía bajo el dedo)
   function render(m) {
     if (m === mode || down.size) return;
-    kh.querySelector('.kh-keys').innerHTML = KEYS[m] + ' · <b>P</b> ' + TX('pausa');
+    let clas = false; try { clas = App.settings.keys === 'clasicas'; } catch (_) {}
+    kh.querySelector('.kh-keys').innerHTML = (clas ? KEYS_CLASICAS : KEYS)[m] + ' · <b>P</b> ' + TX('pausa');
     mode = m; pad.innerHTML = ''; techBtn = null; dribBtn = null; nextBtn = null; lastDrib = -1; lastName = null;
     Input.holdShoot(false); Input.holdPass(false);
     SETS[m].forEach(b => {
@@ -8386,9 +8404,10 @@ const App = (() => {
       ${opts(TX('Cambio automático de jugador'), 'autoSwitch', [[1, TX('Sí')], [0, TX('No')]])}
       <h3>${TX('Controles')}</h3>
       ${opts(TX('Botones en pantalla'), 'controls', [['auto', TX('Auto')], ['tactil', TX('Siempre')], ['teclado', TX('Nunca (PC)')]])}
+      ${opts(TX('Teclas del ordenador'), 'keys', [['nuevas', TX('Nuevas (K tiro)')], ['clasicas', TX('Clásicas (L tiro)')]], Object.assign({ keys: 'nuevas' }, settings))}
       <p class="keys"><b>${TX('Mando:')}</b> ${TX('stick o cruceta para moverte · RT esprint · A pase (mantén = fuerte) · X tiro (mantén) · B profundidad / entrada · Y supertécnica · LT cambiar técnica · RB regate · LB cambiar jugador · Start pausa.')}<br>
       <b>${TX('Móvil:')}</b> ${TX('joystick a la izquierda (a tope = esprint). Mantén Pase para un pase fuerte y usa Regate para un recorte rápido sin técnica. Para cambiar de jugador apunta con el joystick y pulsa Cambiar (también cambia solo al ir a por el balón).')}<br>
-      <b>${TX('PC:')}</b> ${TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o X: tiro (mantén) / cambiar jugador · L o C: profundidad / saque largo · I o V: regate · Espacio: supertécnica · E: cambiar técnica · P o Esc: pausa')}</p>
+      <b>${TX('PC:')}</b> ${settings.keys === 'clasicas' ? TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o C: profundidad / saque largo · L o X: tiro (mantén) / despeje · I o V: regate · Q: cambiar jugador · Espacio: supertécnica · U: cambiar técnica · P o Esc: pausa') : TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o X: tiro (mantén) / cambiar jugador · L o C: profundidad / saque largo · I o V: regate · Espacio: supertécnica · E: cambiar técnica · P o Esc: pausa')}</p>
       <h3>${TX('Sonido')}</h3>
       <div class="mixer"><label>${TX('🎵 Música')} <b id="mvT">${Math.round((c.music ? c.mv ?? 1 : 0) * 100)} %</b><input type="range" id="mvR" min="0" max="100" step="5" value="${Math.round((c.music ? c.mv ?? 1 : 0) * 100)}"></label>
         <label>${TX('🔊 Efectos')} <b id="svT">${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)} %</b><input type="range" id="svR" min="0" max="100" step="5" value="${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)}"></label></div>
@@ -8405,7 +8424,7 @@ const App = (() => {
       <button class="ghost" id="stopAll">${TX('Parar')}</button>
       ${settings.dev ? '<button class="ghost" id="toDev">' + TX('🛠 Modo desarrollador') + '</button>' : ''}
       <p class="note">${TX('Inazuma Rogue v')}${VERSION} ${TX('· fan game gratuito y no oficial. Inazuma Eleven es de Level-5.')}</p>`);
-    bindOpts(settings, k => { saveSettings(); if (k === 'controls') Controls.apply(); });
+    bindOpts(settings, k => { saveSettings(); if (k === 'controls') Controls.apply(); if (k === 'keys') { const y = $('screen').scrollTop; renderSettings(); $('screen').scrollTop = y; } });
     body.querySelectorAll('[data-lang]').forEach(b => b.onclick = () => {
       if (b.dataset.lang === I18N.lang) return;
       I18N.set(b.dataset.lang); Sound.sfx('click');
