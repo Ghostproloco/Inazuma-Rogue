@@ -20,6 +20,8 @@ modo Carrera (mánager) y Mundial. Pensado sobre todo para **móvil en vertical*
 - Proponer alternativas en vez de inventar decisiones de diseño. Preguntas en tandas de **máx. 3**, con opciones.
 - Plan por fases antes de construir algo grande.
 - **Cada actualización**: primero se sube como **artefacto privado** de prueba en Claude; solo cuando Fran lo aprueba se fusiona a `main` y se sube a GitHub.
+- **Modo desarrollador solo en la beta** (22 oct, sin cambio de versión ni nota): `const BETA = false` en `app.js`; al publicar la beta se cambia a `true`
+  (igual que `forced: true` de Halloween). En la web pública los 20 toques no hacen nada y a quien lo tuviera encendido se le apaga solo (dev, debug, hwForce, devWin, speed).
 - **Novedades del juego (`NEWS` en `app.js`): NUNCA poner spoilers** — nada de eventos (Halloween…), legendarios, premios, códigos de regalo ni sorpresas. Solo mejoras y arreglos (controles, nube, ajustes…). Lo pidió Fran el 22 oct.
 - **Cada actualización**: dejar a Fran este `TRASPASO.md` actualizado + un zip pequeño con el código (sin sprites ni música).
 

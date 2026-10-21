@@ -7149,11 +7149,16 @@ const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '�
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
 const VERSION = '0.31.6';
+const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
   try { Object.assign(settings, JSON.parse(localStorage.getItem('inazuma-ajustes') || '{}')); } catch (_) {}
   const saveSettings = () => { try { localStorage.setItem('inazuma-ajustes', JSON.stringify(settings)); } catch (_) {} };
+  // Fuera de la beta no hay modo desarrollador: si alguien lo tenía encendido, se apaga sin avisar
+  if (!BETA && (settings.dev || settings.debug || settings.hwForce || settings.devWin || settings.speed)) {
+    settings.dev = false; settings.debug = 0; settings.hwForce = false; settings.devWin = 0; settings.speed = 0; saveSettings();
+  }
   Profile.load();
   Halloween.forced = Halloween.forced || !!settings.hwForce;   // la beta lo trae encendido de serie
 
@@ -7236,6 +7241,7 @@ const App = (() => {
     let vt = 0, vtT = 0;   // 20 toques seguidos en la versión: modo desarrollador
     $('ver').onclick = () => {
       const now = Date.now(); vt = now - vtT < 1500 ? vt + 1 : 1; vtT = now;
+      if (!BETA) return;
       if (vt >= 20) { vt = 0; if (!settings.dev) { settings.dev = true; settings.devWin = 1; saveSettings(); UI.toast(TX('Modo desarrollador activado'), 1800); } Sound.sfx('reveal'); renderDev(); }
       else if (vt >= 15) UI.toast(TX('Faltan ') + (20 - vt) + TX(' toques…'), 600);
     };
@@ -9163,6 +9169,7 @@ const App = (() => {
     $('back').onclick = renderDev;
   }
   function renderDev() {
+    if (!BETA) return renderMenu();
     const P = Profile.data;
     const b = (id, t, sub = '') => `<button class="ghost big" id="${id}">${t}<small>${sub}</small></button>`;
     screen(`${top(TX('Desarrollador'))}
