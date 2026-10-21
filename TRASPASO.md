@@ -20,6 +20,7 @@ modo Carrera (mánager) y Mundial. Pensado sobre todo para **móvil en vertical*
 - Proponer alternativas en vez de inventar decisiones de diseño. Preguntas en tandas de **máx. 3**, con opciones.
 - Plan por fases antes de construir algo grande.
 - **Cada actualización**: primero se sube como **artefacto privado** de prueba en Claude; solo cuando Fran lo aprueba se fusiona a `main` y se sube a GitHub.
+- **Novedades del juego (`NEWS` en `app.js`): NUNCA poner spoilers** — nada de eventos (Halloween…), legendarios, premios, códigos de regalo ni sorpresas. Solo mejoras y arreglos (controles, nube, ajustes…). Lo pidió Fran el 22 oct.
 - **Cada actualización**: dejar a Fran este `TRASPASO.md` actualizado + un zip pequeño con el código (sin sprites ni música).
 
 ## 3. Rama `halloween` (v0.31.1) — PENDIENTE DE APROBAR

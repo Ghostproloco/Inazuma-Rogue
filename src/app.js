@@ -1892,7 +1892,6 @@ const App = (() => {
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
     { v: '0.31.6', date: '22/10/2026', items: [
-      TX('🎃 Nuevo legendario de Halloween en el Sobre Calabaza: Zohen, defensa, con su versión de miedo. Los marcos de los legendarios de Halloween son ahora de un naranja apagado, más terroríficos.'),
       TX('Ordenador: nuevas teclas «A tu gusto» en Ajustes → Controles. Elige la tecla de cada acción, también para moverte.'),
       TX('Nube: la partida se guarda comprimida (ocupa unas 8 veces menos) y se sube al acabar cada partido, al salir del juego y, mientras juegas, cada 5 minutos. Así el servidor aguanta a muchos más jugadores.')] },
     { v: '0.31.5', date: '22/10/2026', items: [
@@ -1905,17 +1904,13 @@ const App = (() => {
       TX('Muñecos del Inazuma 3 arreglados: muchos tenían el muñeco de otro jugador (p. ej. Partinus salía con el pelo marrón).'),
       TX('Nuevo apartado de Novedades (este).')] },
     { v: '0.31.4', date: '21/10/2026', items: [
-      TX('Halloween: premios por entrar 5 días (no hace falta que sean seguidos): 150 caramelos, 10 tickets, 1000 monedas, elegir 1 de 3 jugadores de +80 y Jim (Oscuro) de regalo.'),
       TX('Ordenador: en Ajustes puedes elegir las teclas nuevas (K tiro) o las clásicas (L tiro), como antes.')] },
     { v: '0.31.3', date: '21/10/2026', items: [
       TX('Guardado en la nube arreglado: ¡erais tantos que reventasteis el servidor! Ahora la partida se sube como mucho una vez por minuto y al salir del juego.'),
       TX('Si la nube está saturada, tu partida sigue a salvo en tu dispositivo y se sube más tarde sola.')] },
     { v: '0.31.2', date: '21/10/2026', items: [
       TX('Móvil: los botones ya no se «comen» los toques (antes a veces no chutaba ni pasaba).'),
-      TX('Ordenador: teclas más cómodas (J/Z pase, K/X tiro, L/C profundidad, I/V regate, E cambiar técnica) y aviso de que se puede jugar con mando.'),
-      TX('El Kappa del código PESCADINHA pasa a media 85.')] },
-    { v: '0.31.1', date: '21/10/2026', items: [
-      TX('🎃 Evento de Halloween del 22 de octubre al 3 de noviembre: Sobre Calabaza con 5 legendarios de miedo, caramelos, partido jefe contra el Ocultismo en un campo con niebla, retos y Ray Dark como mánager en el Modo Carrera.')] },
+      TX('Ordenador: teclas más cómodas (J/Z pase, K/X tiro, L/C profundidad, I/V regate, E cambiar técnica) y aviso de que se puede jugar con mando.')] },
     { v: '0.31.0', date: '', items: [TX('El juego, traducido al inglés (cámbialo en Ajustes).')] },
   ];
   function renderNews(back = renderMenu) {
