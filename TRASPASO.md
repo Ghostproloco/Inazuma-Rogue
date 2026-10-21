@@ -75,6 +75,18 @@ Cómo está hecho:
   I/V regate · Espacio supertécnica · E cambiar técnica · P/Esc pausa.
 - **Aviso del mando** en PC: en el menú y en los 3 primeros partidos.
 
+### PENDIENTE (pedido de Fran el 21 oct, a medias: se paró para mirar la nube)
+1. **Sprites con colores distintos a la foto** (p. ej. Partinus: muñeco con pelo marrón, foto azul claro). Diagnóstico hecho:
+   ~200-300 jugadores (sobre todo hojas `c118`–`c136`, Inazuma 3) tienen el muñeco de otro jugador cercano o colores cambiados.
+   Script de análisis: compara el color del pelo del sprite (`cNN.png`, fila r, zona 16-32 x 16-23) con el de la foto (`fNN.png`, zona 16-48 x 1-10).
+   Idea propuesta: recolorear automáticamente el pelo del muñeco con los colores de su foto y enseñar a Fran un antes/después. **Falta preguntarle.**
+2. **Roguelite**: el partido se acaba al llegar a 5 goles de diferencia.
+3. **Recompensas de técnicas tras cada partido** (roguelite, `run.js` ~línea 505): que salgan sobre todo de la posición del jugador (un portero no debe recibir una de tiro).
+4. **Guía de controles** explicándolos (móvil, PC y mando).
+5. **Halloween: recompensas por iniciar sesión, 5 días**: día 1 150 🍬 · día 2 10 tickets · día 3 1000 de oro · día 4 elegir 1 de 3 jugadores aleatorios de +80 de media · día 5 Jim (Oscuro) (id 21583) regalado.
+   Preguntas pendientes para Fran: ¿días seguidos o cualquier día?, ¿además del regalo diario de 20 🍬?, ¿de qué jugadores sale la elección de +80?
+   Va en la versión publicada (el evento empieza el 22).
+
 ## 4. Cómo se construye y se prueba
 - Todo el código está en `src/`. `python3 build.py` lo junta en `juego/index.html`
   (orden en esta rama: i18n, en, media, logic, run, career, **event**, cloud-config, cloud, view, techfx, app). Datos en `juego/gamedata.json`.
