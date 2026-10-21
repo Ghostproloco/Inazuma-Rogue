@@ -11,7 +11,7 @@ modo Carrera (mánager) y Mundial. Pensado sobre todo para **móvil en vertical*
 - Repositorio: `franmndezzzz/inazuma-rogue` (**debe seguir PRIVADO**: `juego/` lleva recursos de los juegos originales).
 - En `main` (publicada) está la **0.31.0**.
 - Hay **dos ramas sin subir** (ninguna está en GitHub todavía):
-  - `halloween` → **v0.31.1 · Evento de Halloween** (sobre la 0.31). Es la que se publica primero (22 de octubre de 2026).
+  - `halloween` → **v0.31.1 · Evento de Halloween** (publicada el 21 oct; luego 0.31.2 con el arreglo de controles, ver abajo) (sobre la 0.31). Es la que se publica primero (22 de octubre de 2026).
   - `carrera-jugador` → v0.32–0.34 (Modo Carrera Jugador, Liga Pro, logros…). **En espera**; ver sección 7.
 
 ## 2. Cómo trabajamos (preferencias de Fran)
@@ -65,6 +65,15 @@ Cómo está hecho:
 - **Modo desarrollador** (20 toques en la versión) → sección Halloween: forzar el evento fuera de fechas (`settings.hwForce`), +300 caramelos, completar retos, reiniciar el evento.
 - Pruebas: `test/halloween.js` (fechas, caramelos, bote y probabilidades en 3000 tiradas, garantía de 40, jefe, retos, +10 % de Ray Dark).
   Recorrido en el navegador (ES y EN) sin errores: menú, evento, tirada ×10, partido jefe, retos, Ray Dark en la Carrera.
+
+### v0.31.2 · Controles (publicada el 21 oct)
+- Código PESCADINHA: el Kappa de Papi Gavi baja a media 85 (estaba a 99).
+- **Fallo del móvil «no chuta y no pasa»**: las pulsaciones se perdían si caían cuando tu jugador no podía actuar (al recibir, tras una entrada,
+  en el congelado de un golpe) o si el toque de Tiro duraba menos que un fotograma. Arreglo: búfer de entrada de 0,25 s (`bufferInput` en `src/logic.js`)
+  y acción `shoot` al pulsar Tiro; los botones táctiles no cambian mientras tienes el dedo encima (`src/view.js`). Prueba: `test/input.js`.
+- **Teclas de PC**: WASD o flechas · Shift esprint · J/Z pase-entrada · K/X tiro (mantén) - cambiar jugador · L/C profundidad - saque largo ·
+  I/V regate · Espacio supertécnica · E cambiar técnica · P/Esc pausa.
+- **Aviso del mando** en PC: en el menú y en los 3 primeros partidos.
 
 ## 4. Cómo se construye y se prueba
 - Todo el código está en `src/`. `python3 build.py` lo junta en `juego/index.html`
