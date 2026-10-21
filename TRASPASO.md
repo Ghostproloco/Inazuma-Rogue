@@ -121,6 +121,13 @@ Cómo está hecho:
 - **Subidas**: como mucho una cada 5 minutos mientras juegas (`PUSH_DELAY` 300000), y siempre al acabar cada partido (`Cloud.flush()` desde
   `api.matchEnded`) y al salir o cambiar de app. Tests: `test/cloud.js` escenarios 23 y 24.
 - No se quitó la lectura de cada subida (Fran prefirió no arriesgar que dos móviles se pisen).
+- **Zohen (DF) legendario de Halloween** (id 996006, base 21399): sexto legendario del Sobre Calabaza; retrato de miedo en `fhw.png` fila 5
+  (`tools/hw_faces.py`: piel gris verdosa, ojos rojos, máscara agrietada con gotas tóxicas). `media.js` pide `fhw.png?v=2`.
+- **Marcos de los legendarios de Halloween** en naranja apagado con brillo morado (clase `.hw` que pone `hwc(pd)` en `app.js`: cartas del gacha, fichas, plantilla y campo).
+- **Teclas «A tu gusto»** (Ajustes → Teclas del ordenador): `settings.keys = 'custom'`, `settings.keyMap` (acción → `e.code`) y `settings.keyLabels`
+  (letra de tu teclado, p. ej. Ñ). Acciones: arriba/abajo/izquierda/derecha, esprint, pase, tiro, cambiar jugador, profundidad, regate, supertécnica,
+  cambiar técnica y pausa (Esc siempre pausa). Tiro y Cambiar pueden compartir tecla; las demás repetidas salen en rojo. `Input.capture()` en `view.js`
+  coge la siguiente tecla. La barra de teclas y la guía de controles enseñan tus teclas. Probado en el navegador (`/tmp/claude-0/ui_custom.py`).
 - Si aun así se agota la cuota: plan Blaze (~0,09 $ por 100 000 escrituras de más) con alerta de gasto. Ver qué límite se gasta en Firebase → Firestore → Uso.
 
 ## 4. Cómo se construye y se prueba

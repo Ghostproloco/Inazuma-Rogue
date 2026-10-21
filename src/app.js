@@ -243,10 +243,12 @@ const App = (() => {
     $('g1').onclick = () => go(1); $('g10').onclick = () => go(10); $('back').onclick = renderMenu;
     tutorial('gacha'); if (!$('tutq-gacha')) body.insertAdjacentHTML('beforeend', `<p class="note" id="tutq-gacha">${tutBtn('gacha')}</p>`);
   }
+  // Legendarios de Halloween: marco naranja apagado, estilo miedo (clase .hw)
+  const hwc = pd => pd && pd.halloween ? ' hw' : '';
   // Carta de un resultado del gacha (jugador o técnica legendaria)
   function makeCard(r) {
     const c = document.createElement('div');
-    c.className = 'gcard ' + r.tier;
+    c.className = 'gcard ' + r.tier + (r.tech == null ? hwc(PLAYER(r.id)) : '');
     if (r.tech != null) {
       const t = TECH(r.tech);
       c.classList.add('techcard', EL(t.elem).css);
@@ -411,7 +413,7 @@ const App = (() => {
       ${Halloween.loginReady() ? `<button class="cta" id="hwLogin">${TX('🎁 Recoger el premio del día {0}', Halloween.login().n + 1)}</button>` : Halloween.login().n < Halloween.LOGIN.length ? `<p class="note">${TX('Vuelve mañana a por el siguiente premio.')}</p>` : ''}
       <h3>${TX('Sobre Calabaza')}</h3>
       <div class="hwlegs" id="hwLegs"></div>
-      <p class="note">${TX('Solo jugadores villanos y de miedo, y 5 legendarios exclusivos de Halloween.')}<br>
+      <p class="note">${TX('Solo jugadores villanos y de miedo, y 6 legendarios exclusivos de Halloween.')}<br>
         ${TX('Legendario 3 % · Épica 15 % · Rara 32 % · Común 50 %. Legendario asegurado a las')} ${HW_PITY} ${TX('tiradas (llevas')} ${H.pity}${TX(').')}</p>
       <div class="grid2"><button class="cta" id="hw1" ${H.candy < HW_PRICE ? 'disabled' : ''}>${TX('Tirar ×1')}<small>${HW_PRICE} 🍬</small></button><button class="cta" id="hw10" ${H.candy < HW_PRICE * 10 ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${HW_PRICE * 10} 🍬</small></button></div>
       <h3>${TX('Partido jefe')}</h3>
@@ -486,7 +488,7 @@ const App = (() => {
   }
   function miniCard(id, extra = '') {
     const pd = PLAYER(id), o = Profile.owned(id);
-    const el = document.createElement('button'); el.className = 'pcard ' + pd.rarity;
+    const el = document.createElement('button'); el.className = 'pcard ' + pd.rarity + hwc(pd);
     el.appendChild(face(Sprites.refOf(pd), 56));
     el.insertAdjacentHTML('beforeend', `<div class="pinfo"><div class="pname">${esc(pd.name)}</div>
       <div class="pmeta">${rchip(pd.rarity)} ${ROLE_LABEL[pd.role]} ${chip(pd.elem)} ${o ? stars(o.stars) : ''}</div>${extra}</div>`);
@@ -495,7 +497,7 @@ const App = (() => {
   // Ficha pequeña para cuadrículas (plantilla y elegir jugador)
   function tile(id, extra = '') {
     const pd = PLAYER(id), o = Profile.owned(id);
-    const el = document.createElement('button'); el.className = 'ptile ' + pd.rarity;
+    const el = document.createElement('button'); el.className = 'ptile ' + pd.rarity + hwc(pd);
     el.appendChild(face(Sprites.refOf(pd), 64));
     el.insertAdjacentHTML('beforeend', `<span class="tn">${esc(pd.name)}</span><span class="tm">${rchip(pd.rarity)}<i>${RAB(pd.role)}</i></span>${o ? stars(o.stars) : ''}${extra}`);
     return el;
@@ -571,7 +573,7 @@ const App = (() => {
     el.innerHTML = '<i class="pl-mid"></i><i class="pl-circle"></i><i class="pl-box"></i><i class="pl-small"></i>';
     roles.forEach((r, i) => {
       const it = items[i], b = document.createElement('button');
-      b.className = 'pslot' + (i === sel ? ' sel' : '') + (it ? ' ' + (it.rarity || '') : ' empty');
+      b.className = 'pslot' + (i === sel ? ' sel' : '') + (it ? ' ' + (it.rarity || '') + hwc(it) : ' empty');
       b.style.left = (50 + pos[i].home[0] / 17 * 44) + '%';
       b.style.top = (85 - pos[i].home[1] / 31 * 71) + '%';
       const fc = document.createElement('span'); fc.className = 'pf';
@@ -598,7 +600,7 @@ const App = (() => {
       <div class="pgrid" id="edList"></div>`;
     const redraw = () => { onChange && onChange(); teamEditor(box, t, onChange); };
     box.querySelector('#edPitch').appendChild(pitch(roles, t.ids.map((id, i) => id == null ? null :
-      { ref: Sprites.refOf(PLAYER(id)), name: PLAYER(id).name, rarity: PLAYER(id).rarity, badge: rate(id, roles[i]) }), t.sel, i => { t.sel = i; Sound.sfx('click'); teamEditor(box, t, onChange); }));
+      { ref: Sprites.refOf(PLAYER(id)), name: PLAYER(id).name, rarity: PLAYER(id).rarity, halloween: PLAYER(id).halloween, badge: rate(id, roles[i]) }), t.sel, i => { t.sel = i; Sound.sfx('click'); teamEditor(box, t, onChange); }));
     box.querySelector('#formSel').onchange = e => {   // al cambiar de formación se recolocan los mismos 5
       t.formation = e.target.value; const keep = t.ids.filter(x => x != null);
       t.ids = bestFor(FORMATIONS[t.formation].roles, keep.length === 5 ? keep : Profile.ids()); t.sel = 0; redraw();
@@ -831,7 +833,7 @@ const App = (() => {
   function memberCard(mi, slot) {
     const r = api.run, m = r.roster[mi], pd = PLAYER(m.id), o = m.temp ? null : Profile.owned(m.id);
     const el = document.createElement('div');
-    el.className = 'pcard ' + pd.rarity + (api.pick === mi ? ' sel' : '');
+    el.className = 'pcard ' + pd.rarity + hwc(pd) + (api.pick === mi ? ' sel' : '');
     el.appendChild(face(Sprites.refOf(pd), 56));
     el.insertAdjacentHTML('beforeend', `<div class="pinfo"><div class="pname">${esc(pd.name)}${m.temp ? ' <em>' + TX('temporal') + '</em>' : ''}</div>
       <div class="pmeta"><b>${RAB(slot)}</b> · ${ROLE_LABEL[pd.role]} ${chip(pd.elem)} ${o ? stars(o.stars) : ''}</div>
@@ -862,7 +864,7 @@ const App = (() => {
     if (rt) rt.players.forEach(m => $('rfaces').appendChild(face({ file: m.file, row: m.row }, 40)));
     $('formSel').onchange = e => { r.formation = e.target.value; Run.save(r); renderMap(); };
     const sel = api.mapSel;
-    const items = r.lineup.slice(0, 5).map(mi => { const pd = PLAYER(r.roster[mi].id); return { ref: Sprites.refOf(pd), name: pd.name, rarity: pd.rarity }; });
+    const items = r.lineup.slice(0, 5).map(mi => { const pd = PLAYER(r.roster[mi].id); return { ref: Sprites.refOf(pd), name: pd.name, rarity: pd.rarity, halloween: pd.halloween }; });
     $('lineup').appendChild(pitch(F.roles, items, sel, i => {
       if (sel != null && sel !== i) { Run.swapLineup(r, sel, r.lineup[i]); api.mapSel = null; Run.save(r); }
       else api.mapSel = sel === i ? null : i;
@@ -871,7 +873,7 @@ const App = (() => {
     r.roster.forEach((m, mi) => {
       if (r.lineup.slice(0, 5).includes(mi)) return;
       const pd = PLAYER(m.id), c = document.createElement('button');
-      c.className = 'ptile ' + pd.rarity; c.appendChild(face(Sprites.refOf(pd), 56));
+      c.className = 'ptile ' + pd.rarity + hwc(pd); c.appendChild(face(Sprites.refOf(pd), 56));
       c.insertAdjacentHTML('beforeend', `<span class="tn">${esc(pd.name)}</span><span class="tm"><i>${RAB(pd.role)}</i>${m.temp ? '<em class="tmp">' + TX('temporal') + '</em>' : ''}</span>`);
       c.onclick = () => {
         if (api.mapSel == null) return UI.toast(TX('Primero toca el puesto del campo'));
@@ -1379,7 +1381,7 @@ const App = (() => {
       <div class="edbar"><button class="ghost" id="wlBest">${TX('⚡ Mejores 5')}</button><button class="ghost" id="wl2">${TX('🔄 Equipo 2 (los otros 5)')}</button></div>
       <p class="note">${TX('Media:')} <b>${Career.wcRating('JP')}</b> ${TX('· formación')} ${c.formation} ${TX('· toca un puesto del campo y luego a un convocado.')}</p>
       <div id="wlPitch"></div><h3>${TX('Puesto:')} ${ROLE_LABEL[roles[sel]]}</h3><div class="pgrid" id="wlL"></div>`, 'bg_green');
-    $('wlPitch').appendChild(pitch(roles, w.squad.map(id => ({ ref: Sprites.refOf(PLAYER(id)), name: PLAYER(id).name, rarity: PLAYER(id).rarity, badge: Career.wcScore(id) })), sel, i => renderWCLine(i)));
+    $('wlPitch').appendChild(pitch(roles, w.squad.map(id => ({ ref: Sprites.refOf(PLAYER(id)), name: PLAYER(id).name, rarity: PLAYER(id).rarity, halloween: PLAYER(id).halloween, badge: Career.wcScore(id) })), sel, i => renderWCLine(i)));
     (w.call || w.squad).forEach(id => {
       const at = w.squad.indexOf(id), el = tile(id, `<span class="slot">${at >= 0 ? TX('Juega · ') + RAB(roles[at]) : TX('Banquillo')} ${TX('· media')} ${Career.wcScore(id)}</span>`);
       if (at >= 0) el.classList.add('sel');
@@ -1808,6 +1810,42 @@ const App = (() => {
   }
 
   /* ---------- Códigos de regalo ---------- */
+  /* ---------- Teclas «A tu gusto» (Ajustes): cada acción con la tecla que quieras ---------- */
+  const KEY_ACTIONS = [['up', TX('Arriba')], ['down', TX('Abajo')], ['left', TX('Izquierda')], ['right', TX('Derecha')], ['sprint', TX('Esprint')],
+    ['pass', TX('Pase / entrada')], ['shoot', TX('Tiro / despeje')], ['switch', TX('Cambiar de jugador')], ['through', TX('Pase al hueco / saque largo')],
+    ['dribble', TX('Regate')], ['tech', TX('Supertécnica')], ['techNext', TX('Cambiar técnica')], ['pause', TX('Pausa')]];
+  // Teclas repetidas (Tiro y Cambiar de jugador sí pueden ir juntas: con balón chuta y sin balón cambia)
+  function keyDups(k) {
+    const by = {}; KEY_ACTIONS.forEach(([a]) => (by[k[a]] = by[k[a]] || []).push(a));
+    const dup = new Set();
+    for (const l of Object.values(by)) if (l.length > 1 && !(l.length === 2 && l.includes('shoot') && l.includes('switch'))) l.forEach(a => dup.add(a));
+    return dup;
+  }
+  function keyMapHtml() {
+    const k = Input.customKeys(), dup = keyDups(k);
+    return `<p class="note">${TX('Toca una acción y pulsa la tecla que quieras (Esc cancela).')}</p>
+      <div class="kmap">${KEY_ACTIONS.map(([a, n]) => `<button class="kbtn${dup.has(a) ? ' dup' : ''}" data-kact="${a}"><span>${n}</span><b>${esc(Input.keyName(k[a]))}</b></button>`).join('')}</div>
+      ${dup.size ? `<p class="note kdup">${TX('Hay teclas repetidas (en rojo): cámbialas para que cada una haga una sola cosa.')}</p>` : ''}
+      <button class="ghost" id="kReset">${TX('Volver a las de serie')}</button>`;
+  }
+  function bindKeyMap() {
+    if (!$('kReset')) return;
+    const redo = () => { const y = $('screen').scrollTop; renderSettings(); $('screen').scrollTop = y; };
+    body.querySelectorAll('[data-kact]').forEach(b => b.onclick = () => {
+      body.querySelectorAll('.kbtn.wait').forEach(x => x.classList.remove('wait'));
+      b.classList.add('wait'); b.querySelector('b').textContent = TX('Pulsa una tecla…'); Sound.sfx('click');
+      Input.capture(e => {
+        if (e.code !== 'Escape' && e.code) {
+          settings.keyMap = Object.assign({}, settings.keyMap, { [b.dataset.kact]: e.code });
+          if (e.key && e.key.length === 1 && e.key !== ' ') settings.keyLabels = Object.assign({}, settings.keyLabels, { [e.code]: e.key.toUpperCase() });
+          saveSettings(); Sound.sfx('click');
+        }
+        redo();
+      });
+    });
+    $('kReset').onclick = () => { settings.keyMap = null; settings.keyLabels = null; saveSettings(); Sound.sfx('click'); UI.toast(TX('Teclas como de serie')); redo(); };
+  }
+
   /* ---------- Guía de controles (móvil, ordenador y mando) ---------- */
   let guideTab = null;
   function renderControlsGuide(back = renderMenu) {
@@ -1822,7 +1860,13 @@ const App = (() => {
           row(TX('Regate'), TX('recorte rápido sin técnica'), '—') + row(TX('Cambiar'), '—', TX('cambia al compañero hacia donde apuntas')) +
           row(TX('Técnica'), TX('supertécnica de tiro o regate'), TX('supertécnica de bloqueo')) + row('⇄', TX('elegir otra supertécnica'), TX('elegir otra supertécnica')))}
         <p class="note">${TX('Con el portero: Despeje (suelta) manda el balón lejos, Pase y Saque largo.')}</p>`,
-      pc: `<p class="note">${clas ? TX('Tienes las teclas clásicas (puedes cambiarlas en Ajustes → Controles).') : TX('Tienes las teclas nuevas (puedes cambiarlas en Ajustes → Controles).')}</p>
+      pc: settings.keys === 'custom' ? (() => { const k = Input.customKeys(), n = c => esc(Input.keyName(c));
+        return `<p class="note">${TX('Tienes tus teclas «A tu gusto» (puedes cambiarlas en Ajustes → Controles).')}</p>
+        ${table(row([k.up, k.left, k.down, k.right].map(n).join(' '), TX('mover y apuntar'), TX('mover')) + row(n(k.sprint), TX('esprint'), TX('esprint')) +
+          row(n(k.shoot), TX('tiro (mantén para cargar)'), k.switch === k.shoot ? TX('cambiar de jugador') : '—') + row(n(k.pass), TX('pase (mantén = fuerte)'), TX('entrada')) +
+          row(n(k.through), TX('pase al hueco'), '—') + row(n(k.dribble), TX('regate'), '—') + (k.switch !== k.shoot ? row(n(k.switch), '—', TX('cambiar de jugador')) : '') +
+          row(n(k.tech), TX('supertécnica'), TX('supertécnica')) + row(n(k.techNext), TX('elegir otra supertécnica'), TX('elegir otra supertécnica')) + row(n(k.pause) + ' / Esc', TX('pausa'), TX('pausa')))}
+        <p class="note">${TX('Portero con balón: {0} pase · {1} saque largo · {2} despeje.', n(k.pass), n(k.through), n(k.shoot))}</p>`; })() : `<p class="note">${clas ? TX('Tienes las teclas clásicas (puedes cambiarlas en Ajustes → Controles).') : TX('Tienes las teclas nuevas (puedes cambiarlas en Ajustes → Controles).')}</p>
         ${table(row('WASD / ' + TX('flechas'), TX('mover y apuntar'), TX('mover')) + row('Shift', TX('esprint'), TX('esprint')) +
           row(clas ? 'L / X' : 'K / X', TX('tiro (mantén para cargar)'), clas ? '—' : TX('cambiar de jugador')) + row('J / Z', TX('pase (mantén = fuerte)'), TX('entrada')) +
           row(clas ? 'K / C' : 'L / C', TX('pase al hueco'), '—') + row('I / V', TX('regate'), '—') + (clas ? row('Q', '—', TX('cambiar de jugador')) : '') +
@@ -1848,6 +1892,8 @@ const App = (() => {
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
     { v: '0.31.6', date: '22/10/2026', items: [
+      TX('🎃 Nuevo legendario de Halloween en el Sobre Calabaza: Zohen, defensa, con su versión de miedo. Los marcos de los legendarios de Halloween son ahora de un naranja apagado, más terroríficos.'),
+      TX('Ordenador: nuevas teclas «A tu gusto» en Ajustes → Controles. Elige la tecla de cada acción, también para moverte.'),
       TX('Nube: la partida se guarda comprimida (ocupa unas 8 veces menos) y se sube al acabar cada partido, al salir del juego y, mientras juegas, cada 5 minutos. Así el servidor aguanta a muchos más jugadores.')] },
     { v: '0.31.5', date: '22/10/2026', items: [
       TX('Controles: si pulsas Pase o Tiro justo antes de recibir el balón, ahora pasas o chutas al primer toque (antes hacías una entrada sin querer).'),
@@ -1921,11 +1967,12 @@ const App = (() => {
       ${opts(TX('Cambio automático de jugador'), 'autoSwitch', [[1, TX('Sí')], [0, TX('No')]])}
       <h3>${TX('Controles')}</h3>
       ${opts(TX('Botones en pantalla'), 'controls', [['auto', TX('Auto')], ['tactil', TX('Siempre')], ['teclado', TX('Nunca (PC)')]])}
-      ${opts(TX('Teclas del ordenador'), 'keys', [['nuevas', TX('Nuevas (K tiro)')], ['clasicas', TX('Clásicas (L tiro)')]], Object.assign({ keys: 'nuevas' }, settings))}
+      ${opts(TX('Teclas del ordenador'), 'keys', [['nuevas', TX('Nuevas (K tiro)')], ['clasicas', TX('Clásicas (L tiro)')], ['custom', TX('A tu gusto')]], Object.assign({ keys: 'nuevas' }, settings))}
+      ${settings.keys === 'custom' ? keyMapHtml() : ''}
       <button class="ghost" id="sGuide">${TX('🎮 Guía de controles')}</button>
       <p class="keys"><b>${TX('Mando:')}</b> ${TX('stick o cruceta para moverte · RT esprint · A pase (mantén = fuerte) · X tiro (mantén) · B profundidad / entrada · Y supertécnica · LT cambiar técnica · RB regate · LB cambiar jugador · Start pausa.')}<br>
       <b>${TX('Móvil:')}</b> ${TX('joystick a la izquierda (a tope = esprint). Mantén Pase para un pase fuerte y usa Regate para un recorte rápido sin técnica. Para cambiar de jugador apunta con el joystick y pulsa Cambiar (también cambia solo al ir a por el balón).')}<br>
-      <b>${TX('PC:')}</b> ${settings.keys === 'clasicas' ? TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o C: profundidad / saque largo · L o X: tiro (mantén) / despeje · I o V: regate · Q: cambiar jugador · Espacio: supertécnica · U: cambiar técnica · P o Esc: pausa') : TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o X: tiro (mantén) / cambiar jugador · L o C: profundidad / saque largo · I o V: regate · Espacio: supertécnica · E: cambiar técnica · P o Esc: pausa')}</p>
+      <b>${TX('PC:')}</b> ${settings.keys === 'custom' ? TX('tus teclas están justo encima (Esc también pausa).') : settings.keys === 'clasicas' ? TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o C: profundidad / saque largo · L o X: tiro (mantén) / despeje · I o V: regate · Q: cambiar jugador · Espacio: supertécnica · U: cambiar técnica · P o Esc: pausa') : TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o X: tiro (mantén) / cambiar jugador · L o C: profundidad / saque largo · I o V: regate · Espacio: supertécnica · E: cambiar técnica · P o Esc: pausa')}</p>
       <h3>${TX('Sonido')}</h3>
       <div class="mixer"><label>${TX('🎵 Música')} <b id="mvT">${Math.round((c.music ? c.mv ?? 1 : 0) * 100)} %</b><input type="range" id="mvR" min="0" max="100" step="5" value="${Math.round((c.music ? c.mv ?? 1 : 0) * 100)}"></label>
         <label>${TX('🔊 Efectos')} <b id="svT">${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)} %</b><input type="range" id="svR" min="0" max="100" step="5" value="${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)}"></label></div>
@@ -1956,6 +2003,7 @@ const App = (() => {
     body.querySelectorAll('select[data-role]').forEach(s => { s.value = c.roles[s.dataset.role] ?? ''; s.onchange = () => Sound.setRole(s.dataset.role, s.value); });
     $('seeIntro').onclick = () => { Sound.stop(0.2); playIntro(renderSettings); };
     $('sGuide').onclick = () => renderControlsGuide(renderSettings);
+    bindKeyMap();
     $('tt1').onclick = () => { Sound.setTeamThemes(true); renderSettings(); };
     $('tt0').onclick = () => { Sound.setTeamThemes(false); renderSettings(); };
     $('resetRoles').onclick = () => { Object.entries(Sound.DEF_ROLES).forEach(([r, k]) => Sound.setRole(r, k)); renderSettings(); UI.toast(TX('Música de serie')); };

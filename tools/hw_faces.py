@@ -1,11 +1,11 @@
-# Retratos de miedo de los 5 legendarios de Halloween (juego/sprites/fhw.png, una fila de 64 px por jugador).
+# Retratos de miedo de los 6 legendarios de Halloween (juego/sprites/fhw.png, una fila de 64 px por jugador).
 # Parte de los retratos del juego (fNN.png) y les pone maquillaje/cicatrices + color apagado.
 # Uso: python3 tools/hw_faces.py
 import os, colorsys
 from PIL import Image, ImageDraw
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 SP = os.path.join(ROOT, 'juego', 'sprites')
-SRC = [(112, 12), (1, 7), (136, 10), (136, 3), (135, 2)]   # Tassman, Nathan Jones, Destra, Hebimos, Bash Lancer
+SRC = [(112, 12), (1, 7), (136, 10), (136, 3), (135, 2), (76, 15)]   # Tassman, Nathan Jones, Destra, Hebimos, Bash Lancer, Zohen
 
 def face(f, r): return Image.open(os.path.join(SP, 'f%02d.png' % f)).convert('RGBA').crop((0, r * 64, 64, r * 64 + 64))
 def remap(im, m):
@@ -51,6 +51,16 @@ def bash(im):      # vampiro: piel pálida, sangre en la boca y cicatriz en el o
                (213, 131, 74): (214, 204, 216), (123, 65, 41): (112, 92, 118), (82, 49, 32): (70, 52, 76)})
     put(im, [(28, 47), (28, 48), (29, 49), (28, 50), (34, 47), (34, 48), (34, 49)], BLOOD); put(im, [(29, 51), (34, 50)], BLOOD2)
     put(im, line((38, 30), (41, 41)), SCAR); put(im, line((39, 30), (42, 41)), (230, 190, 200))
+def zohen(im):     # necrófago: piel gris verdosa, ojos rojos que brillan y máscara agrietada que gotea
+    px = im.load()
+    for x in range(20, 46):
+        for y in range(26, 36):
+            q = px[x, y]
+            if q[3] and sum(q[:3]) > 560: px[x, y] = (255, 64, 48, 255)   # solo el blanco de los ojos, rojo vivo
+    remap(im, {(180, 148, 123): (150, 160, 140), (148, 115, 90): (118, 128, 110), (106, 74, 57): (80, 90, 76), (213, 131, 74): (160, 150, 120)})
+    put(im, line((27, 38), (30, 43)) + line((30, 43), (29, 46)) + line((38, 38), (36, 43)), (150, 140, 130))   # grietas
+    for x0, n in ((27, 3), (32, 5), (38, 3)):
+        put(im, [(x0, 48 + k) for k in range(n)], (120, 190, 70))   # gotas tóxicas
 
 def grade(im):     # color apagado: menos saturación, algo más oscuro y un toque morado
     px = im.load()
@@ -63,9 +73,9 @@ def grade(im):     # color apagado: menos saturación, algo más oscuro y un toq
             px[x, y] = (int(min(255, r2 * 255 * 0.95 + 10)), int(g2 * 255 * 0.92), int(min(255, b2 * 255 * 1.0 + 16)), a)
 
 out = Image.new('RGBA', (64, 64 * len(SRC)), (0, 0, 0, 0))
-for i, ((f, r), fx) in enumerate(zip(SRC, (tassman, nathan, destra, hebimos, bash))):
+for i, ((f, r), fx) in enumerate(zip(SRC, (tassman, nathan, destra, hebimos, bash, zohen))):
     im = face(f, r); fx(im); grade(im); out.paste(im, (0, i * 64))
 out.save(os.path.join(SP, 'fhw.png'))
-big = Image.new('RGBA', (64 * 5 * 5, 320), (240, 240, 240, 255))
-for i in range(5): big.alpha_composite(out.crop((0, i * 64, 64, i * 64 + 64)).resize((320, 320), Image.NEAREST), (i * 320, 0))
+big = Image.new('RGBA', (320 * len(SRC), 320), (240, 240, 240, 255))
+for i in range(len(SRC)): big.alpha_composite(out.crop((0, i * 64, 64, i * 64 + 64)).resize((320, 320), Image.NEAREST), (i * 320, 0))
 big.save('/tmp/claude-0/fhw_big.png'); print('ok')

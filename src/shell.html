@@ -338,6 +338,18 @@ select option{color:#111;font-family:system-ui}
 .hwreto div{display:flex;flex-direction:column;gap:2px}.hwreto small{font-size:12px}.hwreto b{color:#ffa23a;font-weight:400}
 .hwreto .cta{width:auto;padding:6px 10px;font-size:14px}.hwreto.ready{border-color:#ff8a1a}.hwreto.got{opacity:.7}
 .hwok{font-size:24px;color:#6fe06f}
+.kmap{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.kbtn{display:flex;justify-content:space-between;align-items:center;gap:6px;background:rgba(10,18,48,.55);border:2px solid var(--ink);padding:6px 8px;color:var(--chalk);font:14px var(--font-ui);cursor:pointer;text-align:left;min-width:0}
+.kbtn span{min-width:0;overflow:hidden;text-overflow:ellipsis}.kbtn b{font-weight:400;color:var(--yellow);background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.25);padding:1px 7px;white-space:nowrap}
+.kbtn.dup{border-color:#ff5a5a}.kbtn.dup b{color:#ff8a8a}.kbtn.wait{box-shadow:0 0 0 2px var(--yellow)}.kbtn.wait b{color:#fff;animation:hwglow 1s ease-in-out infinite alternate}
+.kdup{color:#ff8a8a}
+/* Legendarios de Halloween: marco naranja apagado y brillo morado (en vez del dorado) */
+.gcard.legendaria.hw{box-shadow:0 0 0 2px #9a4a16,0 0 18px rgba(110,30,150,.75);filter:saturate(.8)}
+.gcard.legendaria.hw .pix,.ptile.legendaria.hw .pix{background:linear-gradient(#a8561c,#3a1446)}
+.pcard.legendaria.hw,.ptile.legendaria.hw{box-shadow:0 0 0 2px #9a4a16,0 0 8px rgba(110,30,150,.6)}
+.pslot.legendaria.hw .pf{box-shadow:0 0 0 2px #9a4a16,0 0 6px rgba(110,30,150,.6);background:linear-gradient(#a8561c,#3a1446)}
+.hw .rar.legendaria{background:linear-gradient(90deg,#a8561c,#5a1f6a);color:#f3d9c0}
+.hwleg{border-color:#9a4a16}.hwleg.own{box-shadow:0 0 8px rgba(110,30,150,.8)}
 .csquad{display:flex;flex-direction:column;gap:6px}
 .cpl{display:flex;gap:8px;align-items:center;text-align:left;background:rgba(31,46,104,.8);border:2px solid var(--ink);padding:5px;color:var(--chalk);font:14px var(--font-ui);cursor:pointer}
 .cpl.sel{box-shadow:0 0 0 2px var(--yellow)}.cpl b{font-weight:normal;color:var(--gold)}.cpl small{font-size:12px}.cpl .cst{display:block;font-size:12px;opacity:.9}.cpl .cst b{color:#fff}

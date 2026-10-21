@@ -4,7 +4,7 @@
      cualquier modo (+10 si ganas), +20 de regalo diario, +60 al ganar al
      Ocultismo jefe (una vez al día) y los retos del evento.
    - Sobre Calabaza: 15 🍬 por tirada (150 la de 10); jugadores villanos/de miedo y
-     5 legendarios exclusivos (versiones Halloween, nuevos ids 996001…).
+     6 legendarios exclusivos (versiones Halloween, nuevos ids 996001…).
      Legendario 3 % · épica 15 % · rara 32 % · común 50 %; legendario
      asegurado a las 40 tiradas sin uno.
    - 3 retos; al completarlos, Ray Dark se puede elegir como mánager en el
@@ -26,6 +26,7 @@ const HW_LEGENDS = [
   { id: 996003, base: 32025 },                           // Destra
   { id: 996004, base: 32018 },                           // Hebimos
   { id: 996005, base: 32001 },                           // Bash Lancer
+  { id: 996006, base: 21399 },                           // Zohen (DF, añadido el 22 oct)
 ];
 (function registerHalloween() {
   if (typeof GAME === 'undefined') return;

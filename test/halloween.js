@@ -26,6 +26,7 @@ for (const L of HW_LEGENDS) {
   ok(p && p.rarity === 'legendaria' && p.gacha === false && p.cs[0] === b.cs[0] && avg > 88 && avg < 96, p.full + ' · media ' + avg.toFixed(1));
 }
 ok(HW_LEGENDS.every((L, i) => PLAYER(L.id).hwFace === i) && PLAYER(996001).moves.some(m => ctx.GAME.techniques[m[0]].name === 'Tiro fantasma'), 'Johan Tassman tiene Tiro fantasma');
+ok(PLAYER(996006) && PLAYER(996006).role === 'DEF' && PLAYER(996006).hwFace === 5, 'Zohen (Halloween) es el DF legendario nuevo');
 ok(PLAYER(RAY_DARK) && !ctx.GAME.players.some(p => p.id === RAY_DARK), 'Ray Dark existe solo como mánager (no sale en listas ni gachas)');
 ok(!Gacha.pull(50, {}).some(r => r.id >= 996000), 'el gacha normal no da jugadores de Halloween');
 
@@ -54,7 +55,7 @@ ok(s.over, 'el partido contra el jefe se juega entero (' + s.score.A + '-' + s.s
 
 console.log('5. Sobre Calabaza');
 const pool = Halloween.pool();
-ok(pool.legendaria.length === 5 && pool.epica.length > 20 && pool.rara.length > 50 && pool.comun.length > 100, `bote: ${pool.legendaria.length} leg · ${pool.epica.length} ép · ${pool.rara.length} raras · ${pool.comun.length} comunes`);
+ok(pool.legendaria.length === 6 && pool.epica.length > 20 && pool.rara.length > 50 && pool.comun.length > 100, `bote: ${pool.legendaria.length} leg · ${pool.epica.length} ép · ${pool.rara.length} raras · ${pool.comun.length} comunes`);
 H.candy = 10; ok(Halloween.pull(1) === null && H.candy === 10, 'sin caramelos suficientes no tira ni cobra');
 H.candy = 15 * 3000; H.pity = 0;
 const cnt = { comun: 0, rara: 0, epica: 0, legendaria: 0 }; let maxGap = 0, gap = 0, bad = 0;

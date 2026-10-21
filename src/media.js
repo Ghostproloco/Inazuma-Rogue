@@ -64,7 +64,7 @@ const Sprites = (() => {
     const c = document.createElement('canvas');
     c.width = 64; c.height = 64; c.className = 'pix';
     c.style.width = c.style.height = size + 'px';
-    const file = ref.ff ? ref.ff + '?v=1' : ref.file.replace(/^c/, 'f').replace(/^r/, 'q') + '?v=4';   // ?v=3: caras actualizadas, evita la copia vieja guardada
+    const file = ref.ff ? ref.ff + '?v=2' : ref.file.replace(/^c/, 'f').replace(/^r/, 'q') + '?v=4';   // ?v=3: caras actualizadas, evita la copia vieja guardada
     const row = ref.ff ? ref.fr : ref.row;
     img(file).then(i => c.getContext('2d').drawImage(i, 0, row * 64, 64, 64, 0, 0, 64, 64)).catch(() => {});
     return c;

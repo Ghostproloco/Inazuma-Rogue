@@ -41,25 +41,55 @@ const Input = (() => {
   // Teclas (Ajustes → «Teclas del ordenador»): «nuevas» = J pase · K tiro/cambiar · L profundidad · E técnica;
   // «clásicas» = como hasta la 0.31.1: J pase · K profundidad · L tiro · Q cambiar · U técnica. Z X C V valen en las dos (con las flechas).
   const COMMON = { KeyZ: 'A', KeyX: 'switch', KeyC: 'B', KeyV: 'dribble', Space: 'tech', KeyQ: 'switch', KeyU: 'techNext', KeyE: 'techNext' };
-  const SCHEMES = {
-    nuevas: { map: Object.assign({}, COMMON, { KeyJ: 'A', KeyK: 'switch', KeyL: 'B', KeyI: 'dribble' }), shoot: ['KeyK', 'KeyX'] },
-    clasicas: { map: Object.assign({}, COMMON, { KeyJ: 'A', KeyK: 'B', KeyI: 'dribble' }), shoot: ['KeyL', 'KeyX'] },
-  };
-  const scheme = () => { try { return SCHEMES[App.settings.keys] || SCHEMES.nuevas; } catch (_) { return SCHEMES.nuevas; } };
   const PASS_KEYS = ['KeyJ', 'KeyZ'];
+  const STD = { move: { up: ['ArrowUp', 'KeyW'], down: ['ArrowDown', 'KeyS'], left: ['ArrowLeft', 'KeyA'], right: ['ArrowRight', 'KeyD'] },
+    sprint: ['ShiftLeft', 'ShiftRight'], pass: PASS_KEYS, pause: ['KeyP', 'Escape'] };
+  const SCHEMES = {
+    nuevas: Object.assign({ map: Object.assign({}, COMMON, { KeyJ: 'A', KeyK: 'switch', KeyL: 'B', KeyI: 'dribble' }), shoot: ['KeyK', 'KeyX'] }, STD),
+    clasicas: Object.assign({ map: Object.assign({}, COMMON, { KeyJ: 'A', KeyK: 'B', KeyI: 'dribble' }), shoot: ['KeyL', 'KeyX'] }, STD),
+  };
+  // «A tu gusto» (Ajustes → Teclas del ordenador): cada acción, también moverse, con la tecla que elijas.
+  // Tiro y Cambiar de jugador pueden compartir tecla (como la K de las nuevas: con balón chuta, sin balón cambia).
+  const CUSTOM_DEF = { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', sprint: 'ShiftLeft', pass: 'KeyJ', shoot: 'KeyK', switch: 'KeyK',
+    through: 'KeyL', dribble: 'KeyI', tech: 'Space', techNext: 'KeyE', pause: 'KeyP' };
+  const customKeys = () => { let m = null; try { m = App.settings.keyMap; } catch (_) {} return Object.assign({}, CUSTOM_DEF, m || {}); };
+  let customSig = '', customCache = null;
+  function customScheme() {
+    const k = customKeys(), sig = JSON.stringify(k);
+    if (sig === customSig) return customCache;
+    const map = {};
+    [['techNext', 'techNext'], ['tech', 'tech'], ['dribble', 'dribble'], ['through', 'B'], ['switch', 'switch'], ['pass', 'A']].forEach(([a, act]) => { if (k[a]) map[k[a]] = act; });
+    customSig = sig;
+    return (customCache = { map, shoot: [k.shoot], pass: [k.pass], sprint: [k.sprint], pause: [k.pause, 'Escape'], move: { up: [k.up], down: [k.down], left: [k.left], right: [k.right] } });
+  }
+  const scheme = () => { try { return App.settings.keys === 'custom' ? customScheme() : SCHEMES[App.settings.keys] || SCHEMES.nuevas; } catch (_) { return SCHEMES.nuevas; } };
+  const inScheme = (K, c) => !!K.map[c] || K.shoot.includes(c) || K.sprint.includes(c) || Object.values(K.move).some(l => l.includes(c));
+  // Nombre corto de una tecla para enseñarlo (con la letra de tu teclado si se guardó al elegirla, p. ej. Ñ)
+  function keyName(c) {
+    let L = null; try { L = App.settings.keyLabels; } catch (_) {}
+    if (!c) return '—';
+    if (L && L[c]) return L[c];
+    if (c.startsWith('Key')) return c.slice(3);
+    if (c.startsWith('Digit')) return c.slice(5);
+    if (c.startsWith('Numpad')) return 'Num ' + c.slice(6);
+    return { Space: TX('Espacio'), ShiftLeft: 'Shift', ShiftRight: TX('Shift dcho.'), ControlLeft: 'Ctrl', ControlRight: TX('Ctrl dcho.'), AltLeft: 'Alt', AltRight: 'AltGr',
+      ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', Enter: 'Enter', Tab: 'Tab', Backspace: '⌫', CapsLock: TX('Bloq Mayús') }[c] || c;
+  }
+  let capture = null;   // Ajustes: esperando a que pulses la tecla nueva para una acción
   let passTouch = null;
   const BLOCK = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'];
 
   addEventListener('keydown', e => {
-    if (BLOCK.includes(e.code) && App.inMatch()) e.preventDefault();
+    if (capture) { e.preventDefault(); e.stopPropagation(); if (e.repeat) return; const f = capture; capture = null; f(e); return; }
+    const K = scheme();
+    if (App.inMatch() && (BLOCK.includes(e.code) || inScheme(K, e.code))) e.preventDefault();
     if (e.repeat) return;
     if (App.menuKey && App.menuKey(e)) return;   // teclas en menús e intro (Esc = volver…)
     keys.add(e.code);
-    const K = scheme();
     if (K.map[e.code]) pressed.add(K.map[e.code]);
     if (K.shoot.includes(e.code)) pressed.add('shoot');
-    if (e.code === 'KeyP' || e.code === 'Escape') App.togglePause();
-  });
+    if (K.pause.includes(e.code)) App.togglePause();
+  }, true);
   addEventListener('keyup', e => keys.delete(e.code));
   addEventListener('blur', () => { keys.clear(); shootTouch = null; passTouch = null; });
 
@@ -116,19 +146,22 @@ const Input = (() => {
   function read() {
     pollPad();
     let x = 0, y = 0;
-    if (keys.has('ArrowLeft') || keys.has('KeyA')) x -= 1;
-    if (keys.has('ArrowRight') || keys.has('KeyD')) x += 1;
-    if (keys.has('ArrowUp') || keys.has('KeyW')) y -= 1;
-    if (keys.has('ArrowDown') || keys.has('KeyS')) y += 1;
+    const K = scheme(), on = l => l.some(k => keys.has(k));
+    if (on(K.move.left)) x -= 1;
+    if (on(K.move.right)) x += 1;
+    if (on(K.move.up)) y -= 1;
+    if (on(K.move.down)) y += 1;
     if (x || y) { const l = Math.hypot(x, y); x /= l; y /= l; }
     x += joy.x + gpState.x; y += joy.y + gpState.y;
-    const out = { move: { x, y }, sprint: keys.has('ShiftLeft') || keys.has('ShiftRight') || gpState.sprint,
-      shootHeld: scheme().shoot.some(k => keys.has(k)) || shootTouch !== null || gpState.shoot, passHeld: PASS_KEYS.some(k => keys.has(k)) || passTouch !== null || gpState.pass, pressed: new Set(pressed) };
+    const out = { move: { x, y }, sprint: on(K.sprint) || gpState.sprint,
+      shootHeld: on(K.shoot) || shootTouch !== null || gpState.shoot, passHeld: on(K.pass) || passTouch !== null || gpState.pass, pressed: new Set(pressed) };
     pressed.clear();
     return out;
   }
   return {
     read,
+    CUSTOM_DEF, customKeys, keyName,
+    capture: f => { capture = f; },
     press: a => pressed.add(a),
     holdShoot: (on, id) => { if (on) { shootTouch = id; pressed.add('shoot'); } else if (id === undefined || shootTouch === id) shootTouch = null; },
     holdPass: (on, id) => { if (on) passTouch = id; else if (id === undefined || passTouch === id) passTouch = null; },
@@ -171,12 +204,24 @@ const Pad = (() => {
     defense: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('entrada ·') + ' <b>K/X</b> ' + TX('cambiar ·') + ' <b>E</b> ' + TX('cambiar técnica'),
     gk: '<b>' + TX('Portero') + '</b>: <b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover por el área ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/X</b> ' + TX('despeje ·') + ' <b>L/C</b> ' + TX('saque largo'),
   };
+  // Barra de teclas con las teclas «A tu gusto»
+  function customHud(m) {
+    const k = Input.customKeys(), n = c => '<b>' + esc(Input.keyName(c)) + '</b>';
+    const mv = [k.up, k.left, k.down, k.right].every(c => /^Key.$/.test(c)) ? '<b>' + [k.up, k.left, k.down, k.right].map(c => c.slice(3)).join('') + '</b>' : [k.up, k.left, k.down, k.right].map(n).join('');
+    const sp = ' ' + n(k.sprint) + ' ' + TX('esprint ·') + ' ';
+    const parts = {
+      attack: mv + ' ' + TX('mover ·') + sp + n(k.pass) + ' ' + TX('pase (mantén = fuerte) ·') + ' ' + n(k.shoot) + ' ' + TX('tiro (mantén) ·') + ' ' + n(k.through) + ' ' + TX('profundidad ·') + ' ' + n(k.dribble) + ' ' + TX('regate ·') + ' ' + n(k.techNext) + ' ' + TX('cambiar técnica'),
+      defense: mv + ' ' + TX('mover ·') + sp + n(k.pass) + ' ' + TX('entrada ·') + ' ' + n(k.switch) + ' ' + TX('cambiar ·') + ' ' + n(k.techNext) + ' ' + TX('cambiar técnica'),
+      gk: '<b>' + TX('Portero') + '</b>: ' + mv + ' ' + TX('mover por el área ·') + ' ' + n(k.pass) + ' ' + TX('pase (mantén = fuerte) ·') + ' ' + n(k.shoot) + ' ' + TX('despeje ·') + ' ' + n(k.through) + ' ' + TX('saque largo'),
+    };
+    return (parts[m] || parts.attack) + ' · ' + n(k.pause) + ' ' + TX('pausa');
+  }
   let mode = null, techBtn = null, techLbl = null, lastName = null, lastKH = null, dribBtn = null, lastDrib = -1, nextBtn = null;
   const down = new Set();   // dedos sobre los botones: mientras haya alguno, los botones no cambian (si no, el botón desaparecía bajo el dedo)
   function render(m) {
     if (m === mode || down.size) return;
-    let clas = false; try { clas = App.settings.keys === 'clasicas'; } catch (_) {}
-    kh.querySelector('.kh-keys').innerHTML = (clas ? KEYS_CLASICAS : KEYS)[m] + ' · <b>P</b> ' + TX('pausa');
+    let sch = 'nuevas'; try { sch = App.settings.keys || 'nuevas'; } catch (_) {}
+    kh.querySelector('.kh-keys').innerHTML = sch === 'custom' ? customHud(m) : (sch === 'clasicas' ? KEYS_CLASICAS : KEYS)[m] + ' · <b>P</b> ' + TX('pausa');
     mode = m; pad.innerHTML = ''; techBtn = null; dribBtn = null; nextBtn = null; lastDrib = -1; lastName = null;
     Input.holdShoot(false); Input.holdPass(false);
     SETS[m].forEach(b => {
