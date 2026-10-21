@@ -1,7 +1,7 @@
-// Tráiler corto del evento de Halloween (v0.31.1), solo en español, con «La sombra negra» (tema de Ray Dark).
+// Tráiler corto del evento de Halloween (v0.31.6: 6 legendarios con Zohen, premios por entrar), solo en español, con «La sombra negra» (tema de Ray Dark).
 // Lo lanza tools/trailer.py:
 //   TRAILER_JS=tools/trailer_hw.js TRAILER_MUSIC=e204 TRAILER_SHOTS=<carpeta de capturas 1170×2532> python3 tools/trailer.py es salida.mp4
-// Capturas esperadas: 01_menu, 02_evento, 04_cartas, 05_jefe, 07_retos, 08_ray (.png)
+// Capturas esperadas: 01_menu, 02_evento, 04_cartas, 05_jefe, 07_retos, 09_login (.png) — /tmp/claude-0/hwshots2.py las hace
 (() => {
   const URL_TXT = 'franmndezzzz.github.io/Inazuma-Rogue';
   const el = document.getElementById('intro'), stage = el.querySelector('.in-stage'), cap = el.querySelector('.in-cap'), flash = el.querySelector('.in-flash');
@@ -41,10 +41,12 @@
     .hw-pk{position:absolute;bottom:40px;width:120px;height:120px;z-index:5;animation:pkGlow 1.4s ease-in-out infinite alternate}
     .hw-legs{display:grid;grid-template-columns:repeat(3,132px);gap:12px;justify-content:center;margin-top:6px}
     .hw-leg{display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0;animation:legIn .5s cubic-bezier(.2,1.6,.4,1) both}
-    .hw-leg i{display:block;width:128px;height:128px;background:url('sprites/fhw.png') no-repeat;background-size:128px 640px;image-rendering:pixelated;
-      border:3px solid #ffcc22;box-shadow:0 0 16px rgba(255,204,34,.6),3px 3px 0 #000;background-color:#140a20}
+    .hw-leg i{display:block;width:128px;height:128px;background:url('sprites/fhw.png') no-repeat;background-size:128px 768px;image-rendering:pixelated;
+      border:3px solid #9a4a16;box-shadow:0 0 16px rgba(130,40,180,.7),3px 3px 0 #000;background-color:#140a20}
     .hw-leg span{font:18px var(--font-ui);color:#fff;text-shadow:2px 2px 0 #000}
-    .hw-legs .hw-leg:nth-child(4){grid-column:1/2;margin-left:72px}.hw-legs .hw-leg:nth-child(5){margin-left:72px}
+    .hw-zo{width:300px;height:300px;background:url('sprites/fhw.png') no-repeat 0 -1500px;background-size:300px 1800px;image-rendering:pixelated;border:5px solid #9a4a16;
+      box-shadow:0 0 40px rgba(130,40,180,.9),6px 6px 0 #000;background-color:#140a20;animation:rayIn 1s ease-out both}
+    .hw-new{font:30px var(--font-ui);color:#fff;background:#b0281a;padding:6px 16px;border:3px solid #000;box-shadow:4px 4px 0 #000;transform:rotate(-4deg);animation:tagIn .5s cubic-bezier(.2,1.8,.4,1) .2s both}
     .hw-ray{width:200px;height:200px;image-rendering:pixelated;filter:drop-shadow(0 0 22px rgba(160,60,255,.9));animation:rayIn 1.2s ease-out both}
     @keyframes hwFogT{from{transform:translateX(-10%)}to{transform:translateX(10%)}}
     @keyframes hwWh{0%{opacity:0;filter:blur(8px);letter-spacing:14px}35%,75%{opacity:1;filter:none;letter-spacing:3px}100%{opacity:.85}}
@@ -85,13 +87,16 @@
   add(3200, () => { boom(); card(`<img class="hw-logo" src="ui/logo_rogue.png" alt=""><div class="hw-big"><span>Halloween</span><small>Evento especial</small></div>
     <div class="hw-date">22 OCT – 3 NOV</div><img class="hw-pk" style="left:40px" src="${PK}"><img class="hw-pk" style="right:40px" src="${PK}">`); });
   add(2700, () => shot('01_menu', 'El menú se viste de miedo', 'Calabazas, niebla y caramelos', { tag: 'EVENTO' }));
-  add(3800, () => { boom(); card(`<div class="hw-big" style="font-size:52px"><span>5 legendarios</span><span>de miedo</span></div>
-    <div class="hw-legs">${['Johan Tassman', 'Nathan Jones', 'Destra', 'Hebimos', 'Bash Lancer'].map((n, i) =>
+  add(4000, () => { boom(); card(`<div class="hw-big" style="font-size:52px"><span>6 legendarios</span><span>de miedo</span></div>
+    <div class="hw-legs">${['Johan Tassman', 'Nathan Jones', 'Destra', 'Hebimos', 'Bash Lancer', 'Zohen'].map((n, i) =>
       `<div class="hw-leg" style="animation-delay:${0.35 + i * 0.32}s"><i style="background-position:0 -${i * 128}px"></i><span>${n}</span></div>`).join('')}</div>
     <div class="hw-mid" style="animation-delay:2s">Solo durante el evento</div>`); });
+  add(3000, () => { boom(); card(`<div class="hw-new">¡NUEVO!</div><div class="hw-zo"></div><div class="hw-big" style="font-size:60px"><span>Zohen</span><small>defensa legendario · media 94</small></div>`,
+    'radial-gradient(circle at 50% 42%,#2a3a1a 0,#14081e 45%,#050208 80%)'); });
   add(2700, () => shot('02_evento', 'Sobre Calabaza', 'Solo villanos y jugadores de miedo', { zoom: ['50%', '30%'] }));
   add(2700, () => { boom(); shot('04_cartas', '¡Gasta caramelos!', '15 la tirada · legendario asegurado a las 40', { tag: 'x10 = 150', left: true }); });
   add(2900, () => shot('05_jefe', 'El Ocultismo te espera', 'Partido jefe en un campo nocturno con niebla', { tag: 'JEFE' }));
+  add(2900, () => { boom(); shot('09_login', 'Entra 5 días y llévate…', '150 caramelos · 10 tickets · 1000 monedas · un +80 · Jim Oscuro', { tag: 'REGALOS', zoom: ['50%', '12%'] }); });
   add(2700, () => shot('07_retos', 'Supera los 3 retos…', 'Exorcista · Truco o trato · Coleccionista'));
   add(3200, () => { boom(); card(`<img class="hw-ray" src="ui/raydark.png" alt=""><div class="hw-big" style="font-size:56px"><span>Ray Dark</span><small>ficha como tu mánager</small></div>
     <div class="hw-date" style="background:#b07aff">+10 % DE INGRESOS</div>`, 'radial-gradient(circle at 50% 40%,#3a0a5a 0,#07030c 75%)'); });
