@@ -115,6 +115,14 @@ Cómo está hecho:
 7. **Supertécnicas con animación propia** (~70 técnicas, `src/techfx.js`): traídas de la rama 0.34 (commit 83dff4b) a la 0.31.5 por petición de Fran.
 8. Revisión completa del código de Halloween antes de publicar: tests + recorridos en navegador (evento, premios de entrada, jefe, controles, teclas, novedades, guía) sin errores.
 
+### v0.31.6 · Nube con menos gasto de Firebase (pedido de Fran, 21 oct)
+- La partida se sube **comprimida** (gzip) en cuanto pasa de 20 000 letras (`MAX_RAW` en `src/cloud.js`; antes solo por encima de 500 000).
+  Una carrera normal ocupa y descarga ~8 veces menos. Todas las versiones desde la 0.28 ya saben leerla comprimida.
+- **Subidas**: como mucho una cada 5 minutos mientras juegas (`PUSH_DELAY` 300000), y siempre al acabar cada partido (`Cloud.flush()` desde
+  `api.matchEnded`) y al salir o cambiar de app. Tests: `test/cloud.js` escenarios 23 y 24.
+- No se quitó la lectura de cada subida (Fran prefirió no arriesgar que dos móviles se pisen).
+- Si aun así se agota la cuota: plan Blaze (~0,09 $ por 100 000 escrituras de más) con alerta de gasto. Ver qué límite se gasta en Firebase → Firestore → Uso.
+
 ## 4. Cómo se construye y se prueba
 - Todo el código está en `src/`. `python3 build.py` lo junta en `juego/index.html`
   (orden en esta rama: i18n, en, media, logic, run, career, **event**, cloud-config, cloud, view, techfx, app). Datos en `juego/gamedata.json`.

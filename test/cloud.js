@@ -254,6 +254,20 @@ const cloudTickets = d => JSON.parse(cloudOf(d).data['inazuma-perfil']).tickets;
   await new Promise(r => setTimeout(r, 900));
   ok(cloudTickets(W) === 50, 'cuando hay cuota otra vez, se sube sola');
 
+  console.log('23. Partida normal (una carrera, ~30 KB) → también se sube comprimida');
+  const mid = {}; for (let i = 0; i < 900; i++) mid[i] = { stars: 2, up: { tiro: 1 } };
+  W.play({ coll: mid, tickets: 7 });
+  ok(await W.C.push(true) === 'uploaded' && cloudOf(W).z && !cloudOf(W).data && cloudOf(W).z.length < 8000, 'comprimida (' + (cloudOf(W).z || '').length + ' letras)');
+  const W2 = device(); await W2.C.signIn('ahorro', 'secreto1');
+  ok(await W2.C.sync() === 'downloaded' && Object.keys(W2.prof().coll).length === 900 && W2.prof().tickets === 7, 'otro móvil la baja bien');
+
+  console.log('24. Al acabar un partido se sube ya (sin esperar los 5 minutos)');
+  const w2 = server.writes; W.play({ tickets: 9 });
+  W.C.flush(); await new Promise(r => setTimeout(r, 400));
+  ok(server.writes - w2 === 1, 'flush sube lo pendiente');
+  W.C.flush(); await new Promise(r => setTimeout(r, 400));
+  ok(server.writes - w2 === 1, 'sin nada pendiente, flush no gasta otra subida');
+
   console.log(fails ? `\n${fails} FALLOS` : '\nTodo bien');
   process.exit(fails ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });

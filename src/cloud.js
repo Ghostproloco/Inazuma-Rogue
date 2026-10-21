@@ -24,10 +24,10 @@ const Cloud = (() => {
   const FB_VERSION = '10.12.2';
   const CFG = (typeof CLOUD_CONFIG !== 'undefined' && CLOUD_CONFIG) || {};
   // Cada subida gasta cuota de Firebase (plan gratis: ~20.000 escrituras al día para todos los jugadores).
-  // Antes se subía 3 s después de cada cambio; ahora como mucho una vez por minuto mientras juegas, y al salir de la app.
-  const PUSH_DELAY = (typeof CLOUD_PUSH_DELAY !== 'undefined' && CLOUD_PUSH_DELAY) || 60000;
+  // Antes se subía 3 s después de cada cambio; ahora como mucho una vez cada 5 minutos mientras juegas, al acabar cada partido y al salir de la app.
+  const PUSH_DELAY = (typeof CLOUD_PUSH_DELAY !== 'undefined' && CLOUD_PUSH_DELAY) || 300000;   // como mucho una subida cada 5 min (y siempre al acabar un partido y al salir)
   const TIMEOUT = 15000;
-  const MAX_RAW = 500000;       // por encima, la partida se guarda comprimida (Firestore admite 1 MB por documento)
+  const MAX_RAW = 20000;        // por encima (casi siempre), la partida se guarda comprimida: ocupa y descarga ~8 veces menos de la cuota de Firebase
   const RETRY = (typeof CLOUD_RETRY !== 'undefined' && CLOUD_RETRY) || [20000, 45000, 90000, 180000, 300000];   // reintentos tras un error (cada vez más espaciados)
   const RETRY_QUOTA = (typeof CLOUD_RETRY_QUOTA !== 'undefined' && CLOUD_RETRY_QUOTA) || [600000, 1800000, 3600000];   // cuota de Firebase agotada: esperar mucho más
 
@@ -350,7 +350,7 @@ const Cloud = (() => {
     return push(true, C.cloud.rev);
   }
 
-  // Al salir del juego o cambiar de app: subir ya lo pendiente
+  // Al salir del juego, cambiar de app o acabar un partido: subir ya lo pendiente
   const flush = () => { if (timer) { clearTimeout(timer); timer = 0; push(true); } };
   if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
   if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('pagehide', flush);
@@ -362,6 +362,6 @@ const Cloud = (() => {
 
   return { SAVE_KEYS, enabled, ready, loggedIn, user, via: () => meta.via || '', expired: () => !!meta.expired, pendingRedirect: () => !!meta.redirect,
     state, onChange: f => (listeners.add(f), () => listeners.delete(f)),
-    signUp, signIn, signInGoogle, signOut, sync, push, resolve, snapshot, restore, describe, hasProgress, guestChosen, chooseGuest, checkUser, cleanUser, PROGRESS_KEYS,
+    signUp, signIn, signInGoogle, signOut, sync, push, flush, resolve, snapshot, restore, describe, hasProgress, guestChosen, chooseGuest, checkUser, cleanUser, PROGRESS_KEYS,
     _meta: () => meta };
 })();

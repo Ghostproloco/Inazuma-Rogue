@@ -17,7 +17,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.31.5';
+const VERSION = '0.31.6';
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
@@ -796,6 +796,7 @@ const App = (() => {
     api.running = false;
     setTimeout(() => {
       Sound.stop(0.6);
+      setTimeout(() => { try { Cloud.flush(); } catch (_) {} }, 2000);   // al acabar el partido se sube ya lo pendiente a la nube
       // Halloween: caramelos por jugar en cualquier modo (+5, +10 más si ganas)
       const candy = s.quit ? 0 : Halloween.matchPlayed(s.score.A > s.score.B);
       if (candy && api.mode !== 'hwboss') setTimeout(() => UI.toast('+' + candy + ' 🍬 ' + TX('caramelos de Halloween'), 2200), 500);
@@ -1846,6 +1847,8 @@ const App = (() => {
   }
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
+    { v: '0.31.6', date: '22/10/2026', items: [
+      TX('Nube: la partida se guarda comprimida (ocupa unas 8 veces menos) y se sube al acabar cada partido, al salir del juego y, mientras juegas, cada 5 minutos. Así el servidor aguanta a muchos más jugadores.')] },
     { v: '0.31.5', date: '22/10/2026', items: [
       TX('Controles: si pulsas Pase o Tiro justo antes de recibir el balón, ahora pasas o chutas al primer toque (antes hacías una entrada sin querer).'),
       TX('Pase ya no hace entradas a tus propios compañeros.'),

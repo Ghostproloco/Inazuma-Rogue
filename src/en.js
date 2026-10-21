@@ -643,6 +643,7 @@ const EN_TEXT = {
   'Nombre del instituto': 'School name',
   'Normal': 'Normal',
   'Nota ': 'Rating ',
+  'Nube: la partida se guarda comprimida (ocupa unas 8 veces menos) y se sube al acabar cada partido, al salir del juego y, mientras juegas, cada 5 minutos. Así el servidor aguanta a muchos más jugadores.': 'Cloud: your save is now compressed (about 8 times smaller) and uploads after every match, when you leave the game and, while playing, every 5 minutes. This way the server can handle many more players.',
   'Nueva carrera': 'New career',
   'Nueva guía de controles (móvil, ordenador y mando) en Pausa y en Ajustes.': 'New controls guide (mobile, PC and gamepad) in Pause and Settings.',
   'Nuevas (K tiro)': 'New (K shoots)',
