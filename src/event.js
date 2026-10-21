@@ -128,4 +128,42 @@ const Halloween = {
   },
   pending() { return this.active() ? this.RETOS.filter(R => this.retoState(R) === 'ready').length : 0; },
   rayUnlocked() { return !!(Profile.data.hw && Profile.data.hw.ray); },
+
+  /* ---------- Premios por entrar: 5 días (no hace falta que sean seguidos), además del regalo diario ---------- */
+  LOGIN: [
+    { candy: 150, label: TX('150 caramelos'), icon: '🍬' },
+    { tickets: 10, label: TX('10 tickets'), icon: '🎟️' },
+    { coins: 1000, label: TX('1000 monedas'), icon: '🪙' },
+    { pick: true, label: TX('Elige 1 de 3 jugadores de +80'), icon: '⭐' },
+    { player: 21583, label: TX('Jim (Oscuro) de regalo'), icon: '🎁' },
+  ],
+  login() { const H = this.data(); H.login = H.login || { n: 0, last: null, pick: null }; return H.login; },
+  loginReady() { const L = this.login(); return this.active() && L.n < this.LOGIN.length && L.last !== this.today(); },
+  // Media de un jugador (las 5 estadísticas) y bote del día 4: cualquier jugador del juego con media 80 o más
+  avgOf(pd) { return ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + pd.ie[k], 0) / 5; },
+  pickPool() { return GAME.players.filter(p => p.cs && p.gacha !== false && !p.halloween && this.avgOf(p) >= 80).map(p => p.id); },
+  // Las 3 opciones se guardan: aunque salgas y vuelvas, son las mismas
+  pickOptions() {
+    const L = this.login();
+    if (!L.pick) { const pool = this.pickPool().slice(); L.pick = []; while (L.pick.length < 3 && pool.length) L.pick.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]); Profile.save(); }
+    return L.pick;
+  },
+  // Da un jugador como el gacha: nuevo, una estrella más o monedas si ya está al máximo
+  give(id) {
+    const P = Profile.data, pd = PLAYER(id), o = P.coll[id], r = { id, tier: pd.rarity };
+    if (!o) { P.coll[id] = { stars: 1, up: {} }; r.isNew = true; }
+    else if (o.stars < MAX_STARS) { o.stars++; r.star = o.stars; }
+    else { const c = (RARITY[pd.rarity] || RARITY.comun).dupCoins; P.coins += c; r.coins = c; }
+    return r;
+  },
+  claimLogin(choice) {
+    if (!this.loginReady()) return null;
+    const L = this.login(), R = this.LOGIN[L.n], P = Profile.data, H = this.data(), out = { day: L.n + 1, reward: R, players: [] };
+    if (R.pick) { if (!this.pickOptions().includes(+choice)) return null; out.players.push(this.give(+choice)); L.pick = null; }
+    if (R.player && PLAYER(R.player)) out.players.push(this.give(R.player));
+    H.candy += R.candy || 0; P.tickets += R.tickets || 0; P.coins += R.coins || 0;
+    L.n++; L.last = this.today();
+    Profile.save();
+    return out;
+  },
 };

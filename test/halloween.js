@@ -85,5 +85,23 @@ const run = mgr => { Math.random = (() => { let x = 7; return () => (x = (x * 16
 const rnd = Math.random, a = run(13), b = run(RAY_DARK); Math.random = rnd;
 ok(b > a * 1.07 && b < a * 1.13, `ingresos en 6 semanas: Nelly ${a} · Ray Dark ${b} (${(b / a * 100 - 100).toFixed(1)} %)`);
 
+console.log('8. Premios por entrar (5 días, no hace falta que sean seguidos)');
+setDay('2026-10-22'); const H2 = Halloween.data(); H2.login = null;
+const P0 = { candy: H2.candy, tickets: Profile.data.tickets, coins: Profile.data.coins };
+ok(Halloween.loginReady() && Halloween.claimLogin().day === 1 && H2.candy === P0.candy + 150, 'día 1: +150 caramelos');
+ok(!Halloween.loginReady() && Halloween.claimLogin() === null, 'el mismo día no se repite');
+setDay('2026-10-25'); ok(Halloween.claimLogin().day === 2 && Profile.data.tickets === P0.tickets + 10, 'día 2 (aunque falten días entre medias): +10 tickets');
+setDay('2026-10-26'); ok(Halloween.claimLogin().day === 3 && Profile.data.coins >= P0.coins + 1000, 'día 3: +1000 monedas');
+setDay('2026-10-27'); const opts = Halloween.pickOptions();
+ok(opts.length === 3 && new Set(opts).size === 3 && opts.every(id => Halloween.avgOf(PLAYER(id)) >= 80 && !PLAYER(id).halloween), 'día 4: 3 jugadores distintos de +80: ' + opts.map(id => PLAYER(id).name + ' ' + Math.round(Halloween.avgOf(PLAYER(id)))).join(', '));
+ok(JSON.stringify(Halloween.pickOptions()) === JSON.stringify(opts), 'las opciones no cambian si vuelves a entrar');
+const notIn = Halloween.pickPool().find(id => !opts.includes(id));
+ok(Halloween.claimLogin(notIn) === null, 'no vale elegir uno que no está entre los 3');
+const d4 = Halloween.claimLogin(opts[1]); ok(d4 && d4.day === 4 && Profile.data.coll[opts[1]], 'eliges uno y es tuyo');
+setDay('2026-10-28'); const hadJim = !!Profile.data.coll[21583]; const d5 = Halloween.claimLogin();
+ok(d5 && d5.day === 5 && Profile.data.coll[21583] && d5.players[0].id === 21583, 'día 5: Jim (Oscuro) de regalo' + (hadJim ? ' (ya lo tenía: +1 ★ o monedas)' : ''));
+setDay('2026-10-29'); ok(!Halloween.loginReady() && Halloween.daily() === 20, 'tras los 5 días no hay más, pero el regalo diario de 20 sigue');
+setDay('2026-11-05'); H2.login = null; ok(!Halloween.loginReady(), 'fuera del evento no hay premios');
+
 console.log(fails ? '\n✗ ' + fails + ' fallos' : '\n✓ Todo bien');
 process.exit(fails ? 1 : 0);

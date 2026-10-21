@@ -319,6 +319,13 @@ select option{color:#111;font-family:system-ui}
 .hwleg{display:flex;flex-direction:column;align-items:center;width:72px;padding:4px;background:rgba(10,4,20,.55);border:2px solid #ffcc22;text-align:center}
 .hwleg small{font-size:10px;line-height:1.1}.hwleg canvas{filter:grayscale(.3) brightness(.8)}.hwleg.own canvas{filter:none}.hwleg.own{box-shadow:0 0 8px #ffcc22}
 .hwretos{display:flex;flex-direction:column;gap:6px}
+.hwlogin{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.hwday{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;background:rgba(10,4,20,.5);border:2px solid #5a2a7a;text-align:center;min-width:0}
+.hwday span{font-size:22px}.hwday small{font-size:9px;line-height:1.1}.hwday small:first-child{font-size:11px;color:#ffa23a}
+.hwday.ready{border-color:#ff8a1a;box-shadow:0 0 10px rgba(255,138,26,.6)}.hwday.got{opacity:.55}.hwday.locked{opacity:.85}
+.hwpick{display:flex;flex-direction:column;gap:8px}
+.hwpk{display:grid;grid-template-columns:72px 1fr;grid-template-rows:auto auto auto;column-gap:10px;align-items:center;text-align:left;background:rgba(10,4,20,.6);border:2px solid #ffcc22;padding:6px;color:var(--chalk);font:14px var(--font-ui);cursor:pointer}
+.hwpk canvas{grid-row:1/4}.hwpk b{color:#ffa23a;font-weight:400;font-size:18px}.hwpk small{font-size:12px}
 .hwreto{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:6px 8px;background:rgba(10,4,20,.5);border:2px solid #5a2a7a}
 .hwreto div{display:flex;flex-direction:column;gap:2px}.hwreto small{font-size:12px}.hwreto b{color:#ffa23a;font-weight:400}
 .hwreto .cta{width:auto;padding:6px 10px;font-size:14px}.hwreto.ready{border-color:#ff8a1a}.hwreto.got{opacity:.7}
@@ -706,11 +713,14 @@ const EN_TEXT = {
   '1, 2 y 3 · abre todo': '1, 2 and 3 · unlocks everything',
   '10 jugadores': '10 players',
   '10 tickets': '10 tickets',
+  '1000 monedas': '1000 coins',
+  '150 caramelos': '150 candies',
   '1º curso · de la cantera': 'Year 1 · from the academy',
   '2 min': '2 min',
   '3 divisiones de 10 equipos. Los 2 primeros suben y del 3º al 6º juegan un': '3 divisions of 10 teams. The top 2 go up and 3rd to 6th play a',
   '3 min': '3 min',
   '5 contra 5 · roguelite': '5 vs 5 · roguelite',
+  '5 días del evento (no hace falta que sean seguidos)': '5 days of the event (they don\'t have to be in a row)',
   '5 min': '5 min',
   '75 % (normal)': '75% (normal)',
   ': +15 🎟️ y otro ⚡ Rayo': ': +15 🎟️ and another ⚡ Bolt',
@@ -900,6 +910,8 @@ const EN_TEXT = {
   'División ·': 'Division ·',
   'División · puesto': 'Division · position',
   'Duración del partido': 'Match length',
+  'Día {0}': 'Day {0}',
+  'Día {0}:': 'Day {0}:',
   'El Mundial': 'The World Cup',
   'El Ocultismo te ha asustado…': 'Occult gave you a fright…',
   'El astro del balón - Versión para piano': 'The Football Star - Piano Version',
@@ -924,7 +936,9 @@ const EN_TEXT = {
   'Elegir club': 'Choose club',
   'Elegir música de cada momento': 'Choose the music for each moment',
   'Elemento': 'Element',
+  'Elige 1 de 3 jugadores de +80': 'Pick 1 of 3 players rated 80+',
   'Elige a quién dejas ir': 'Choose who you let go',
+  'Elige a tu jugador': 'Pick your player',
   'Elige a tu mánager': 'Choose your manager',
   'Elige cuál usar en cada momento: animación propia y cámara lenta': 'Choose which one to use each time: its own animation and slow motion',
   'Elige hasta': 'Choose up to',
@@ -1103,6 +1117,7 @@ const EN_TEXT = {
   'Invitado · tu partida solo está en este móvil.': 'Guest · your save is only on this device.',
   'Ir al gacha': 'Go to the gacha',
   'Japón': 'Japan',
+  'Jim (Oscuro) de regalo': 'Free Jim (Dark)',
   'Jornada': 'Matchday',
   'Joyas que han encontrado tus ojeadores: mucho más baratas que en el mercado, pero solo durante unas semanas. Usa la actividad «Ojear» para buscar más.': 'Gems your scouts have found: much cheaper than on the market, but only for a few weeks. Use the «Scout» activity to find more.',
   'Juega · ': 'Play · ',
@@ -1298,9 +1313,11 @@ const EN_TEXT = {
   'Practicar técnicas': 'Practise techniques',
   'Premio de hoy ya cobrado (puedes repetir)': 'Today\'s prize already claimed (you can replay)',
   'Premio del Mundial': 'World Cup prize',
+  'Premio del día 4: quédate con uno de estos tres jugadores de media 80 o más.': 'Day 4 prize: keep one of these three players rated 80 or more.',
   'Premio del equipo especial': 'Special team prize',
   'Premio:': 'Prize:',
   'Premios por completarla:': 'Rewards for completing it:',
+  'Premios por entrar': 'Login rewards',
   'Presión alta': 'High press',
   'Primera': 'First',
   'Primero convoca a tu selección': 'Call up your national team first',
@@ -1525,6 +1542,7 @@ const EN_TEXT = {
   'Volver a la música de serie': 'Back to the default music',
   'Volver al club': 'Back to the club',
   'Vuelve a esta pestaña y toca': 'Come back to this tab and tap',
+  'Vuelve mañana a por el siguiente premio.': 'Come back tomorrow for the next prize.',
   'WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o X: tiro (mantén) / cambiar jugador · L o C: profundidad / saque largo · I o V: regate · Espacio: supertécnica · E: cambiar técnica · P o Esc: pausa': 'WASD or arrows to move · Shift sprint · J or Z: pass (hold = strong) / tackle · K or X: shoot (hold) / switch player · L or C: through ball / long kick · I or V: dribble · Space: special move · E: change move · P or Esc: pause',
   'Ya canjeaste este código': 'You\'ve already redeemed this code',
   'Ya está al máximo.': 'Already maxed out.',
@@ -1698,6 +1716,7 @@ const EN_TEXT = {
   'y es un texto largo.': 'and it\'s a long text.',
   'y la cantera trae chavales nuevos. Cuida la fama: si llega a 0, cierran el club. Cada 3 temporadas,': 'and the academy brings new kids. Look after your fame: if it reaches 0, they close the club. Every 3 seasons,',
   'y pasa la semana': 'and the week goes by',
+  'ya lo tienes (+1 ★)': 'you already have him (+1 ★)',
   '{0} tirada legendaria': '{0} legendary pull',
   '{0}º curso': 'Year {0}',
   '¡': '!',
@@ -1736,6 +1755,7 @@ const EN_TEXT = {
   '¡Partida traída! Cargando…': 'Save brought over! Loading…',
   '¡Partida traída! Crea una cuenta en 👤 Cuenta para tenerla siempre a salvo': 'Save brought over! Create an account in 👤 Account to keep it safe forever',
   '¡Pasáis a semifinales!': 'Through to the semi-finals!',
+  '¡Premio del día {0}!': 'Day {0} prize!',
   '¡Ray Dark desbloqueado como mánager!': 'Ray Dark unlocked as manager!',
   '¡Regate!': 'Dribble!',
   '¡Robo!': 'Stolen!',
@@ -1829,6 +1849,7 @@ const EN_TEXT = {
   '🌱 Llega un juvenil': '🌱 A youngster arrives',
   '🌱 Llegan de la cantera:': '🌱 New from the academy:',
   '🎁 Código de regalo': '🎁 Gift code',
+  '🎁 Recoger el premio del día {0}': '🎁 Claim the day {0} prize',
   '🎁 Regalo diario:': '🎁 Daily gift:',
   '🎁 regalo': '🎁 gift',
   '🎃 Evento forzado: NO': '🎃 Event forced: NO',
@@ -4627,6 +4648,44 @@ const Halloween = {
   },
   pending() { return this.active() ? this.RETOS.filter(R => this.retoState(R) === 'ready').length : 0; },
   rayUnlocked() { return !!(Profile.data.hw && Profile.data.hw.ray); },
+
+  /* ---------- Premios por entrar: 5 días (no hace falta que sean seguidos), además del regalo diario ---------- */
+  LOGIN: [
+    { candy: 150, label: TX('150 caramelos'), icon: '🍬' },
+    { tickets: 10, label: TX('10 tickets'), icon: '🎟️' },
+    { coins: 1000, label: TX('1000 monedas'), icon: '🪙' },
+    { pick: true, label: TX('Elige 1 de 3 jugadores de +80'), icon: '⭐' },
+    { player: 21583, label: TX('Jim (Oscuro) de regalo'), icon: '🎁' },
+  ],
+  login() { const H = this.data(); H.login = H.login || { n: 0, last: null, pick: null }; return H.login; },
+  loginReady() { const L = this.login(); return this.active() && L.n < this.LOGIN.length && L.last !== this.today(); },
+  // Media de un jugador (las 5 estadísticas) y bote del día 4: cualquier jugador del juego con media 80 o más
+  avgOf(pd) { return ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + pd.ie[k], 0) / 5; },
+  pickPool() { return GAME.players.filter(p => p.cs && p.gacha !== false && !p.halloween && this.avgOf(p) >= 80).map(p => p.id); },
+  // Las 3 opciones se guardan: aunque salgas y vuelvas, son las mismas
+  pickOptions() {
+    const L = this.login();
+    if (!L.pick) { const pool = this.pickPool().slice(); L.pick = []; while (L.pick.length < 3 && pool.length) L.pick.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]); Profile.save(); }
+    return L.pick;
+  },
+  // Da un jugador como el gacha: nuevo, una estrella más o monedas si ya está al máximo
+  give(id) {
+    const P = Profile.data, pd = PLAYER(id), o = P.coll[id], r = { id, tier: pd.rarity };
+    if (!o) { P.coll[id] = { stars: 1, up: {} }; r.isNew = true; }
+    else if (o.stars < MAX_STARS) { o.stars++; r.star = o.stars; }
+    else { const c = (RARITY[pd.rarity] || RARITY.comun).dupCoins; P.coins += c; r.coins = c; }
+    return r;
+  },
+  claimLogin(choice) {
+    if (!this.loginReady()) return null;
+    const L = this.login(), R = this.LOGIN[L.n], P = Profile.data, H = this.data(), out = { day: L.n + 1, reward: R, players: [] };
+    if (R.pick) { if (!this.pickOptions().includes(+choice)) return null; out.players.push(this.give(+choice)); L.pick = null; }
+    if (R.player && PLAYER(R.player)) out.players.push(this.give(R.player));
+    H.candy += R.candy || 0; P.tickets += R.tickets || 0; P.coins += R.coins || 0;
+    L.n++; L.last = this.today();
+    Profile.save();
+    return out;
+  },
 };
 
 /* =====================================================================
@@ -6502,7 +6561,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.31.3';
+const VERSION = '0.31.4';
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
@@ -6867,7 +6926,7 @@ const App = (() => {
      EVENTO DE HALLOWEEN (pantalla propia, fuera de los modos)
      ===================================================================== */
   function hwMenuBtn() {
-    const H = Halloween.data(), gift = H.daily !== Halloween.today(), n = Halloween.pending();
+    const H = Halloween.data(), gift = H.daily !== Halloween.today() || Halloween.loginReady(), n = Halloween.pending();
     return `<button class="mode hwmode" id="mHw"><span class="cicon">🎃</span><span class="mt"><b>${TX('Halloween')}${gift || n ? ' <i class="hwdot"></i>' : ''}</b><small>${TX('Sobre Calabaza, partido jefe y retos')} · 🍬 ${H.candy}${gift ? ' · ' + TX('🎁 regalo') : ''}</small></span></button>`;
   }
   // Calabazas y niebla suave
@@ -6887,6 +6946,10 @@ const App = (() => {
     }).join('');
     screen(`${top('🎃 ' + TX('Halloween'))}
       <div class="runbar hwbar"><span>🍬 ${H.candy}</span><span>🎟️ ${Profile.data.tickets}</span><span>${d <= 1 ? TX('¡Último día!') : TX('Quedan') + ' ' + d + ' ' + TX('días')}</span></div>
+      <h3>${TX('Premios por entrar')} <small>${TX('5 días del evento (no hace falta que sean seguidos)')}</small></h3>
+      <div class="hwlogin">${Halloween.LOGIN.map((R, i) => { const L = Halloween.login(), st = i < L.n ? 'got' : i === L.n && Halloween.loginReady() ? 'ready' : 'locked';
+        return `<div class="hwday ${st}"><small>${TX('Día {0}', i + 1)}</small><span>${st === 'got' ? '✓' : R.icon}</span><small>${esc(R.label)}</small></div>`; }).join('')}</div>
+      ${Halloween.loginReady() ? `<button class="cta" id="hwLogin">${TX('🎁 Recoger el premio del día {0}', Halloween.login().n + 1)}</button>` : Halloween.login().n < Halloween.LOGIN.length ? `<p class="note">${TX('Vuelve mañana a por el siguiente premio.')}</p>` : ''}
       <h3>${TX('Sobre Calabaza')}</h3>
       <div class="hwlegs" id="hwLegs"></div>
       <p class="note">${TX('Solo jugadores villanos y de miedo, y 5 legendarios exclusivos de Halloween.')}<br>
@@ -6903,6 +6966,14 @@ const App = (() => {
     const go = n => { const res = Halloween.pull(n); if (!res) return UI.toast(TX('No tienes caramelos suficientes')); renderMachine(res, HW_BANNER, renderHalloween, TX('Sobre Calabaza')); };
     $('hw1').onclick = () => go(1); $('hw10').onclick = () => go(10);
     $('hwBoss').onclick = startBoss;
+    if ($('hwLogin')) $('hwLogin').onclick = () => {
+      const R = Halloween.LOGIN[Halloween.login().n];
+      if (R.pick) return renderHwPick();
+      const out = Halloween.claimLogin(); if (!out) return;
+      Sound.sfx('reveal');
+      if (out.players.length) return renderReveal(out.players, renderHalloween, TX('¡Premio del día {0}!', out.day));
+      UI.toast(TX('Día {0}:', out.day) + ' ' + R.label, 2400); renderHalloween();
+    };
     body.querySelectorAll('[data-reto]').forEach(b => b.onclick = () => {
       const r = Halloween.claim(b.dataset.reto); if (!r) return;
       Sound.sfx('reveal'); renderHalloween();
@@ -6911,6 +6982,22 @@ const App = (() => {
     $('back').onclick = renderMenu;
     if (gift) setTimeout(() => UI.toast(TX('🎁 Regalo diario:') + ' +' + gift + ' 🍬', 2400), 300);
     Sound.music('menu');
+  }
+  // Día 4: eliges 1 de 3 jugadores de +80 (las 3 opciones no cambian aunque salgas)
+  function renderHwPick() {
+    const ids = Halloween.pickOptions();
+    screen(`${top('🎃 ' + TX('Elige a tu jugador'), 'back', TX('Volver'))}
+      <p class="note">${TX('Premio del día 4: quédate con uno de estos tres jugadores de media 80 o más.')}</p>
+      <div class="hwpick" id="hwPick"></div>`, 'bg_title');
+    hwDecor();
+    ids.forEach(id => {
+      const pd = PLAYER(id), b = document.createElement('button'); b.className = 'hwpk';
+      b.appendChild(face(Sprites.refOf(pd), 72));
+      b.insertAdjacentHTML('beforeend', `<b>${esc(pd.name)}</b><small>${rchip(pd.rarity)} ${RAB(pd.role)} ${chip(pd.elem)}</small><small>${TX('media')} ${Math.round(Halloween.avgOf(pd))}${Profile.data.coll[id] ? ' · ' + TX('ya lo tienes (+1 ★)') : ''}</small>`);
+      b.onclick = () => { const out = Halloween.claimLogin(id); if (!out) return; Sound.sfx('reveal'); renderReveal(out.players, renderHalloween, TX('¡Premio del día {0}!', out.day)); };
+      $('hwPick').appendChild(b);
+    });
+    $('back').onclick = renderHalloween;
   }
   function startBoss() {
     if (api.run && api.run.state !== 'over') return UI.toast(TX('Termina o abandona la partida en curso'));

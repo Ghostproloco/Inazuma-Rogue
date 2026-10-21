@@ -83,6 +83,11 @@ Cómo está hecho:
   si la cuota está agotada avisa «La nube está saturada… tu partida está a salvo» y reintenta a los 10, 30 y 60 min (`RETRY_QUOTA`).
 - Escenarios nuevos 20–22 en `test/cloud.js`. Si aun así se queda corto, la solución es pasar Firebase al plan Blaze (de pago por uso, con alerta de gasto).
 
+### v0.31.4 · Halloween: premios por entrar (5 días)
+- Respuestas de Fran: cuentan **cualquier día que entres** (no hace falta que sean seguidos), **además** del regalo diario de 20 🍬, y el día 4 sale de **todo el juego**.
+- Día 1: 150 🍬 · día 2: 10 tickets · día 3: 1000 monedas · día 4: elige 1 de 3 jugadores de media +80 (las 3 opciones se guardan) · día 5: Jim (Oscuro), id 21583.
+- `Halloween.LOGIN`, `login()`, `loginReady()`, `pickOptions()`, `claimLogin()`, `give()` en `src/event.js`; sección «Premios por entrar» y `renderHwPick` en `src/app.js`. Pruebas en `test/halloween.js` (apartado 8).
+
 ### PENDIENTE (pedido de Fran el 21 oct, a medias: se paró para mirar la nube)
 1. **Sprites con colores distintos a la foto** (p. ej. Partinus: muñeco con pelo marrón, foto azul claro). Diagnóstico hecho:
    ~200-300 jugadores (sobre todo hojas `c118`–`c136`, Inazuma 3) tienen el muñeco de otro jugador cercano o colores cambiados.
@@ -91,7 +96,7 @@ Cómo está hecho:
 2. **Roguelite**: el partido se acaba al llegar a 5 goles de diferencia.
 3. **Recompensas de técnicas tras cada partido** (roguelite, `run.js` ~línea 505): que salgan sobre todo de la posición del jugador (un portero no debe recibir una de tiro).
 4. **Guía de controles** explicándolos (móvil, PC y mando).
-5. **Halloween: recompensas por iniciar sesión, 5 días**: día 1 150 🍬 · día 2 10 tickets · día 3 1000 de oro · día 4 elegir 1 de 3 jugadores aleatorios de +80 de media · día 5 Jim (Oscuro) (id 21583) regalado.
+5. ~~Halloween: recompensas por iniciar sesión~~ **hecho en la 0.31.4**: día 1 150 🍬 · día 2 10 tickets · día 3 1000 de oro · día 4 elegir 1 de 3 jugadores aleatorios de +80 de media · día 5 Jim (Oscuro) (id 21583) regalado.
    Preguntas pendientes para Fran: ¿días seguidos o cualquier día?, ¿además del regalo diario de 20 🍬?, ¿de qué jugadores sale la elección de +80?
    Va en la versión publicada (el evento empieza el 22).
 

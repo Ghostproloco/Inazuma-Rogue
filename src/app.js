@@ -17,7 +17,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.31.3';
+const VERSION = '0.31.4';
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
@@ -382,7 +382,7 @@ const App = (() => {
      EVENTO DE HALLOWEEN (pantalla propia, fuera de los modos)
      ===================================================================== */
   function hwMenuBtn() {
-    const H = Halloween.data(), gift = H.daily !== Halloween.today(), n = Halloween.pending();
+    const H = Halloween.data(), gift = H.daily !== Halloween.today() || Halloween.loginReady(), n = Halloween.pending();
     return `<button class="mode hwmode" id="mHw"><span class="cicon">🎃</span><span class="mt"><b>${TX('Halloween')}${gift || n ? ' <i class="hwdot"></i>' : ''}</b><small>${TX('Sobre Calabaza, partido jefe y retos')} · 🍬 ${H.candy}${gift ? ' · ' + TX('🎁 regalo') : ''}</small></span></button>`;
   }
   // Calabazas y niebla suave
@@ -402,6 +402,10 @@ const App = (() => {
     }).join('');
     screen(`${top('🎃 ' + TX('Halloween'))}
       <div class="runbar hwbar"><span>🍬 ${H.candy}</span><span>🎟️ ${Profile.data.tickets}</span><span>${d <= 1 ? TX('¡Último día!') : TX('Quedan') + ' ' + d + ' ' + TX('días')}</span></div>
+      <h3>${TX('Premios por entrar')} <small>${TX('5 días del evento (no hace falta que sean seguidos)')}</small></h3>
+      <div class="hwlogin">${Halloween.LOGIN.map((R, i) => { const L = Halloween.login(), st = i < L.n ? 'got' : i === L.n && Halloween.loginReady() ? 'ready' : 'locked';
+        return `<div class="hwday ${st}"><small>${TX('Día {0}', i + 1)}</small><span>${st === 'got' ? '✓' : R.icon}</span><small>${esc(R.label)}</small></div>`; }).join('')}</div>
+      ${Halloween.loginReady() ? `<button class="cta" id="hwLogin">${TX('🎁 Recoger el premio del día {0}', Halloween.login().n + 1)}</button>` : Halloween.login().n < Halloween.LOGIN.length ? `<p class="note">${TX('Vuelve mañana a por el siguiente premio.')}</p>` : ''}
       <h3>${TX('Sobre Calabaza')}</h3>
       <div class="hwlegs" id="hwLegs"></div>
       <p class="note">${TX('Solo jugadores villanos y de miedo, y 5 legendarios exclusivos de Halloween.')}<br>
@@ -418,6 +422,14 @@ const App = (() => {
     const go = n => { const res = Halloween.pull(n); if (!res) return UI.toast(TX('No tienes caramelos suficientes')); renderMachine(res, HW_BANNER, renderHalloween, TX('Sobre Calabaza')); };
     $('hw1').onclick = () => go(1); $('hw10').onclick = () => go(10);
     $('hwBoss').onclick = startBoss;
+    if ($('hwLogin')) $('hwLogin').onclick = () => {
+      const R = Halloween.LOGIN[Halloween.login().n];
+      if (R.pick) return renderHwPick();
+      const out = Halloween.claimLogin(); if (!out) return;
+      Sound.sfx('reveal');
+      if (out.players.length) return renderReveal(out.players, renderHalloween, TX('¡Premio del día {0}!', out.day));
+      UI.toast(TX('Día {0}:', out.day) + ' ' + R.label, 2400); renderHalloween();
+    };
     body.querySelectorAll('[data-reto]').forEach(b => b.onclick = () => {
       const r = Halloween.claim(b.dataset.reto); if (!r) return;
       Sound.sfx('reveal'); renderHalloween();
@@ -426,6 +438,22 @@ const App = (() => {
     $('back').onclick = renderMenu;
     if (gift) setTimeout(() => UI.toast(TX('🎁 Regalo diario:') + ' +' + gift + ' 🍬', 2400), 300);
     Sound.music('menu');
+  }
+  // Día 4: eliges 1 de 3 jugadores de +80 (las 3 opciones no cambian aunque salgas)
+  function renderHwPick() {
+    const ids = Halloween.pickOptions();
+    screen(`${top('🎃 ' + TX('Elige a tu jugador'), 'back', TX('Volver'))}
+      <p class="note">${TX('Premio del día 4: quédate con uno de estos tres jugadores de media 80 o más.')}</p>
+      <div class="hwpick" id="hwPick"></div>`, 'bg_title');
+    hwDecor();
+    ids.forEach(id => {
+      const pd = PLAYER(id), b = document.createElement('button'); b.className = 'hwpk';
+      b.appendChild(face(Sprites.refOf(pd), 72));
+      b.insertAdjacentHTML('beforeend', `<b>${esc(pd.name)}</b><small>${rchip(pd.rarity)} ${RAB(pd.role)} ${chip(pd.elem)}</small><small>${TX('media')} ${Math.round(Halloween.avgOf(pd))}${Profile.data.coll[id] ? ' · ' + TX('ya lo tienes (+1 ★)') : ''}</small>`);
+      b.onclick = () => { const out = Halloween.claimLogin(id); if (!out) return; Sound.sfx('reveal'); renderReveal(out.players, renderHalloween, TX('¡Premio del día {0}!', out.day)); };
+      $('hwPick').appendChild(b);
+    });
+    $('back').onclick = renderHalloween;
   }
   function startBoss() {
     if (api.run && api.run.state !== 'over') return UI.toast(TX('Termina o abandona la partida en curso'));
