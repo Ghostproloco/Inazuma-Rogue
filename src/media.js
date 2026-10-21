@@ -7,7 +7,7 @@ const Sprites = (() => {
     const i = new Image();
     i.onload = () => res(i);
     i.onerror = () => { delete cache[file]; rej(new Error('No se pudo cargar ' + file)); };
-    i.src = 'sprites/' + file + (file.includes('?') ? '' : '?v=4');   // ?v=3: hojas actualizadas (Inazuma 2)
+    i.src = 'sprites/' + file + (file.includes('?') ? '' : '?v=5');   // ?v=5: muñecos del Inazuma 3 recolocados (c118-c136)
   }));
   const collFile = pd => 'c' + String(pd.cs[0]).padStart(2, '0') + '.png';
   // hwFace: retrato de miedo de los legendarios de Halloween (sprites/fhw.png, hecho con tools/hw_faces.py)

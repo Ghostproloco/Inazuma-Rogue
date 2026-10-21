@@ -838,7 +838,9 @@ const Logic = (() => {
     (s.goalLog = s.goalLog || []).push({ team, key: scorer ? scorer.key : null });
     s.events.push({ type: 'goal', team, x: s.ball.x, y: s.ball.y, tech: s.ball.shot && s.ball.shot.tech ? s.ball.shot.tech.elem : null });
     if (s.ball.shot && s.ball.shot.tech) s.hitstop = 0.3;
-    if (s.golden) { s.pause = { t: 2.0, then: () => finish(s) }; return; }
+    // Golden goal, o «paliza»: con settings.mercy (roguelite = 5) el partido acaba al llegar a esa diferencia de goles
+    const mercy = s.settings.mercy > 0 && Math.abs(s.score.A - s.score.B) >= s.settings.mercy;
+    if (s.golden || mercy) { if (mercy) s.events.push({ type: 'mercy', team }); s.pause = { t: 2.0, then: () => finish(s) }; return; }
     s.pause = { t: 2.0, then: () => kickoff(s, team === 'A' ? 'B' : 'A') };
   }
 
@@ -1000,5 +1002,5 @@ const Logic = (() => {
     if (!s.pause) checkSteals(s, dt);
   }
 
-  return { FIELD: F, DRIBBLE_CD, techChoices, createMatch, update, possession, controlled, contextTech, _t: { take, startTech, shoot } };
+  return { FIELD: F, DRIBBLE_CD, techChoices, createMatch, update, possession, controlled, contextTech, _t: { take, startTech, shoot, goal } };
 })();

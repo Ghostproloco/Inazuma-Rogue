@@ -682,6 +682,7 @@ class MatchScene extends Phaser.Scene {
           this.cameras.main.shake(260, 0.006);
           break;
         case 'golden': UI.banner(TX('¡Gol de oro!'), 'gold', 1600); UI.toast(TX('El primero que marque, gana'), 2000); break;
+        case 'mercy': UI.toast(e.team === 'A' ? TX('¡5 goles de diferencia! Partido ganado') : TX('5 goles de diferencia: se acabó el partido'), 2400); break;
         case 'save':
           Sound.sfx('save');
           if (e.elem) { this.cameras.main.shake(220, 0.008); UI.banner(TX('¡Parada!'), 'gold', 900); }

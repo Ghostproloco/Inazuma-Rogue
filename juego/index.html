@@ -319,6 +319,10 @@ select option{color:#111;font-family:system-ui}
 .hwleg{display:flex;flex-direction:column;align-items:center;width:72px;padding:4px;background:rgba(10,4,20,.55);border:2px solid #ffcc22;text-align:center}
 .hwleg small{font-size:10px;line-height:1.1}.hwleg canvas{filter:grayscale(.3) brightness(.8)}.hwleg.own canvas{filter:none}.hwleg.own{box-shadow:0 0 8px #ffcc22}
 .hwretos{display:flex;flex-direction:column;gap:6px}
+.gtable{width:100%;border-collapse:collapse;font-size:13px;line-height:1.35;background:rgba(10,18,48,.55);border:2px solid var(--ink)}
+.gtable th{font-weight:400;color:var(--gold);text-align:left;padding:4px 6px;border-bottom:2px solid var(--ink)}
+.gtable td{padding:4px 6px;border-top:1px solid rgba(255,255,255,.08);vertical-align:top}.gtable td:first-child{white-space:nowrap}.gtable td b{color:var(--yellow);font-weight:400}
+.gtips{margin:0;padding-left:18px;font-size:14px;line-height:1.45}
 .newdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff5a2a;vertical-align:middle;margin-left:4px;box-shadow:0 0 6px #ff8a1a}
 .newsv{background:rgba(10,18,48,.55);border:2px solid var(--ink);padding:6px 10px}.newsv.last{box-shadow:0 0 0 2px var(--yellow)}
 .newsv h3{margin:2px 0 4px}.newsv h3 small{font-size:12px;color:var(--chalk)}.newtag{font-size:12px;background:var(--yellow);color:#000;padding:1px 6px;margin-left:6px}
@@ -725,6 +729,7 @@ const EN_TEXT = {
   '3 min': '3 min',
   '5 contra 5 · roguelite': '5 vs 5 · roguelite',
   '5 días del evento (no hace falta que sean seguidos)': '5 days of the event (they don\'t have to be in a row)',
+  '5 goles de diferencia: se acabó el partido': '5-goal difference: the match is over',
   '5 min': '5 min',
   '75 % (normal)': '75% (normal)',
   ': +15 🎟️ y otro ⚡ Rayo': ': +15 🎟️ and another ⚡ Bolt',
@@ -844,7 +849,9 @@ const EN_TEXT = {
   'Comprobar': 'Check',
   'Común': 'Common',
   'Común 60 % · Rara 28 % · Épica 10 % · Legendaria 2 %. En el tramo legendario, la mitad de las veces sale una': 'Common 60% · Rare 28% · Epic 10% · Legendary 2%. In the legendary tier, half the time you get a',
+  'Con balón': 'With the ball',
   'Con botón': 'With button',
+  'Con el portero: Despeje (suelta) manda el balón lejos, Pase y Saque largo.': 'With the keeper: Clearance (release) sends the ball far, plus Pass and Long kick.',
   'Con una cuenta tu partida se guarda en la nube y la recuperas en cualquier móvil u ordenador.': 'With an account your save is stored in the cloud and you can get it back on any phone or computer.',
   'Con usuario y contraseña, apúntala: como no usamos correo,': 'With a username and password, write it down: since we don\'t use email,',
   'Consigue un legendario de Halloween': 'Get a Halloween legendary',
@@ -928,6 +935,7 @@ const EN_TEXT = {
   'El código está': 'The code is',
   'El director no está contento: últimos de Tercera.': 'The headmaster isn\'t happy: bottom of the Third Division.',
   'El equipo descansa y recupera la forma.': 'The team rests and recovers its form.',
+  'El joystick aparece donde pongas el dedo en la mitad izquierda de la pantalla. A tope = esprint. Los botones de la derecha cambian según tu equipo tenga el balón o no.': 'The joystick appears wherever you put your finger on the left half of the screen. All the way = sprint. The buttons on the right change depending on whether your team has the ball.',
   'El juego, traducido al inglés (cámbialo en Ajustes).': 'The game, translated into English (change it in Settings).',
   'El lado oscuro': 'The Dark Side',
   'El nombre de usuario debe tener entre 3 y 16 letras o números.': 'Usernames must be 3 to 16 letters or numbers.',
@@ -961,6 +969,7 @@ const EN_TEXT = {
   'Empezar carrera': 'Start career',
   'Empezar temporada ': 'Start season ',
   'En ': 'In ',
+  'En Ajustes puedes poner las supertécnicas automáticas y quitar el cambio automático de jugador.': 'In Settings you can make special moves automatic and turn off automatic player switching.',
   'En Primera no hay playoff: aprovecha para entrenar.': 'There\'s no playoff in the First Division: make the most of it to train.',
   'En casa': 'Home',
   'En curso': 'In progress',
@@ -1066,6 +1075,7 @@ const EN_TEXT = {
   'Fuerza de tiro': 'Shooting Power',
   'Fuerza defensiva': 'Defensive Power',
   'Fuerza veloz': 'Swift Power',
+  'Funciona con mandos de Xbox, PlayStation y la mayoría de genéricos: conéctalo (por cable o Bluetooth) y pulsa un botón.': 'Works with Xbox, PlayStation and most generic controllers: connect it (cable or Bluetooth) and press a button.',
   'Fácil': 'Easy',
   'Fácil: 5 partidos y 3 vidas · Medio: 6 y 2 · Difícil: 7 y 1.': 'Easy: 5 matches and 3 lives · Medium: 6 and 2 · Hard: 7 and 1.',
   'Físico': 'Body',
@@ -1130,6 +1140,7 @@ const EN_TEXT = {
   'Jim (Oscuro) de regalo': 'Free Jim (Dark)',
   'Jornada': 'Matchday',
   'Joyas que han encontrado tus ojeadores: mucho más baratas que en el mercado, pero solo durante unas semanas. Usa la actividad «Ojear» para buscar más.': 'Gems your scouts have found: much cheaper than on the market, but only for a few weeks. Use the «Scout» activity to find more.',
+  'Joystick': 'Joystick',
   'Juega · ': 'Play · ',
   'Juegan:': 'Playing:',
   'Juego': 'Game',
@@ -1167,6 +1178,8 @@ const EN_TEXT = {
   'Las cuentas todavía no están activadas en esta versión del juego. Tu partida se guarda en este móvil.': 'Accounts aren\'t enabled in this version of the game yet. Your save is stored on this device.',
   'Las paradas de la Caravana Inazuma por Japón.': 'The Inazuma Caravan\'s stops around Japan.',
   'Las próximas 10 tiradas serán legendarias': 'Your next 10 pulls will be legendary',
+  'Las supertécnicas tienen recarga: el botón se va llenando hasta que vuelve a estar lista.': 'Special moves have a cooldown: the button fills up until it\'s ready again.',
+  'Las técnicas que ganas tras cada partido ahora encajan con la posición del jugador (un portero ya no recibe técnicas de tiro).': 'The moves you earn after each match now fit the player\'s position (a goalkeeper no longer gets shooting moves).',
   'Las técnicas recargan un 20 % antes': 'Techniques recharge 20% faster',
   'Las técnicas, habilidades y fichajes se pierden al acabar; monedas, tickets y Rayos se quedan.': 'Techniques, skills and signings are lost when it ends; coins, tickets and Bolts stay.',
   'Las técnicas, habilidades y fichajes temporales se pierden.': 'Techniques, skills and temporary signings are lost.',
@@ -1215,6 +1228,7 @@ const EN_TEXT = {
   'Mundial · Convocatoria': 'World Cup · Call-up',
   'Mundial · temporada': 'World Cup · season',
   'Muralla': 'The Wall',
+  'Muñecos del Inazuma 3 arreglados: muchos tenían el muñeco de otro jugador (p. ej. Partinus salía con el pelo marrón).': 'Inazuma 3 sprites fixed: many had another player\'s sprite (e.g. Partinus had brown hair).',
   'Mánager:': 'Manager:',
   'Máquina de gachapón': 'Gachapon machine',
   'Más de': 'More than',
@@ -1257,6 +1271,7 @@ const EN_TEXT = {
   'Normal': 'Normal',
   'Nota ': 'Rating ',
   'Nueva carrera': 'New career',
+  'Nueva guía de controles (móvil, ordenador y mando) en Pausa y en Ajustes.': 'New controls guide (mobile, PC and gamepad) in Pause and Settings.',
   'Nuevas (K tiro)': 'New (K shoots)',
   'Nuevo apartado de Novedades (este).': 'New "What\'s new" section (this one).',
   'Nunca (PC)': 'Never (PC)',
@@ -1325,6 +1340,8 @@ const EN_TEXT = {
   'Playoffs de ascenso': 'Promotion playoffs',
   'Por oleadas · récord: ': 'Waves · record: ',
   'Portero': 'Goalkeeper',
+  'Portero con balón: J pase · K saque largo · L despeje.': 'Keeper with the ball: J pass · K long kick · L clearance.',
+  'Portero con balón: J pase · L saque largo · K despeje.': 'Keeper with the ball: J pass · L long kick · K clearance.',
   'Portero+': 'Keeper+',
   'Practicar técnicas': 'Practise techniques',
   'Premio de hoy ya cobrado (puedes repetir)': 'Today\'s prize already claimed (you can replay)',
@@ -1341,6 +1358,7 @@ const EN_TEXT = {
   'Primero pega el código.': 'Paste the code first.',
   'Primero toca el puesto del campo': 'Tap a position on the pitch first',
   'Probabilidades: común 60 % · rara 28 % · épica 10 % · legendaria 2 %. Cada 10 tiradas sin épica, la siguiente lo es seguro.': 'Odds: common 60% · rare 28% · epic 10% · legendary 2%. After 10 pulls without an epic, the next one is guaranteed.',
+  'Profund.': 'Through',
   'Progreso': 'Progress',
   'Prominence, Polvo de Diamantes y su fusión, Caos.': 'Prominence, Diamond Dust and their fusion, Chaos.',
   'Pts': 'Pts',
@@ -1348,6 +1366,7 @@ const EN_TEXT = {
   'Puede equipar sus propias técnicas y las técnicas legendarias del gacha de su elemento (': 'Can equip their own techniques and the gacha\'s legendary techniques of their element (',
   'Pueden aprender supertécnicas nuevas': 'Can learn new special moves',
   'Puesto:': 'Position:',
+  'Pulsa Pase o Tiro un poco antes de que te llegue el balón: pasarás o chutarás al primer toque.': 'Press Pass or Shoot just before the ball reaches you: you\'ll pass or shoot first-time.',
   'Quedan': 'Ends in',
   'Quitar filtros': 'Clear filters',
   'R. A. Redux - Supertécnicas milagrosas': 'R. A. Redux - Miraculous Special Moves',
@@ -1386,6 +1405,7 @@ const EN_TEXT = {
   'Rivales con tema propio': 'Rivals with their own theme',
   'Rivales · Inazuma Eleven 2': 'Rivals · Inazuma Eleven 2',
   'Roba arriba, cansa más': 'Win it high, tires more',
+  'Roguelite: el partido se acaba si un equipo gana por 5 goles de diferencia.': 'Roguelite: the match ends when a team leads by 5 goals.',
   'Royal Academy - Versión del juego': 'Royal Academy - Game Version',
   'Royal Academy, su versión Redux y los Emperadores Oscuros.': 'Royal Academy, its Redux version and the Dark Emperors.',
   'Salir al menú': 'Back to menu',
@@ -1419,6 +1439,7 @@ const EN_TEXT = {
   'Siguiente ronda: ': 'Next round: ',
   'Simulación': 'Simulation',
   'Simular 1000 tiradas en cada gacha': 'Simulate 1000 pulls on each gacha',
+  'Sin balón': 'Without the ball',
   'Sin conexión: se guardará en la nube cuando vuelva internet.': 'Offline: it will be saved to the cloud when the internet is back.',
   'Sin conexión: tu partida se subirá cuando vuelva internet': 'Offline: your save will be uploaded when the internet is back',
   'Sin perder vidas:': 'Without losing a life:',
@@ -1430,6 +1451,7 @@ const EN_TEXT = {
   'Sobre Calabaza, partido jefe y retos': 'Pumpkin Pack, boss match and challenges',
   'Solo jugadores villanos y de miedo, y 5 legendarios exclusivos de Halloween.': 'Only villains and spooky players, plus 5 exclusive Halloween legendaries.',
   'Sonido': 'Sound',
+  'Stick / cruceta': 'Stick / D-pad',
   'Su Majestad': 'His Majesty',
   'Su música': 'Their music',
   'Subcampeones': 'Runners-up',
@@ -1470,11 +1492,14 @@ const EN_TEXT = {
   'Tickets ardientes': 'Burning tickets',
   'Tickets: Historia (1 por victoria y 3 al completarla), Especiales (2), Cadenas (2 al completarlas) e Infinito (2 por oleada especial).': 'Tickets: Story (1 per win and 3 for completing it), Specials (2), Chains (2 for completing them) and Infinite (2 per special wave).',
   'Tiempos difíciles': 'Hard Times',
+  'Tienes las teclas clásicas (puedes cambiarlas en Ajustes → Controles).': 'You have the classic keys (change them in Settings → Controls).',
+  'Tienes las teclas nuevas (puedes cambiarlas en Ajustes → Controles).': 'You have the new keys (change them in Settings → Controls).',
   'Tirada de bienvenida': 'Welcome pull',
   'Tirada de bienvenida ×10': 'Welcome pull ×10',
   'Tirar ×1': 'Pull ×1',
   'Tirar ×10': 'Pull ×10',
   'Tiro': 'Shot',
+  'Tiro cargado a tope (barra llena) = tiro mucho más fuerte.': 'Fully charged shot (full bar) = a much stronger shot.',
   'Tiro+': 'Shot+',
   'Toca cada cápsula para abrirla': 'Tap each capsule to open it',
   'Toca la cápsula para abrirla': 'Tap the capsule to open it',
@@ -1495,6 +1520,7 @@ const EN_TEXT = {
   'Tres Rayos Raimon': 'Three Raimon Bolts',
   'Tres tiradas épicas o mejores': 'Three epic-or-better pulls',
   'Truco o trato': 'Trick or Treat',
+  'Trucos': 'Tips',
   'Tu carrera se ha adaptado a las ligas de 10 equipos: la temporada actual empieza de nuevo (conservas plantilla, fama y dinero).': 'Your career has been adapted to 10-team leagues: the current season starts again (you keep your squad, fame and money).',
   'Tu club': 'Your club',
   'Tu club está eliminado.': 'Your club is knocked out.',
@@ -1580,6 +1606,8 @@ const EN_TEXT = {
   'aprende en el juego (': 'learns in the game (',
   'ascenso ·': 'promotion ·',
   'balón': 'ball',
+  'cambia al compañero hacia donde apuntas': 'switches to the teammate you aim at',
+  'cambiar de jugador': 'switch player',
   'cambiar técnica': 'switch technique',
   'cambiar ·': 'switch ·',
   'caramelos de Halloween': 'Halloween candies',
@@ -1615,6 +1643,7 @@ const EN_TEXT = {
   'el Mundial': 'the World Cup',
   'el equipo especial Caos y la Etapa 3.': 'the special team Chaos and Stage 3.',
   'el portero': 'the goalkeeper',
+  'elegir otra supertécnica': 'pick another special move',
   'elige cuál conservar': 'choose which one to keep',
   'eliminados…': 'knocked out…',
   'empezar de cero': 'start from scratch',
@@ -1623,9 +1652,11 @@ const EN_TEXT = {
   'en curso': 'in progress',
   'en la nube cada vez que cambia. En otro móvil u ordenador, entra con tu usuario y contraseña y la tendrás igual.': 'to the cloud every time it changes. On another phone or computer, log in with your username and password and you\'ll have it just the same.',
   'en todas sus stats': 'on all their stats',
+  'entrada': 'tackle',
   'entrada ·': 'tackle ·',
   'entrar, pero la plantilla está llena: ahora eliges si haces hueco.': 'join, but the squad is full: now you choose whether to make room.',
   'equipos rivales': 'rival teams',
+  'esprint': 'sprint',
   'esprint ·': 'sprint ·',
   'ficha por': 'signs for',
   'flechas': 'arrows',
@@ -1652,9 +1683,12 @@ const EN_TEXT = {
   'llena': 'full',
   'm/s · z': 'm/s · z',
   'mantén': 'hold',
+  'mantén para cargar, suelta para chutar (un toque = tiro rápido)': 'hold to charge, release to shoot (a tap = quick shot)',
   'media': 'rating',
   'monedas': 'coins',
+  'mover': 'move',
   'mover por el área ·': 'move around the box ·',
+  'mover y apuntar': 'move and aim',
   'mover ·': 'move ·',
   'mánager': 'manager',
   'máx. ': 'max. ',
@@ -1672,7 +1706,9 @@ const EN_TEXT = {
   'para ti': 'for you',
   'partidos en la Etapa 1': 'matches in Stage 1',
   'partidos ·': 'matches ·',
+  'pase (mantén = fuerte)': 'pass (hold = strong)',
   'pase (mantén = fuerte) ·': 'pass (hold = strong) ·',
+  'pase al hueco': 'through ball',
   'pausa': 'pause',
   'pide': 'asks for',
   'playoff': 'playoff',
@@ -1686,7 +1722,10 @@ const EN_TEXT = {
   'rara': 'rare',
   'raras ·': 'rare ·',
   'rechaza la oferta: es demasiado poco.': 'turns down the offer: it\'s far too little.',
+  'recorte rápido sin técnica': 'quick cut without a special move',
+  'regate': 'dribble',
   'regate ·': 'dribble ·',
+  'robar el balón': 'win the ball',
   'roguelite': 'roguelite',
   'saque largo': 'long kick',
   'saque largo ·': 'long kick ·',
@@ -1705,6 +1744,9 @@ const EN_TEXT = {
   'stick o cruceta para moverte · RT esprint · A pase (mantén = fuerte) · X tiro (mantén) · B profundidad / entrada · Y supertécnica · LT cambiar técnica · RB regate · LB cambiar jugador · Start pausa.': 'stick or D-pad to move · RT sprint · A pass (hold = strong) · X shot (hold) · B through ball / tackle · Y special move · LT switch technique · RB dribble · LB switch player · Start pause.',
   'su estrella se une a tu plantilla': 'their star joins your squad',
   'suben o bajan': 'go up or down',
+  'supertécnica': 'special move',
+  'supertécnica de bloqueo': 'block special move',
+  'supertécnica de tiro o regate': 'shot or dribble special move',
   'temas del Inazuma 1 y 2': 'themes from Inazuma 1 and 2',
   'temporadas · mejor división:': 'seasons · best division:',
   'temporal': 'temp',
@@ -1713,6 +1755,7 @@ const EN_TEXT = {
   'tickets para el gacha por tus logros de la temporada': 'tickets for the gacha for your achievements this season',
   'tiene una partida en la nube distinta de la de este móvil. Elige con cuál sigues. La otra se guarda como copia en este móvil (Cuenta → Opciones avanzadas), así que no se pierde.': 'has a save in the cloud that\'s different from the one on this device. Choose which one to continue with. The other one is kept as a copy on this device (Account → Advanced options), so nothing is lost.',
   'tiradas (llevas': 'pulls (you\'re at',
+  'tiro (mantén para cargar)': 'shoot (hold to charge)',
   'tiro (mantén) ·': 'shot (hold) ·',
   'titular': 'starter',
   'toca para cambiar': 'tap to change',
@@ -1720,6 +1763,7 @@ const EN_TEXT = {
   'toca un jugador para ponerlo': 'tap a player to put them in',
   'toca un jugador para ponerlo; toca otro puesto del campo para cambiarlo': 'tap a player to put them in; tap another position on the pitch to change it',
   'toca un puesto y luego un suplente (u otro puesto) para cambiarlos': 'tap a position and then a substitute (or another position) to swap them',
+  'toque = pase · mantén = pase fuerte': 'tap = pass · hold = strong pass',
   'técnica legendaria': 'legendary technique',
   'técnicas': 'techniques',
   'técnicas (': 'techniques (',
@@ -1741,6 +1785,7 @@ const EN_TEXT = {
   '{0} tirada legendaria': '{0} legendary pull',
   '{0}º curso': 'Year {0}',
   '¡': '!',
+  '¡5 goles de diferencia! Partido ganado': '5-goal lead! Match won',
   '¡A jugar!': 'Let\'s play!',
   '¡A la final!': 'Into the final!',
   '¡Balón recuperado!': 'Ball won back!',
@@ -1838,6 +1883,7 @@ const EN_TEXT = {
   '×5 con medalla de oro': '×5 with a gold medal',
   'épicas ·': 'epic ·',
   '… pero si la fama llega a 0, cierran el club.': '… but if fame reaches 0, they close the club.',
+  '⌨️ Ordenador': '⌨️ Computer',
   '▶ Ver la intro': '▶ Watch the intro',
   '☁️ Guardar ahora': '☁️ Save now',
   '☁️ La de la nube': '☁️ The cloud one',
@@ -1879,6 +1925,8 @@ const EN_TEXT = {
   '🎃 Evento forzado: SÍ': '🎃 Event forced: YES',
   '🎓 Se gradúan ({0}):': '🎓 Graduating ({0}):',
   '🎟️ para el gacha': '🎟️ for the gacha',
+  '🎮 Guía de controles': '🎮 Controls guide',
+  '🎮 Mando': '🎮 Controller',
   '🎮 Mando conectado: ': '🎮 Controller connected: ',
   '🎮 También puedes jugar con mando': '🎮 You can also play with a controller',
   '🎮 ¿Tienes mando? Conéctalo y juega: Xbox, PlayStation o genérico.': '🎮 Got a controller? Plug it in and play: Xbox, PlayStation or generic.',
@@ -1918,6 +1966,7 @@ const EN_TEXT = {
   '📦 ¿Jugabas en la versión antigua? Trae tu partida': '📦 Did you play the old version? Bring your save',
   '📰 Novedades': '📰 What\'s new',
   '📱 La de este móvil': '📱 The one on this device',
+  '📱 Móvil': '📱 Mobile',
   '🔄 Equipo 2 (los otros 5)': '🔄 Team 2 (the other 5)',
   '🔊 Efectos': '🔊 Effects',
   '🔒 Completa la Etapa 1': '🔒 Complete Stage 1',
@@ -1945,7 +1994,7 @@ const Sprites = (() => {
     const i = new Image();
     i.onload = () => res(i);
     i.onerror = () => { delete cache[file]; rej(new Error('No se pudo cargar ' + file)); };
-    i.src = 'sprites/' + file + (file.includes('?') ? '' : '?v=4');   // ?v=3: hojas actualizadas (Inazuma 2)
+    i.src = 'sprites/' + file + (file.includes('?') ? '' : '?v=5');   // ?v=5: muñecos del Inazuma 3 recolocados (c118-c136)
   }));
   const collFile = pd => 'c' + String(pd.cs[0]).padStart(2, '0') + '.png';
   // hwFace: retrato de miedo de los legendarios de Halloween (sprites/fhw.png, hecho con tools/hw_faces.py)
@@ -3034,7 +3083,9 @@ const Logic = (() => {
     (s.goalLog = s.goalLog || []).push({ team, key: scorer ? scorer.key : null });
     s.events.push({ type: 'goal', team, x: s.ball.x, y: s.ball.y, tech: s.ball.shot && s.ball.shot.tech ? s.ball.shot.tech.elem : null });
     if (s.ball.shot && s.ball.shot.tech) s.hitstop = 0.3;
-    if (s.golden) { s.pause = { t: 2.0, then: () => finish(s) }; return; }
+    // Golden goal, o «paliza»: con settings.mercy (roguelite = 5) el partido acaba al llegar a esa diferencia de goles
+    const mercy = s.settings.mercy > 0 && Math.abs(s.score.A - s.score.B) >= s.settings.mercy;
+    if (s.golden || mercy) { if (mercy) s.events.push({ type: 'mercy', team }); s.pause = { t: 2.0, then: () => finish(s) }; return; }
     s.pause = { t: 2.0, then: () => kickoff(s, team === 'A' ? 'B' : 'A') };
   }
 
@@ -3196,7 +3247,7 @@ const Logic = (() => {
     if (!s.pause) checkSteals(s, dt);
   }
 
-  return { FIELD: F, DRIBBLE_CD, techChoices, createMatch, update, possession, controlled, contextTech, _t: { take, startTech, shoot } };
+  return { FIELD: F, DRIBBLE_CD, techChoices, createMatch, update, possession, controlled, contextTech, _t: { take, startTech, shoot, goal } };
 })();
 
 /* =====================================================================
@@ -3578,6 +3629,13 @@ function teamStarReward(P, teamKey) {
   if (o.stars < MAX_STARS) { o.stars++; return { id: best.id, star: o.stars }; }
   P.coins += 100; return { id: best.id, coins: 100 };
 }
+// Qué tipo de técnica le sirve a cada posición (probabilidades de las recompensas tras cada partido)
+const ROLE_FIT = { POR: { parada: 1 }, DEF: { bloqueo: 0.75, regate: 0.15, tiro: 0.1 }, MED: { regate: 0.45, tiro: 0.3, bloqueo: 0.25 }, DEL: { tiro: 0.7, regate: 0.3 } };
+function rollFitType(role) {
+  const F = ROLE_FIT[role] || ROLE_FIT.MED; let r = Math.random();
+  for (const [t, w] of Object.entries(F)) { if ((r -= w) < 0) return t; }
+  return Object.keys(F)[0];
+}
 const Run = {
   // kind: story | special | chain | infinite
   create(kind, lineupIds, opts = {}) {
@@ -3694,17 +3752,18 @@ const Run = {
     const evos = [];
     run.roster.forEach((m, mi) => m.techs.forEach(t => { if (EVO(t) != null && !m.techs.includes(EVO(t))) evos.push({ kind: 'evolve', member: mi, from: t, to: EVO(t) }); }));
     if (evos.length) opts.push(rnd(evos));
-    // Técnicas nuevas: sobre todo de las suyas; más peso a defensa y regate
+    // Técnicas nuevas según la posición (un portero solo paradas; un delantero sobre todo tiros…), de las suyas si puede
     for (let tries = 0; tries < 20 && opts.length < 3; tries++) {
       const mi = rnd(members), m = run.roster[mi], pd = PLAYER(m.id);
       if (opts.some(o => o.member === mi && o.kind === 'tech')) continue;
-      const own = pd.moves.map(x => x[0]).filter(id => TECH(id) && !m.techs.includes(id));
-      const weighted = own.flatMap(id => ['bloqueo', 'regate'].includes(TECH(id).type) ? [id, id] : [id]);
+      const type = rollFitType(pd.role);
+      const ok = t => t && t.type === type && !m.techs.includes(t.id) && Object.values(GAME.evo).indexOf(t.id) < 0;
+      const own = pd.moves.map(x => TECH(x[0])).filter(ok).map(t => t.id);
       let id = null, rare = false;
-      if (weighted.length && Math.random() > 0.25) id = rnd(weighted);
+      if (own.length && Math.random() > 0.25) id = rnd(own);
       else {
-        const pool = Object.values(GAME.techniques).filter(t => !m.techs.includes(t.id) &&
-          (t.elem === pd.elem || t.type === ROLE_TYPE[pd.role]) && Object.values(GAME.evo).indexOf(t.id) < 0);
+        const all = Object.values(GAME.techniques).filter(ok), mine = all.filter(t => t.elem === pd.elem);
+        const pool = mine.length ? mine : all;
         if (pool.length) { id = rnd(pool).id; rare = true; }
       }
       if (id == null) continue;
@@ -4554,7 +4613,7 @@ const Career = {
    - Moneda 🍬 caramelos (perfil: Profile.data.hw): +5 por partido en
      cualquier modo (+10 si ganas), +20 de regalo diario, +60 al ganar al
      Ocultismo jefe (una vez al día) y los retos del evento.
-   - Sobre Calabaza: 30 🍬 por tirada; jugadores villanos/de miedo y
+   - Sobre Calabaza: 15 🍬 por tirada (150 la de 10); jugadores villanos/de miedo y
      5 legendarios exclusivos (versiones Halloween, nuevos ids 996001…).
      Legendario 3 % · épica 15 % · rara 32 % · común 50 %; legendario
      asegurado a las 40 tiradas sin uno.
@@ -5787,6 +5846,7 @@ class MatchScene extends Phaser.Scene {
           this.cameras.main.shake(260, 0.006);
           break;
         case 'golden': UI.banner(TX('¡Gol de oro!'), 'gold', 1600); UI.toast(TX('El primero que marque, gana'), 2000); break;
+        case 'mercy': UI.toast(e.team === 'A' ? TX('¡5 goles de diferencia! Partido ganado') : TX('5 goles de diferencia: se acabó el partido'), 2400); break;
         case 'save':
           Sound.sfx('save');
           if (e.elem) { this.cameras.main.shake(220, 0.008); UI.banner(TX('¡Parada!'), 'gold', 900); }
@@ -7327,6 +7387,7 @@ const App = (() => {
     const hasPad = [...(navigator.getGamepads ? navigator.getGamepads() : [])].some(Boolean);
     if (Controls.pc() && !hasPad && (settings.padTip || 0) < 3) { settings.padTip = (settings.padTip || 0) + 1; saveSettings(); setTimeout(() => UI.toast(TX('🎮 También puedes jugar con mando'), 2600), 1800); }
     const s = Object.assign({}, settings, { golden, field, difficulty: api.mode === 'run' ? api.run.diff : api.mode === 'career' || api.mode === 'wc' ? Career.matchDiff() : 'facil' });
+    s.mercy = api.mode === 'run' ? 5 : 0;   // roguelite: con 5 goles de diferencia se acaba el partido
     screen('<h2>' + TX('Cargando…') + '</h2>');
     try {
       api.matchSheet = await Sprites.matchSheet([...teams.A.players, ...teams.B.players].map(p => p.sprite));
@@ -7360,6 +7421,7 @@ const App = (() => {
       $('pauseBody').innerHTML = `<h1>${TX('Pausa')}</h1><button class="cta" id="pResume">${TX('Seguir')}</button>
         <div class="group"><label>${TX('Supertécnicas')}</label><div class="opts">${[['boton', TX('Con botón')], ['auto', TX('Automáticas')]].map(([v, t]) => `<button data-v="${v}" aria-pressed="${settings.techMode === v}">${t}</button>`).join('')}</div></div>
         ${settings.dev && settings.devWin ? '<button class="ghost" id="pWin">' + TX('🛠 Ganar ahora (desarrollador)') + '</button>' : ''}
+        <button class="ghost" id="pGuide">${TX('🎮 Guía de controles')}</button>
         <button class="ghost" id="pQuit">${api.mode === 'run' || api.mode === 'career' || api.mode === 'wc' ? TX('Rendirse (cuenta como derrota)') : TX('Salir al menú')}</button>`;
       $('pauseBody').querySelectorAll('.opts button').forEach(b => b.addEventListener('click', () => {
         settings.techMode = b.dataset.v; saveSettings(); api.match.settings.techMode = b.dataset.v;
@@ -7367,6 +7429,7 @@ const App = (() => {
       }));
       $('pResume').onclick = () => api.togglePause();
       if ($('pWin')) $('pWin').onclick = () => { const m = api.match; m.score.A = m.score.B + 1; m.time = 0.01; m.golden = false; api.togglePause(); };
+      $('pGuide').onclick = () => renderControlsGuide(() => show('pause'));
       $('pQuit').onclick = () => {
         api.match.quit = true;   // rendirse no da caramelos
         if (api.mode === 'run') { api.match.over = true; api.match.result = 'loss'; api.matchEnded(api.match); }
@@ -8391,11 +8454,52 @@ const App = (() => {
   }
 
   /* ---------- Códigos de regalo ---------- */
+  /* ---------- Guía de controles (móvil, ordenador y mando) ---------- */
+  let guideTab = null;
+  function renderControlsGuide(back = renderMenu) {
+    const pad = [...(navigator.getGamepads ? navigator.getGamepads() : [])].some(Boolean);
+    const tab = guideTab || (pad ? 'mando' : Controls.pc() ? 'pc' : 'movil'), clas = settings.keys === 'clasicas';
+    const row = (k, a, b) => `<tr><td><b>${k}</b></td><td>${a}</td><td>${b}</td></tr>`;
+    const table = rows => `<table class="gtable"><tr><th></th><th>${TX('Con balón')}</th><th>${TX('Sin balón')}</th></tr>${rows}</table>`;
+    const T = {
+      movil: `<p class="note">${TX('El joystick aparece donde pongas el dedo en la mitad izquierda de la pantalla. A tope = esprint. Los botones de la derecha cambian según tu equipo tenga el balón o no.')}</p>
+        ${table(row(TX('Joystick'), TX('mover y apuntar'), TX('mover')) + row(TX('Tiro'), TX('mantén para cargar, suelta para chutar (un toque = tiro rápido)'), '—') +
+          row(TX('Pase'), TX('toque = pase · mantén = pase fuerte'), '—') + row(TX('Entrada'), '—', TX('robar el balón')) + row(TX('Profund.'), TX('pase al hueco'), '—') +
+          row(TX('Regate'), TX('recorte rápido sin técnica'), '—') + row(TX('Cambiar'), '—', TX('cambia al compañero hacia donde apuntas')) +
+          row(TX('Técnica'), TX('supertécnica de tiro o regate'), TX('supertécnica de bloqueo')) + row('⇄', TX('elegir otra supertécnica'), TX('elegir otra supertécnica')))}
+        <p class="note">${TX('Con el portero: Despeje (suelta) manda el balón lejos, Pase y Saque largo.')}</p>`,
+      pc: `<p class="note">${clas ? TX('Tienes las teclas clásicas (puedes cambiarlas en Ajustes → Controles).') : TX('Tienes las teclas nuevas (puedes cambiarlas en Ajustes → Controles).')}</p>
+        ${table(row('WASD / ' + TX('flechas'), TX('mover y apuntar'), TX('mover')) + row('Shift', TX('esprint'), TX('esprint')) +
+          row(clas ? 'L / X' : 'K / X', TX('tiro (mantén para cargar)'), clas ? '—' : TX('cambiar de jugador')) + row('J / Z', TX('pase (mantén = fuerte)'), TX('entrada')) +
+          row(clas ? 'K / C' : 'L / C', TX('pase al hueco'), '—') + row('I / V', TX('regate'), '—') + (clas ? row('Q', '—', TX('cambiar de jugador')) : '') +
+          row(TX('Espacio'), TX('supertécnica'), TX('supertécnica')) + row(clas ? 'U' : 'E', TX('elegir otra supertécnica'), TX('elegir otra supertécnica')) + row('P / Esc', TX('pausa'), TX('pausa')))}
+        <p class="note">${clas ? TX('Portero con balón: J pase · K saque largo · L despeje.') : TX('Portero con balón: J pase · L saque largo · K despeje.')}</p>`,
+      mando: `<p class="note">${TX('Funciona con mandos de Xbox, PlayStation y la mayoría de genéricos: conéctalo (por cable o Bluetooth) y pulsa un botón.')}</p>
+        ${table(row(TX('Stick / cruceta'), TX('mover y apuntar'), TX('mover')) + row('RT / R2', TX('esprint'), TX('esprint')) + row('X / ▢', TX('tiro (mantén para cargar)'), '—') +
+          row('A / ✕', TX('pase (mantén = fuerte)'), TX('entrada')) + row('B / ◯', TX('pase al hueco'), '—') + row('RB / R1', TX('regate'), '—') +
+          row('LB / L1', '—', TX('cambiar de jugador')) + row('Y / △', TX('supertécnica'), TX('supertécnica')) + row('LT / L2', TX('elegir otra supertécnica'), TX('elegir otra supertécnica')) +
+          row('Start', TX('pausa'), TX('pausa')))}`,
+    };
+    screen(`${top('🎮 ' + TX('Controles'))}
+      <div class="opts" id="gTabs">${[['movil', TX('📱 Móvil')], ['pc', TX('⌨️ Ordenador')], ['mando', TX('🎮 Mando')]].map(([k, n]) => `<button data-gtab="${k}" aria-pressed="${k === tab}">${n}</button>`).join('')}</div>
+      ${T[tab]}
+      <h3>${TX('Trucos')}</h3>
+      <ul class="gtips"><li>${TX('Pulsa Pase o Tiro un poco antes de que te llegue el balón: pasarás o chutarás al primer toque.')}</li>
+        <li>${TX('Tiro cargado a tope (barra llena) = tiro mucho más fuerte.')}</li>
+        <li>${TX('Las supertécnicas tienen recarga: el botón se va llenando hasta que vuelve a estar lista.')}</li>
+        <li>${TX('En Ajustes puedes poner las supertécnicas automáticas y quitar el cambio automático de jugador.')}</li></ul>`, 'bg_green');
+    body.querySelectorAll('[data-gtab]').forEach(b => b.onclick = () => { guideTab = b.dataset.gtab; renderControlsGuide(back); });
+    $('back').onclick = back;
+  }
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
-    { v: '0.31.5', date: '21/10/2026', items: [
+    { v: '0.31.5', date: '22/10/2026', items: [
       TX('Controles: si pulsas Pase o Tiro justo antes de recibir el balón, ahora pasas o chutas al primer toque (antes hacías una entrada sin querer).'),
       TX('Pase ya no hace entradas a tus propios compañeros.'),
+      TX('Nueva guía de controles (móvil, ordenador y mando) en Pausa y en Ajustes.'),
+      TX('Roguelite: el partido se acaba si un equipo gana por 5 goles de diferencia.'),
+      TX('Las técnicas que ganas tras cada partido ahora encajan con la posición del jugador (un portero ya no recibe técnicas de tiro).'),
+      TX('Muñecos del Inazuma 3 arreglados: muchos tenían el muñeco de otro jugador (p. ej. Partinus salía con el pelo marrón).'),
       TX('Nuevo apartado de Novedades (este).')] },
     { v: '0.31.4', date: '21/10/2026', items: [
       TX('Halloween: premios por entrar 5 días (no hace falta que sean seguidos): 150 caramelos, 10 tickets, 1000 monedas, elegir 1 de 3 jugadores de +80 y Jim (Oscuro) de regalo.'),
@@ -8461,6 +8565,7 @@ const App = (() => {
       <h3>${TX('Controles')}</h3>
       ${opts(TX('Botones en pantalla'), 'controls', [['auto', TX('Auto')], ['tactil', TX('Siempre')], ['teclado', TX('Nunca (PC)')]])}
       ${opts(TX('Teclas del ordenador'), 'keys', [['nuevas', TX('Nuevas (K tiro)')], ['clasicas', TX('Clásicas (L tiro)')]], Object.assign({ keys: 'nuevas' }, settings))}
+      <button class="ghost" id="sGuide">${TX('🎮 Guía de controles')}</button>
       <p class="keys"><b>${TX('Mando:')}</b> ${TX('stick o cruceta para moverte · RT esprint · A pase (mantén = fuerte) · X tiro (mantén) · B profundidad / entrada · Y supertécnica · LT cambiar técnica · RB regate · LB cambiar jugador · Start pausa.')}<br>
       <b>${TX('Móvil:')}</b> ${TX('joystick a la izquierda (a tope = esprint). Mantén Pase para un pase fuerte y usa Regate para un recorte rápido sin técnica. Para cambiar de jugador apunta con el joystick y pulsa Cambiar (también cambia solo al ir a por el balón).')}<br>
       <b>${TX('PC:')}</b> ${settings.keys === 'clasicas' ? TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o C: profundidad / saque largo · L o X: tiro (mantén) / despeje · I o V: regate · Q: cambiar jugador · Espacio: supertécnica · U: cambiar técnica · P o Esc: pausa') : TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o X: tiro (mantén) / cambiar jugador · L o C: profundidad / saque largo · I o V: regate · Espacio: supertécnica · E: cambiar técnica · P o Esc: pausa')}</p>
@@ -8493,6 +8598,7 @@ const App = (() => {
     $('svR').onchange = () => Sound.sfx('click');
     body.querySelectorAll('select[data-role]').forEach(s => { s.value = c.roles[s.dataset.role] ?? ''; s.onchange = () => Sound.setRole(s.dataset.role, s.value); });
     $('seeIntro').onclick = () => { Sound.stop(0.2); playIntro(renderSettings); };
+    $('sGuide').onclick = () => renderControlsGuide(renderSettings);
     $('tt1').onclick = () => { Sound.setTeamThemes(true); renderSettings(); };
     $('tt0').onclick = () => { Sound.setTeamThemes(false); renderSettings(); };
     $('resetRoles').onclick = () => { Object.entries(Sound.DEF_ROLES).forEach(([r, k]) => Sound.setRole(r, k)); renderSettings(); UI.toast(TX('Música de serie')); };

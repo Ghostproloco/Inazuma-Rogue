@@ -377,6 +377,13 @@ function teamStarReward(P, teamKey) {
   if (o.stars < MAX_STARS) { o.stars++; return { id: best.id, star: o.stars }; }
   P.coins += 100; return { id: best.id, coins: 100 };
 }
+// Qué tipo de técnica le sirve a cada posición (probabilidades de las recompensas tras cada partido)
+const ROLE_FIT = { POR: { parada: 1 }, DEF: { bloqueo: 0.75, regate: 0.15, tiro: 0.1 }, MED: { regate: 0.45, tiro: 0.3, bloqueo: 0.25 }, DEL: { tiro: 0.7, regate: 0.3 } };
+function rollFitType(role) {
+  const F = ROLE_FIT[role] || ROLE_FIT.MED; let r = Math.random();
+  for (const [t, w] of Object.entries(F)) { if ((r -= w) < 0) return t; }
+  return Object.keys(F)[0];
+}
 const Run = {
   // kind: story | special | chain | infinite
   create(kind, lineupIds, opts = {}) {
@@ -493,17 +500,18 @@ const Run = {
     const evos = [];
     run.roster.forEach((m, mi) => m.techs.forEach(t => { if (EVO(t) != null && !m.techs.includes(EVO(t))) evos.push({ kind: 'evolve', member: mi, from: t, to: EVO(t) }); }));
     if (evos.length) opts.push(rnd(evos));
-    // Técnicas nuevas: sobre todo de las suyas; más peso a defensa y regate
+    // Técnicas nuevas según la posición (un portero solo paradas; un delantero sobre todo tiros…), de las suyas si puede
     for (let tries = 0; tries < 20 && opts.length < 3; tries++) {
       const mi = rnd(members), m = run.roster[mi], pd = PLAYER(m.id);
       if (opts.some(o => o.member === mi && o.kind === 'tech')) continue;
-      const own = pd.moves.map(x => x[0]).filter(id => TECH(id) && !m.techs.includes(id));
-      const weighted = own.flatMap(id => ['bloqueo', 'regate'].includes(TECH(id).type) ? [id, id] : [id]);
+      const type = rollFitType(pd.role);
+      const ok = t => t && t.type === type && !m.techs.includes(t.id) && Object.values(GAME.evo).indexOf(t.id) < 0;
+      const own = pd.moves.map(x => TECH(x[0])).filter(ok).map(t => t.id);
       let id = null, rare = false;
-      if (weighted.length && Math.random() > 0.25) id = rnd(weighted);
+      if (own.length && Math.random() > 0.25) id = rnd(own);
       else {
-        const pool = Object.values(GAME.techniques).filter(t => !m.techs.includes(t.id) &&
-          (t.elem === pd.elem || t.type === ROLE_TYPE[pd.role]) && Object.values(GAME.evo).indexOf(t.id) < 0);
+        const all = Object.values(GAME.techniques).filter(ok), mine = all.filter(t => t.elem === pd.elem);
+        const pool = mine.length ? mine : all;
         if (pool.length) { id = rnd(pool).id; rare = true; }
       }
       if (id == null) continue;

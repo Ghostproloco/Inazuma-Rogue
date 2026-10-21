@@ -740,6 +740,7 @@ const App = (() => {
     const hasPad = [...(navigator.getGamepads ? navigator.getGamepads() : [])].some(Boolean);
     if (Controls.pc() && !hasPad && (settings.padTip || 0) < 3) { settings.padTip = (settings.padTip || 0) + 1; saveSettings(); setTimeout(() => UI.toast(TX('🎮 También puedes jugar con mando'), 2600), 1800); }
     const s = Object.assign({}, settings, { golden, field, difficulty: api.mode === 'run' ? api.run.diff : api.mode === 'career' || api.mode === 'wc' ? Career.matchDiff() : 'facil' });
+    s.mercy = api.mode === 'run' ? 5 : 0;   // roguelite: con 5 goles de diferencia se acaba el partido
     screen('<h2>' + TX('Cargando…') + '</h2>');
     try {
       api.matchSheet = await Sprites.matchSheet([...teams.A.players, ...teams.B.players].map(p => p.sprite));
@@ -773,6 +774,7 @@ const App = (() => {
       $('pauseBody').innerHTML = `<h1>${TX('Pausa')}</h1><button class="cta" id="pResume">${TX('Seguir')}</button>
         <div class="group"><label>${TX('Supertécnicas')}</label><div class="opts">${[['boton', TX('Con botón')], ['auto', TX('Automáticas')]].map(([v, t]) => `<button data-v="${v}" aria-pressed="${settings.techMode === v}">${t}</button>`).join('')}</div></div>
         ${settings.dev && settings.devWin ? '<button class="ghost" id="pWin">' + TX('🛠 Ganar ahora (desarrollador)') + '</button>' : ''}
+        <button class="ghost" id="pGuide">${TX('🎮 Guía de controles')}</button>
         <button class="ghost" id="pQuit">${api.mode === 'run' || api.mode === 'career' || api.mode === 'wc' ? TX('Rendirse (cuenta como derrota)') : TX('Salir al menú')}</button>`;
       $('pauseBody').querySelectorAll('.opts button').forEach(b => b.addEventListener('click', () => {
         settings.techMode = b.dataset.v; saveSettings(); api.match.settings.techMode = b.dataset.v;
@@ -780,6 +782,7 @@ const App = (() => {
       }));
       $('pResume').onclick = () => api.togglePause();
       if ($('pWin')) $('pWin').onclick = () => { const m = api.match; m.score.A = m.score.B + 1; m.time = 0.01; m.golden = false; api.togglePause(); };
+      $('pGuide').onclick = () => renderControlsGuide(() => show('pause'));
       $('pQuit').onclick = () => {
         api.match.quit = true;   // rendirse no da caramelos
         if (api.mode === 'run') { api.match.over = true; api.match.result = 'loss'; api.matchEnded(api.match); }
@@ -1804,11 +1807,52 @@ const App = (() => {
   }
 
   /* ---------- Códigos de regalo ---------- */
+  /* ---------- Guía de controles (móvil, ordenador y mando) ---------- */
+  let guideTab = null;
+  function renderControlsGuide(back = renderMenu) {
+    const pad = [...(navigator.getGamepads ? navigator.getGamepads() : [])].some(Boolean);
+    const tab = guideTab || (pad ? 'mando' : Controls.pc() ? 'pc' : 'movil'), clas = settings.keys === 'clasicas';
+    const row = (k, a, b) => `<tr><td><b>${k}</b></td><td>${a}</td><td>${b}</td></tr>`;
+    const table = rows => `<table class="gtable"><tr><th></th><th>${TX('Con balón')}</th><th>${TX('Sin balón')}</th></tr>${rows}</table>`;
+    const T = {
+      movil: `<p class="note">${TX('El joystick aparece donde pongas el dedo en la mitad izquierda de la pantalla. A tope = esprint. Los botones de la derecha cambian según tu equipo tenga el balón o no.')}</p>
+        ${table(row(TX('Joystick'), TX('mover y apuntar'), TX('mover')) + row(TX('Tiro'), TX('mantén para cargar, suelta para chutar (un toque = tiro rápido)'), '—') +
+          row(TX('Pase'), TX('toque = pase · mantén = pase fuerte'), '—') + row(TX('Entrada'), '—', TX('robar el balón')) + row(TX('Profund.'), TX('pase al hueco'), '—') +
+          row(TX('Regate'), TX('recorte rápido sin técnica'), '—') + row(TX('Cambiar'), '—', TX('cambia al compañero hacia donde apuntas')) +
+          row(TX('Técnica'), TX('supertécnica de tiro o regate'), TX('supertécnica de bloqueo')) + row('⇄', TX('elegir otra supertécnica'), TX('elegir otra supertécnica')))}
+        <p class="note">${TX('Con el portero: Despeje (suelta) manda el balón lejos, Pase y Saque largo.')}</p>`,
+      pc: `<p class="note">${clas ? TX('Tienes las teclas clásicas (puedes cambiarlas en Ajustes → Controles).') : TX('Tienes las teclas nuevas (puedes cambiarlas en Ajustes → Controles).')}</p>
+        ${table(row('WASD / ' + TX('flechas'), TX('mover y apuntar'), TX('mover')) + row('Shift', TX('esprint'), TX('esprint')) +
+          row(clas ? 'L / X' : 'K / X', TX('tiro (mantén para cargar)'), clas ? '—' : TX('cambiar de jugador')) + row('J / Z', TX('pase (mantén = fuerte)'), TX('entrada')) +
+          row(clas ? 'K / C' : 'L / C', TX('pase al hueco'), '—') + row('I / V', TX('regate'), '—') + (clas ? row('Q', '—', TX('cambiar de jugador')) : '') +
+          row(TX('Espacio'), TX('supertécnica'), TX('supertécnica')) + row(clas ? 'U' : 'E', TX('elegir otra supertécnica'), TX('elegir otra supertécnica')) + row('P / Esc', TX('pausa'), TX('pausa')))}
+        <p class="note">${clas ? TX('Portero con balón: J pase · K saque largo · L despeje.') : TX('Portero con balón: J pase · L saque largo · K despeje.')}</p>`,
+      mando: `<p class="note">${TX('Funciona con mandos de Xbox, PlayStation y la mayoría de genéricos: conéctalo (por cable o Bluetooth) y pulsa un botón.')}</p>
+        ${table(row(TX('Stick / cruceta'), TX('mover y apuntar'), TX('mover')) + row('RT / R2', TX('esprint'), TX('esprint')) + row('X / ▢', TX('tiro (mantén para cargar)'), '—') +
+          row('A / ✕', TX('pase (mantén = fuerte)'), TX('entrada')) + row('B / ◯', TX('pase al hueco'), '—') + row('RB / R1', TX('regate'), '—') +
+          row('LB / L1', '—', TX('cambiar de jugador')) + row('Y / △', TX('supertécnica'), TX('supertécnica')) + row('LT / L2', TX('elegir otra supertécnica'), TX('elegir otra supertécnica')) +
+          row('Start', TX('pausa'), TX('pausa')))}`,
+    };
+    screen(`${top('🎮 ' + TX('Controles'))}
+      <div class="opts" id="gTabs">${[['movil', TX('📱 Móvil')], ['pc', TX('⌨️ Ordenador')], ['mando', TX('🎮 Mando')]].map(([k, n]) => `<button data-gtab="${k}" aria-pressed="${k === tab}">${n}</button>`).join('')}</div>
+      ${T[tab]}
+      <h3>${TX('Trucos')}</h3>
+      <ul class="gtips"><li>${TX('Pulsa Pase o Tiro un poco antes de que te llegue el balón: pasarás o chutarás al primer toque.')}</li>
+        <li>${TX('Tiro cargado a tope (barra llena) = tiro mucho más fuerte.')}</li>
+        <li>${TX('Las supertécnicas tienen recarga: el botón se va llenando hasta que vuelve a estar lista.')}</li>
+        <li>${TX('En Ajustes puedes poner las supertécnicas automáticas y quitar el cambio automático de jugador.')}</li></ul>`, 'bg_green');
+    body.querySelectorAll('[data-gtab]').forEach(b => b.onclick = () => { guideTab = b.dataset.gtab; renderControlsGuide(back); });
+    $('back').onclick = back;
+  }
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
-    { v: '0.31.5', date: '21/10/2026', items: [
+    { v: '0.31.5', date: '22/10/2026', items: [
       TX('Controles: si pulsas Pase o Tiro justo antes de recibir el balón, ahora pasas o chutas al primer toque (antes hacías una entrada sin querer).'),
       TX('Pase ya no hace entradas a tus propios compañeros.'),
+      TX('Nueva guía de controles (móvil, ordenador y mando) en Pausa y en Ajustes.'),
+      TX('Roguelite: el partido se acaba si un equipo gana por 5 goles de diferencia.'),
+      TX('Las técnicas que ganas tras cada partido ahora encajan con la posición del jugador (un portero ya no recibe técnicas de tiro).'),
+      TX('Muñecos del Inazuma 3 arreglados: muchos tenían el muñeco de otro jugador (p. ej. Partinus salía con el pelo marrón).'),
       TX('Nuevo apartado de Novedades (este).')] },
     { v: '0.31.4', date: '21/10/2026', items: [
       TX('Halloween: premios por entrar 5 días (no hace falta que sean seguidos): 150 caramelos, 10 tickets, 1000 monedas, elegir 1 de 3 jugadores de +80 y Jim (Oscuro) de regalo.'),
@@ -1874,6 +1918,7 @@ const App = (() => {
       <h3>${TX('Controles')}</h3>
       ${opts(TX('Botones en pantalla'), 'controls', [['auto', TX('Auto')], ['tactil', TX('Siempre')], ['teclado', TX('Nunca (PC)')]])}
       ${opts(TX('Teclas del ordenador'), 'keys', [['nuevas', TX('Nuevas (K tiro)')], ['clasicas', TX('Clásicas (L tiro)')]], Object.assign({ keys: 'nuevas' }, settings))}
+      <button class="ghost" id="sGuide">${TX('🎮 Guía de controles')}</button>
       <p class="keys"><b>${TX('Mando:')}</b> ${TX('stick o cruceta para moverte · RT esprint · A pase (mantén = fuerte) · X tiro (mantén) · B profundidad / entrada · Y supertécnica · LT cambiar técnica · RB regate · LB cambiar jugador · Start pausa.')}<br>
       <b>${TX('Móvil:')}</b> ${TX('joystick a la izquierda (a tope = esprint). Mantén Pase para un pase fuerte y usa Regate para un recorte rápido sin técnica. Para cambiar de jugador apunta con el joystick y pulsa Cambiar (también cambia solo al ir a por el balón).')}<br>
       <b>${TX('PC:')}</b> ${settings.keys === 'clasicas' ? TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o C: profundidad / saque largo · L o X: tiro (mantén) / despeje · I o V: regate · Q: cambiar jugador · Espacio: supertécnica · U: cambiar técnica · P o Esc: pausa') : TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o X: tiro (mantén) / cambiar jugador · L o C: profundidad / saque largo · I o V: regate · Espacio: supertécnica · E: cambiar técnica · P o Esc: pausa')}</p>
@@ -1906,6 +1951,7 @@ const App = (() => {
     $('svR').onchange = () => Sound.sfx('click');
     body.querySelectorAll('select[data-role]').forEach(s => { s.value = c.roles[s.dataset.role] ?? ''; s.onchange = () => Sound.setRole(s.dataset.role, s.value); });
     $('seeIntro').onclick = () => { Sound.stop(0.2); playIntro(renderSettings); };
+    $('sGuide').onclick = () => renderControlsGuide(renderSettings);
     $('tt1').onclick = () => { Sound.setTeamThemes(true); renderSettings(); };
     $('tt0').onclick = () => { Sound.setTeamThemes(false); renderSettings(); };
     $('resetRoles').onclick = () => { Object.entries(Sound.DEF_ROLES).forEach(([r, k]) => Sound.setRole(r, k)); renderSettings(); UI.toast(TX('Música de serie')); };

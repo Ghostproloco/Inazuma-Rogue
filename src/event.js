@@ -3,7 +3,7 @@
    - Moneda 🍬 caramelos (perfil: Profile.data.hw): +5 por partido en
      cualquier modo (+10 si ganas), +20 de regalo diario, +60 al ganar al
      Ocultismo jefe (una vez al día) y los retos del evento.
-   - Sobre Calabaza: 30 🍬 por tirada; jugadores villanos/de miedo y
+   - Sobre Calabaza: 15 🍬 por tirada (150 la de 10); jugadores villanos/de miedo y
      5 legendarios exclusivos (versiones Halloween, nuevos ids 996001…).
      Legendario 3 % · épica 15 % · rara 32 % · común 50 %; legendario
      asegurado a las 40 tiradas sin uno.

@@ -99,17 +99,20 @@ Cómo está hecho:
 - Día 1: 150 🍬 · día 2: 10 tickets · día 3: 1000 monedas · día 4: elige 1 de 3 jugadores de media +80 (las 3 opciones se guardan) · día 5: Jim (Oscuro), id 21583.
 - `Halloween.LOGIN`, `login()`, `loginReady()`, `pickOptions()`, `claimLogin()`, `give()` en `src/event.js`; sección «Premios por entrar» y `renderHwPick` en `src/app.js`. Pruebas en `test/halloween.js` (apartado 8).
 
-### PENDIENTE (pedido de Fran el 21 oct, a medias: se paró para mirar la nube)
-1. **Sprites con colores distintos a la foto** (p. ej. Partinus: muñeco con pelo marrón, foto azul claro). Diagnóstico hecho:
-   ~200-300 jugadores (sobre todo hojas `c118`–`c136`, Inazuma 3) tienen el muñeco de otro jugador cercano o colores cambiados.
-   Script de análisis: compara el color del pelo del sprite (`cNN.png`, fila r, zona 16-32 x 16-23) con el de la foto (`fNN.png`, zona 16-48 x 1-10).
-   Idea propuesta: recolorear automáticamente el pelo del muñeco con los colores de su foto y enseñar a Fran un antes/después. **Falta preguntarle.**
-2. **Roguelite**: el partido se acaba al llegar a 5 goles de diferencia.
-3. **Recompensas de técnicas tras cada partido** (roguelite, `run.js` ~línea 505): que salgan sobre todo de la posición del jugador (un portero no debe recibir una de tiro).
-4. **Guía de controles** explicándolos (móvil, PC y mando).
-5. ~~Halloween: recompensas por iniciar sesión~~ **hecho en la 0.31.4**: día 1 150 🍬 · día 2 10 tickets · día 3 1000 de oro · día 4 elegir 1 de 3 jugadores aleatorios de +80 de media · día 5 Jim (Oscuro) (id 21583) regalado.
-   Preguntas pendientes para Fran: ¿días seguidos o cualquier día?, ¿además del regalo diario de 20 🍬?, ¿de qué jugadores sale la elección de +80?
-   Va en la versión publicada (el evento empieza el 22).
+### Hecho el 21-22 oct (dentro de la v0.31.5, la que sale el 22 con Halloween)
+1. **Muñecos del Inazuma 3 desfasados** (p. ej. Partinus con pelo marrón y foto azul claro). Causa real: en `c118.png` fila 7
+   hay un muñeco de más, así que desde ahí hasta `c136` fila 9 **cada jugador tenía el muñeco del anterior** (291 jugadores).
+   Se comprobó alineando el color del pelo de todas las fotos con todos los muñecos (un único desfase de +1).
+   Arreglo: `tools/fix_sprite_shift.py` (ya ejecutado, **no volver a ejecutarlo**) sube una fila esos muñecos; el de `c136` fila 10
+   (Destra, que se quedaba sin muñeco propio) se recoloreó con `tools/fix_sprite_hair.py --only 136,10`.
+   El recoloreado general de `fix_sprite_hair.py` NO se aplicó: lo que queda fuera de ese rango son máscaras/cascos (falsos positivos).
+   `src/media.js`: las hojas se piden con `?v=5` para que nadie vea la copia vieja.
+2. **Roguelite**: el partido se acaba al llegar a 5 goles de diferencia (`settings.mercy = 5` solo en el modo `run`; `logic.js` `goal()`; aviso en `view.js`). Test: `test/mercy.js`.
+3. **Técnicas tras cada partido según la posición** (`run.js` `ROLE_FIT` + `rollFitType`): POR solo parada; DEF 75 % bloqueo; MED regate/tiro/bloqueo; DEL 70 % tiro. Test: `test/rewards.js`.
+4. **Guía de controles** (móvil / ordenador / mando) en Pausa y en Ajustes (`renderControlsGuide`).
+5. **Halloween: premios por entrar 5 días** (0.31.4): 150 🍬 · 10 tickets · 1000 monedas · elegir 1 de 3 de +80 · Jim (Oscuro) id 21583. Cualquier día cuenta, además del regalo diario de 20 🍬; la elección sale de todo el juego.
+6. Pantalla de **Novedades** con la lista de cambios (al añadir versión, poner su entrada arriba de `NEWS` en `app.js`).
+7. Revisión completa del código de Halloween antes de publicar: tests + recorridos en navegador (evento, premios de entrada, jefe, controles, teclas, novedades, guía) sin errores.
 
 ## 4. Cómo se construye y se prueba
 - Todo el código está en `src/`. `python3 build.py` lo junta en `juego/index.html`
