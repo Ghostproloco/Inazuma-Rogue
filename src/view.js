@@ -38,7 +38,10 @@ const Input = (() => {
   const R = 36;   // recorrido del joystick (px)
   const shell = document.getElementById('shell'), touch = document.getElementById('touch');
   const stick = document.getElementById('stick'), knob = document.getElementById('knob');
-  const KEYMAP = { KeyJ: 'A', KeyK: 'B', Space: 'tech', KeyQ: 'switch', KeyI: 'dribble', KeyU: 'techNext' };
+  // Dos distribuciones a la vez: J K L I (con WASD) y Z X C V (con las flechas). K/X: tiro con balón y cambiar jugador sin él
+  const KEYMAP = { KeyJ: 'A', KeyZ: 'A', KeyK: 'switch', KeyX: 'switch', KeyL: 'B', KeyC: 'B', KeyI: 'dribble', KeyV: 'dribble',
+    Space: 'tech', KeyE: 'techNext', KeyQ: 'switch', KeyU: 'techNext' };
+  const SHOOT_KEYS = ['KeyK', 'KeyX'], PASS_KEYS = ['KeyJ', 'KeyZ'];
   let passTouch = null;
   const BLOCK = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'];
 
@@ -48,6 +51,7 @@ const Input = (() => {
     if (App.menuKey && App.menuKey(e)) return;   // teclas en menús e intro (Esc = volver…)
     keys.add(e.code);
     if (KEYMAP[e.code]) pressed.add(KEYMAP[e.code]);
+    if (SHOOT_KEYS.includes(e.code)) pressed.add('shoot');
     if (e.code === 'KeyP' || e.code === 'Escape') App.togglePause();
   });
   addEventListener('keyup', e => keys.delete(e.code));
@@ -99,6 +103,7 @@ const Input = (() => {
     if (b(14)) x = -1; if (b(15)) x = 1; if (b(12)) y = -1; if (b(13)) y = 1;
     gpState = { x, y, sprint: b(7), shoot: b(2), pass: b(0) };
     for (const i in GP) if (b(i) && !gpPrev[i]) pressed.add(GP[i]);
+    if (b(2) && !gpPrev[2]) pressed.add('shoot');
     if (b(9) && !gpPrev[9]) App.togglePause();
     gpPrev = g.buttons.map((_, i) => b(i));
   }
@@ -112,14 +117,14 @@ const Input = (() => {
     if (x || y) { const l = Math.hypot(x, y); x /= l; y /= l; }
     x += joy.x + gpState.x; y += joy.y + gpState.y;
     const out = { move: { x, y }, sprint: keys.has('ShiftLeft') || keys.has('ShiftRight') || gpState.sprint,
-      shootHeld: keys.has('KeyL') || shootTouch !== null || gpState.shoot, passHeld: keys.has('KeyJ') || passTouch !== null || gpState.pass, pressed: new Set(pressed) };
+      shootHeld: SHOOT_KEYS.some(k => keys.has(k)) || shootTouch !== null || gpState.shoot, passHeld: PASS_KEYS.some(k => keys.has(k)) || passTouch !== null || gpState.pass, pressed: new Set(pressed) };
     pressed.clear();
     return out;
   }
   return {
     read,
     press: a => pressed.add(a),
-    holdShoot: (on, id) => { if (on) shootTouch = id; else if (id === undefined || shootTouch === id) shootTouch = null; },
+    holdShoot: (on, id) => { if (on) { shootTouch = id; pressed.add('shoot'); } else if (id === undefined || shootTouch === id) shootTouch = null; },
     holdPass: (on, id) => { if (on) passTouch = id; else if (id === undefined || passTouch === id) passTouch = null; },
   };
 })();
@@ -151,13 +156,14 @@ const Pad = (() => {
   };
   const pad = document.getElementById('pad'), kh = document.getElementById('keyhud');
   const KEYS = {
-    attack: '<b>WASD</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K</b> ' + TX('profundidad ·') + ' <b>I</b> ' + TX('regate ·') + ' <b>L</b> ' + TX('tiro (mantén) ·') + ' <b>U</b> ' + TX('cambiar técnica'),
-    defense: '<b>WASD</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J</b> ' + TX('entrada ·') + ' <b>Q</b> ' + TX('cambiar ·') + ' <b>U</b> ' + TX('cambiar técnica'),
-    gk: '<b>' + TX('Portero') + '</b>: <b>WASD</b> ' + TX('mover por el área ·') + ' <b>J</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K</b> ' + TX('saque largo ·') + ' <b>L</b> ' + TX('despeje'),
+    attack: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/X</b> ' + TX('tiro (mantén) ·') + ' <b>L/C</b> ' + TX('profundidad ·') + ' <b>I/V</b> ' + TX('regate ·') + ' <b>E</b> ' + TX('cambiar técnica'),
+    defense: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('entrada ·') + ' <b>K/X</b> ' + TX('cambiar ·') + ' <b>E</b> ' + TX('cambiar técnica'),
+    gk: '<b>' + TX('Portero') + '</b>: <b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover por el área ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/X</b> ' + TX('despeje ·') + ' <b>L/C</b> ' + TX('saque largo'),
   };
   let mode = null, techBtn = null, techLbl = null, lastName = null, lastKH = null, dribBtn = null, lastDrib = -1, nextBtn = null;
+  const down = new Set();   // dedos sobre los botones: mientras haya alguno, los botones no cambian (si no, el botón desaparecía bajo el dedo)
   function render(m) {
-    if (m === mode) return;
+    if (m === mode || down.size) return;
     kh.querySelector('.kh-keys').innerHTML = KEYS[m] + ' · <b>P</b> ' + TX('pausa');
     mode = m; pad.innerHTML = ''; techBtn = null; dribBtn = null; nextBtn = null; lastDrib = -1; lastName = null;
     Input.holdShoot(false); Input.holdPass(false);
@@ -166,11 +172,11 @@ const Pad = (() => {
       el.className = 'act ' + b.cls;
       el.innerHTML = (b.tech ? `<span class="tt">${b.label}</span>` : b.label) + (b.sub ? `<small>${b.sub}</small>` : '') + (b.tech ? '<small class="tn"></small>' : '');
       el.addEventListener('pointerdown', e => {
-        e.preventDefault(); el.classList.add('down');
+        e.preventDefault(); el.classList.add('down'); down.add(e.pointerId);
         if (b.hold) { Input.holdShoot(true, e.pointerId); try { el.setPointerCapture(e.pointerId); } catch (_) {} }
         else { Input.press(b.action); if (b.holdPass) { Input.holdPass(true, e.pointerId); try { el.setPointerCapture(e.pointerId); } catch (_) {} } }
       });
-      const up = e => { el.classList.remove('down'); if (b.hold) Input.holdShoot(false, e.pointerId); if (b.holdPass) Input.holdPass(false, e.pointerId); };
+      const up = e => { el.classList.remove('down'); down.delete(e.pointerId); if (b.hold) Input.holdShoot(false, e.pointerId); if (b.holdPass) Input.holdPass(false, e.pointerId); };
       ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => el.addEventListener(t, up));
       el.addEventListener('pointerleave', () => { if (!b.hold) el.classList.remove('down'); });
       if (b.tech) { techBtn = el; techLbl = el.querySelector('.tn'); }
@@ -202,7 +208,8 @@ const Pad = (() => {
     const k = Math.round(frac * 30); if (!dribBtn || k === lastDrib) return; lastDrib = k;
     dribBtn.style.setProperty('--cd', (k / 30).toFixed(2)); dribBtn.classList.toggle('cool', k > 0);
   }
-  function show(on) { pad.hidden = !on; document.getElementById('stick').hidden = !on; kh.hidden = !on; }
+  addEventListener('pointerup', e => down.delete(e.pointerId)); addEventListener('pointercancel', e => down.delete(e.pointerId));
+  function show(on) { if (!on) down.clear(); pad.hidden = !on; document.getElementById('stick').hidden = !on; kh.hidden = !on; }
   return { render, setTech, setDribble, setChoices, show };
 })();
 

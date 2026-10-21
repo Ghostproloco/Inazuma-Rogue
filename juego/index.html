@@ -1156,6 +1156,7 @@ const EN_TEXT = {
   'Listo': 'Done',
   'Llega de la Academia Alius': 'Arrives from the Alius Academy',
   'Los 30 equipos de las 3 divisiones, a partido único (con penaltis si hay empate). Ganarla da dinero, fama y': 'The 30 teams of the 3 divisions, single-leg ties (penalties if it\'s a draw). Winning it gives money, fame and',
+  'Los botones están en Ajustes.': 'The buttons are in Settings.',
   'Los equipos de la Academia Alius, de Géminis a Génesis.': 'The Alius Academy teams, from Gemini to Genesis.',
   'Los equipos del Fútbol Frontier, la gira por Japón y las selecciones del mundo': 'The Football Frontier teams, the tour around Japan and the world\'s national teams',
   'Los sueños del Raimon': 'Raimon\'s Dreams',
@@ -1523,7 +1524,7 @@ const EN_TEXT = {
   'Volver a la música de serie': 'Back to the default music',
   'Volver al club': 'Back to the club',
   'Vuelve a esta pestaña y toca': 'Come back to this tab and tap',
-  'WASD/flechas · Shift esprint · J pase (mantén = pase fuerte) o entrada · K profundidad · I regate · L tiro (mantener) · Espacio técnica · Q cambiar · P pausa': 'WASD/arrows · Shift sprint · J pass (hold = strong pass) or tackle · K through ball · I dribble · L shot (hold) · Space technique · Q switch · P pause',
+  'WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o X: tiro (mantén) / cambiar jugador · L o C: profundidad / saque largo · I o V: regate · Espacio: supertécnica · E: cambiar técnica · P o Esc: pausa': 'WASD or arrows to move · Shift sprint · J or Z: pass (hold = strong) / tackle · K or X: shoot (hold) / switch player · L or C: through ball / long kick · I or V: dribble · Space: special move · E: change move · P or Esc: pause',
   'Ya canjeaste este código': 'You\'ve already redeemed this code',
   'Ya está al máximo.': 'Already maxed out.',
   'Ya está en tu club': 'Already in your club',
@@ -1567,7 +1568,7 @@ const EN_TEXT = {
   'del juego, con un': 'from the game, with a',
   'desbloquea a Ray Dark': 'unlocks Ray Dark',
   'descenso': 'relegation',
-  'despeje': 'clear',
+  'despeje ·': 'clearance ·',
   'después juegas el partido': 'then you play the match',
   'destaca (+1': 'stands out (+1',
   'días': 'days',
@@ -1588,6 +1589,7 @@ const EN_TEXT = {
   'equipos rivales': 'rival teams',
   'esprint ·': 'sprint ·',
   'ficha por': 'signs for',
+  'flechas': 'arrows',
   'fuera del país': 'abroad',
   'goles': 'goals',
   'gradúan al acabar 6º curso': 'graduate at the end of 6th year',
@@ -1647,7 +1649,7 @@ const EN_TEXT = {
   'rechaza la oferta: es demasiado poco.': 'turns down the offer: it\'s far too little.',
   'regate ·': 'dribble ·',
   'roguelite': 'roguelite',
-  'saque largo ·': 'long kick ·',
+  'saque largo': 'long kick',
   'se cansa y cierra la negociación hasta la semana que viene.': 'gets fed up and closes the negotiation until next week.',
   'se podrá elegir como mánager en el Modo Carrera, con': 'can be picked as manager in Career Mode, with',
   'se va al': 'moves to',
@@ -1833,6 +1835,8 @@ const EN_TEXT = {
   '🎓 Se gradúan ({0}):': '🎓 Graduating ({0}):',
   '🎟️ para el gacha': '🎟️ for the gacha',
   '🎮 Mando conectado: ': '🎮 Controller connected: ',
+  '🎮 También puedes jugar con mando': '🎮 You can also play with a controller',
+  '🎮 ¿Tienes mando? Conéctalo y juega: Xbox, PlayStation o genérico.': '🎮 Got a controller? Plug it in and play: Xbox, PlayStation or generic.',
   '🎵 Música': '🎵 Music',
   '🏆 Campeón:': '🏆 Champion:',
   '🏆 Copa': '🏆 Cup',
@@ -2614,8 +2618,9 @@ const Logic = (() => {
         else { const c = s.pass.charge, d = s.pass.dir; s.pass = null; pass(s, me, 'strong', d, c > 0.18 ? c : 0); return; }
       }
       if (pr.has('B')) { pass(s, me, 'through', { x, y }); return; }
+      const gkTap = pr.has('shoot');   // un toque rápido en Despeje también vale
       if (input.shootHeld) s.shoot.charging = true;
-      else if (s.shoot.charging) { s.shoot.charging = false; s.shoot.charge = 0; clearance(s, me, { x, y }); return; }
+      else if (s.shoot.charging || gkTap) { s.shoot.charging = false; s.shoot.charge = 0; clearance(s, me, { x, y }); return; }
       if (s.gkHold > 7) { clearance(s, me, null); return; }
       return;
     }
@@ -2639,11 +2644,13 @@ const Logic = (() => {
         if (t && s.players.some(o => o.team !== me.team && o.role !== 'POR' && o.stun <= 0 && dist(o, me) < 1.8 &&
             angDiff(Math.atan2(o.y - me.y, o.x - me.x), me.aim) < 1)) { startTech(s, me, t, x); return; }
       }
+      const tap = pr.has('shoot');   // toque rápido de Tiro: aunque suelte antes del siguiente fotograma, chuta
+      if (tap || input.shootHeld) pr.has('switch');   // K/X con balón es tiro: que no quede pendiente «cambiar jugador»
       if (input.shootHeld) {
         s.shoot.charging = true;
         s.shoot.charge = Math.min(1, s.shoot.charge + input.dt / 0.9);
         s.shoot.aimX = x;
-      } else if (s.shoot.charging) {
+      } else if (s.shoot.charging || tap) {
         const ch = s.shoot.charge;
         s.shoot.charging = false; s.shoot.charge = 0;
         const t = bestTech(me, 'tiro');
@@ -3056,8 +3063,19 @@ const Logic = (() => {
     }
   }
 
+  // Búfer de entrada: un botón pulsado se guarda 0,25 s. Así no se pierde si cae en un momento en que tu jugador
+  // no puede actuar (justo al recibir, tras una entrada, en el «congelado» de un golpe…) o entre dos fotogramas.
+  const BUF_T = 0.25;
+  function bufferInput(s, input, dtRaw) {
+    const B = s.inBuf || (s.inBuf = {});
+    for (const k in B) { B[k] -= dtRaw; if (B[k] <= 0) delete B[k]; }
+    for (const a of input.pressed || []) B[a] = BUF_T;
+    return Object.assign({}, input, { pressed: { has: a => { if (B[a] > 0) { delete B[a]; return true; } return false; }, peek: a => B[a] > 0 } });   // copia: no se toca la entrada original
+  }
+
   function update(s, input, dtRaw) {
     if (s.over) return;
+    input = bufferInput(s, input, dtRaw);
     if (s.hitstop > 0) { s.hitstop -= dtRaw; return; }   // congelado de impacto
     // Cámara lenta: al cargar una técnica y mientras vuela un tiro especial
     const sm = s.settings.slowmo !== 0, sh = s.ball.shot;
@@ -5024,7 +5042,10 @@ const Input = (() => {
   const R = 36;   // recorrido del joystick (px)
   const shell = document.getElementById('shell'), touch = document.getElementById('touch');
   const stick = document.getElementById('stick'), knob = document.getElementById('knob');
-  const KEYMAP = { KeyJ: 'A', KeyK: 'B', Space: 'tech', KeyQ: 'switch', KeyI: 'dribble', KeyU: 'techNext' };
+  // Dos distribuciones a la vez: J K L I (con WASD) y Z X C V (con las flechas). K/X: tiro con balón y cambiar jugador sin él
+  const KEYMAP = { KeyJ: 'A', KeyZ: 'A', KeyK: 'switch', KeyX: 'switch', KeyL: 'B', KeyC: 'B', KeyI: 'dribble', KeyV: 'dribble',
+    Space: 'tech', KeyE: 'techNext', KeyQ: 'switch', KeyU: 'techNext' };
+  const SHOOT_KEYS = ['KeyK', 'KeyX'], PASS_KEYS = ['KeyJ', 'KeyZ'];
   let passTouch = null;
   const BLOCK = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'];
 
@@ -5034,6 +5055,7 @@ const Input = (() => {
     if (App.menuKey && App.menuKey(e)) return;   // teclas en menús e intro (Esc = volver…)
     keys.add(e.code);
     if (KEYMAP[e.code]) pressed.add(KEYMAP[e.code]);
+    if (SHOOT_KEYS.includes(e.code)) pressed.add('shoot');
     if (e.code === 'KeyP' || e.code === 'Escape') App.togglePause();
   });
   addEventListener('keyup', e => keys.delete(e.code));
@@ -5085,6 +5107,7 @@ const Input = (() => {
     if (b(14)) x = -1; if (b(15)) x = 1; if (b(12)) y = -1; if (b(13)) y = 1;
     gpState = { x, y, sprint: b(7), shoot: b(2), pass: b(0) };
     for (const i in GP) if (b(i) && !gpPrev[i]) pressed.add(GP[i]);
+    if (b(2) && !gpPrev[2]) pressed.add('shoot');
     if (b(9) && !gpPrev[9]) App.togglePause();
     gpPrev = g.buttons.map((_, i) => b(i));
   }
@@ -5098,14 +5121,14 @@ const Input = (() => {
     if (x || y) { const l = Math.hypot(x, y); x /= l; y /= l; }
     x += joy.x + gpState.x; y += joy.y + gpState.y;
     const out = { move: { x, y }, sprint: keys.has('ShiftLeft') || keys.has('ShiftRight') || gpState.sprint,
-      shootHeld: keys.has('KeyL') || shootTouch !== null || gpState.shoot, passHeld: keys.has('KeyJ') || passTouch !== null || gpState.pass, pressed: new Set(pressed) };
+      shootHeld: SHOOT_KEYS.some(k => keys.has(k)) || shootTouch !== null || gpState.shoot, passHeld: PASS_KEYS.some(k => keys.has(k)) || passTouch !== null || gpState.pass, pressed: new Set(pressed) };
     pressed.clear();
     return out;
   }
   return {
     read,
     press: a => pressed.add(a),
-    holdShoot: (on, id) => { if (on) shootTouch = id; else if (id === undefined || shootTouch === id) shootTouch = null; },
+    holdShoot: (on, id) => { if (on) { shootTouch = id; pressed.add('shoot'); } else if (id === undefined || shootTouch === id) shootTouch = null; },
     holdPass: (on, id) => { if (on) passTouch = id; else if (id === undefined || passTouch === id) passTouch = null; },
   };
 })();
@@ -5137,13 +5160,14 @@ const Pad = (() => {
   };
   const pad = document.getElementById('pad'), kh = document.getElementById('keyhud');
   const KEYS = {
-    attack: '<b>WASD</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K</b> ' + TX('profundidad ·') + ' <b>I</b> ' + TX('regate ·') + ' <b>L</b> ' + TX('tiro (mantén) ·') + ' <b>U</b> ' + TX('cambiar técnica'),
-    defense: '<b>WASD</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J</b> ' + TX('entrada ·') + ' <b>Q</b> ' + TX('cambiar ·') + ' <b>U</b> ' + TX('cambiar técnica'),
-    gk: '<b>' + TX('Portero') + '</b>: <b>WASD</b> ' + TX('mover por el área ·') + ' <b>J</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K</b> ' + TX('saque largo ·') + ' <b>L</b> ' + TX('despeje'),
+    attack: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/X</b> ' + TX('tiro (mantén) ·') + ' <b>L/C</b> ' + TX('profundidad ·') + ' <b>I/V</b> ' + TX('regate ·') + ' <b>E</b> ' + TX('cambiar técnica'),
+    defense: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('entrada ·') + ' <b>K/X</b> ' + TX('cambiar ·') + ' <b>E</b> ' + TX('cambiar técnica'),
+    gk: '<b>' + TX('Portero') + '</b>: <b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover por el área ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/X</b> ' + TX('despeje ·') + ' <b>L/C</b> ' + TX('saque largo'),
   };
   let mode = null, techBtn = null, techLbl = null, lastName = null, lastKH = null, dribBtn = null, lastDrib = -1, nextBtn = null;
+  const down = new Set();   // dedos sobre los botones: mientras haya alguno, los botones no cambian (si no, el botón desaparecía bajo el dedo)
   function render(m) {
-    if (m === mode) return;
+    if (m === mode || down.size) return;
     kh.querySelector('.kh-keys').innerHTML = KEYS[m] + ' · <b>P</b> ' + TX('pausa');
     mode = m; pad.innerHTML = ''; techBtn = null; dribBtn = null; nextBtn = null; lastDrib = -1; lastName = null;
     Input.holdShoot(false); Input.holdPass(false);
@@ -5152,11 +5176,11 @@ const Pad = (() => {
       el.className = 'act ' + b.cls;
       el.innerHTML = (b.tech ? `<span class="tt">${b.label}</span>` : b.label) + (b.sub ? `<small>${b.sub}</small>` : '') + (b.tech ? '<small class="tn"></small>' : '');
       el.addEventListener('pointerdown', e => {
-        e.preventDefault(); el.classList.add('down');
+        e.preventDefault(); el.classList.add('down'); down.add(e.pointerId);
         if (b.hold) { Input.holdShoot(true, e.pointerId); try { el.setPointerCapture(e.pointerId); } catch (_) {} }
         else { Input.press(b.action); if (b.holdPass) { Input.holdPass(true, e.pointerId); try { el.setPointerCapture(e.pointerId); } catch (_) {} } }
       });
-      const up = e => { el.classList.remove('down'); if (b.hold) Input.holdShoot(false, e.pointerId); if (b.holdPass) Input.holdPass(false, e.pointerId); };
+      const up = e => { el.classList.remove('down'); down.delete(e.pointerId); if (b.hold) Input.holdShoot(false, e.pointerId); if (b.holdPass) Input.holdPass(false, e.pointerId); };
       ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => el.addEventListener(t, up));
       el.addEventListener('pointerleave', () => { if (!b.hold) el.classList.remove('down'); });
       if (b.tech) { techBtn = el; techLbl = el.querySelector('.tn'); }
@@ -5188,7 +5212,8 @@ const Pad = (() => {
     const k = Math.round(frac * 30); if (!dribBtn || k === lastDrib) return; lastDrib = k;
     dribBtn.style.setProperty('--cd', (k / 30).toFixed(2)); dribBtn.classList.toggle('cool', k > 0);
   }
-  function show(on) { pad.hidden = !on; document.getElementById('stick').hidden = !on; kh.hidden = !on; }
+  addEventListener('pointerup', e => down.delete(e.pointerId)); addEventListener('pointercancel', e => down.delete(e.pointerId));
+  function show(on) { if (!on) down.clear(); pad.hidden = !on; document.getElementById('stick').hidden = !on; kh.hidden = !on; }
   return { render, setTech, setDribble, setChoices, show };
 })();
 
@@ -6466,7 +6491,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.31.1';
+const VERSION = '0.31.2';
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
@@ -6547,6 +6572,7 @@ const App = (() => {
       </div>
       <div class="grid2"><button class="ghost" id="mGift">${TX('🎁 Código de regalo')}</button><button class="ghost" id="mSaves">${TX('👤 Cuenta')}${Cloud.loggedIn() ? ' · ' + esc(Cloud.user()) : ''}</button></div>
       <div data-cloudline>${cloudLine()}</div>
+      ${Controls.pc() ? `<p class="note gpnote">${TX('🎮 ¿Tienes mando? Conéctalo y juega: Xbox, PlayStation o genérico.')} <small>${TX('Los botones están en Ajustes.')}</small></p>` : ''}
       ${r ? '<button class="ghost" id="mAbandon">' + TX('Abandonar partida en curso') + '</button>' : ''}
       <button class="ver" id="ver">v${VERSION}${settings.dev ? TX(' · dev') : ''}</button>`, 'bg_title');
     let vt = 0, vtT = 0;   // 20 toques seguidos en la versión: modo desarrollador
@@ -7154,6 +7180,8 @@ const App = (() => {
   /* ---------- Partidos ---------- */
   async function startMatch(teams, golden, field, musicRole, rival) {
     GAME_SPEED = settings.dev && settings.speed ? +settings.speed : 0.75;
+    const hasPad = [...(navigator.getGamepads ? navigator.getGamepads() : [])].some(Boolean);
+    if (Controls.pc() && !hasPad && (settings.padTip || 0) < 3) { settings.padTip = (settings.padTip || 0) + 1; saveSettings(); setTimeout(() => UI.toast(TX('🎮 También puedes jugar con mando'), 2600), 1800); }
     const s = Object.assign({}, settings, { golden, field, difficulty: api.mode === 'run' ? api.run.diff : api.mode === 'career' || api.mode === 'wc' ? Career.matchDiff() : 'facil' });
     screen('<h2>' + TX('Cargando…') + '</h2>');
     try {
@@ -8262,7 +8290,7 @@ const App = (() => {
       ${opts(TX('Botones en pantalla'), 'controls', [['auto', TX('Auto')], ['tactil', TX('Siempre')], ['teclado', TX('Nunca (PC)')]])}
       <p class="keys"><b>${TX('Mando:')}</b> ${TX('stick o cruceta para moverte · RT esprint · A pase (mantén = fuerte) · X tiro (mantén) · B profundidad / entrada · Y supertécnica · LT cambiar técnica · RB regate · LB cambiar jugador · Start pausa.')}<br>
       <b>${TX('Móvil:')}</b> ${TX('joystick a la izquierda (a tope = esprint). Mantén Pase para un pase fuerte y usa Regate para un recorte rápido sin técnica. Para cambiar de jugador apunta con el joystick y pulsa Cambiar (también cambia solo al ir a por el balón).')}<br>
-      <b>${TX('PC:')}</b> ${TX('WASD/flechas · Shift esprint · J pase (mantén = pase fuerte) o entrada · K profundidad · I regate · L tiro (mantener) · Espacio técnica · Q cambiar · P pausa')}</p>
+      <b>${TX('PC:')}</b> ${TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o X: tiro (mantén) / cambiar jugador · L o C: profundidad / saque largo · I o V: regate · Espacio: supertécnica · E: cambiar técnica · P o Esc: pausa')}</p>
       <h3>${TX('Sonido')}</h3>
       <div class="mixer"><label>${TX('🎵 Música')} <b id="mvT">${Math.round((c.music ? c.mv ?? 1 : 0) * 100)} %</b><input type="range" id="mvR" min="0" max="100" step="5" value="${Math.round((c.music ? c.mv ?? 1 : 0) * 100)}"></label>
         <label>${TX('🔊 Efectos')} <b id="svT">${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)} %</b><input type="range" id="svR" min="0" max="100" step="5" value="${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)}"></label></div>

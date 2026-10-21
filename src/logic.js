@@ -468,8 +468,9 @@ const Logic = (() => {
         else { const c = s.pass.charge, d = s.pass.dir; s.pass = null; pass(s, me, 'strong', d, c > 0.18 ? c : 0); return; }
       }
       if (pr.has('B')) { pass(s, me, 'through', { x, y }); return; }
+      const gkTap = pr.has('shoot');   // un toque rápido en Despeje también vale
       if (input.shootHeld) s.shoot.charging = true;
-      else if (s.shoot.charging) { s.shoot.charging = false; s.shoot.charge = 0; clearance(s, me, { x, y }); return; }
+      else if (s.shoot.charging || gkTap) { s.shoot.charging = false; s.shoot.charge = 0; clearance(s, me, { x, y }); return; }
       if (s.gkHold > 7) { clearance(s, me, null); return; }
       return;
     }
@@ -493,11 +494,13 @@ const Logic = (() => {
         if (t && s.players.some(o => o.team !== me.team && o.role !== 'POR' && o.stun <= 0 && dist(o, me) < 1.8 &&
             angDiff(Math.atan2(o.y - me.y, o.x - me.x), me.aim) < 1)) { startTech(s, me, t, x); return; }
       }
+      const tap = pr.has('shoot');   // toque rápido de Tiro: aunque suelte antes del siguiente fotograma, chuta
+      if (tap || input.shootHeld) pr.has('switch');   // K/X con balón es tiro: que no quede pendiente «cambiar jugador»
       if (input.shootHeld) {
         s.shoot.charging = true;
         s.shoot.charge = Math.min(1, s.shoot.charge + input.dt / 0.9);
         s.shoot.aimX = x;
-      } else if (s.shoot.charging) {
+      } else if (s.shoot.charging || tap) {
         const ch = s.shoot.charge;
         s.shoot.charging = false; s.shoot.charge = 0;
         const t = bestTech(me, 'tiro');
@@ -910,8 +913,19 @@ const Logic = (() => {
     }
   }
 
+  // Búfer de entrada: un botón pulsado se guarda 0,25 s. Así no se pierde si cae en un momento en que tu jugador
+  // no puede actuar (justo al recibir, tras una entrada, en el «congelado» de un golpe…) o entre dos fotogramas.
+  const BUF_T = 0.25;
+  function bufferInput(s, input, dtRaw) {
+    const B = s.inBuf || (s.inBuf = {});
+    for (const k in B) { B[k] -= dtRaw; if (B[k] <= 0) delete B[k]; }
+    for (const a of input.pressed || []) B[a] = BUF_T;
+    return Object.assign({}, input, { pressed: { has: a => { if (B[a] > 0) { delete B[a]; return true; } return false; }, peek: a => B[a] > 0 } });   // copia: no se toca la entrada original
+  }
+
   function update(s, input, dtRaw) {
     if (s.over) return;
+    input = bufferInput(s, input, dtRaw);
     if (s.hitstop > 0) { s.hitstop -= dtRaw; return; }   // congelado de impacto
     // Cámara lenta: al cargar una técnica y mientras vuela un tiro especial
     const sm = s.settings.slowmo !== 0, sh = s.ball.shot;
