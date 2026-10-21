@@ -75,6 +75,7 @@ Cómo está hecho:
   `node tools/i18n_sync.js missing` lista los que faltan; `node tools/i18n_sync.js add archivo.txt` los añade (`"clave"|traducción`).
   Si creas un archivo nuevo en `src/`, añádelo a las listas de `tools/i18n_sync.js` y `test/i18n.js`.
 - Tráiler vertical: `python3 tools/trailer.py es salida.mp4` (Playwright + ffmpeg; textos en `tools/trailer.js`).
+  Teaser del día antes («Mañana… 22 OCT», ~10 s): `TRAILER_JS=tools/teaser_hw.js TRAILER_MUSIC=e204 TRAILER_SHOTS=<capturas> python3 tools/trailer.py es teaser.mp4`.
   Tráiler de Halloween (solo español, música «La sombra negra», el tema de Ray Dark):
   `TRAILER_JS=tools/trailer_hw.js TRAILER_MUSIC=e204 TRAILER_SHOTS=<capturas 1170×2532: 01_menu, 02_evento, 04_cartas, 05_jefe, 07_retos, 08_ray> python3 tools/trailer.py es salida.mp4`.
 
@@ -95,7 +96,7 @@ Cómo está hecho:
 - 0.32–0.34 (en espera, rama `carrera-jugador`): Modo Carrera Jugador, Liga Pro, fichajes, logros, Balón de Oro, 1v1, decisiones, galería de técnicas, botón dev.
 
 ## 7. Siguientes pasos
-1. Fran prueba la beta de Halloween → ajustes → fusionar `halloween` a `main` y subir **el 22 de octubre**.
+1. Plan de Fran: el 21 sube el teaser a TikTok; el **22 de octubre** Claude fusiona `halloween` a `main` y lo sube (hay un aviso programado en la conversación para las 00:10 del 22), y Fran sube el tráiler largo.
 2. Después: retomar la rama `carrera-jugador` (0.34). Al fusionarla habrá que juntar con la 0.31.1: `build.py` (añadir `event.js`),
    `VERSION`, `MANAGERS`/`RAY_DARK`, el menú y `cloud.js` (ya es el mismo). Su TRASPASO detallado está en esa rama.
 3. Siguiente versión: **el Mundial en la Liga Pro** (Carrera Jugador).
