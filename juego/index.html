@@ -945,7 +945,6 @@ const EN_TEXT = {
   'Duración del partido': 'Match length',
   'Día {0}': 'Day {0}',
   'Día {0}:': 'Day {0}:',
-  'El Kappa del código PESCADINHA pasa a media 85.': 'The Kappa from the PESCADINHA code is now rated 85.',
   'El Mundial': 'The World Cup',
   'El Ocultismo te ha asustado…': 'Occult gave you a fright…',
   'El astro del balón - Versión para piano': 'The Football Star - Piano Version',
@@ -1125,7 +1124,6 @@ const EN_TEXT = {
   'Génesis - Los superhumanos': 'Genesis - The Superhumans',
   'Habilidad': 'Skill',
   'Halloween': 'Halloween',
-  'Halloween: premios por entrar 5 días (no hace falta que sean seguidos): 150 caramelos, 10 tickets, 1000 monedas, elegir 1 de 3 jugadores de +80 y Jim (Oscuro) de regalo.': 'Halloween: login rewards for 5 days (they don\'t have to be in a row): 150 candies, 10 tickets, 1000 coins, pick 1 of 3 players rated 80+, and a free Jim (Dark).',
   'Has completado la carrera. Tu club entra en el salón de la fama… y puedes seguir jugando temporadas para siempre (los rivales mejoran cada año).': 'You\'ve completed the career. Your club enters the hall of fame… and you can keep playing seasons forever (rivals get better every year).',
   'Has ganado': 'You won',
   'Has llegado a la oleada': 'You reached wave',
@@ -1441,6 +1439,7 @@ const EN_TEXT = {
   'Salir del modo': 'Leave the mode',
   'Salir igualmente': 'Leave anyway',
   'Saltar': 'Skip',
+  'Saltar (no quiero ninguna)': 'Skip (I don\'t want any)',
   'Saltar al final ▶▶': 'Skip to the end ▶▶',
   'Saltar ▶▶': 'Skip ▶▶',
   'Salón de la fama': 'Hall of fame',
@@ -1957,10 +1956,8 @@ const EN_TEXT = {
   '🎁 Recoger el premio del día {0}': '🎁 Claim the day {0} prize',
   '🎁 Regalo diario:': '🎁 Daily gift:',
   '🎁 regalo': '🎁 gift',
-  '🎃 Evento de Halloween del 22 de octubre al 3 de noviembre: Sobre Calabaza con 5 legendarios de miedo, caramelos, partido jefe contra el Ocultismo en un campo con niebla, retos y Ray Dark como mánager en el Modo Carrera.': '🎃 Halloween event from 22 October to 3 November: Pumpkin Pack with 5 spooky legendaries, candies, a boss match against Occult on a foggy pitch, challenges and Ray Dark as a Career Mode manager.',
   '🎃 Evento forzado: NO': '🎃 Event forced: NO',
   '🎃 Evento forzado: SÍ': '🎃 Event forced: YES',
-  '🎃 Nuevo legendario de Halloween en el Sobre Calabaza: Zohen, defensa, con su versión de miedo. Los marcos de los legendarios de Halloween son ahora de un naranja apagado, más terroríficos.': '🎃 New Halloween legendary in the Pumpkin Pack: Zohen, a defender, in his spooky version. Halloween legendaries now have a dull orange frame, much creepier.',
   '🎓 Se gradúan ({0}):': '🎓 Graduating ({0}):',
   '🎟️ para el gacha': '🎟️ for the gacha',
   '🎮 Guía de controles': '🎮 Controls guide',
@@ -3822,7 +3819,9 @@ const Run = {
     while (opts.length < 3) opts.push({ kind: 'coins', amount: 30 });
     return opts.slice(0, 3);
   },
+  // opt = null: saltas la recompensa (no te quedas con ninguna)
   takeReward(run, opt) {
+    if (!opt) opt = { kind: 'skip' };
     if (opt.kind === 'tech') {
       const t = run.roster[opt.member].techs;
       if (opt.replace != null && t.includes(opt.replace)) t[t.indexOf(opt.replace)] = opt.tech; else if (t.length < TECH_SLOTS) t.push(opt.tech); else t[t.length - 1] = opt.tech;
@@ -8062,6 +8061,8 @@ const App = (() => {
       c.onclick = () => { Run.takeReward(r, o); Run.save(r); Sound.sfx('reveal'); renderMap(); };
       $('rw').appendChild(c);
     });
+    $('rw').insertAdjacentHTML('afterend', `<button class="ghost" id="rwSkip">${TX('Saltar (no quiero ninguna)')}</button>`);
+    $('rwSkip').onclick = () => { Run.takeReward(r, null); Run.save(r); Sound.sfx('click'); renderMap(); };
   }
   function renderOver() {
     const r = api.run, win = r.last && r.last.victory;

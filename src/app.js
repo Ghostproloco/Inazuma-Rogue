@@ -931,6 +931,8 @@ const App = (() => {
       c.onclick = () => { Run.takeReward(r, o); Run.save(r); Sound.sfx('reveal'); renderMap(); };
       $('rw').appendChild(c);
     });
+    $('rw').insertAdjacentHTML('afterend', `<button class="ghost" id="rwSkip">${TX('Saltar (no quiero ninguna)')}</button>`);
+    $('rwSkip').onclick = () => { Run.takeReward(r, null); Run.save(r); Sound.sfx('click'); renderMap(); };
   }
   function renderOver() {
     const r = api.run, win = r.last && r.last.victory;

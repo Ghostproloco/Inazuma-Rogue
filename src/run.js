@@ -532,7 +532,9 @@ const Run = {
     while (opts.length < 3) opts.push({ kind: 'coins', amount: 30 });
     return opts.slice(0, 3);
   },
+  // opt = null: saltas la recompensa (no te quedas con ninguna)
   takeReward(run, opt) {
+    if (!opt) opt = { kind: 'skip' };
     if (opt.kind === 'tech') {
       const t = run.roster[opt.member].techs;
       if (opt.replace != null && t.includes(opt.replace)) t[t.indexOf(opt.replace)] = opt.tech; else if (t.length < TECH_SLOTS) t.push(opt.tech); else t[t.length - 1] = opt.tech;

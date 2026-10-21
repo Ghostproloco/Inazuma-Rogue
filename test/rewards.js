@@ -25,5 +25,14 @@ ok(!cnt.DEF.parada && !cnt.MED.parada && !cnt.DEL.parada, 'nadie de campo recibe
 ok(pct('DEL', 'tiro') >= 55, 'delantero: sobre todo tiros (' + pct('DEL', 'tiro') + ' %)');
 ok(pct('DEF', 'bloqueo') >= 60, 'defensa: sobre todo bloqueos (' + pct('DEF', 'bloqueo') + ' %)');
 ok(!cnt.DEL.bloqueo, 'delantero: ningún bloqueo');
+console.log('Saltar la recompensa');
+{
+  const r2 = Run.create('story', team, { stage: 's1', diff: 'medio', formation: '1-1-1-2' });
+  r2.rewards = Run.makeRewards(r2); r2.state = 'reward';
+  const before = JSON.stringify(r2.roster), i0 = r2.index, coins = ctx.Profile.data.coins;
+  Run.takeReward(r2, null);
+  ok(r2.state === 'map' && r2.index === i0 + 1 && !r2.rewards, 'sigue al siguiente partido');
+  ok(JSON.stringify(r2.roster) === before && ctx.Profile.data.coins === coins, 'sin quedarte con nada');
+}
 console.log(fails ? '\n✗ ' + fails + ' fallos' : '\n✓ Todo bien');
 process.exit(fails ? 1 : 0);
