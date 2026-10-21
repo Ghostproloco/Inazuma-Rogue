@@ -11,7 +11,7 @@ modo Carrera (mánager) y Mundial. Pensado sobre todo para **móvil en vertical*
 - Repositorio: `franmndezzzz/inazuma-rogue` (**debe seguir PRIVADO**: `juego/` lleva recursos de los juegos originales).
 - En `main` (publicada) está la **0.31.0**.
 - Hay **dos ramas sin subir** (ninguna está en GitHub todavía):
-  - `halloween` → **v0.31.1 · Evento de Halloween** (sobre la 0.31). Es la que se publica primero (23 de octubre de 2026).
+  - `halloween` → **v0.31.1 · Evento de Halloween** (sobre la 0.31). Es la que se publica primero (22 de octubre de 2026).
   - `carrera-jugador` → v0.32–0.34 (Modo Carrera Jugador, Liga Pro, logros…). **En espera**; ver sección 7.
 
 ## 2. Cómo trabajamos (preferencias de Fran)
@@ -26,7 +26,7 @@ modo Carrera (mánager) y Mundial. Pensado sobre todo para **móvil en vertical*
 - Commits sobre `main` (3512e6e): arreglos de la nube traídos de la 0.34 y el evento de Halloween.
 - Si solo tienes el zip: copia `src/`, `test/`, `tools/`, `build.py`, `README.md` y `TRASPASO.md` encima del repo (rama `main`), ejecuta `python3 build.py` y listo
   (`juego/gamedata.json` no cambia; imágenes nuevas: `juego/ui/raydark.png` y `juego/sprites/fhw.png`, incluidas en el zip).
-- Cuando Fran apruebe: `git checkout main && git merge halloween && git push` (GitHub Pages se actualiza solo). **Fecha: 23 oct 2026.**
+- Cuando Fran apruebe: `git checkout main && git merge halloween && git push` (GitHub Pages se actualiza solo). **Fecha: 22 oct 2026.**
 - Artefacto de prueba (privado, cuenta de Fran actual): «Inazuma Rogue Beta». Ahí las **cuentas en la nube están desactivadas**
   (los artefactos no pueden cargar Firebase). Para publicarlo se quita el `<!doctype html>` y se vacía `apiKey`.
 
@@ -35,7 +35,7 @@ modo Carrera (mánager) y Mundial. Pensado sobre todo para **móvil en vertical*
 
 | Decisión | Respuesta de Fran |
 |---|---|
-| Fechas | Activo solo del **23 oct al 3 nov (incluidos)**, por la fecha del dispositivo (`HW_START`, `HW_END`). Fuera de fechas no se ve nada |
+| Fechas | Activo solo del **22 oct al 3 nov (incluidos)** (Fran lo adelantó del 23 al 22), por la fecha del dispositivo (`HW_START`, `HW_END`). Fuera de fechas no se ve nada |
 | Base | Solo sobre la 0.31 (no la 0.34) |
 | Legendarios exclusivos | Los 5: **Johan Tassman, Nathan Jones** (Ocultismo) y **Destra, Hebimos, Bash Lancer** (demonios) |
 | Sobre Calabaza | **15 🍬** por tirada (**150** la ×10) · legendario 3 % · épica 15 % · rara 32 % · común 50 % · legendario asegurado a las **40** |
@@ -95,7 +95,7 @@ Cómo está hecho:
 - 0.32–0.34 (en espera, rama `carrera-jugador`): Modo Carrera Jugador, Liga Pro, fichajes, logros, Balón de Oro, 1v1, decisiones, galería de técnicas, botón dev.
 
 ## 7. Siguientes pasos
-1. Fran prueba la beta de Halloween → ajustes → fusionar `halloween` a `main` y subir **el 23 de octubre**.
+1. Fran prueba la beta de Halloween → ajustes → fusionar `halloween` a `main` y subir **el 22 de octubre**.
 2. Después: retomar la rama `carrera-jugador` (0.34). Al fusionarla habrá que juntar con la 0.31.1: `build.py` (añadir `event.js`),
    `VERSION`, `MANAGERS`/`RAY_DARK`, el menú y `cloud.js` (ya es el mismo). Su TRASPASO detallado está en esa rama.
 3. Siguiente versión: **el Mundial en la Liga Pro** (Carrera Jugador).

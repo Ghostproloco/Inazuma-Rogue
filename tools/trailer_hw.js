@@ -34,6 +34,7 @@
       text-shadow:4px 0 0 #2a0a3a,-4px 0 0 #2a0a3a,0 4px 0 #2a0a3a,0 -4px 0 #2a0a3a,6px 6px 0 #000,0 0 30px rgba(255,120,20,.8);animation:slam .55s cubic-bezier(.2,1.6,.4,1) both}
     .hw-big span{display:block}.hw-big small{display:block;font-size:34px;color:#eadcff;margin-top:8px}
     .hw-date{font:26px var(--font-ui);color:#000;background:#ff9a2a;padding:6px 16px;letter-spacing:2px;border:3px solid #000;box-shadow:4px 4px 0 #000;animation:capIn .4s ease-out .35s both}
+    .hw-now{font:40px var(--font-ui);color:#fff;letter-spacing:2px;text-shadow:3px 3px 0 #000,0 0 22px rgba(255,140,30,.9);animation:slam .55s cubic-bezier(.2,1.6,.4,1) .5s both}
     .hw-mid{font:28px var(--font-ui);color:#fff;text-shadow:2px 2px 0 #000;animation:capIn .5s ease-out .3s both}
     .hw-url{font:22px var(--font-ui);color:#fff;background:rgba(0,0,0,.6);padding:6px 12px;border:2px solid #ff9a2a;animation:capIn .5s ease-out .5s both}
     .hw-logo{width:440px;max-width:86%;filter:drop-shadow(0 4px 0 rgba(0,0,0,.5)) drop-shadow(0 0 18px rgba(255,120,20,.55));animation:slam .5s cubic-bezier(.2,1.6,.4,1) both}
@@ -82,7 +83,7 @@
 
   add(2600, () => card(`<div class="hw-whisper">Algo oscuro se acerca…</div>`, 'radial-gradient(circle at 50% 50%,#1a0a2a 0,#000 75%)'));
   add(3200, () => { boom(); card(`<img class="hw-logo" src="ui/logo_rogue.png" alt=""><div class="hw-big"><span>Halloween</span><small>Evento especial</small></div>
-    <div class="hw-date">23 OCT – 3 NOV</div><img class="hw-pk" style="left:40px" src="${PK}"><img class="hw-pk" style="right:40px" src="${PK}">`); });
+    <div class="hw-date">22 OCT – 3 NOV</div><img class="hw-pk" style="left:40px" src="${PK}"><img class="hw-pk" style="right:40px" src="${PK}">`); });
   add(2700, () => shot('01_menu', 'El menú se viste de miedo', 'Calabazas, niebla y caramelos', { tag: 'EVENTO' }));
   add(3800, () => { boom(); card(`<div class="hw-big" style="font-size:52px"><span>5 legendarios</span><span>de miedo</span></div>
     <div class="hw-legs">${['Johan Tassman', 'Nathan Jones', 'Destra', 'Hebimos', 'Bash Lancer'].map((n, i) =>
@@ -95,7 +96,7 @@
   add(3200, () => { boom(); card(`<img class="hw-ray" src="ui/raydark.png" alt=""><div class="hw-big" style="font-size:56px"><span>Ray Dark</span><small>ficha como tu mánager</small></div>
     <div class="hw-date" style="background:#b07aff">+10 % DE INGRESOS</div>`, 'radial-gradient(circle at 50% 40%,#3a0a5a 0,#07030c 75%)'); });
   add(4000, () => { boom(); card(`<img class="hw-logo" src="ui/logo_rogue.png" alt=""><div class="hw-big" style="font-size:58px"><span>Halloween</span></div>
-    <div class="hw-date">23 OCT – 3 NOV</div><div class="hw-mid">¡Juega gratis!</div><div class="hw-url">${URL_TXT}</div>
+    <div class="hw-date">22 OCT – 3 NOV</div><div class="hw-now">¡YA DISPONIBLE!</div><div class="hw-mid">¡Juega gratis!</div><div class="hw-url">${URL_TXT}</div>
     <img class="hw-pk" style="left:40px" src="${PK}"><img class="hw-pk" style="right:40px" src="${PK}">`); });
   add(0, () => { window.__trailerDone = true; });
   S.forEach(([ms, fn]) => at(ms, fn));

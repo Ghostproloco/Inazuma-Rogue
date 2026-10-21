@@ -15,8 +15,8 @@ vm.runInContext(['logic.js', 'run.js', 'career.js', 'event.js'].map(f => fs.read
 const { Profile, Halloween, PLAYER, Career, Gacha, Logic, HW_LEGENDS, RAY_DARK } = ctx;
 const setDay = d => { NOW = new Date(d + 'T12:00:00'); };
 
-console.log('1. Fechas: del 23 de octubre al 3 de noviembre (incluidos)');
-for (const [d, want] of [['2026-10-22', false], ['2026-10-23', true], ['2026-10-31', true], ['2026-11-03', true], ['2026-11-04', false]]) { setDay(d); ok(Halloween.active() === want, d + ' → ' + (want ? 'activo' : 'apagado')); }
+console.log('1. Fechas: del 22 de octubre al 3 de noviembre (incluidos)');
+for (const [d, want] of [['2026-10-21', false], ['2026-10-22', true], ['2026-10-23', true], ['2026-10-31', true], ['2026-11-03', true], ['2026-11-04', false]]) { setDay(d); ok(Halloween.active() === want, d + ' → ' + (want ? 'activo' : 'apagado')); }
 setDay('2026-11-10'); Halloween.forced = true; ok(Halloween.active(), 'forzado en el modo desarrollador'); Halloween.forced = false;
 setDay('2026-10-21'); ok(Halloween.matchPlayed(true) === 0 && Halloween.daily() === 0, 'fuera de fechas no da caramelos');
 
