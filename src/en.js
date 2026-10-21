@@ -518,6 +518,7 @@ const EN_TEXT = {
   'La fama ha llegado a 0…': 'Fame has reached 0…',
   'La historia, en 3 etapas': 'The story, in 3 stages',
   'La música sale de tus archivos del Inazuma 1 y 2, reconstruida desde las partituras del juego. Los nombres son los de la colección de música del Inazuma 2.': 'The music comes from your Inazuma 1 and 2 files, rebuilt from the game\'s sheet music. The names are the ones from Inazuma 2\'s music collection.',
+  'La nube está saturada ahora mismo. Tu partida está a salvo en este dispositivo y se subirá más tarde.': 'The cloud is overloaded right now. Your save is safe on this device and will be uploaded later.',
   'La nube tarda en responder: juegas con la partida de este móvil': 'The cloud is slow to respond: you\'re playing with the save on this device',
   'La primera vez:': 'The first time:',
   'La próxima tirada será épica o mejor': 'Your next pull will be epic or better',

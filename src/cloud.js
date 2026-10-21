@@ -23,10 +23,13 @@ const Cloud = (() => {
   const EMAIL_DOMAIN = 'jugadores.inazumarogue.app';   // el usuario «fran» se guarda como fran@jugadores… (no se envía ningún correo)
   const FB_VERSION = '10.12.2';
   const CFG = (typeof CLOUD_CONFIG !== 'undefined' && CLOUD_CONFIG) || {};
-  const PUSH_DELAY = 3000;      // espera tras un cambio antes de subir (agrupa varios guardados)
+  // Cada subida gasta cuota de Firebase (plan gratis: ~20.000 escrituras al día para todos los jugadores).
+  // Antes se subía 3 s después de cada cambio; ahora como mucho una vez por minuto mientras juegas, y al salir de la app.
+  const PUSH_DELAY = (typeof CLOUD_PUSH_DELAY !== 'undefined' && CLOUD_PUSH_DELAY) || 60000;
   const TIMEOUT = 15000;
   const MAX_RAW = 500000;       // por encima, la partida se guarda comprimida (Firestore admite 1 MB por documento)
   const RETRY = (typeof CLOUD_RETRY !== 'undefined' && CLOUD_RETRY) || [20000, 45000, 90000, 180000, 300000];   // reintentos tras un error (cada vez más espaciados)
+  const RETRY_QUOTA = (typeof CLOUD_RETRY_QUOTA !== 'undefined' && CLOUD_RETRY_QUOTA) || [600000, 1800000, 3600000];   // cuota de Firebase agotada: esperar mucho más
 
   /* ---------- Datos de la cuenta en este dispositivo ---------- */
   const origSet = Storage.prototype.setItem, origRemove = Storage.prototype.removeItem;
@@ -126,6 +129,7 @@ const Cloud = (() => {
   function errOf(e) {
     const c = String((e && e.code) || '');
     if (c === 'timeout' || c === 'unavailable' || c.includes('network') || c === 'deadline-exceeded') return { offline: true, code: c };
+    if (c === 'resource-exhausted') return { quota: true, code: c };   // cuota del día de Firebase agotada (no es culpa del jugador)
     if (c === 'permission-denied' || c === 'unauthenticated') { if (!auth || !auth.currentUser) return { expired: true, code: c }; }
     return { code: c || 'desconocido' };
   }
@@ -242,16 +246,17 @@ const Cloud = (() => {
   function synced(rev, data) { meta.owner = meta.uid; meta.rev = rev; meta.hash = hash(data); meta.phash = hashP(data); meta.lastOk = state.lastOk = Date.now(); tries = 0; saveMeta(); }
   // Reintento automático tras un error o sin conexión (antes solo se reintentaba al volver a guardar algo)
   let retryT = 0, tries = 0;
-  function retryLater() {
+  function retryLater(quota) {
     if (retryT || !loggedIn() || meta.expired) return;
-    const d = RETRY[Math.min(tries, RETRY.length - 1)]; tries++;
+    const L = quota ? RETRY_QUOTA : RETRY, d = L[Math.min(tries, L.length - 1)]; tries++;
     retryT = setTimeout(() => { retryT = 0; if (!state.conflict && !syncing) push(true); }, d);
   }
   function failStatus(r) {
     if (r && r.expired) { meta.expired = true; saveMeta(); setStatus('expired', EXPIRED_MSG); return; }
     if (r && r.offline) setStatus('offline', TX('Sin conexión: se guardará en la nube cuando vuelva internet.'));
+    else if (r && r.quota) setStatus('error', TX('La nube está saturada ahora mismo. Tu partida está a salvo en este dispositivo y se subirá más tarde.'));
     else setStatus('error', TX('Error al guardar en la nube (') + ((r && r.code) || '?') + TX('). Se reintentará.'));
-    retryLater();
+    retryLater(r && r.quota);
   }
   // Sube la partida del móvil. «overRev» = pisar a propósito esa versión de la nube (cuando el jugador elige la del móvil).
   let pushing = null, again = false, syncing = false;
@@ -263,6 +268,8 @@ const Cloud = (() => {
     const run = (async () => {
       const data = snapshot(), h = hash(data);
       if (meta.owner === meta.uid && h === meta.hash && overRev == null) { setStatus('ok'); return 'same'; }
+      // Solo han cambiado ajustes o sonido (son de cada dispositivo): no se gasta una subida
+      if (meta.owner === meta.uid && meta.phash && hashP(data) === meta.phash && overRev == null) { meta.hash = h; saveMeta(); setStatus('ok'); return 'same'; }
       if (!hasProgress(data) && meta.owner !== meta.uid && overRev == null) return 'same';   // no subir una partida vacía a una cuenta nueva
       if (!await ready()) { failStatus({ offline: true }); return 'error'; }
       if (!auth.currentUser || auth.currentUser.uid !== meta.uid) { failStatus({ expired: true }); return 'error'; }
@@ -288,7 +295,8 @@ const Cloud = (() => {
     return r;
   }
   let timer = 0;
-  function schedule() { clearTimeout(timer); timer = setTimeout(() => { timer = 0; push(); }, PUSH_DELAY); }
+  // Si ya hay una subida programada, no se retrasa (antes cada guardado la empujaba otra vez): así sube cada minuto aunque no pares de jugar
+  function schedule() { if (timer) return; timer = setTimeout(() => { timer = 0; push(); }, PUSH_DELAY); }
   function touch() { if (enabled() && loggedIn() && !meta.expired) schedule(); }
   function conflict(row) {
     const local = snapshot();
@@ -343,7 +351,9 @@ const Cloud = (() => {
   }
 
   // Al salir del juego o cambiar de app: subir ya lo pendiente
-  if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && timer) { clearTimeout(timer); timer = 0; push(true); } });
+  const flush = () => { if (timer) { clearTimeout(timer); timer = 0; push(true); } };
+  if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
+  if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('pagehide', flush);
   if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('online', () => { if (loggedIn() && (state.status === 'offline' || state.status === 'error')) { clearTimeout(retryT); retryT = 0; push(true); } });
 
   // Partida de invitado: recuerda que ya eligió no crear cuenta (para no insistir)

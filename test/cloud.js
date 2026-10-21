@@ -4,7 +4,7 @@ const fs = require('fs'), vm = require('vm'), path = require('path');
 const code = fs.readFileSync(path.join(__dirname, '..', 'src', 'cloud.js'), 'utf8');
 
 /* ---------- Servidor falso: cuentas + Firestore (con las mismas reglas que firestore.rules) ---------- */
-const server = { users: {}, saves: {}, n: 0, down: false, google: { uid: 'g-fran', email: 'fran@gmail.com', displayName: 'Fran Méndez' } };
+const server = { users: {}, saves: {}, n: 0, down: false, writes: 0, quota: false, google: { uid: 'g-fran', email: 'fran@gmail.com', displayName: 'Fran Méndez' } };
 const fail = c => { const e = new Error(c); e.code = c; throw e; };
 const TS = { __ts: true };
 function makeFirebase() {
@@ -48,10 +48,11 @@ function makeFirebase() {
       collection: () => ({ doc: docRef }),
       async runTransaction(fn) {
         if (server.down) fail('unavailable');
+        if (server.quota) fail('resource-exhausted');
         const writes = [];
         const tx = { async get(r) { check(r.id, 'read'); return snap(server.saves[r.id]); }, set(r, v) { writes.push([r.id, v]); } };
         const out = await fn(tx);
-        for (const [id, v] of writes) { check(id, 'write', v); server.saves[id] = JSON.parse(JSON.stringify(Object.assign({}, v, { updatedAt: Date.now() }))); }
+        for (const [id, v] of writes) { check(id, 'write', v); server.writes++; server.saves[id] = JSON.parse(JSON.stringify(Object.assign({}, v, { updatedAt: Date.now() }))); }
         return out;
       },
     };
@@ -67,7 +68,7 @@ function device(store) {
   const ls = new Storage();
   const ctx = { TX: (s, ...a) => a.length ? s.replace(/\{(\d+)\}/g, (m, i) => a[i]) : s, TXn: (n, a, b) => (n === 1 ? a : b).replace('{0}', n), Storage, localStorage: ls, setTimeout, clearTimeout, JSON, Math, Date, Object, Array, Set, String, Promise, console,
     Blob, Response, CompressionStream, DecompressionStream, btoa, atob, Uint8Array,
-    CLOUD_CONFIG: { apiKey: 'AIzaFake', authDomain: 'x.firebaseapp.com', projectId: 'x', appId: '1:1:web:1' }, CLOUD_RETRY: [300, 300, 300] };
+    CLOUD_CONFIG: { apiKey: 'AIzaFake', authDomain: 'x.firebaseapp.com', projectId: 'x', appId: '1:1:web:1' }, CLOUD_RETRY: [300, 300, 300], CLOUD_PUSH_DELAY: 3000, CLOUD_RETRY_QUOTA: [300, 300, 300] };
   ctx.firebase = device.fb[store ? 'same' : 'new']();
   vm.createContext(ctx);
   vm.runInContext(code + '\nthis.Cloud = Cloud;', ctx);
@@ -231,6 +232,27 @@ const cloudTickets = d => JSON.parse(cloudOf(d).data['inazuma-perfil']).tickets;
   ok(await S2.C.sync() === 'downloaded', 'baja la partida');
   S2.ls.setItem('inazuma-perfil', JSON.stringify({ firstDone: true, coll: {}, tickets: 0 }));   // un guardado viejo justo antes de recargar
   ok(S2.prof().tickets === 70, 'el guardado viejo no pisa la partida bajada');
+
+  console.log('20. Muchos guardados seguidos = una sola subida (ahorra cuota de Firebase)');
+  let W = device(); W.play({ coll: { 7: { stars: 1 } }, tickets: 1 }); await W.C.signUp('ahorro', 'secreto1'); await W.C.sync();
+  const w0 = server.writes;
+  for (let i = 2; i <= 8; i++) { W.play({ tickets: i }); await new Promise(r => setTimeout(r, 400)); }   // 7 guardados en ~3 s
+  await new Promise(r => setTimeout(r, 3400));
+  ok(server.writes - w0 === 1 && cloudTickets(W) === 8, '7 guardados → 1 subida con lo último (' + (server.writes - w0) + ')');
+
+  console.log('21. Cambiar solo ajustes o sonido no gasta subidas');
+  const w1 = server.writes;
+  W.ls.setItem('inazuma-ajustes', JSON.stringify({ minutes: 5 })); W.ls.setItem('inazuma-sonido', JSON.stringify({ music: false }));
+  await new Promise(r => setTimeout(r, 3400));
+  ok(server.writes === w1 && W.C.state.status !== 'error', 'ninguna subida');
+
+  console.log('22. Cuota de Firebase agotada (resource-exhausted)');
+  server.quota = true; W.play({ tickets: 50 });
+  ok(await W.C.push(true) === 'error' && /saturada/.test(W.C.state.msg), 'avisa de que la nube está saturada y la partida está a salvo');
+  ok(W.prof().tickets === 50, 'la partida sigue en el dispositivo');
+  server.quota = false;
+  await new Promise(r => setTimeout(r, 900));
+  ok(cloudTickets(W) === 50, 'cuando hay cuota otra vez, se sube sola');
 
   console.log(fails ? `\n${fails} FALLOS` : '\nTodo bien');
   process.exit(fails ? 1 : 0);

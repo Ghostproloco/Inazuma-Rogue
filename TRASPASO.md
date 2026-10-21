@@ -75,6 +75,14 @@ Cómo está hecho:
   I/V regate · Espacio supertécnica · E cambiar técnica · P/Esc pausa.
 - **Aviso del mando** en PC: en el menú y en los 3 primeros partidos.
 
+### v0.31.3 · Nube: «Error al guardar en la nube (resource-exhausted)»
+- No era un fallo del juego: es la **cuota gratuita diaria de Firebase agotada** (plan Spark: ~20.000 escrituras/día para todos los jugadores).
+  El juego subía la partida 3 s después de cada cambio (cientos de subidas por sesión).
+- Ahora (`src/cloud.js`): como mucho **una subida por minuto** mientras juegas (`PUSH_DELAY = 60000`, y un guardado nuevo ya no retrasa la subida pendiente),
+  sube al salir o cambiar de app (`visibilitychange`, `pagehide`) y al cerrar sesión; **cambiar solo ajustes o sonido no gasta subidas**;
+  si la cuota está agotada avisa «La nube está saturada… tu partida está a salvo» y reintenta a los 10, 30 y 60 min (`RETRY_QUOTA`).
+- Escenarios nuevos 20–22 en `test/cloud.js`. Si aun así se queda corto, la solución es pasar Firebase al plan Blaze (de pago por uso, con alerta de gasto).
+
 ### PENDIENTE (pedido de Fran el 21 oct, a medias: se paró para mirar la nube)
 1. **Sprites con colores distintos a la foto** (p. ej. Partinus: muñeco con pelo marrón, foto azul claro). Diagnóstico hecho:
    ~200-300 jugadores (sobre todo hojas `c118`–`c136`, Inazuma 3) tienen el muñeco de otro jugador cercano o colores cambiados.
