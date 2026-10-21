@@ -319,6 +319,10 @@ select option{color:#111;font-family:system-ui}
 .hwleg{display:flex;flex-direction:column;align-items:center;width:72px;padding:4px;background:rgba(10,4,20,.55);border:2px solid #ffcc22;text-align:center}
 .hwleg small{font-size:10px;line-height:1.1}.hwleg canvas{filter:grayscale(.3) brightness(.8)}.hwleg.own canvas{filter:none}.hwleg.own{box-shadow:0 0 8px #ffcc22}
 .hwretos{display:flex;flex-direction:column;gap:6px}
+.newdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff5a2a;vertical-align:middle;margin-left:4px;box-shadow:0 0 6px #ff8a1a}
+.newsv{background:rgba(10,18,48,.55);border:2px solid var(--ink);padding:6px 10px}.newsv.last{box-shadow:0 0 0 2px var(--yellow)}
+.newsv h3{margin:2px 0 4px}.newsv h3 small{font-size:12px;color:var(--chalk)}.newtag{font-size:12px;background:var(--yellow);color:#000;padding:1px 6px;margin-left:6px}
+.newsv ul{margin:0;padding-left:18px;font-size:14px;line-height:1.45}.newsv li{margin:3px 0}
 .hwlogin{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
 .hwday{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 2px;background:rgba(10,4,20,.5);border:2px solid #5a2a7a;text-align:center;min-width:0}
 .hwday span{font-size:22px}.hwday small{font-size:9px;line-height:1.1}.hwday small:first-child{font-size:11px;color:#ffa23a}
@@ -851,6 +855,7 @@ const EN_TEXT = {
   'Contraseña': 'Password',
   'Control': 'Control',
   'Controles': 'Controls',
+  'Controles: si pulsas Pase o Tiro justo antes de recibir el balón, ahora pasas o chutas al primer toque (antes hacías una entrada sin querer).': 'Controls: if you press Pass or Shoot just before receiving the ball, you now pass or shoot first-time (before, you did a tackle by mistake).',
   'Convoca a': 'Call up',
   'Copa Inazuma': 'Inazuma Cup',
   'Copa Inazuma ·': 'Inazuma Cup ·',
@@ -913,6 +918,7 @@ const EN_TEXT = {
   'Duración del partido': 'Match length',
   'Día {0}': 'Day {0}',
   'Día {0}:': 'Day {0}:',
+  'El Kappa del código PESCADINHA pasa a media 85.': 'The Kappa from the PESCADINHA code is now rated 85.',
   'El Mundial': 'The World Cup',
   'El Ocultismo te ha asustado…': 'Occult gave you a fright…',
   'El astro del balón - Versión para piano': 'The Football Star - Piano Version',
@@ -922,6 +928,7 @@ const EN_TEXT = {
   'El código está': 'The code is',
   'El director no está contento: últimos de Tercera.': 'The headmaster isn\'t happy: bottom of the Third Division.',
   'El equipo descansa y recupera la forma.': 'The team rests and recovers its form.',
+  'El juego, traducido al inglés (cámbialo en Ajustes).': 'The game, translated into English (change it in Settings).',
   'El lado oscuro': 'The Dark Side',
   'El nombre de usuario debe tener entre 3 y 16 letras o números.': 'Usernames must be 3 to 16 letters or numbers.',
   'El partido rápido no da monedas ni tickets, pero las victorias cuentan para el Rayo Raimon.': 'Quick matches give no coins or tickets, but wins count towards the Raimon Bolt.',
@@ -1075,6 +1082,7 @@ const EN_TEXT = {
   'Grupo': 'Group',
   'Guardada el ': 'Saved on ',
   'Guardada en la nube ✓': 'Saved to the cloud ✓',
+  'Guardado en la nube arreglado: ¡erais tantos que reventasteis el servidor! Ahora la partida se sube como mucho una vez por minuto y al salir del juego.': 'Cloud saving fixed: there were so many of you that you blew up the server! Your save is now uploaded at most once a minute and when you leave the game.',
   'Guardado en la nube ✓': 'Saved to the cloud ✓',
   'Guardando antes de salir…': 'Saving before leaving…',
   'Guardando…': 'Saving…',
@@ -1086,6 +1094,7 @@ const EN_TEXT = {
   'Génesis - Los superhumanos': 'Genesis - The Superhumans',
   'Habilidad': 'Skill',
   'Halloween': 'Halloween',
+  'Halloween: premios por entrar 5 días (no hace falta que sean seguidos): 150 caramelos, 10 tickets, 1000 monedas, elegir 1 de 3 jugadores de +80 y Jim (Oscuro) de regalo.': 'Halloween: login rewards for 5 days (they don\'t have to be in a row): 150 candies, 10 tickets, 1000 coins, pick 1 of 3 players rated 80+, and a free Jim (Dark).',
   'Has completado la carrera. Tu club entra en el salón de la fama… y puedes seguir jugando temporadas para siempre (los rivales mejoran cada año).': 'You\'ve completed the career. Your club enters the hall of fame… and you can keep playing seasons forever (rivals get better every year).',
   'Has ganado': 'You won',
   'Has llegado a la oleada': 'You reached wave',
@@ -1213,6 +1222,7 @@ const EN_TEXT = {
   'Más joyas al ojear y de mejor nivel': 'More and better gems when scouting',
   'Máximo': 'Maximum',
   'Móvil:': 'Phone:',
+  'Móvil: los botones ya no se «comen» los toques (antes a veces no chutaba ni pasaba).': 'Mobile: the buttons no longer "swallow" taps (sometimes you couldn\'t shoot or pass).',
   'Música de serie': 'Default music',
   'Nadie ha aprendido nada nuevo esta vez, pero todos mejoran el control (+1).': 'Nobody learned anything new this time, but everyone improves their control (+1).',
   'Necesitas al menos': 'You need at least',
@@ -1248,6 +1258,7 @@ const EN_TEXT = {
   'Nota ': 'Rating ',
   'Nueva carrera': 'New career',
   'Nuevas (K tiro)': 'New (K shoots)',
+  'Nuevo apartado de Novedades (este).': 'New "What\'s new" section (this one).',
   'Nunca (PC)': 'Never (PC)',
   'Octavos': 'Round of 16',
   'Ocupas el sitio del club que elijas: su división, su nombre y sus jugadores. Ellos se quedan con tu plantilla. La temporada empieza de nuevo.': 'You take the place of the club you choose: its division, its name and its players. They keep your squad. The season starts again.',
@@ -1263,6 +1274,8 @@ const EN_TEXT = {
   'Opciones avanzadas': 'Advanced options',
   'Opening · Inazuma Eleven': 'Opening · Inazuma Eleven',
   'Opening · Inazuma Eleven 2': 'Opening · Inazuma Eleven 2',
+  'Ordenador: en Ajustes puedes elegir las teclas nuevas (K tiro) o las clásicas (L tiro), como antes.': 'Computer: in Settings you can pick the new keys (K shoots) or the classic ones (L shoots), like before.',
+  'Ordenador: teclas más cómodas (J/Z pase, K/X tiro, L/C profundidad, I/V regate, E cambiar técnica) y aviso de que se puede jugar con mando.': 'Computer: comfier keys (J/Z pass, K/X shoot, L/C through ball, I/V dribble, E change move) and a note that you can play with a controller.',
   'Ordenados de peor a mejor. Se va del club sin cobrar nada.': 'Sorted from worst to best. They leave the club for nothing.',
   'Oro ': 'Gold ',
   'Osakaland': 'Osakaland',
@@ -1290,6 +1303,7 @@ const EN_TEXT = {
   'Partidos · Inazuma Eleven': 'Matches · Inazuma Eleven',
   'Partidos · Inazuma Eleven 2': 'Matches · Inazuma Eleven 2',
   'Pase': 'Pass',
+  'Pase ya no hace entradas a tus propios compañeros.': 'Pass no longer tackles your own teammates.',
   'Pausa': 'Pause',
   'Pega aquí el código (empieza por IRZ1:)': 'Paste the code here (it starts with IRZ1:)',
   'Pega aquí un código de partida para cargarlo': 'Paste a save code here to load it',
@@ -1400,6 +1414,7 @@ const EN_TEXT = {
   'Sesión cerrada': 'Logged out',
   'Shift': 'Shift',
   'Si jugabas en la': 'If you used to play on the',
+  'Si la nube está saturada, tu partida sigue a salvo en tu dispositivo y se sube más tarde sola.': 'If the cloud is overloaded, your save stays safe on your device and uploads later on its own.',
   'Siempre': 'Always',
   'Siguiente ronda: ': 'Next round: ',
   'Simulación': 'Simulation',
@@ -1752,6 +1767,7 @@ const EN_TEXT = {
   '¡La técnica supera al portero!': 'The technique beats the goalkeeper!',
   '¡Llega el Inazuma 3!': 'Inazuma 3 is here!',
   '¡Llega el Mundial!': 'The World Cup is here!',
+  '¡NUEVO!': 'NEW!',
   '¡Nuevos jugadores!': 'New players!',
   '¡Para el portero rival!': 'The rival goalkeeper stops it!',
   '¡Parada!': 'Save!',
@@ -1858,6 +1874,7 @@ const EN_TEXT = {
   '🎁 Recoger el premio del día {0}': '🎁 Claim the day {0} prize',
   '🎁 Regalo diario:': '🎁 Daily gift:',
   '🎁 regalo': '🎁 gift',
+  '🎃 Evento de Halloween del 22 de octubre al 3 de noviembre: Sobre Calabaza con 5 legendarios de miedo, caramelos, partido jefe contra el Ocultismo en un campo con niebla, retos y Ray Dark como mánager en el Modo Carrera.': '🎃 Halloween event from 22 October to 3 November: Pumpkin Pack with 5 spooky legendaries, candies, a boss match against Occult on a foggy pitch, challenges and Ray Dark as a Career Mode manager.',
   '🎃 Evento forzado: NO': '🎃 Event forced: NO',
   '🎃 Evento forzado: SÍ': '🎃 Event forced: YES',
   '🎓 Se gradúan ({0}):': '🎓 Graduating ({0}):',
@@ -1899,6 +1916,7 @@ const EN_TEXT = {
   '📥 Cargar este código': '📥 Load this code',
   '📦 Traer partida de la versión antigua': '📦 Bring a save from the old version',
   '📦 ¿Jugabas en la versión antigua? Trae tu partida': '📦 Did you play the old version? Bring your save',
+  '📰 Novedades': '📰 What\'s new',
   '📱 La de este móvil': '📱 The one on this device',
   '🔄 Equipo 2 (los otros 5)': '🔄 Team 2 (the other 5)',
   '🔊 Efectos': '🔊 Effects',
@@ -2686,8 +2704,14 @@ const Logic = (() => {
         else shoot(s, me, ch, x);
       }
     } else {
-      s.shoot.charging = false; s.shoot.charge = 0; s.pass = null;
-      if (pr.has('A')) startTackle(s, me);
+      // Balón que viene hacia ti (un pase tuyo o suelto de tu equipo cerca): Pase/Tiro esperan a que lo recibas
+      // (antes, pulsar Pase un instante antes de recibir hacía una entrada y no pasaba)
+      const toMe = !b.owner && (b.intended === me.id || (b.lastTeam === me.team && dist(me, b) < 4));
+      if (!(toMe && input.shootHeld)) { s.shoot.charging = false; s.shoot.charge = 0; }
+      s.pass = null;
+      if (toMe) { pr.keep('A'); pr.keep('shoot'); }
+      else if (b.owner && b.owner.team === me.team) pr.has('A');   // un compañero lleva el balón: no hay entrada que hacer
+      else if (pr.has('A')) startTackle(s, me);
       if (pr.has('switch')) switchPlayer(s, { x, y });
       if (pr.has('tech')) tryTech(s, me, x);
       else if (auto) {
@@ -3098,7 +3122,8 @@ const Logic = (() => {
     const B = s.inBuf || (s.inBuf = {});
     for (const k in B) { B[k] -= dtRaw; if (B[k] <= 0) delete B[k]; }
     for (const a of input.pressed || []) B[a] = BUF_T;
-    return Object.assign({}, input, { pressed: { has: a => { if (B[a] > 0) { delete B[a]; return true; } return false; }, peek: a => B[a] > 0 } });   // copia: no se toca la entrada original
+    return Object.assign({}, input, { pressed: { has: a => { if (B[a] > 0) { delete B[a]; return true; } return false; }, peek: a => B[a] > 0,
+      keep: a => { if (B[a] > 0) B[a] = BUF_T; } } });   // copia: no se toca la entrada original; keep = alargar la espera
   }
 
   function update(s, input, dtRaw) {
@@ -6579,7 +6604,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.31.4';
+const VERSION = '0.31.5';
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
@@ -6659,6 +6684,7 @@ const App = (() => {
         <button class="ghost big" id="mSound">${TX('Ajustes')}<small>${TX('Partido, controles y sonido')}</small></button>
       </div>
       <div class="grid2"><button class="ghost" id="mGift">${TX('🎁 Código de regalo')}</button><button class="ghost" id="mSaves">${TX('👤 Cuenta')}${Cloud.loggedIn() ? ' · ' + esc(Cloud.user()) : ''}</button></div>
+      <button class="ghost" id="mNews">${TX('📰 Novedades')} · v${VERSION}${settings.seenNews !== VERSION ? ' <i class="newdot"></i>' : ''}</button>
       <div data-cloudline>${cloudLine()}</div>
       ${Controls.pc() ? `<p class="note gpnote">${TX('🎮 ¿Tienes mando? Conéctalo y juega: Xbox, PlayStation o genérico.')} <small>${TX('Los botones están en Ajustes.')}</small></p>` : ''}
       ${r ? '<button class="ghost" id="mAbandon">' + TX('Abandonar partida en curso') + '</button>' : ''}
@@ -6678,6 +6704,8 @@ const App = (() => {
     $('mInf').onclick = () => { if (!done) return UI.toast(TX('Completa la Etapa 1 de la Historia')); if (!busy()) { newDraft('infinite', {}); tutorial('infinite'); } };
     $('mGacha').onclick = renderGacha; $('mTeam').onclick = () => renderTeam();
     $('mGift').onclick = renderGift;
+    $('mNews').onclick = () => renderNews(renderMenu);
+    if (settings.seenNews !== VERSION && settings.newsShown !== VERSION) { settings.newsShown = VERSION; saveSettings(); setTimeout(() => { if ($('mNews')) renderNews(renderMenu); }, 400); }   // la primera vez tras actualizar
     $('mSaves').onclick = () => renderAccount(renderMenu);
     body.querySelector('[data-cloudline]').onclick = () => renderAccount(renderMenu);
     $('mQuick').onclick = startQuick; $('mSound').onclick = renderSettings;
@@ -8363,6 +8391,34 @@ const App = (() => {
   }
 
   /* ---------- Códigos de regalo ---------- */
+  /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
+  const NEWS = [
+    { v: '0.31.5', date: '21/10/2026', items: [
+      TX('Controles: si pulsas Pase o Tiro justo antes de recibir el balón, ahora pasas o chutas al primer toque (antes hacías una entrada sin querer).'),
+      TX('Pase ya no hace entradas a tus propios compañeros.'),
+      TX('Nuevo apartado de Novedades (este).')] },
+    { v: '0.31.4', date: '21/10/2026', items: [
+      TX('Halloween: premios por entrar 5 días (no hace falta que sean seguidos): 150 caramelos, 10 tickets, 1000 monedas, elegir 1 de 3 jugadores de +80 y Jim (Oscuro) de regalo.'),
+      TX('Ordenador: en Ajustes puedes elegir las teclas nuevas (K tiro) o las clásicas (L tiro), como antes.')] },
+    { v: '0.31.3', date: '21/10/2026', items: [
+      TX('Guardado en la nube arreglado: ¡erais tantos que reventasteis el servidor! Ahora la partida se sube como mucho una vez por minuto y al salir del juego.'),
+      TX('Si la nube está saturada, tu partida sigue a salvo en tu dispositivo y se sube más tarde sola.')] },
+    { v: '0.31.2', date: '21/10/2026', items: [
+      TX('Móvil: los botones ya no se «comen» los toques (antes a veces no chutaba ni pasaba).'),
+      TX('Ordenador: teclas más cómodas (J/Z pase, K/X tiro, L/C profundidad, I/V regate, E cambiar técnica) y aviso de que se puede jugar con mando.'),
+      TX('El Kappa del código PESCADINHA pasa a media 85.')] },
+    { v: '0.31.1', date: '21/10/2026', items: [
+      TX('🎃 Evento de Halloween del 22 de octubre al 3 de noviembre: Sobre Calabaza con 5 legendarios de miedo, caramelos, partido jefe contra el Ocultismo en un campo con niebla, retos y Ray Dark como mánager en el Modo Carrera.')] },
+    { v: '0.31.0', date: '', items: [TX('El juego, traducido al inglés (cámbialo en Ajustes).')] },
+  ];
+  function renderNews(back = renderMenu) {
+    settings.seenNews = VERSION; saveSettings();
+    screen(`${top(TX('📰 Novedades'))}
+      ${NEWS.map((n, i) => `<div class="newsv${i === 0 ? ' last' : ''}"><h3>v${n.v}${n.date ? ` <small>${n.date}</small>` : ''}${i === 0 ? ` <span class="newtag">${TX('¡NUEVO!')}</span>` : ''}</h3>
+        <ul>${n.items.map(t => `<li>${t}</li>`).join('')}</ul></div>`).join('')}
+      ${bottom(`<button class="cta" id="newsOk">${TX('¡A jugar!')}</button>`)}`, 'bg_title');
+    $('back').onclick = back; $('newsOk').onclick = back;
+  }
   function renderGift() {
     const P = Profile.data, used = Object.entries(P.codes || {}).sort((x, y) => y[1] - x[1]);
     screen(`${top(TX('Código de regalo'))}${wallet()}

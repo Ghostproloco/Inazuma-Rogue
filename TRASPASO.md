@@ -83,6 +83,13 @@ Cómo está hecho:
   si la cuota está agotada avisa «La nube está saturada… tu partida está a salvo» y reintenta a los 10, 30 y 60 min (`RETRY_QUOTA`).
 - Escenarios nuevos 20–22 en `test/cloud.js`. Si aun así se queda corto, la solución es pasar Firebase al plan Blaze (de pago por uso, con alerta de gasto).
 
+### v0.31.5 · Novedades y otro arreglo de controles
+- **Controles**: pulsar Pase o Tiro justo antes de recibir hacía una **entrada** (el jugador aún no tenía el balón). Ahora, si el balón viene hacia ti
+  (pase tuyo o suelto de tu equipo cerca), Pase/Tiro esperan a que lo recibas (`pr.keep`): pase o tiro al primer toque. Pase ya no hace entradas a un compañero.
+  Pruebas 6–8 en `test/input.js` (fallan con el código de antes).
+- **📰 Novedades**: botón en el menú (con punto si no las has visto) y se abren solas la primera vez tras actualizar (`settings.seenNews`).
+  Las notas están en `NEWS` (`src/app.js`); **al sacar una versión nueva, añade su entrada arriba** (con traducción).
+
 ### v0.31.4 · Teclas del ordenador a elegir
 - Ajustes → Controles → «Teclas del ordenador»: **Nuevas** (K tiro / cambiar, L profundidad, E técnica) o **Clásicas** (como hasta la 0.31.1: L tiro, K profundidad, Q cambiar, U técnica).
   Z X C V (con las flechas), Q, U y E valen en las dos. `settings.keys`, `SCHEMES` en `src/view.js`; la barra de teclas y el texto de Ajustes cambian según la elección.

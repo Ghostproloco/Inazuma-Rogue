@@ -508,8 +508,14 @@ const Logic = (() => {
         else shoot(s, me, ch, x);
       }
     } else {
-      s.shoot.charging = false; s.shoot.charge = 0; s.pass = null;
-      if (pr.has('A')) startTackle(s, me);
+      // Balón que viene hacia ti (un pase tuyo o suelto de tu equipo cerca): Pase/Tiro esperan a que lo recibas
+      // (antes, pulsar Pase un instante antes de recibir hacía una entrada y no pasaba)
+      const toMe = !b.owner && (b.intended === me.id || (b.lastTeam === me.team && dist(me, b) < 4));
+      if (!(toMe && input.shootHeld)) { s.shoot.charging = false; s.shoot.charge = 0; }
+      s.pass = null;
+      if (toMe) { pr.keep('A'); pr.keep('shoot'); }
+      else if (b.owner && b.owner.team === me.team) pr.has('A');   // un compañero lleva el balón: no hay entrada que hacer
+      else if (pr.has('A')) startTackle(s, me);
       if (pr.has('switch')) switchPlayer(s, { x, y });
       if (pr.has('tech')) tryTech(s, me, x);
       else if (auto) {
@@ -920,7 +926,8 @@ const Logic = (() => {
     const B = s.inBuf || (s.inBuf = {});
     for (const k in B) { B[k] -= dtRaw; if (B[k] <= 0) delete B[k]; }
     for (const a of input.pressed || []) B[a] = BUF_T;
-    return Object.assign({}, input, { pressed: { has: a => { if (B[a] > 0) { delete B[a]; return true; } return false; }, peek: a => B[a] > 0 } });   // copia: no se toca la entrada original
+    return Object.assign({}, input, { pressed: { has: a => { if (B[a] > 0) { delete B[a]; return true; } return false; }, peek: a => B[a] > 0,
+      keep: a => { if (B[a] > 0) B[a] = BUF_T; } } });   // copia: no se toca la entrada original; keep = alargar la espera
   }
 
   function update(s, input, dtRaw) {

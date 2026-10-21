@@ -17,7 +17,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.31.4';
+const VERSION = '0.31.5';
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
@@ -97,6 +97,7 @@ const App = (() => {
         <button class="ghost big" id="mSound">${TX('Ajustes')}<small>${TX('Partido, controles y sonido')}</small></button>
       </div>
       <div class="grid2"><button class="ghost" id="mGift">${TX('🎁 Código de regalo')}</button><button class="ghost" id="mSaves">${TX('👤 Cuenta')}${Cloud.loggedIn() ? ' · ' + esc(Cloud.user()) : ''}</button></div>
+      <button class="ghost" id="mNews">${TX('📰 Novedades')} · v${VERSION}${settings.seenNews !== VERSION ? ' <i class="newdot"></i>' : ''}</button>
       <div data-cloudline>${cloudLine()}</div>
       ${Controls.pc() ? `<p class="note gpnote">${TX('🎮 ¿Tienes mando? Conéctalo y juega: Xbox, PlayStation o genérico.')} <small>${TX('Los botones están en Ajustes.')}</small></p>` : ''}
       ${r ? '<button class="ghost" id="mAbandon">' + TX('Abandonar partida en curso') + '</button>' : ''}
@@ -116,6 +117,8 @@ const App = (() => {
     $('mInf').onclick = () => { if (!done) return UI.toast(TX('Completa la Etapa 1 de la Historia')); if (!busy()) { newDraft('infinite', {}); tutorial('infinite'); } };
     $('mGacha').onclick = renderGacha; $('mTeam').onclick = () => renderTeam();
     $('mGift').onclick = renderGift;
+    $('mNews').onclick = () => renderNews(renderMenu);
+    if (settings.seenNews !== VERSION && settings.newsShown !== VERSION) { settings.newsShown = VERSION; saveSettings(); setTimeout(() => { if ($('mNews')) renderNews(renderMenu); }, 400); }   // la primera vez tras actualizar
     $('mSaves').onclick = () => renderAccount(renderMenu);
     body.querySelector('[data-cloudline]').onclick = () => renderAccount(renderMenu);
     $('mQuick').onclick = startQuick; $('mSound').onclick = renderSettings;
@@ -1801,6 +1804,34 @@ const App = (() => {
   }
 
   /* ---------- Códigos de regalo ---------- */
+  /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
+  const NEWS = [
+    { v: '0.31.5', date: '21/10/2026', items: [
+      TX('Controles: si pulsas Pase o Tiro justo antes de recibir el balón, ahora pasas o chutas al primer toque (antes hacías una entrada sin querer).'),
+      TX('Pase ya no hace entradas a tus propios compañeros.'),
+      TX('Nuevo apartado de Novedades (este).')] },
+    { v: '0.31.4', date: '21/10/2026', items: [
+      TX('Halloween: premios por entrar 5 días (no hace falta que sean seguidos): 150 caramelos, 10 tickets, 1000 monedas, elegir 1 de 3 jugadores de +80 y Jim (Oscuro) de regalo.'),
+      TX('Ordenador: en Ajustes puedes elegir las teclas nuevas (K tiro) o las clásicas (L tiro), como antes.')] },
+    { v: '0.31.3', date: '21/10/2026', items: [
+      TX('Guardado en la nube arreglado: ¡erais tantos que reventasteis el servidor! Ahora la partida se sube como mucho una vez por minuto y al salir del juego.'),
+      TX('Si la nube está saturada, tu partida sigue a salvo en tu dispositivo y se sube más tarde sola.')] },
+    { v: '0.31.2', date: '21/10/2026', items: [
+      TX('Móvil: los botones ya no se «comen» los toques (antes a veces no chutaba ni pasaba).'),
+      TX('Ordenador: teclas más cómodas (J/Z pase, K/X tiro, L/C profundidad, I/V regate, E cambiar técnica) y aviso de que se puede jugar con mando.'),
+      TX('El Kappa del código PESCADINHA pasa a media 85.')] },
+    { v: '0.31.1', date: '21/10/2026', items: [
+      TX('🎃 Evento de Halloween del 22 de octubre al 3 de noviembre: Sobre Calabaza con 5 legendarios de miedo, caramelos, partido jefe contra el Ocultismo en un campo con niebla, retos y Ray Dark como mánager en el Modo Carrera.')] },
+    { v: '0.31.0', date: '', items: [TX('El juego, traducido al inglés (cámbialo en Ajustes).')] },
+  ];
+  function renderNews(back = renderMenu) {
+    settings.seenNews = VERSION; saveSettings();
+    screen(`${top(TX('📰 Novedades'))}
+      ${NEWS.map((n, i) => `<div class="newsv${i === 0 ? ' last' : ''}"><h3>v${n.v}${n.date ? ` <small>${n.date}</small>` : ''}${i === 0 ? ` <span class="newtag">${TX('¡NUEVO!')}</span>` : ''}</h3>
+        <ul>${n.items.map(t => `<li>${t}</li>`).join('')}</ul></div>`).join('')}
+      ${bottom(`<button class="cta" id="newsOk">${TX('¡A jugar!')}</button>`)}`, 'bg_title');
+    $('back').onclick = back; $('newsOk').onclick = back;
+  }
   function renderGift() {
     const P = Profile.data, used = Object.entries(P.codes || {}).sort((x, y) => y[1] - x[1]);
     screen(`${top(TX('Código de regalo'))}${wallet()}

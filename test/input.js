@@ -15,6 +15,7 @@ function setup() {
   p.x = Logic.FIELD.w / 2; p.y = 14; s.controlledId = p.id; Logic._t.take(s, p); s.events.length = 0;
   return { s, p };
 }
+const still = (o = {}) => Object.assign({ move: { x: 0, y: 0 }, sprint: false, shootHeld: false, passHeld: false, pressed: new Set() }, o);
 const idle = (o = {}) => Object.assign({ move: { x: 0, y: -1 }, sprint: false, shootHeld: false, passHeld: false, pressed: new Set() }, o);
 const run = (s, inputs) => { for (const i of inputs) Logic.update(s, i, 1 / 60); };
 const shot = s => s.events.some(e => e.type === 'shot') || !!s.ball.shot;
@@ -49,6 +50,36 @@ console.log('5. El búfer caduca (no hace cosas raras mucho después)');
 p.recover = 0.6;
 run(s, [idle({ pressed: new Set(['A']) }), ...Array(50).fill(idle())]);
 ok(!passed(s, p), 'si tarda más de 0,25 s, el toque se olvida');
+
+console.log('6. Pulsar Pase justo ANTES de recibir un pase');
+function incoming() {
+  const { s, p } = setup();
+  const mate = s.players.find(q => q.team === 'A' && q !== p && q.role !== 'POR');
+  mate.stun = 0; mate.x = p.x; mate.y = p.y + 8; Logic._t.take(s, mate);
+  s.controlledId = mate.id;
+  // el compañero me la pasa: el balón va hacia mí
+  Object.assign(s.ball, { owner: null, x: p.x, y: p.y + 6, z: 0, vx: 0, vy: -14, vz: 0, lastTeam: 'A', intended: p.id });
+  s.controlledId = p.id; p.stun = 0; mate.stun = 999;
+  return { s, p };
+}
+({ s, p } = incoming());
+run(s, [still({ pressed: new Set(['A']) })]);
+ok(!p.tackle, 'no hace una entrada (antes sí)');
+let got = false, gone = false;
+for (let i = 0; i < 240 && !gone; i++) { run(s, [still()]); if (s.ball.owner === p) got = true; if (got && s.ball.owner !== p) gone = true; }
+ok(got && gone, 'recibe y el pase sale solo, al primer toque');
+
+console.log('7. Tiro al primer toque (pulsas Tiro mientras llega el balón)');
+({ s, p } = incoming());
+run(s, [still({ pressed: new Set(['shoot']) })]);
+let shotOk = false; for (let i = 0; i < 240 && !shotOk; i++) { run(s, [still()]); if (s.ball.shot) shotOk = true; }
+ok(shotOk, 'chuta nada más recibir');
+
+console.log('8. Con el balón en los pies de un compañero, Pase no hace una entrada');
+({ s, p } = setup());
+const m2 = s.players.find(q => q.team === 'A' && q !== p && q.role !== 'POR'); m2.stun = 0; Logic._t.take(s, m2); s.controlledId = p.id;
+run(s, [still({ pressed: new Set(['A']) }), still()]);
+ok(!p.tackle, 'nada de entradas a tu propio compañero');
 
 console.log(fails ? '\n✗ ' + fails + ' fallos' : '\n✓ Todo bien');
 process.exit(fails ? 1 : 0);
