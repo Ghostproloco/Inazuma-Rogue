@@ -39,9 +39,9 @@
   const BG = 'radial-gradient(circle at 50% 110%,#7a2a05 0,#2a0a3a 45%,#07030c 80%)';
 
   add(2400, () => layer(`<div class="tz-c"><div class="tz-wh">Algo oscuro se acerca…</div></div>`, 'radial-gradient(circle at 50% 50%,#1a0a2a 0,#000 75%)'));
-  add(900, () => { boom(); layer(`<div class="tz-shot" style="background-image:url('tshots/05_jefe.png')"></div>`); });
+  add(1200, () => { boom(); layer(`<div class="tz-shot" style="background-image:url('tshots/05_jefe.png')"></div>`); });
   add(1700, () => layer(`<div class="tz-c"><div class="tz-face" style="background-position:0 -${2 * 220}px"></div><div class="tz-q">¿?</div></div>`, '#000'));
-  add(700, () => { boom(); layer(`<div class="tz-shot" style="background-image:url('tshots/04_cartas.png');background-position:center 85%"></div>`); });
+  add(1200, () => layer(`<div class="tz-shot" style="background-image:url('tshots/04_cartas.png');background-position:center 85%"></div>`));
   add(3800, () => { boom(); layer(`<div class="tz-c"><div class="tz-big">Mañana…</div><div class="tz-date">22 OCT</div><img class="tz-logo" src="ui/logo_rogue.png" alt=""><div class="tz-small">Evento especial de Halloween</div></div>`, BG); });
   add(0, () => { window.__trailerDone = true; });
   S.forEach(([ms, fn]) => setTimeout(fn, ms * SLOW));
