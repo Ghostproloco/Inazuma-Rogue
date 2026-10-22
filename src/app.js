@@ -17,7 +17,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.31.8';
+const VERSION = '0.31.9';
 const DISCORD_URL = 'https://discord.gg/G6SyT2rZW', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 const App = (() => {
@@ -166,7 +166,7 @@ const App = (() => {
   const AVISO = { key: 'munecos-ie3', title: TX('🎨 ¡Muñecos del Inazuma 3 arreglados!'),
     text: TX('Muchos jugadores del 3 llevaban en el campo un muñeco que no era el suyo. Ahora todos llevan su muñeco de verdad, sacado del juego original: su peinado, sus colores y su tono de piel. Mac Robingo, Hector Helio, Edgar Partinus, Dylan Keith, Byron Love y muchos más ya se ven como tienen que verse.') };
   function aviso() {
-    if (!Profile.data.firstDone || settings.aviso === AVISO.key || document.querySelector('.tutbox')) return;
+    if (!Profile.data.firstDone || settings.aviso === AVISO.key || document.querySelector('.tutbox') || $('newsOk') || !$('mNews')) return;   // no encima de las Novedades
     settings.aviso = AVISO.key; saveSettings();
     const d = document.createElement('div'); d.className = 'tutbox';
     d.innerHTML = `<div class="tutin"><h2>${AVISO.title}</h2><p>${AVISO.text}</p><button class="cta">${TX('¡A jugar!')}</button></div>`;
@@ -1942,6 +1942,12 @@ const App = (() => {
   }
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
+    { v: '0.31.9', date: '23/10/2026', items: [
+      TX('👕 ¡Equipaciones! Elige en Plantilla → Mi equipo la que llevan tus jugadores: Inazuma Japón, Royal Academy, Zeus, Génesis, Orpheus, The Kingdom y más.'),
+      TX('🎨 Muñecos del Inazuma 3 arreglados: todos llevan su muñeco de verdad, sacado del juego original (peinado, colores y tono de piel), y ahora cambian a los colores de su equipo.'),
+      TX('Plantilla: en Jugadores ves la nota y el elemento de cada uno, y en Mi equipo el elemento de cada jugador en el campo.'),
+      TX('Equipos especiales: cada equipo da un jugador distinto (ya no se repite el premio).'),
+      TX('Arreglado: ya no se puede salir por la línea de fondo con el balón para rodear al portero. Si cruzas una línea con el balón, es fuera.')] },
     { v: '0.31.8', date: '22/10/2026', items: [
       TX('💬 ¡Ya tenemos Discord! Entra desde el botón del menú.'),
       TX('Móvil: joystick más grande y con zona muerta; ya no esprintas sin querer (para esprintar, lleva el dedo más allá del aro).'),
@@ -1974,7 +1980,7 @@ const App = (() => {
     { v: '0.31.0', date: '', items: [TX('El juego, traducido al inglés (cámbialo en Ajustes).')] },
   ];
   function renderNews(back = renderMenu) {
-    settings.seenNews = VERSION; saveSettings();
+    settings.seenNews = VERSION; settings.aviso = AVISO.key; saveSettings();   // las Novedades ya cuentan lo del aviso
     screen(`${top(TX('📰 Novedades'))}
       ${NEWS.map((n, i) => `<div class="newsv${i === 0 ? ' last' : ''}"><h3>v${n.v}${n.date ? ` <small>${n.date}</small>` : ''}${i === 0 ? ` <span class="newtag">${TX('¡NUEVO!')}</span>` : ''}</h3>
         <ul>${n.items.map(t => `<li>${t}</li>`).join('')}</ul></div>`).join('')}
