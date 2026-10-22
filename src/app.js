@@ -503,7 +503,7 @@ const App = (() => {
     api.mode = 'hwboss';
     const A = { name: TX('Tu equipo'), players: L.map((id, i) => {
       const pd = PLAYER(id);
-      return Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: Sprites.refOf(pd) });
+      return Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: mySprite(pd, F.roles[i]) });
     }) };
     startMatch({ A, B: Halloween.bossTeam() }, false, 'niebla', 'match', 'Occult');
   }
@@ -681,8 +681,21 @@ const App = (() => {
         $('tk').appendChild(c);
       });
     } else if (teamTab === 'equipo') {
-      screen(`${top(TX('Plantilla'))}${tabs}<p class="note">${TX('Este es el equipo que sale en el partido rápido y al empezar cualquier modo. Se guarda solo.')}</p><div id="ed"></div>`);
+      screen(`${top(TX('Plantilla'))}${tabs}<p class="note">${TX('Este es el equipo que sale en el partido rápido y al empezar cualquier modo. Se guarda solo.')}</p>
+        <h3>${TX('Equipación')} <small>${TX('la llevan tus jugadores de campo en todos los modos (menos en la Carrera)')}</small></h3><div class="kitpick" id="kits"></div><div id="ed"></div>`);
       if (!api.myTeam) api.myTeam = savedTeam();
+      const drawKits = () => {
+        const box = $('kits'), cur = (KITS.find(K => K.key === Profile.data.kit && kitOpen(K)) || KITS[0]).key; box.innerHTML = '';
+        const who = PLAYER((api.myTeam.ids || []).find(id => id != null && PLAYER(id).role !== 'POR') || 10);
+        KITS.filter(kitOpen).forEach(K => {
+          const b = document.createElement('button'); b.className = 'kitopt' + (K.key === cur ? ' sel' : '');
+          b.appendChild(K.kit ? Sprites.kitPreview(Sprites.refOf(who), K.kit, 1.5) : Sprites.portrait(Sprites.refOf(who), 1.5));
+          b.insertAdjacentHTML('beforeend', `<small>${esc(K.name)}</small>`);
+          b.onclick = () => { Profile.data.kit = K.key; Profile.save(); Sound.sfx('click'); drawKits(); };
+          box.appendChild(b);
+        });
+      };
+      drawKits();
       teamEditor($('ed'), api.myTeam, () => saveTeam(api.myTeam));
     } else {
       const all = sortedIds(teamFilter); if (SORTS[teamSort]) all.sort(SORTS[teamSort]);
@@ -800,7 +813,7 @@ const App = (() => {
     if (L.some(x => x == null)) return UI.toast(TX('Completa tu equipo en Plantilla'));
     const A = { name: TX('Tu equipo'), players: L.map((id, i) => {
       const pd = PLAYER(id);
-      return Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: Sprites.refOf(pd) });
+      return Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: mySprite(pd, F.roles[i]) });
     }) };
     const key = RIVAL_ORDER[Math.floor(Math.random() * RIVAL_ORDER.length)];
     startMatch({ A, B: rivalTeam(key, 0.9, 0.5) }, false, TEAM_FIELD[key], 'match', key);

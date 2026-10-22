@@ -513,6 +513,7 @@ details.tgroup .tracks{margin-top:8px}
 .pslot .pr{font-size:12px;background:var(--navy-d);border:1px solid var(--ink);padding:0 4px;color:var(--sky-t);margin-top:2px}
 .pslot .pn{font-size:12px;text-shadow:1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ptile .slot{font-size:12px}
+.kitpick{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 8px;margin-bottom:6px}.kitopt{flex:0 0 auto;width:86px;display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--navy);border:2px solid var(--ink);box-shadow:0 0 0 2px #5a7ab8;color:var(--chalk);padding:4px 2px;cursor:pointer;font-family:var(--font-ui)}.kitopt small{font-size:10px;line-height:1.15;text-align:center}.kitopt.sel{box-shadow:0 0 0 2px var(--yellow);background:#3a5aa0}
 .pslot .pe{display:block;line-height:1}.pslot .pe .chip{font-size:9px;padding:0 3px}
 .tmp{font-style:normal;font-size:12px;background:#7c4dd1;color:#fff;padding:0 3px}
 .pgrid > .note{grid-column:1/-1}
@@ -1000,6 +1001,7 @@ const EN_TEXT = {
   'Eliminados en semifinales': 'Knocked out in the semi-finals',
   'Eliminatoria: si hay empate, penaltis': 'Knockout: penalties if it\'s a draw',
   'Empate': 'Draw',
+  'Emperadores Oscuros': 'Dark Emperors',
   'Emperadores Oscuros - El campo del trueno': 'Dark Emperors - The Thunder Pitch',
   'Empezar': 'Start',
   'Empezar carrera': 'Start career',
@@ -1141,6 +1143,7 @@ const EN_TEXT = {
   'Guardar en la nube': 'Save to the cloud',
   'Gánale: +60 🍬 (una vez al día)': 'Beat them: +60 🍬 (once a day)',
   'Géminis - El balón negro': 'Gemini - The Black Ball',
+  'Génesis': 'Genesis',
   'Génesis - El equipo G': 'Genesis - Team G',
   'Génesis - Los superhumanos': 'Genesis - The Superhumans',
   'Habilidad': 'Skill',
@@ -1196,6 +1199,7 @@ const EN_TEXT = {
   'J{0}': 'MD{0}',
   'Kappa legendario, vale para cualquier puesto': 'Legendary Kappa, fits any position',
   'Kirkwood, Royal Academy y Zeus, uno detrás de otro y al máximo.': 'Kirkwood, Royal Academy and Zeus, back to back and at full strength.',
+  'Knights of Queen (Inglaterra)': 'Knights of Queen (England)',
   'La Caravana Inazuma': 'The Inazuma Caravan',
   'La Copa empieza la temporada que viene': 'The Cup starts next season',
   'La Copa empieza la temporada que viene.': 'The Cup starts next season.',
@@ -1347,6 +1351,7 @@ const EN_TEXT = {
   'Ordenador: teclas más cómodas (J/Z pase, K/X tiro, L/C profundidad, I/V regate, E cambiar técnica) y aviso de que se puede jugar con mando.': 'Computer: comfier keys (J/Z pass, K/X shoot, L/C through ball, I/V dribble, E change move) and a note that you can play with a controller.',
   'Ordenados de peor a mejor. Se va del club sin cobrar nada.': 'Sorted from worst to best. They leave the club for nothing.',
   'Oro ': 'Gold ',
+  'Orpheus (Italia)': 'Orpheus (Italy)',
   'Osakaland': 'Osakaland',
   'Otro partido rápido': 'Another quick match',
   'Otros clubes': 'Other clubs',
@@ -1393,6 +1398,7 @@ const EN_TEXT = {
   'Playoff · semifinales': 'Playoff · semi-finals',
   'Playoff · ¡FINAL!': 'Playoff · THE FINAL!',
   'Playoffs de ascenso': 'Promotion playoffs',
+  'Polvo de Diamantes': 'Diamond Dust',
   'Por oleadas · récord: ': 'Waves · record: ',
   'Portero': 'Goalkeeper',
   'Portero con balón: J pase · K saque largo · L despeje.': 'Keeper with the ball: J pass · K long kick · L clearance.',
@@ -1415,6 +1421,7 @@ const EN_TEXT = {
   'Primero toca el puesto del campo': 'Tap a position on the pitch first',
   'Probabilidades: común 60 % · rara 28 % · épica 10 % · legendaria 2 %. Cada 10 tiradas sin épica, la siguiente lo es seguro.': 'Odds: common 60% · rare 28% · epic 10% · legendary 2%. After 10 pulls without an epic, the next one is guaranteed.',
   'Progreso': 'Progress',
+  'Prominence': 'Prominence',
   'Prominence, Polvo de Diamantes y su fusión, Caos.': 'Prominence, Diamond Dust and their fusion, Chaos.',
   'Pts': 'Pts',
   'Puede aprender': 'Can learn',
@@ -1426,6 +1433,7 @@ const EN_TEXT = {
   'Quedan': 'Ends in',
   'Quitar filtros': 'Clear filters',
   'R. A. Redux - Supertécnicas milagrosas': 'R. A. Redux - Miraculous Special Moves',
+  'Raimon': 'Raimon',
   'Raimon en todas sus versiones, Inazuma Japón, los Veteranos y los amigos de Ciudad Inazuma': 'Raimon in all its versions, Inazuma Japan, the Veterans and friends from Inazuma Town',
   'Ranura': 'Slot',
   'Rapidez': 'Speed',
@@ -1464,6 +1472,7 @@ const EN_TEXT = {
   'Rivales · Inazuma Eleven 2': 'Rivals · Inazuma Eleven 2',
   'Roba arriba, cansa más': 'Win it high, tires more',
   'Roguelite: el partido se acaba si un equipo gana por 5 goles de diferencia.': 'Roguelite: the match ends when a team leads by 5 goals.',
+  'Royal Academy': 'Royal Academy',
   'Royal Academy - Versión del juego': 'Royal Academy - Game Version',
   'Royal Academy, su versión Redux y los Emperadores Oscuros.': 'Royal Academy, its Redux version and the Dark Emperors.',
   'Salir al menú': 'Back to menu',
@@ -1554,6 +1563,7 @@ const EN_TEXT = {
   'Termina o abandona la partida en curso': 'Finish or abandon the current run',
   'Terminar temporada': 'Finish season',
   'Terreno sagrado': 'Sacred Ground',
+  'The Kingdom (Brasil)': 'The Kingdom (Brazil)',
   'Tickets ardientes': 'Burning tickets',
   'Tickets: Historia (1 por victoria y 3 al completarla), Especiales (2), Cadenas (2 al completarlas) e Infinito (2 por oleada especial).': 'Tickets: Story (1 per win and 3 for completing it), Specials (2), Chains (2 for completing them) and Infinite (2 per special wave).',
   'Tiempos difíciles': 'Hard Times',
@@ -1666,6 +1676,7 @@ const EN_TEXT = {
   'Ya tengo cuenta': 'I have an account',
   'Ya tiene 5 estrellas': 'Already has 5 stars',
   'Ya tienes 10: quita uno antes': 'You already have 10: remove one first',
+  'Zeus': 'Zeus',
   'Zeus, Ultra Zeus y Génesis: lo más duro del 1 y del 2.': 'Zeus, Ultra Zeus and Genesis: the toughest of 1 and 2.',
   'Zeus, la Academia Alius, los Emperadores Oscuros, el Ogro, Team D y los demonios': 'Zeus, the Alius Academy, the Dark Emperors, the Ogre, Team D and the demons',
   'Zona residencial - Una promesa solemne': 'Residential Area - A Solemn Promise',
@@ -1745,6 +1756,7 @@ const EN_TEXT = {
   'la Etapa 2, Cadenas, Infinito y nuevos equipos especiales.': 'Stage 2, Chains, Infinite and new special teams.',
   'la Fase 2 de la Etapa 3: el Mundial.': 'Phase 2 of Stage 3: the World Cup.',
   'la cadena «El lado oscuro».': 'the chain «The Dark Side».',
+  'la llevan tus jugadores de campo en todos los modos (menos en la Carrera)': 'worn by your outfield players in every mode (except Career)',
   'la próxima tirada': 'the next pull',
   'la temporada empieza de nuevo': 'the season starts again',
   'las': 'the',
@@ -3532,6 +3544,25 @@ function rivalTeam(teamKey, factor, progress) {
       { sprite: Object.assign({ file: m.file, row: m.row }, t.kit && m.role !== 'POR' ? { kit: t.kit } : {}) });
   }) };
 }
+// Equipaciones para tu equipo (Plantilla → Mi equipo). a = camiseta, b = mangas y pantalón. Sin kit = la del Raimon.
+// Para sacar una por un evento: añade { lock: 'clave' } y desbloquéala con Profile.data.kits[clave] = 1.
+const KITS = [
+  { key: 'raimon', name: TX('Raimon'), kit: null },
+  { key: 'japon', name: TX('Inazuma Japón'), kit: { a: '#1a3aa8', b: '#f2f2f2' } },
+  { key: 'royal', name: TX('Royal Academy'), kit: { a: '#2e3a8c', b: '#c8c8d8' } },
+  { key: 'zeus', name: TX('Zeus'), kit: { a: '#f2f2f2', b: '#d4a82a' } },
+  { key: 'genesis', name: TX('Génesis'), kit: { a: '#e8e8f0', b: '#4a5a83' } },
+  { key: 'prominence', name: TX('Prominence'), kit: { a: '#d82a20', b: '#f2c020' } },
+  { key: 'diamantes', name: TX('Polvo de Diamantes'), kit: { a: '#a8d8f0', b: '#f2f2f2' } },
+  { key: 'oscuros', name: TX('Emperadores Oscuros'), kit: { a: '#3a3a4a', b: '#837bc5' } },
+  { key: 'orpheus', name: TX('Orpheus (Italia)'), kit: { a: '#1a5ad8', b: '#f2f2f2' } },
+  { key: 'kingdom', name: TX('The Kingdom (Brasil)'), kit: { a: '#f2d21a', b: '#1a4ad8' } },
+  { key: 'knights', name: TX('Knights of Queen (Inglaterra)'), kit: { a: '#f2f2f2', b: '#1a2a7a' } },
+];
+const kitOpen = K => !K.lock || !!(Profile.data.kits && Profile.data.kits[K.lock]);
+function myKit() { const K = KITS.find(x => x.key === Profile.data.kit); return K && kitOpen(K) ? K.kit : null; }
+// Muñeco de un jugador de tu equipo con tu equipación (el portero va con la suya)
+function mySprite(pd, role) { const k = role !== 'POR' && myKit(); return Object.assign({ file: Sprites.collFile(pd), row: pd.cs[1] }, k ? { kit: k } : {}); }
 const DIFF_MUL = { facil: 1.08, medio: 1.13, dificil: 1.2 };   // fácil = el antiguo difícil
 
 /* ---------- Perfil permanente: colección, monedas, tickets ---------- */
@@ -3825,7 +3856,7 @@ const Run = {
     const A = { name: TX('Tu equipo'), players: run.lineup.slice(0, 5).map((ri, i) => {
       const m = run.roster[ri], pd = PLAYER(m.id);
       return Object.assign(buildMatchPlayer(m.id, F.roles[i], Run.memberStat(m), m.techs, m.passives, i, pos[i]),
-        { sprite: { file: Sprites.collFile(pd), row: pd.cs[1] } });
+        { sprite: mySprite(pd, F.roles[i]) });
     }) };
     const B = rivalTeam(Run.rivalName(run), Run.rivalFactor(run), Run.progress(run));
     return { A, B };
@@ -7770,7 +7801,7 @@ const App = (() => {
     api.mode = 'hwboss';
     const A = { name: TX('Tu equipo'), players: L.map((id, i) => {
       const pd = PLAYER(id);
-      return Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: Sprites.refOf(pd) });
+      return Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: mySprite(pd, F.roles[i]) });
     }) };
     startMatch({ A, B: Halloween.bossTeam() }, false, 'niebla', 'match', 'Occult');
   }
@@ -7948,8 +7979,21 @@ const App = (() => {
         $('tk').appendChild(c);
       });
     } else if (teamTab === 'equipo') {
-      screen(`${top(TX('Plantilla'))}${tabs}<p class="note">${TX('Este es el equipo que sale en el partido rápido y al empezar cualquier modo. Se guarda solo.')}</p><div id="ed"></div>`);
+      screen(`${top(TX('Plantilla'))}${tabs}<p class="note">${TX('Este es el equipo que sale en el partido rápido y al empezar cualquier modo. Se guarda solo.')}</p>
+        <h3>${TX('Equipación')} <small>${TX('la llevan tus jugadores de campo en todos los modos (menos en la Carrera)')}</small></h3><div class="kitpick" id="kits"></div><div id="ed"></div>`);
       if (!api.myTeam) api.myTeam = savedTeam();
+      const drawKits = () => {
+        const box = $('kits'), cur = (KITS.find(K => K.key === Profile.data.kit && kitOpen(K)) || KITS[0]).key; box.innerHTML = '';
+        const who = PLAYER((api.myTeam.ids || []).find(id => id != null && PLAYER(id).role !== 'POR') || 10);
+        KITS.filter(kitOpen).forEach(K => {
+          const b = document.createElement('button'); b.className = 'kitopt' + (K.key === cur ? ' sel' : '');
+          b.appendChild(K.kit ? Sprites.kitPreview(Sprites.refOf(who), K.kit, 1.5) : Sprites.portrait(Sprites.refOf(who), 1.5));
+          b.insertAdjacentHTML('beforeend', `<small>${esc(K.name)}</small>`);
+          b.onclick = () => { Profile.data.kit = K.key; Profile.save(); Sound.sfx('click'); drawKits(); };
+          box.appendChild(b);
+        });
+      };
+      drawKits();
       teamEditor($('ed'), api.myTeam, () => saveTeam(api.myTeam));
     } else {
       const all = sortedIds(teamFilter); if (SORTS[teamSort]) all.sort(SORTS[teamSort]);
@@ -8067,7 +8111,7 @@ const App = (() => {
     if (L.some(x => x == null)) return UI.toast(TX('Completa tu equipo en Plantilla'));
     const A = { name: TX('Tu equipo'), players: L.map((id, i) => {
       const pd = PLAYER(id);
-      return Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: Sprites.refOf(pd) });
+      return Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: mySprite(pd, F.roles[i]) });
     }) };
     const key = RIVAL_ORDER[Math.floor(Math.random() * RIVAL_ORDER.length)];
     startMatch({ A, B: rivalTeam(key, 0.9, 0.5) }, false, TEAM_FIELD[key], 'match', key);

@@ -3,7 +3,7 @@
 #   - unitbase.dat: 104 bytes por jugador; el id del juego es 30000 + n.º de ficha. Bytes 84-85 = cabeza, 86-87 = paleta de la cabeza.
 #   - Los archivos van dentro de .pkh/.pkb con el CRC32 del nombre: pch%08d.pac_ (cabeza*100), pph%04d.PLT, pcb%08d.pac_, ppb%04d.PLT.
 #   - Cada .pac_ (LZ10) tiene 72 fotogramas; cada fotograma: ancho, alto, x, y y la posición de su imagen (4 bpp, lineal).
-#   - Cuerpo: el 1 (uniforme base) con la paleta 2, la misma de todas las hojas (el color del equipo se cambia al jugar);
+#   - Cuerpo: el 1 con la paleta 1 (la del Raimon, amarilla y azul, como las hojas del 1 y del 2: así se le puede cambiar la equipación al jugar);
 #     su piel (colores 13-15) se toma de la paleta de la cabeza para que brazos y piernas sean del mismo tono que la cara.
 # Las 47 columnas de cada fila son los fotogramas GAME.frames (los mismos números que en el juego original).
 # Uso: python3 tools/ie3_sprites.py "/ruta/a/data_iz" [--only id,id,...] [--dry]
@@ -53,7 +53,7 @@ def draw(cv, d, h, r, P, ox, oy):
 G = json.load(open(os.path.join(ROOT, 'juego', 'gamedata.json')))
 FR = G['frames']
 U = open(D + 'logic/unitbase.dat', 'rb').read()
-body = PCB.get('pcb%08d.pac_' % 100); bh, bf = frames(body); bpal0 = pal(PPB.get('ppb%04d.PLT' % 2))
+body = PCB.get('pcb%08d.pac_' % 100); bh, bf = frames(body); bpal0 = pal(PPB.get('ppb%04d.PLT' % 1))
 sheets, done, miss = {}, 0, []
 for p in G['players']:
     cs = p.get('cs')
