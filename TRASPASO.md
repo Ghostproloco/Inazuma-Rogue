@@ -142,7 +142,7 @@ Cómo está hecho:
 ### v0.31.8 · Controles del móvil (quejas de jugadores, 22 oct)
 - Joystick (`view.js`): radio 36 → 50 px (dibujo 112 px), zona muerta 16 %, **esprint solo más allá del aro** (`SPRINT_AT` 1,3 × radio; antes cualquier empujón a tope
   esprintaba y el jugador se cansaba), y el centro sigue al dedo si se aleja mucho (`FOLLOW`).
-- Botones más grandes y separados (`shell.html` `.act.*`, `#pad` 240×224) + **Ajustes → Tamaño de los botones** (pequeños/normales/grandes: `settings.padSize`, `--padk`).
+- Botones más grandes, separados y **en arco alrededor de Tiro** (Pase, Profund. y Regate/Cambiar suben en diagonal, lejos del joystick; `shell.html` `.act.*`, `#pad` 240×240) + **Ajustes → Tamaño de los botones** (pequeños/normales/grandes: `settings.padSize`, `--padk`).
 - En defensa «Cambiar» va donde Regate (no donde Pase): al perder el balón, un toque en Pase ya no cambia de jugador.
 - `switchPlayer` (`logic.js`): al compañero que antes llega al balón; otra pulsación en 1,2 s → el siguiente; el cambio automático respeta el manual 1,2 s.
 - Probado con toques reales simulados (CDP): tiros y pases 5/5 con el joystick puesto, sin cambios sin querer, ciclo de Cambiar correcto.
