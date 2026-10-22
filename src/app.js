@@ -18,7 +18,7 @@ const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '�
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
 const VERSION = '0.31.8';
-const DISCORD_URL = 'https://discord.gg/W8bn6ZCV3', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
+const DISCORD_URL = 'https://discord.gg/G6SyT2rZW', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 const App = (() => {
   const $ = id => document.getElementById(id);
