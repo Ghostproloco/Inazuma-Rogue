@@ -682,18 +682,20 @@ const App = (() => {
       });
     } else if (teamTab === 'equipo') {
       screen(`${top(TX('Plantilla'))}${tabs}<p class="note">${TX('Este es el equipo que sale en el partido rápido y al empezar cualquier modo. Se guarda solo.')}</p>
-        <h3>${TX('Equipación')} <small>${TX('la llevan tus jugadores de campo en todos los modos (menos en la Carrera)')}</small></h3><div class="kitpick" id="kits"></div><div id="ed"></div>`);
+        <h3>${TX('Equipación')} <small>${TX('la llevan tus jugadores de campo en todos los modos (menos en la Carrera)')}</small></h3><div id="kitEd"></div><div id="ed"></div>`);
       if (!api.myTeam) api.myTeam = savedTeam();
       const drawKits = () => {
-        const box = $('kits'), cur = (KITS.find(K => K.key === Profile.data.kit && kitOpen(K)) || KITS[0]).key; box.innerHTML = '';
+        const k = myKit(), sw = (key, v) => `<div class="swatches">${KIT_COLORS.map(col => `<button class="sw" data-k="${key}" data-c="${col}" style="background:${col}" aria-pressed="${v === col}"></button>`).join('')}</div>`;
         const who = PLAYER((api.myTeam.ids || []).find(id => id != null && PLAYER(id).role !== 'POR') || 10);
-        KITS.filter(kitOpen).forEach(K => {
-          const b = document.createElement('button'); b.className = 'kitopt' + (K.key === cur ? ' sel' : '');
-          b.appendChild(K.kit ? Sprites.kitPreview(Sprites.refOf(who), K.kit, 1.5) : Sprites.portrait(Sprites.refOf(who), 1.5));
-          b.insertAdjacentHTML('beforeend', `<small>${esc(K.name)}</small>`);
-          b.onclick = () => { Profile.data.kit = K.key; Profile.save(); Sound.sfx('click'); drawKits(); };
-          box.appendChild(b);
-        });
+        $('kitEd').innerHTML = `<div class="clubpv"><span id="kitPv"></span><div><b>${k ? TX('Tu equipación') : TX('Equipación del Raimon')}</b><small>${k ? '' : TX('Elige colores para crear la tuya')}</small></div></div>
+          <p class="note">${TX('Camiseta')}</p>${sw('a', k && k.a)}<p class="note">${TX('Mangas y pantalón')}</p>${sw('b', k && k.b)}
+          <p class="note">${TX('Diseño')}</p><div class="opts kitdz">${KIT_DESIGNS.map(([d, n]) => `<button data-dz="${d}" aria-pressed="${!!k && (k.d || '') === d}">${n}</button>`).join('')}</div>
+          ${k ? `<button class="ghost mini" id="kitReset">${TX('Volver a la del Raimon')}</button>` : ''}`;
+        $('kitPv').appendChild(k ? Sprites.kitPreview(Sprites.refOf(who), k, 2) : Sprites.portrait(Sprites.refOf(who), 2));
+        const set = ch => { Profile.data.kit = Object.assign({ a: '#e8c21a', b: '#1f4fc0', d: '' }, myKit() || {}, ch); Profile.save(); Sound.sfx('click'); drawKits(); };
+        $('kitEd').querySelectorAll('.sw').forEach(b => b.onclick = () => set({ [b.dataset.k]: b.dataset.c }));
+        $('kitEd').querySelectorAll('[data-dz]').forEach(b => b.onclick = () => set({ d: b.dataset.dz }));
+        if ($('kitReset')) $('kitReset').onclick = () => { Profile.data.kit = null; Profile.save(); Sound.sfx('click'); drawKits(); };
       };
       drawKits();
       teamEditor($('ed'), api.myTeam, () => saveTeam(api.myTeam));
@@ -1540,6 +1542,7 @@ const App = (() => {
     screen(`${top(first ? TX('Tu club') : TX('Club'), 'back', first ? TX('Listo') : TX('Volver'))}
       <div class="clubpv"><img class="ccrest huge" id="crPv" src="${myCrestUrl()}" alt=""><span id="kitPv"></span><div><b>${esc(c.school)}</b><small>${money(c.money)}</small></div></div>
       <h3>${TX('Equipación')}</h3><p class="note">${TX('Camiseta')}</p>${sw('a', c.kit.a)}<p class="note">${TX('Mangas y pantalón')}</p>${sw('b', c.kit.b)}
+      <p class="note">${TX('Diseño')}</p><div class="opts kitdz">${KIT_DESIGNS.map(([d, n]) => `<button data-dz="${d}" aria-pressed="${(c.kit.d || '') === d}">${n}</button>`).join('')}</div>
       <h3>${TX('Escudo')}</h3>
       <div class="opts">${CREST_SHAPES.map(s => `<button data-shape="${s}" aria-pressed="${c.crest.shape === s}">${s[0].toUpperCase() + s.slice(1)}</button>`).join('')}</div>
       <p class="note">${TX('Color de fondo')}</p>${sw('c1', c.crest.c1)}<p class="note">${TX('Color del borde y símbolo')}</p>${sw('c2', c.crest.c2)}
@@ -1554,6 +1557,7 @@ const App = (() => {
       const k = b.dataset.k; if (k === 'a' || k === 'b') c.kit[k] = b.dataset.c; else c.crest[k] = b.dataset.c;
       Career.save(); b.parentNode.querySelectorAll('.sw').forEach(x => x.setAttribute('aria-pressed', x === b)); drawPv();
     });
+    body.querySelectorAll('[data-dz]').forEach(b => b.onclick = () => { c.kit.d = b.dataset.dz; Career.save(); body.querySelectorAll('[data-dz]').forEach(x => x.setAttribute('aria-pressed', x === b)); drawPv(); });
     body.querySelectorAll('[data-shape]').forEach(b => b.onclick = () => { c.crest.shape = b.dataset.shape; Career.save(); body.querySelectorAll('[data-shape]').forEach(x => x.setAttribute('aria-pressed', x === b)); drawPv(); });
     body.querySelectorAll('[data-sym]').forEach(b => b.onclick = () => { c.crest.sym = b.dataset.sym; Career.save(); body.querySelectorAll('[data-sym]').forEach(x => x.setAttribute('aria-pressed', x === b)); drawPv(); });
     body.querySelectorAll('[data-up]').forEach(b => b.onclick = () => { const r = Career.upgrade(b.dataset.up); UI.toast(r.msg, 2000); if (r.ok) { Sound.sfx('reveal'); renderCareerClub(); } });
@@ -1943,7 +1947,7 @@ const App = (() => {
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
     { v: '0.31.9', date: '23/10/2026', items: [
-      TX('👕 ¡Equipaciones! Elige en Plantilla → Mi equipo la que llevan tus jugadores: Inazuma Japón, Royal Academy, Zeus, Génesis, Orpheus, The Kingdom y más.'),
+      TX('👕 ¡Crea tu equipación! En Plantilla → Mi equipo eliges los colores y el diseño (rayas, mitades, banda, cuadros…). En la Carrera también hay diseños nuevos.'),
       TX('🎨 Muñecos del Inazuma 3 arreglados: todos llevan su muñeco de verdad, sacado del juego original (peinado, colores y tono de piel), y ahora cambian a los colores de su equipo.'),
       TX('Plantilla: en Jugadores ves la nota y el elemento de cada uno, y en Mi equipo el elemento de cada jugador en el campo.'),
       TX('Equipos especiales: cada equipo da un jugador distinto (ya no se repite el premio).'),

@@ -7,7 +7,7 @@ const Sprites = (() => {
     const i = new Image();
     i.onload = () => res(i);
     i.onerror = () => { delete cache[file]; rej(new Error('No se pudo cargar ' + file)); };
-    i.src = 'sprites/' + file + (file.includes('?') ? '' : '?v=6');   // ?v=6: muñecos del Inazuma 3 rehechos con los datos del juego (tools/ie3_sprites.py)
+    i.src = 'sprites/' + file + (file.includes('?') ? '' : '?v=7');   // ?v=7: muñecos del Inazuma 3 rehechos con los datos del juego (tools/ie3_sprites.py)
   }));
   const collFile = pd => 'c' + String(pd.cs[0]).padStart(2, '0') + '.png';
   // hwFace: retrato de miedo de los legendarios de Halloween (sprites/fhw.png, hecho con tools/hw_faces.py)
@@ -33,6 +33,8 @@ const Sprites = (() => {
   // Equipación propia: cambia los colores de la camiseta del Raimon (amarillo) y de mangas/pantalón (azul)
   const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
   const lum = c => c[0] * 0.299 + c[1] * 0.587 + c[2] * 0.114;
+  // Equipación de portero: camiseta y pantalón azul marino (GA), mangas naranjas y medias (GB)
+  const KIT_GA = [[32, 65, 82], [41, 98, 123]], KIT_GB = [[180, 90, 16], [255, 139, 32], [238, 106, 32], [230, 115, 32], [180, 90, 24], [41, 82, 98], [57, 123, 156]];
   const KIT_A = [[213, 180, 16], [164, 131, 16]], KIT_B = [[57, 82, 123], [74, 131, 172], [57, 131, 197], [65, 65, 139], [57, 82, 139], [74, 106, 189], [41, 98, 123]];
   function kitMap(kit) {
     const m = new Map(), A = hex(kit.a), B = hex(kit.b);
@@ -41,13 +43,26 @@ const Sprites = (() => {
       m.set((s[0] << 16) | (s[1] << 8) | s[2], o);
     });
     put(KIT_A, A, lum(KIT_A[0])); put(KIT_B, B, lum([57, 131, 197]));
+    // Portero jugando de campo: su equipación naranja de portero también toma los colores del equipo
+    if (kit.gk) { put(KIT_GA, A, lum([41, 98, 123])); put(KIT_GB, B, lum([255, 139, 32])); }
     return m;
   }
+  // Diseños de la camiseta (kit.d): en las zonas del dibujo la camiseta toma el segundo color (kit.b)
+  const DESIGNS = {
+    rayas: (x, y) => ((x >> 1) & 1) === 0,             // rayas verticales
+    mitades: (x, y) => x >= 24,                         // media camiseta de cada color
+    banda: (x, y) => y >= 29 && y <= 31,                // franja en el pecho
+    cuadros: (x, y) => (((x >> 1) + (y >> 1)) & 1) === 0,
+    diagonal: (x, y) => Math.abs((x - 14) - (y - 22)) <= 2,
+  };
   function recolor(g, w, y0, kit) {
     const map = kitMap(kit), y = y0 + 20, h = 28, d = g.getImageData(0, y, w, h), p = d.data;
+    const pat = kit.d && DESIGNS[kit.d], alt = pat && kitMap(Object.assign({}, kit, { a: kit.b })), shirt = new Set([...KIT_A, ...(kit.gk ? KIT_GA : [])].map(c => (c[0] << 16) | (c[1] << 8) | c[2]));
     for (let i = 0; i < p.length; i += 4) {
       if (!p[i + 3]) continue;
-      const o = map.get((p[i] << 16) | (p[i + 1] << 8) | p[i + 2]);
+      const key = (p[i] << 16) | (p[i + 1] << 8) | p[i + 2];
+      let o = map.get(key);
+      if (o && pat && shirt.has(key)) { const n = i >> 2; if (pat((n % w) % 48, 20 + ((n / w) | 0))) o = alt.get(key); }
       if (o) { p[i] = o[0]; p[i + 1] = o[1]; p[i + 2] = o[2]; }
     }
     g.putImageData(d, 0, y);
@@ -70,7 +85,7 @@ const Sprites = (() => {
     return c;
   }
   const crest = id => `<img class="crest" src="ui/crest${id || 1}.png" alt="" width="40" height="40">`;
-  return { img, collFile, refOf, portrait, face, crest, matchSheet, kitPreview };
+  return { img, collFile, refOf, portrait, face, crest, matchSheet, kitPreview, DESIGNS };
 })();
 
 /* =====================================================================

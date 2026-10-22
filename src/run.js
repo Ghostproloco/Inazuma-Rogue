@@ -188,25 +188,16 @@ function rivalTeam(teamKey, factor, progress) {
       { sprite: Object.assign({ file: m.file, row: m.row }, t.kit && m.role !== 'POR' ? { kit: t.kit } : {}) });
   }) };
 }
-// Equipaciones para tu equipo (Plantilla → Mi equipo). a = camiseta, b = mangas y pantalón. Sin kit = la del Raimon.
-// Para sacar una por un evento: añade { lock: 'clave' } y desbloquéala con Profile.data.kits[clave] = 1.
-const KITS = [
-  { key: 'raimon', name: TX('Raimon'), kit: null },
-  { key: 'japon', name: TX('Inazuma Japón'), kit: { a: '#1a3aa8', b: '#f2f2f2' } },
-  { key: 'royal', name: TX('Royal Academy'), kit: { a: '#2e3a8c', b: '#c8c8d8' } },
-  { key: 'zeus', name: TX('Zeus'), kit: { a: '#f2f2f2', b: '#d4a82a' } },
-  { key: 'genesis', name: TX('Génesis'), kit: { a: '#e8e8f0', b: '#4a5a83' } },
-  { key: 'prominence', name: TX('Prominence'), kit: { a: '#d82a20', b: '#f2c020' } },
-  { key: 'diamantes', name: TX('Polvo de Diamantes'), kit: { a: '#a8d8f0', b: '#f2f2f2' } },
-  { key: 'oscuros', name: TX('Emperadores Oscuros'), kit: { a: '#3a3a4a', b: '#837bc5' } },
-  { key: 'orpheus', name: TX('Orpheus (Italia)'), kit: { a: '#1a5ad8', b: '#f2f2f2' } },
-  { key: 'kingdom', name: TX('The Kingdom (Brasil)'), kit: { a: '#f2d21a', b: '#1a4ad8' } },
-  { key: 'knights', name: TX('Knights of Queen (Inglaterra)'), kit: { a: '#f2f2f2', b: '#1a2a7a' } },
-];
-const kitOpen = K => !K.lock || !!(Profile.data.kits && Profile.data.kits[K.lock]);
-function myKit() { const K = KITS.find(x => x.key === Profile.data.kit); return K && kitOpen(K) ? K.kit : null; }
+// Equipación de tu equipo (Plantilla → Mi equipo), como el creador del Modo Carrera: Profile.data.kit = { a: camiseta, b: mangas y pantalón, d: diseño } o null (la del Raimon)
+const KIT_DESIGNS = [['', TX('Lisa')], ['rayas', TX('Rayas')], ['mitades', TX('Mitades')], ['banda', TX('Banda')], ['cuadros', TX('Cuadros')], ['diagonal', TX('Diagonal')]];
+function myKit() { const k = Profile.data.kit; return k && typeof k === 'object' && k.a ? k : null; }
 // Muñeco de un jugador de tu equipo con tu equipación (el portero va con la suya)
-function mySprite(pd, role) { const k = role !== 'POR' && myKit(); return Object.assign({ file: Sprites.collFile(pd), row: pd.cs[1] }, k ? { kit: k } : {}); }
+function mySprite(pd, role) {
+  let k = role !== 'POR' && myKit();
+  // Un portero que juega de campo deja su equipación de portero y lleva la del equipo (la del Raimon si no has elegido otra)
+  if (role !== 'POR' && pd.role === 'POR') k = Object.assign({}, k || { a: '#d5b410', b: '#4a83ac' }, { gk: true });
+  return Object.assign({ file: Sprites.collFile(pd), row: pd.cs[1] }, k ? { kit: k } : {});
+}
 const DIFF_MUL = { facil: 1.08, medio: 1.13, dificil: 1.2 };   // fácil = el antiguo difícil
 
 /* ---------- Perfil permanente: colección, monedas, tickets ---------- */

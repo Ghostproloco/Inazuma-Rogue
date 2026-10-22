@@ -513,7 +513,7 @@ details.tgroup .tracks{margin-top:8px}
 .pslot .pr{font-size:12px;background:var(--navy-d);border:1px solid var(--ink);padding:0 4px;color:var(--sky-t);margin-top:2px}
 .pslot .pn{font-size:12px;text-shadow:1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ptile .slot{font-size:12px}
-.kitpick{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 8px;margin-bottom:6px}.kitopt{flex:0 0 auto;width:86px;display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--navy);border:2px solid var(--ink);box-shadow:0 0 0 2px #5a7ab8;color:var(--chalk);padding:4px 2px;cursor:pointer;font-family:var(--font-ui)}.kitopt small{font-size:10px;line-height:1.15;text-align:center}.kitopt.sel{box-shadow:0 0 0 2px var(--yellow);background:#3a5aa0}
+.opts.kitdz{display:grid;grid-template-columns:repeat(3,1fr)}
 .pslot .pe{display:block;line-height:1}.pslot .pe .chip{font-size:9px;padding:0 3px}
 .tmp{font-style:normal;font-size:12px;background:#7c4dd1;color:#fff;padding:0 3px}
 .pgrid > .note{grid-column:1/-1}
@@ -802,6 +802,7 @@ const EN_TEXT = {
   'Aún no hay ninguna carrera terminada.': 'No careers finished yet.',
   'Aún no tienes ninguna. Salen en el tramo legendario del gacha.': 'You don\'t have any yet. They come from the legendary tier of the gacha.',
   'Bajar a Tercera': 'Drop to Third Division',
+  'Banda': 'Band',
   'Banda sonora original': 'Original soundtrack',
   'Banquillo': 'Bench',
   'Bloq Mayús': 'Caps Lock',
@@ -910,6 +911,7 @@ const EN_TEXT = {
   'Crear cuenta': 'Create account',
   'Cruzada gloriosa': 'Glorious Crusade',
   'Ctrl dcho.': 'Right Ctrl',
+  'Cuadros': 'Checks',
   'Cuartos': 'Quarter-finals',
   'Cuatro selecciones de estrellas, cada una más dura.': 'Four all-star national teams, each tougher than the last.',
   'Cuenta': 'Account',
@@ -941,6 +943,7 @@ const EN_TEXT = {
   'Descansar': 'Rest',
   'Descansar recupera más y los partidos cansan menos': 'Resting recovers more and matches tire less',
   'Despeje': 'Clear',
+  'Diagonal': 'Diagonal',
   'Dieciseisavos': 'Round of 32',
   'Dificultad': 'Difficulty',
   'Difícil': 'Hard',
@@ -949,6 +952,7 @@ const EN_TEXT = {
   'Dinero infinito desactivado': 'Infinite money off',
   'Dioses y alienígenas': 'Gods and Aliens',
   'Directa': 'Direct',
+  'Diseño': 'Design',
   'Disponible hasta la semana': 'Available until week',
   'División': 'Division',
   'División ·': 'Division ·',
@@ -994,6 +998,7 @@ const EN_TEXT = {
   'Elige a quién dejas ir': 'Choose who you let go',
   'Elige a tu jugador': 'Pick your player',
   'Elige a tu mánager': 'Choose your manager',
+  'Elige colores para crear la tuya': 'Pick colours to create your own',
   'Elige cuál usar en cada momento: animación propia y cámara lenta': 'Choose which one to use each time: its own animation and slow motion',
   'Elige hasta': 'Choose up to',
   'Elige una recompensa': 'Choose a reward',
@@ -1002,7 +1007,6 @@ const EN_TEXT = {
   'Eliminados en semifinales': 'Knocked out in the semi-finals',
   'Eliminatoria: si hay empate, penaltis': 'Knockout: penalties if it\'s a draw',
   'Empate': 'Draw',
-  'Emperadores Oscuros': 'Dark Emperors',
   'Emperadores Oscuros - El campo del trueno': 'Dark Emperors - The Thunder Pitch',
   'Empezar': 'Start',
   'Empezar carrera': 'Start career',
@@ -1030,6 +1034,7 @@ const EN_TEXT = {
   'Entrenar y Rayos': 'Training and Bolts',
   'Equilibrada': 'Balanced',
   'Equipación': 'Kit',
+  'Equipación del Raimon': 'Raimon kit',
   'Equipada': 'Equipped',
   'Equipo': 'Team',
   'Equipo especial': 'Special team',
@@ -1145,7 +1150,6 @@ const EN_TEXT = {
   'Guardar en la nube': 'Save to the cloud',
   'Gánale: +60 🍬 (una vez al día)': 'Beat them: +60 🍬 (once a day)',
   'Géminis - El balón negro': 'Gemini - The Black Ball',
-  'Génesis': 'Genesis',
   'Génesis - El equipo G': 'Genesis - Team G',
   'Génesis - Los superhumanos': 'Genesis - The Superhumans',
   'Habilidad': 'Skill',
@@ -1201,7 +1205,6 @@ const EN_TEXT = {
   'J{0}': 'MD{0}',
   'Kappa legendario, vale para cualquier puesto': 'Legendary Kappa, fits any position',
   'Kirkwood, Royal Academy y Zeus, uno detrás de otro y al máximo.': 'Kirkwood, Royal Academy and Zeus, back to back and at full strength.',
-  'Knights of Queen (Inglaterra)': 'Knights of Queen (England)',
   'La Caravana Inazuma': 'The Inazuma Caravan',
   'La Copa empieza la temporada que viene': 'The Cup starts next season',
   'La Copa empieza la temporada que viene.': 'The Cup starts next season.',
@@ -1244,6 +1247,7 @@ const EN_TEXT = {
   'Libres': 'Free agents',
   'Liga ': 'League ',
   'Liga Centella': 'Lightning League',
+  'Lisa': 'Plain',
   'Listo': 'Done',
   'Llega de la Academia Alius': 'Arrives from the Alius Academy',
   'Lluvia de tickets': 'Ticket shower',
@@ -1267,6 +1271,7 @@ const EN_TEXT = {
   'Menú': 'Menu',
   'Menús': 'Menus',
   'Mi equipo': 'My team',
+  'Mitades': 'Halves',
   'Modo': 'Mode',
   'Modo Carrera': 'Career Mode',
   'Modo desarrollador activado': 'Developer mode on',
@@ -1353,7 +1358,6 @@ const EN_TEXT = {
   'Ordenador: teclas más cómodas (J/Z pase, K/X tiro, L/C profundidad, I/V regate, E cambiar técnica) y aviso de que se puede jugar con mando.': 'Computer: comfier keys (J/Z pass, K/X shoot, L/C through ball, I/V dribble, E change move) and a note that you can play with a controller.',
   'Ordenados de peor a mejor. Se va del club sin cobrar nada.': 'Sorted from worst to best. They leave the club for nothing.',
   'Oro ': 'Gold ',
-  'Orpheus (Italia)': 'Orpheus (Italy)',
   'Osakaland': 'Osakaland',
   'Otro partido rápido': 'Another quick match',
   'Otros clubes': 'Other clubs',
@@ -1401,7 +1405,6 @@ const EN_TEXT = {
   'Playoff · semifinales': 'Playoff · semi-finals',
   'Playoff · ¡FINAL!': 'Playoff · THE FINAL!',
   'Playoffs de ascenso': 'Promotion playoffs',
-  'Polvo de Diamantes': 'Diamond Dust',
   'Por oleadas · récord: ': 'Waves · record: ',
   'Portero': 'Goalkeeper',
   'Portero con balón: J pase · K saque largo · L despeje.': 'Keeper with the ball: J pass · K long kick · L clearance.',
@@ -1424,7 +1427,6 @@ const EN_TEXT = {
   'Primero toca el puesto del campo': 'Tap a position on the pitch first',
   'Probabilidades: común 60 % · rara 28 % · épica 10 % · legendaria 2 %. Cada 10 tiradas sin épica, la siguiente lo es seguro.': 'Odds: common 60% · rare 28% · epic 10% · legendary 2%. After 10 pulls without an epic, the next one is guaranteed.',
   'Progreso': 'Progress',
-  'Prominence': 'Prominence',
   'Prominence, Polvo de Diamantes y su fusión, Caos.': 'Prominence, Diamond Dust and their fusion, Chaos.',
   'Pts': 'Pts',
   'Puede aprender': 'Can learn',
@@ -1436,7 +1438,6 @@ const EN_TEXT = {
   'Quedan': 'Ends in',
   'Quitar filtros': 'Clear filters',
   'R. A. Redux - Supertécnicas milagrosas': 'R. A. Redux - Miraculous Special Moves',
-  'Raimon': 'Raimon',
   'Raimon en todas sus versiones, Inazuma Japón, los Veteranos y los amigos de Ciudad Inazuma': 'Raimon in all its versions, Inazuma Japan, the Veterans and friends from Inazuma Town',
   'Ranura': 'Slot',
   'Rapidez': 'Speed',
@@ -1444,6 +1445,7 @@ const EN_TEXT = {
   'Rara': 'Rare',
   'Rareza': 'Rarity',
   'Ray Dark': 'Ray Dark',
+  'Rayas': 'Stripes',
   'Rayos Raimon': 'Raimon Bolts',
   'Recobro': 'Recovery',
   'Recoger': 'Claim',
@@ -1475,7 +1477,6 @@ const EN_TEXT = {
   'Rivales · Inazuma Eleven 2': 'Rivals · Inazuma Eleven 2',
   'Roba arriba, cansa más': 'Win it high, tires more',
   'Roguelite: el partido se acaba si un equipo gana por 5 goles de diferencia.': 'Roguelite: the match ends when a team leads by 5 goals.',
-  'Royal Academy': 'Royal Academy',
   'Royal Academy - Versión del juego': 'Royal Academy - Game Version',
   'Royal Academy, su versión Redux y los Emperadores Oscuros.': 'Royal Academy, its Redux version and the Dark Emperors.',
   'Salir al menú': 'Back to menu',
@@ -1566,7 +1567,6 @@ const EN_TEXT = {
   'Termina o abandona la partida en curso': 'Finish or abandon the current run',
   'Terminar temporada': 'Finish season',
   'Terreno sagrado': 'Sacred Ground',
-  'The Kingdom (Brasil)': 'The Kingdom (Brazil)',
   'Tickets ardientes': 'Burning tickets',
   'Tickets: Historia (1 por victoria y 3 al completarla), Especiales (2), Cadenas (2 al completarlas) e Infinito (2 por oleada especial).': 'Tickets: Story (1 per win and 3 for completing it), Specials (2), Chains (2 for completing them) and Infinite (2 per special wave).',
   'Tiempos difíciles': 'Hard Times',
@@ -1606,6 +1606,7 @@ const EN_TEXT = {
   'Tu club': 'Your club',
   'Tu club está eliminado.': 'Your club is knocked out.',
   'Tu cuenta': 'Your account',
+  'Tu equipación': 'Your kit',
   'Tu equipo': 'Your team',
   'Tu equipo ·': 'Your team ·',
   'Tu navegador no deja pegar con el botón: mantén el dedo en el recuadro y elige «Pegar».': 'Your browser won\'t paste with the button: press and hold the box and choose «Paste».',
@@ -1665,6 +1666,7 @@ const EN_TEXT = {
   'Villanos': 'Villains',
   'Volver': 'Back',
   'Volver a Halloween': 'Back to Halloween',
+  'Volver a la del Raimon': 'Back to the Raimon kit',
   'Volver a la música de serie': 'Back to the default music',
   'Volver a las de serie': 'Back to default',
   'Volver al club': 'Back to the club',
@@ -1679,7 +1681,6 @@ const EN_TEXT = {
   'Ya tengo cuenta': 'I have an account',
   'Ya tiene 5 estrellas': 'Already has 5 stars',
   'Ya tienes 10: quita uno antes': 'You already have 10: remove one first',
-  'Zeus': 'Zeus',
   'Zeus, Ultra Zeus y Génesis: lo más duro del 1 y del 2.': 'Zeus, Ultra Zeus and Genesis: the toughest of 1 and 2.',
   'Zeus, la Academia Alius, los Emperadores Oscuros, el Ogro, Team D y los demonios': 'Zeus, the Alius Academy, the Dark Emperors, the Ogre, Team D and the demons',
   'Zona residencial - Una promesa solemne': 'Residential Area - A Solemn Promise',
@@ -2028,7 +2029,7 @@ const EN_TEXT = {
   '🏆 ¡Campeones del mundo!': '🏆 World champions!',
   '🏛️ Salón de la fama': '🏛️ Hall of fame',
   '🏟️ Club': '🏟️ Club',
-  '👕 ¡Equipaciones! Elige en Plantilla → Mi equipo la que llevan tus jugadores: Inazuma Japón, Royal Academy, Zeus, Génesis, Orpheus, The Kingdom y más.': '👕 Kits! Choose in Squad → My team what your players wear: Inazuma Japan, Royal Academy, Zeus, Genesis, Orpheus, The Kingdom and more.',
+  '👕 ¡Crea tu equipación! En Plantilla → Mi equipo eliges los colores y el diseño (rayas, mitades, banda, cuadros…). En la Carrera también hay diseños nuevos.': '👕 Create your own kit! In Squad → My team you choose the colours and the design (stripes, halves, band, checks…). Career mode gets the new designs too.',
   '👤 Cuenta': '👤 Account',
   '👥 Alineación (': '👥 Line-up (',
   '👥 Alineación (10 convocados · 2 equipos)': '👥 Line-up (10 called up · 2 teams)',
@@ -2087,7 +2088,7 @@ const Sprites = (() => {
     const i = new Image();
     i.onload = () => res(i);
     i.onerror = () => { delete cache[file]; rej(new Error('No se pudo cargar ' + file)); };
-    i.src = 'sprites/' + file + (file.includes('?') ? '' : '?v=6');   // ?v=6: muñecos del Inazuma 3 rehechos con los datos del juego (tools/ie3_sprites.py)
+    i.src = 'sprites/' + file + (file.includes('?') ? '' : '?v=7');   // ?v=7: muñecos del Inazuma 3 rehechos con los datos del juego (tools/ie3_sprites.py)
   }));
   const collFile = pd => 'c' + String(pd.cs[0]).padStart(2, '0') + '.png';
   // hwFace: retrato de miedo de los legendarios de Halloween (sprites/fhw.png, hecho con tools/hw_faces.py)
@@ -2113,6 +2114,8 @@ const Sprites = (() => {
   // Equipación propia: cambia los colores de la camiseta del Raimon (amarillo) y de mangas/pantalón (azul)
   const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
   const lum = c => c[0] * 0.299 + c[1] * 0.587 + c[2] * 0.114;
+  // Equipación de portero: camiseta y pantalón azul marino (GA), mangas naranjas y medias (GB)
+  const KIT_GA = [[32, 65, 82], [41, 98, 123]], KIT_GB = [[180, 90, 16], [255, 139, 32], [238, 106, 32], [230, 115, 32], [180, 90, 24], [41, 82, 98], [57, 123, 156]];
   const KIT_A = [[213, 180, 16], [164, 131, 16]], KIT_B = [[57, 82, 123], [74, 131, 172], [57, 131, 197], [65, 65, 139], [57, 82, 139], [74, 106, 189], [41, 98, 123]];
   function kitMap(kit) {
     const m = new Map(), A = hex(kit.a), B = hex(kit.b);
@@ -2121,13 +2124,26 @@ const Sprites = (() => {
       m.set((s[0] << 16) | (s[1] << 8) | s[2], o);
     });
     put(KIT_A, A, lum(KIT_A[0])); put(KIT_B, B, lum([57, 131, 197]));
+    // Portero jugando de campo: su equipación naranja de portero también toma los colores del equipo
+    if (kit.gk) { put(KIT_GA, A, lum([41, 98, 123])); put(KIT_GB, B, lum([255, 139, 32])); }
     return m;
   }
+  // Diseños de la camiseta (kit.d): en las zonas del dibujo la camiseta toma el segundo color (kit.b)
+  const DESIGNS = {
+    rayas: (x, y) => ((x >> 1) & 1) === 0,             // rayas verticales
+    mitades: (x, y) => x >= 24,                         // media camiseta de cada color
+    banda: (x, y) => y >= 29 && y <= 31,                // franja en el pecho
+    cuadros: (x, y) => (((x >> 1) + (y >> 1)) & 1) === 0,
+    diagonal: (x, y) => Math.abs((x - 14) - (y - 22)) <= 2,
+  };
   function recolor(g, w, y0, kit) {
     const map = kitMap(kit), y = y0 + 20, h = 28, d = g.getImageData(0, y, w, h), p = d.data;
+    const pat = kit.d && DESIGNS[kit.d], alt = pat && kitMap(Object.assign({}, kit, { a: kit.b })), shirt = new Set([...KIT_A, ...(kit.gk ? KIT_GA : [])].map(c => (c[0] << 16) | (c[1] << 8) | c[2]));
     for (let i = 0; i < p.length; i += 4) {
       if (!p[i + 3]) continue;
-      const o = map.get((p[i] << 16) | (p[i + 1] << 8) | p[i + 2]);
+      const key = (p[i] << 16) | (p[i + 1] << 8) | p[i + 2];
+      let o = map.get(key);
+      if (o && pat && shirt.has(key)) { const n = i >> 2; if (pat((n % w) % 48, 20 + ((n / w) | 0))) o = alt.get(key); }
       if (o) { p[i] = o[0]; p[i + 1] = o[1]; p[i + 2] = o[2]; }
     }
     g.putImageData(d, 0, y);
@@ -2150,7 +2166,7 @@ const Sprites = (() => {
     return c;
   }
   const crest = id => `<img class="crest" src="ui/crest${id || 1}.png" alt="" width="40" height="40">`;
-  return { img, collFile, refOf, portrait, face, crest, matchSheet, kitPreview };
+  return { img, collFile, refOf, portrait, face, crest, matchSheet, kitPreview, DESIGNS };
 })();
 
 /* =====================================================================
@@ -3549,25 +3565,16 @@ function rivalTeam(teamKey, factor, progress) {
       { sprite: Object.assign({ file: m.file, row: m.row }, t.kit && m.role !== 'POR' ? { kit: t.kit } : {}) });
   }) };
 }
-// Equipaciones para tu equipo (Plantilla → Mi equipo). a = camiseta, b = mangas y pantalón. Sin kit = la del Raimon.
-// Para sacar una por un evento: añade { lock: 'clave' } y desbloquéala con Profile.data.kits[clave] = 1.
-const KITS = [
-  { key: 'raimon', name: TX('Raimon'), kit: null },
-  { key: 'japon', name: TX('Inazuma Japón'), kit: { a: '#1a3aa8', b: '#f2f2f2' } },
-  { key: 'royal', name: TX('Royal Academy'), kit: { a: '#2e3a8c', b: '#c8c8d8' } },
-  { key: 'zeus', name: TX('Zeus'), kit: { a: '#f2f2f2', b: '#d4a82a' } },
-  { key: 'genesis', name: TX('Génesis'), kit: { a: '#e8e8f0', b: '#4a5a83' } },
-  { key: 'prominence', name: TX('Prominence'), kit: { a: '#d82a20', b: '#f2c020' } },
-  { key: 'diamantes', name: TX('Polvo de Diamantes'), kit: { a: '#a8d8f0', b: '#f2f2f2' } },
-  { key: 'oscuros', name: TX('Emperadores Oscuros'), kit: { a: '#3a3a4a', b: '#837bc5' } },
-  { key: 'orpheus', name: TX('Orpheus (Italia)'), kit: { a: '#1a5ad8', b: '#f2f2f2' } },
-  { key: 'kingdom', name: TX('The Kingdom (Brasil)'), kit: { a: '#f2d21a', b: '#1a4ad8' } },
-  { key: 'knights', name: TX('Knights of Queen (Inglaterra)'), kit: { a: '#f2f2f2', b: '#1a2a7a' } },
-];
-const kitOpen = K => !K.lock || !!(Profile.data.kits && Profile.data.kits[K.lock]);
-function myKit() { const K = KITS.find(x => x.key === Profile.data.kit); return K && kitOpen(K) ? K.kit : null; }
+// Equipación de tu equipo (Plantilla → Mi equipo), como el creador del Modo Carrera: Profile.data.kit = { a: camiseta, b: mangas y pantalón, d: diseño } o null (la del Raimon)
+const KIT_DESIGNS = [['', TX('Lisa')], ['rayas', TX('Rayas')], ['mitades', TX('Mitades')], ['banda', TX('Banda')], ['cuadros', TX('Cuadros')], ['diagonal', TX('Diagonal')]];
+function myKit() { const k = Profile.data.kit; return k && typeof k === 'object' && k.a ? k : null; }
 // Muñeco de un jugador de tu equipo con tu equipación (el portero va con la suya)
-function mySprite(pd, role) { const k = role !== 'POR' && myKit(); return Object.assign({ file: Sprites.collFile(pd), row: pd.cs[1] }, k ? { kit: k } : {}); }
+function mySprite(pd, role) {
+  let k = role !== 'POR' && myKit();
+  // Un portero que juega de campo deja su equipación de portero y lleva la del equipo (la del Raimon si no has elegido otra)
+  if (role !== 'POR' && pd.role === 'POR') k = Object.assign({}, k || { a: '#d5b410', b: '#4a83ac' }, { gk: true });
+  return Object.assign({ file: Sprites.collFile(pd), row: pd.cs[1] }, k ? { kit: k } : {});
+}
 const DIFF_MUL = { facil: 1.08, medio: 1.13, dificil: 1.2 };   // fácil = el antiguo difícil
 
 /* ---------- Perfil permanente: colección, monedas, tickets ---------- */
@@ -7985,18 +7992,20 @@ const App = (() => {
       });
     } else if (teamTab === 'equipo') {
       screen(`${top(TX('Plantilla'))}${tabs}<p class="note">${TX('Este es el equipo que sale en el partido rápido y al empezar cualquier modo. Se guarda solo.')}</p>
-        <h3>${TX('Equipación')} <small>${TX('la llevan tus jugadores de campo en todos los modos (menos en la Carrera)')}</small></h3><div class="kitpick" id="kits"></div><div id="ed"></div>`);
+        <h3>${TX('Equipación')} <small>${TX('la llevan tus jugadores de campo en todos los modos (menos en la Carrera)')}</small></h3><div id="kitEd"></div><div id="ed"></div>`);
       if (!api.myTeam) api.myTeam = savedTeam();
       const drawKits = () => {
-        const box = $('kits'), cur = (KITS.find(K => K.key === Profile.data.kit && kitOpen(K)) || KITS[0]).key; box.innerHTML = '';
+        const k = myKit(), sw = (key, v) => `<div class="swatches">${KIT_COLORS.map(col => `<button class="sw" data-k="${key}" data-c="${col}" style="background:${col}" aria-pressed="${v === col}"></button>`).join('')}</div>`;
         const who = PLAYER((api.myTeam.ids || []).find(id => id != null && PLAYER(id).role !== 'POR') || 10);
-        KITS.filter(kitOpen).forEach(K => {
-          const b = document.createElement('button'); b.className = 'kitopt' + (K.key === cur ? ' sel' : '');
-          b.appendChild(K.kit ? Sprites.kitPreview(Sprites.refOf(who), K.kit, 1.5) : Sprites.portrait(Sprites.refOf(who), 1.5));
-          b.insertAdjacentHTML('beforeend', `<small>${esc(K.name)}</small>`);
-          b.onclick = () => { Profile.data.kit = K.key; Profile.save(); Sound.sfx('click'); drawKits(); };
-          box.appendChild(b);
-        });
+        $('kitEd').innerHTML = `<div class="clubpv"><span id="kitPv"></span><div><b>${k ? TX('Tu equipación') : TX('Equipación del Raimon')}</b><small>${k ? '' : TX('Elige colores para crear la tuya')}</small></div></div>
+          <p class="note">${TX('Camiseta')}</p>${sw('a', k && k.a)}<p class="note">${TX('Mangas y pantalón')}</p>${sw('b', k && k.b)}
+          <p class="note">${TX('Diseño')}</p><div class="opts kitdz">${KIT_DESIGNS.map(([d, n]) => `<button data-dz="${d}" aria-pressed="${!!k && (k.d || '') === d}">${n}</button>`).join('')}</div>
+          ${k ? `<button class="ghost mini" id="kitReset">${TX('Volver a la del Raimon')}</button>` : ''}`;
+        $('kitPv').appendChild(k ? Sprites.kitPreview(Sprites.refOf(who), k, 2) : Sprites.portrait(Sprites.refOf(who), 2));
+        const set = ch => { Profile.data.kit = Object.assign({ a: '#e8c21a', b: '#1f4fc0', d: '' }, myKit() || {}, ch); Profile.save(); Sound.sfx('click'); drawKits(); };
+        $('kitEd').querySelectorAll('.sw').forEach(b => b.onclick = () => set({ [b.dataset.k]: b.dataset.c }));
+        $('kitEd').querySelectorAll('[data-dz]').forEach(b => b.onclick = () => set({ d: b.dataset.dz }));
+        if ($('kitReset')) $('kitReset').onclick = () => { Profile.data.kit = null; Profile.save(); Sound.sfx('click'); drawKits(); };
       };
       drawKits();
       teamEditor($('ed'), api.myTeam, () => saveTeam(api.myTeam));
@@ -8843,6 +8852,7 @@ const App = (() => {
     screen(`${top(first ? TX('Tu club') : TX('Club'), 'back', first ? TX('Listo') : TX('Volver'))}
       <div class="clubpv"><img class="ccrest huge" id="crPv" src="${myCrestUrl()}" alt=""><span id="kitPv"></span><div><b>${esc(c.school)}</b><small>${money(c.money)}</small></div></div>
       <h3>${TX('Equipación')}</h3><p class="note">${TX('Camiseta')}</p>${sw('a', c.kit.a)}<p class="note">${TX('Mangas y pantalón')}</p>${sw('b', c.kit.b)}
+      <p class="note">${TX('Diseño')}</p><div class="opts kitdz">${KIT_DESIGNS.map(([d, n]) => `<button data-dz="${d}" aria-pressed="${(c.kit.d || '') === d}">${n}</button>`).join('')}</div>
       <h3>${TX('Escudo')}</h3>
       <div class="opts">${CREST_SHAPES.map(s => `<button data-shape="${s}" aria-pressed="${c.crest.shape === s}">${s[0].toUpperCase() + s.slice(1)}</button>`).join('')}</div>
       <p class="note">${TX('Color de fondo')}</p>${sw('c1', c.crest.c1)}<p class="note">${TX('Color del borde y símbolo')}</p>${sw('c2', c.crest.c2)}
@@ -8857,6 +8867,7 @@ const App = (() => {
       const k = b.dataset.k; if (k === 'a' || k === 'b') c.kit[k] = b.dataset.c; else c.crest[k] = b.dataset.c;
       Career.save(); b.parentNode.querySelectorAll('.sw').forEach(x => x.setAttribute('aria-pressed', x === b)); drawPv();
     });
+    body.querySelectorAll('[data-dz]').forEach(b => b.onclick = () => { c.kit.d = b.dataset.dz; Career.save(); body.querySelectorAll('[data-dz]').forEach(x => x.setAttribute('aria-pressed', x === b)); drawPv(); });
     body.querySelectorAll('[data-shape]').forEach(b => b.onclick = () => { c.crest.shape = b.dataset.shape; Career.save(); body.querySelectorAll('[data-shape]').forEach(x => x.setAttribute('aria-pressed', x === b)); drawPv(); });
     body.querySelectorAll('[data-sym]').forEach(b => b.onclick = () => { c.crest.sym = b.dataset.sym; Career.save(); body.querySelectorAll('[data-sym]').forEach(x => x.setAttribute('aria-pressed', x === b)); drawPv(); });
     body.querySelectorAll('[data-up]').forEach(b => b.onclick = () => { const r = Career.upgrade(b.dataset.up); UI.toast(r.msg, 2000); if (r.ok) { Sound.sfx('reveal'); renderCareerClub(); } });
@@ -9246,7 +9257,7 @@ const App = (() => {
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
     { v: '0.31.9', date: '23/10/2026', items: [
-      TX('👕 ¡Equipaciones! Elige en Plantilla → Mi equipo la que llevan tus jugadores: Inazuma Japón, Royal Academy, Zeus, Génesis, Orpheus, The Kingdom y más.'),
+      TX('👕 ¡Crea tu equipación! En Plantilla → Mi equipo eliges los colores y el diseño (rayas, mitades, banda, cuadros…). En la Carrera también hay diseños nuevos.'),
       TX('🎨 Muñecos del Inazuma 3 arreglados: todos llevan su muñeco de verdad, sacado del juego original (peinado, colores y tono de piel), y ahora cambian a los colores de su equipo.'),
       TX('Plantilla: en Jugadores ves la nota y el elemento de cada uno, y en Mi equipo el elemento de cada jugador en el campo.'),
       TX('Equipos especiales: cada equipo da un jugador distinto (ya no se repite el premio).'),

@@ -4,6 +4,7 @@
 #   - Los archivos van dentro de .pkh/.pkb con el CRC32 del nombre: pch%08d.pac_ (cabeza*100), pph%04d.PLT, pcb%08d.pac_, ppb%04d.PLT.
 #   - Cada .pac_ (LZ10) tiene 72 fotogramas; cada fotograma: ancho, alto, x, y y la posición de su imagen (4 bpp, lineal).
 #   - Cuerpo: el 1 con la paleta 1 (la del Raimon, amarilla y azul, como las hojas del 1 y del 2: así se le puede cambiar la equipación al jugar);
+#     los porteros, con la paleta 2 (equipación de portero naranja, como en las hojas del 1 y del 2);
 #     su piel (colores 13-15) se toma de la paleta de la cabeza para que brazos y piernas sean del mismo tono que la cara.
 # Las 47 columnas de cada fila son los fotogramas GAME.frames (los mismos números que en el juego original).
 # Uso: python3 tools/ie3_sprites.py "/ruta/a/data_iz" [--only id,id,...] [--dry]
@@ -53,7 +54,7 @@ def draw(cv, d, h, r, P, ox, oy):
 G = json.load(open(os.path.join(ROOT, 'juego', 'gamedata.json')))
 FR = G['frames']
 U = open(D + 'logic/unitbase.dat', 'rb').read()
-body = PCB.get('pcb%08d.pac_' % 100); bh, bf = frames(body); bpal0 = pal(PPB.get('ppb%04d.PLT' % 1))
+body = PCB.get('pcb%08d.pac_' % 100); bh, bf = frames(body); bpal0 = pal(PPB.get('ppb%04d.PLT' % 1)); bpalgk = pal(PPB.get('ppb%04d.PLT' % 2))   # 2 = equipación de portero
 sheets, done, miss = {}, 0, []
 for p in G['players']:
     cs = p.get('cs')
@@ -63,7 +64,7 @@ for p in G['players']:
     head_n, pal_n = struct.unpack_from('<HH', U, u * 104 + 84)
     head = PCH.get('pch%08d.pac_' % (head_n * 100)); hp = PPH.get('pph%04d.PLT' % pal_n)
     if not head or not hp: miss.append(p['id']); continue
-    hh, hf = frames(head); HP = pal(hp); BP = bpal0[:13] + HP[13:16]
+    hh, hf = frames(head); HP = pal(hp); BP = (bpalgk if p['role'] == 'POR' else bpal0)[:13] + HP[13:16]
     row = Image.new('RGBA', (48 * len(FR), 48), (0, 0, 0, 0))
     for col, k in enumerate(FR):
         cv = Image.new('RGBA', (48, 48), (0, 0, 0, 0))
