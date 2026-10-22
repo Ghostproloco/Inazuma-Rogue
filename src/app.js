@@ -137,6 +137,7 @@ const App = (() => {
     body.querySelector('[data-cloudline]').onclick = () => renderAccount(renderMenu);
     $('mQuick').onclick = startQuick; $('mSound').onclick = renderSettings;
     if ($('mHw')) { $('mHw').onclick = renderHalloween; hwDecor(); }
+    if (settings.seenNews === VERSION || settings.newsShown === VERSION) setTimeout(aviso, 500);
     Sound.music('menu');
   }
 
@@ -158,6 +159,17 @@ const App = (() => {
     settings.tuts[key] = 1; saveSettings();
     const d = document.createElement('div'); d.className = 'tutbox';
     d.innerHTML = `<div class="tutin"><h2>❓ ${T[0]}</h2><p>${T[1]}</p><button class="cta">${TX('¡Entendido!')}</button></div>`;
+    d.querySelector('button').onclick = () => d.remove();
+    document.body.appendChild(d);
+  }
+  // Aviso que sale una sola vez al entrar al menú (cambia AVISO.key para sacar uno nuevo)
+  const AVISO = { key: 'munecos-ie3', title: TX('🎨 ¡Muñecos del Inazuma 3 arreglados!'),
+    text: TX('Muchos jugadores del 3 llevaban en el campo un muñeco que no era el suyo. Ahora todos llevan su muñeco de verdad, sacado del juego original: su peinado, sus colores y su tono de piel. Mac Robingo, Hector Helio, Edgar Partinus, Dylan Keith, Byron Love y muchos más ya se ven como tienen que verse.') };
+  function aviso() {
+    if (!Profile.data.firstDone || settings.aviso === AVISO.key || document.querySelector('.tutbox')) return;
+    settings.aviso = AVISO.key; saveSettings();
+    const d = document.createElement('div'); d.className = 'tutbox';
+    d.innerHTML = `<div class="tutin"><h2>${AVISO.title}</h2><p>${AVISO.text}</p><button class="cta">${TX('¡A jugar!')}</button></div>`;
     d.querySelector('button').onclick = () => d.remove();
     document.body.appendChild(d);
   }
