@@ -513,6 +513,7 @@ details.tgroup .tracks{margin-top:8px}
 .pslot .pr{font-size:12px;background:var(--navy-d);border:1px solid var(--ink);padding:0 4px;color:var(--sky-t);margin-top:2px}
 .pslot .pn{font-size:12px;text-shadow:1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ptile .slot{font-size:12px}
+.pslot .pe{display:block;line-height:1}.pslot .pe .chip{font-size:9px;padding:0 3px}
 .tmp{font-style:normal;font-size:12px;background:#7c4dd1;color:#fff;padding:0 3px}
 .pgrid > .note{grid-column:1/-1}
 details.techs summary{cursor:pointer;color:var(--gold);font-size:18px;padding:6px 0}
@@ -3167,7 +3168,17 @@ const Logic = (() => {
   function updateBall(s, dt) {
     const b = s.ball;
     if (s.tech && s.tech.tech.type === 'tiro') return;
-    if (b.owner) { syncBall(s, dt); return; }
+    if (b.owner) {
+      syncBall(s, dt);
+      // Llevar el balón más allá de una línea = fuera (banda, puerta o córner). Ya no se puede rodear la portería por detrás.
+      // Solo cuenta como gol si entras con él por la boca de la portería.
+      if (b.y < 0 || b.y > F.l || b.x < 0 || b.x > F.w) {
+        const p = b.owner, inMouth = (b.y < 0 || b.y > F.l) && b.x > 0 && b.x < F.w && Math.abs(b.x - cx) < F.goalW / 2;
+        Object.assign(b, { owner: null, lastTeam: p.team, vx: 0, vy: 0, vz: 0 });
+        if (inMouth) goal(s, b.y < 0 ? 'A' : 'B'); else outOfPlay(s);
+      }
+      return;
+    }
     b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt; b.vz -= 20 * dt;
     if (b.z < 0) { b.z = 0; b.vz = b.vz < -2 ? -b.vz * 0.45 : 0; }
     const k = b.z > 0.05 ? 0.12 : 0.85, f = Math.exp(-k * dt);
@@ -7816,7 +7827,7 @@ const App = (() => {
       const fc = document.createElement('span'); fc.className = 'pf';
       if (it) fc.appendChild(face(it.ref, 46)); else fc.textContent = '+';
       b.appendChild(fc);
-      b.insertAdjacentHTML('beforeend', `<span class="pr">${RAB(r)}${it && it.badge != null ? ' · ' + it.badge : ''}</span><span class="pn">${it ? esc(firstName(it.name)) : TX('Elegir')}</span>`);
+      b.insertAdjacentHTML('beforeend', `<span class="pr">${RAB(r)}${it && it.badge != null ? ' · ' + it.badge : ''}</span><span class="pn">${it ? esc(firstName(it.name)) : TX('Elegir')}</span>${it && it.elem ? `<span class="pe">${chip(it.elem)}</span>` : ''}`);
       b.onclick = () => onSlot(i);
       el.appendChild(b);
     });
@@ -7837,7 +7848,7 @@ const App = (() => {
       <div class="pgrid" id="edList"></div>`;
     const redraw = () => { onChange && onChange(); teamEditor(box, t, onChange); };
     box.querySelector('#edPitch').appendChild(pitch(roles, t.ids.map((id, i) => id == null ? null :
-      { ref: Sprites.refOf(PLAYER(id)), name: PLAYER(id).name, rarity: PLAYER(id).rarity, halloween: PLAYER(id).halloween, badge: rate(id, roles[i]) }), t.sel, i => { t.sel = i; Sound.sfx('click'); teamEditor(box, t, onChange); }));
+      { ref: Sprites.refOf(PLAYER(id)), name: PLAYER(id).name, rarity: PLAYER(id).rarity, halloween: PLAYER(id).halloween, elem: PLAYER(id).elem, badge: rate(id, roles[i]) }), t.sel, i => { t.sel = i; Sound.sfx('click'); teamEditor(box, t, onChange); }));
     box.querySelector('#formSel').onchange = e => {   // al cambiar de formación se recolocan los mismos 5
       t.formation = e.target.value; const keep = t.ids.filter(x => x != null);
       t.ids = bestFor(FORMATIONS[t.formation].roles, keep.length === 5 ? keep : Profile.ids()); t.sel = 0; redraw();
@@ -7853,7 +7864,7 @@ const App = (() => {
     if (!ids.length) list.innerHTML = pool.length ? '<p class="note">' + TX('Ningún jugador coincide con la búsqueda.') + '</p>' : '<p class="note">' + TX('No tienes jugadores de este puesto. Toca «Todos».') + '</p>';
     ids.forEach(id => {
       const at = t.ids.indexOf(id);
-      const c = tile(id, `<span class="slot">${at >= 0 ? TX('En el equipo · ') + RAB(roles[at]) : TX('Nota ') + rate(id, role)}</span>`);
+      const c = tile(id, `<span class="slot">${at >= 0 ? TX('En el equipo · ') + RAB(roles[at]) : TX('Nota ') + rate(id, role)} ${chip(PLAYER(id).elem)}</span>`);
       if (at >= 0) c.classList.add('sel');
       c.onclick = () => {
         if (at >= 0 && roles[at] === 'POR' && t.ids[t.sel] != null && !playsAs(PLAYER(t.ids[t.sel]), 'POR')) return UI.toast(TX('Así la portería se quedaría sin portero'));

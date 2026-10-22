@@ -592,7 +592,7 @@ const App = (() => {
       const fc = document.createElement('span'); fc.className = 'pf';
       if (it) fc.appendChild(face(it.ref, 46)); else fc.textContent = '+';
       b.appendChild(fc);
-      b.insertAdjacentHTML('beforeend', `<span class="pr">${RAB(r)}${it && it.badge != null ? ' · ' + it.badge : ''}</span><span class="pn">${it ? esc(firstName(it.name)) : TX('Elegir')}</span>`);
+      b.insertAdjacentHTML('beforeend', `<span class="pr">${RAB(r)}${it && it.badge != null ? ' · ' + it.badge : ''}</span><span class="pn">${it ? esc(firstName(it.name)) : TX('Elegir')}</span>${it && it.elem ? `<span class="pe">${chip(it.elem)}</span>` : ''}`);
       b.onclick = () => onSlot(i);
       el.appendChild(b);
     });
@@ -613,7 +613,7 @@ const App = (() => {
       <div class="pgrid" id="edList"></div>`;
     const redraw = () => { onChange && onChange(); teamEditor(box, t, onChange); };
     box.querySelector('#edPitch').appendChild(pitch(roles, t.ids.map((id, i) => id == null ? null :
-      { ref: Sprites.refOf(PLAYER(id)), name: PLAYER(id).name, rarity: PLAYER(id).rarity, halloween: PLAYER(id).halloween, badge: rate(id, roles[i]) }), t.sel, i => { t.sel = i; Sound.sfx('click'); teamEditor(box, t, onChange); }));
+      { ref: Sprites.refOf(PLAYER(id)), name: PLAYER(id).name, rarity: PLAYER(id).rarity, halloween: PLAYER(id).halloween, elem: PLAYER(id).elem, badge: rate(id, roles[i]) }), t.sel, i => { t.sel = i; Sound.sfx('click'); teamEditor(box, t, onChange); }));
     box.querySelector('#formSel').onchange = e => {   // al cambiar de formación se recolocan los mismos 5
       t.formation = e.target.value; const keep = t.ids.filter(x => x != null);
       t.ids = bestFor(FORMATIONS[t.formation].roles, keep.length === 5 ? keep : Profile.ids()); t.sel = 0; redraw();
@@ -629,7 +629,7 @@ const App = (() => {
     if (!ids.length) list.innerHTML = pool.length ? '<p class="note">' + TX('Ningún jugador coincide con la búsqueda.') + '</p>' : '<p class="note">' + TX('No tienes jugadores de este puesto. Toca «Todos».') + '</p>';
     ids.forEach(id => {
       const at = t.ids.indexOf(id);
-      const c = tile(id, `<span class="slot">${at >= 0 ? TX('En el equipo · ') + RAB(roles[at]) : TX('Nota ') + rate(id, role)}</span>`);
+      const c = tile(id, `<span class="slot">${at >= 0 ? TX('En el equipo · ') + RAB(roles[at]) : TX('Nota ') + rate(id, role)} ${chip(PLAYER(id).elem)}</span>`);
       if (at >= 0) c.classList.add('sel');
       c.onclick = () => {
         if (at >= 0 && roles[at] === 'POR' && t.ids[t.sel] != null && !playsAs(PLAYER(t.ids[t.sel]), 'POR')) return UI.toast(TX('Así la portería se quedaría sin portero'));

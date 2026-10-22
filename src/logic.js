@@ -857,7 +857,17 @@ const Logic = (() => {
   function updateBall(s, dt) {
     const b = s.ball;
     if (s.tech && s.tech.tech.type === 'tiro') return;
-    if (b.owner) { syncBall(s, dt); return; }
+    if (b.owner) {
+      syncBall(s, dt);
+      // Llevar el balón más allá de una línea = fuera (banda, puerta o córner). Ya no se puede rodear la portería por detrás.
+      // Solo cuenta como gol si entras con él por la boca de la portería.
+      if (b.y < 0 || b.y > F.l || b.x < 0 || b.x > F.w) {
+        const p = b.owner, inMouth = (b.y < 0 || b.y > F.l) && b.x > 0 && b.x < F.w && Math.abs(b.x - cx) < F.goalW / 2;
+        Object.assign(b, { owner: null, lastTeam: p.team, vx: 0, vy: 0, vz: 0 });
+        if (inMouth) goal(s, b.y < 0 ? 'A' : 'B'); else outOfPlay(s);
+      }
+      return;
+    }
     b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt; b.vz -= 20 * dt;
     if (b.z < 0) { b.z = 0; b.vz = b.vz < -2 ? -b.vz * 0.45 : 0; }
     const k = b.z > 0.05 ? 0.12 : 0.85, f = Math.exp(-k * dt);
