@@ -42,7 +42,7 @@ const Input = (() => {
   // Joystick (móvil): más grande que antes (36 px) para poder apuntar fino; zona muerta para que el dedo quieto no mueva al jugador;
   // el esprint solo al llevar el dedo MÁS ALLÁ del aro (antes cualquier empujón a tope esprintaba y el jugador se cansaba sin querer);
   // y si el dedo se aleja mucho, el joystick lo sigue (así girar en seco responde al momento).
-  const R = 50, DEAD = 0.16, SPRINT_AT = 1.3, FOLLOW = 1.9;
+  const R = 44, DEAD = 0.16, SPRINT_AT = 1.3, FOLLOW = 1.9;
   const shell = document.getElementById('shell'), touch = document.getElementById('touch');
   const stick = document.getElementById('stick'), knob = document.getElementById('knob');
   // Teclas (Ajustes → «Teclas del ordenador»): «nuevas» = J pase · K tiro/cambiar · L profundidad · E técnica;
@@ -189,7 +189,6 @@ const Pad = (() => {
       { label: TX('Pase'), sub: TX('mantén'), cls: 's2', action: 'A', holdPass: true },
       { label: TX('Técnica'), cls: 's3 fire', action: 'tech', tech: true },
       { label: '⇄', cls: 's6 tnext', action: 'techNext' },
-      { label: 'Profund.', cls: 's4', action: 'B' },
       { label: TX('Regate'), cls: 's5', action: 'dribble' },
     ],
     gk: [

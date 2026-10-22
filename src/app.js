@@ -1864,7 +1864,7 @@ const App = (() => {
     const T = {
       movil: `<p class="note">${TX('El joystick aparece donde pongas el dedo en la mitad izquierda de la pantalla. Para esprintar, lleva el dedo más allá del aro (se pone naranja). Los botones de la derecha cambian según tu equipo tenga el balón o no.')}</p>
         ${table(row(TX('Joystick'), TX('mover y apuntar'), TX('mover')) + row(TX('Tiro'), TX('mantén para cargar, suelta para chutar (un toque = tiro rápido)'), '—') +
-          row(TX('Pase'), TX('toque = pase · mantén = pase fuerte'), '—') + row(TX('Entrada'), '—', TX('robar el balón')) + row(TX('Profund.'), TX('pase al hueco'), '—') +
+          row(TX('Pase'), TX('toque = pase · mantén = pase fuerte'), '—') + row(TX('Entrada'), '—', TX('robar el balón')) +
           row(TX('Regate'), TX('recorte rápido sin técnica'), '—') + row(TX('Cambiar'), '—', TX('al compañero que antes llega al balón (pulsa otra vez para el siguiente)')) +
           row(TX('Técnica'), TX('supertécnica de tiro o regate'), TX('supertécnica de bloqueo')) + row('⇄', TX('elegir otra supertécnica'), TX('elegir otra supertécnica')))}
         <p class="note">${TX('Con el portero: Despeje (suelta) manda el balón lejos, Pase y Saque largo.')}</p>`,
@@ -1901,7 +1901,7 @@ const App = (() => {
   const NEWS = [
     { v: '0.31.8', date: '22/10/2026', items: [
       TX('Móvil: joystick más grande y con zona muerta; ya no esprintas sin querer (para esprintar, lleva el dedo más allá del aro).'),
-      TX('Móvil: botones más grandes y más separados, y nueva opción de tamaño en Ajustes.'),
+      TX('Móvil: botones más grandes, en arco alrededor de Tiro y sin el de pase al hueco (que estorbaba); nueva opción de tamaño en Ajustes.'),
       TX('Al perder el balón, un toque en Pase ya no te cambia de jugador sin querer.'),
       TX('Cambiar de jugador te lleva al compañero que antes llega al balón; si vuelves a pulsar, al siguiente.')] },
     { v: '0.31.7', date: '22/10/2026', items: [
