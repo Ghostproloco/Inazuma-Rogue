@@ -1820,7 +1820,7 @@ const App = (() => {
   /* ---------- Códigos de regalo ---------- */
   /* ---------- Teclas «A tu gusto» (Ajustes): cada acción con la tecla que quieras ---------- */
   const KEY_ACTIONS = [['up', TX('Arriba')], ['down', TX('Abajo')], ['left', TX('Izquierda')], ['right', TX('Derecha')], ['sprint', TX('Esprint')],
-    ['pass', TX('Pase / entrada')], ['shoot', TX('Tiro / despeje')], ['switch', TX('Cambiar de jugador')], ['through', TX('Pase al hueco / saque largo')],
+    ['pass', TX('Pase / entrada')], ['shoot', TX('Tiro / despeje')], ['switch', TX('Cambiar de jugador')], ['through', TX('Saque largo (portero)')],
     ['dribble', TX('Regate')], ['tech', TX('Supertécnica')], ['techNext', TX('Cambiar técnica')], ['pause', TX('Pausa')]];
   // Teclas repetidas (Tiro y Cambiar de jugador sí pueden ir juntas: con balón chuta y sin balón cambia)
   function keyDups(k) {
@@ -1872,17 +1872,17 @@ const App = (() => {
         return `<p class="note">${TX('Tienes tus teclas «A tu gusto» (puedes cambiarlas en Ajustes → Controles).')}</p>
         ${table(row([k.up, k.left, k.down, k.right].map(n).join(' '), TX('mover y apuntar'), TX('mover')) + row(n(k.sprint), TX('esprint'), TX('esprint')) +
           row(n(k.shoot), TX('tiro (mantén para cargar)'), k.switch === k.shoot ? TX('cambiar de jugador') : '—') + row(n(k.pass), TX('pase (mantén = fuerte)'), TX('entrada')) +
-          row(n(k.through), TX('pase al hueco'), '—') + row(n(k.dribble), TX('regate'), '—') + (k.switch !== k.shoot ? row(n(k.switch), '—', TX('cambiar de jugador')) : '') +
+          row(n(k.dribble), TX('regate'), '—') + (k.switch !== k.shoot ? row(n(k.switch), '—', TX('cambiar de jugador')) : '') +
           row(n(k.tech), TX('supertécnica'), TX('supertécnica')) + row(n(k.techNext), TX('elegir otra supertécnica'), TX('elegir otra supertécnica')) + row(n(k.pause) + ' / Esc', TX('pausa'), TX('pausa')))}
         <p class="note">${TX('Portero con balón: {0} pase · {1} saque largo · {2} despeje.', n(k.pass), n(k.through), n(k.shoot))}</p>`; })() : `<p class="note">${clas ? TX('Tienes las teclas clásicas (puedes cambiarlas en Ajustes → Controles).') : TX('Tienes las teclas nuevas (puedes cambiarlas en Ajustes → Controles).')}</p>
         ${table(row('WASD / ' + TX('flechas'), TX('mover y apuntar'), TX('mover')) + row('Shift', TX('esprint'), TX('esprint')) +
           row(clas ? 'L / X' : 'K / X', TX('tiro (mantén para cargar)'), clas ? '—' : TX('cambiar de jugador')) + row('J / Z', TX('pase (mantén = fuerte)'), TX('entrada')) +
-          row(clas ? 'K / C' : 'L / C', TX('pase al hueco'), '—') + row('I / V', TX('regate'), '—') + (clas ? row('Q', '—', TX('cambiar de jugador')) : '') +
+          row('I / V', TX('regate'), '—') + (clas ? row('Q', '—', TX('cambiar de jugador')) : '') +
           row(TX('Espacio'), TX('supertécnica'), TX('supertécnica')) + row(clas ? 'U' : 'E', TX('elegir otra supertécnica'), TX('elegir otra supertécnica')) + row('P / Esc', TX('pausa'), TX('pausa')))}
         <p class="note">${clas ? TX('Portero con balón: J pase · K saque largo · L despeje.') : TX('Portero con balón: J pase · L saque largo · K despeje.')}</p>`,
       mando: `<p class="note">${TX('Funciona con mandos de Xbox, PlayStation y la mayoría de genéricos: conéctalo (por cable o Bluetooth) y pulsa un botón.')}</p>
         ${table(row(TX('Stick / cruceta'), TX('mover y apuntar'), TX('mover')) + row('RT / R2', TX('esprint'), TX('esprint')) + row('X / ▢', TX('tiro (mantén para cargar)'), '—') +
-          row('A / ✕', TX('pase (mantén = fuerte)'), TX('entrada')) + row('B / ◯', TX('pase al hueco'), '—') + row('RB / R1', TX('regate'), '—') +
+          row('A / ✕', TX('pase (mantén = fuerte)'), TX('entrada')) + row('RB / R1', TX('regate'), '—') +
           row('LB / L1', '—', TX('cambiar de jugador')) + row('Y / △', TX('supertécnica'), TX('supertécnica')) + row('LT / L2', TX('elegir otra supertécnica'), TX('elegir otra supertécnica')) +
           row('Start', TX('pausa'), TX('pausa')))}`,
     };
@@ -1901,7 +1901,8 @@ const App = (() => {
   const NEWS = [
     { v: '0.31.8', date: '22/10/2026', items: [
       TX('Móvil: joystick más grande y con zona muerta; ya no esprintas sin querer (para esprintar, lleva el dedo más allá del aro).'),
-      TX('Móvil: botones más grandes, en arco alrededor de Tiro y sin el de pase al hueco (que estorbaba); nueva opción de tamaño en Ajustes.'),
+      TX('Móvil: botones más grandes y en arco alrededor de Tiro; nueva opción de tamaño en Ajustes.'),
+      TX('Se quita el pase al hueco (móvil, teclado y mando): estorbaba. El portero sigue sacando en largo.'),
       TX('Al perder el balón, un toque en Pase ya no te cambia de jugador sin querer.'),
       TX('Cambiar de jugador te lleva al compañero que antes llega al balón; si vuelves a pulsar, al siguiente.')] },
     { v: '0.31.7', date: '22/10/2026', items: [
@@ -1981,9 +1982,9 @@ const App = (() => {
       ${opts(TX('Teclas del ordenador'), 'keys', [['nuevas', TX('Nuevas (K tiro)')], ['clasicas', TX('Clásicas (L tiro)')], ['custom', TX('A tu gusto')]], Object.assign({ keys: 'nuevas' }, settings))}
       ${settings.keys === 'custom' ? keyMapHtml() : ''}
       <button class="ghost" id="sGuide">${TX('🎮 Guía de controles')}</button>
-      <p class="keys"><b>${TX('Mando:')}</b> ${TX('stick o cruceta para moverte · RT esprint · A pase (mantén = fuerte) · X tiro (mantén) · B profundidad / entrada · Y supertécnica · LT cambiar técnica · RB regate · LB cambiar jugador · Start pausa.')}<br>
+      <p class="keys"><b>${TX('Mando:')}</b> ${TX('stick o cruceta para moverte · RT esprint · A pase (mantén = fuerte) / entrada · X tiro (mantén) · B saque largo (portero) · Y supertécnica · LT cambiar técnica · RB regate · LB cambiar jugador · Start pausa.')}<br>
       <b>${TX('Móvil:')}</b> ${TX('joystick a la izquierda (más allá del aro = esprint). Mantén Pase para un pase fuerte y usa Regate para un recorte rápido sin técnica. Cambiar te pasa al compañero que antes llega al balón (también cambia solo al ir a por el balón).')}<br>
-      <b>${TX('PC:')}</b> ${settings.keys === 'custom' ? TX('tus teclas están justo encima (Esc también pausa).') : settings.keys === 'clasicas' ? TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o C: profundidad / saque largo · L o X: tiro (mantén) / despeje · I o V: regate · Q: cambiar jugador · Espacio: supertécnica · U: cambiar técnica · P o Esc: pausa') : TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o X: tiro (mantén) / cambiar jugador · L o C: profundidad / saque largo · I o V: regate · Espacio: supertécnica · E: cambiar técnica · P o Esc: pausa')}</p>
+      <b>${TX('PC:')}</b> ${settings.keys === 'custom' ? TX('tus teclas están justo encima (Esc también pausa).') : settings.keys === 'clasicas' ? TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o C: saque largo (portero) · L o X: tiro (mantén) / despeje · I o V: regate · Q: cambiar jugador · Espacio: supertécnica · U: cambiar técnica · P o Esc: pausa') : TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o X: tiro (mantén) / cambiar jugador · L o C: saque largo (portero) · I o V: regate · Espacio: supertécnica · E: cambiar técnica · P o Esc: pausa')}</p>
       <h3>${TX('Sonido')}</h3>
       <div class="mixer"><label>${TX('🎵 Música')} <b id="mvT">${Math.round((c.music ? c.mv ?? 1 : 0) * 100)} %</b><input type="range" id="mvR" min="0" max="100" step="5" value="${Math.round((c.music ? c.mv ?? 1 : 0) * 100)}"></label>
         <label>${TX('🔊 Efectos')} <b id="svT">${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)} %</b><input type="range" id="svR" min="0" max="100" step="5" value="${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)}"></label></div>

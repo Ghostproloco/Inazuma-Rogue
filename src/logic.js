@@ -491,7 +491,7 @@ const Logic = (() => {
         else { const c = s.pass.charge, d = s.pass.dir; s.pass = null; pass(s, me, 'strong', d, c > 0.18 ? c : 0); return; }
       }
       if (pr.has('dribble')) { dribble(s, me, { x, y }); return; }
-      if (pr.has('B')) { pass(s, me, 'through', { x, y }); return; }
+      pr.has('B');   // el pase al hueco se quitó del juego (22 oct, Fran): la tecla/botón ya no hace nada con balón (el portero sí saca en largo)
       if (pr.has('tech')) { tryTech(s, me, x); return; }
       if (auto && !s.shoot.charging) {
         const t = bestTech(me, 'regate');

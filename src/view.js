@@ -45,8 +45,8 @@ const Input = (() => {
   const R = 44, DEAD = 0.16, SPRINT_AT = 1.3, FOLLOW = 1.9;
   const shell = document.getElementById('shell'), touch = document.getElementById('touch');
   const stick = document.getElementById('stick'), knob = document.getElementById('knob');
-  // Teclas (Ajustes → «Teclas del ordenador»): «nuevas» = J pase · K tiro/cambiar · L profundidad · E técnica;
-  // «clásicas» = como hasta la 0.31.1: J pase · K profundidad · L tiro · Q cambiar · U técnica. Z X C V valen en las dos (con las flechas).
+  // Teclas (Ajustes → «Teclas del ordenador»): «nuevas» = J pase · K tiro/cambiar · L saque largo (portero) · E técnica;
+  // «clásicas» = como hasta la 0.31.1: J pase · K saque largo (portero) · L tiro · Q cambiar · U técnica. (El pase al hueco ya no existe.) Z X C V valen en las dos (con las flechas).
   const COMMON = { KeyZ: 'A', KeyX: 'switch', KeyC: 'B', KeyV: 'dribble', Space: 'tech', KeyQ: 'switch', KeyU: 'techNext', KeyE: 'techNext' };
   const PASS_KEYS = ['KeyJ', 'KeyZ'];
   const STD = { move: { up: ['ArrowUp', 'KeyW'], down: ['ArrowDown', 'KeyS'], left: ['ArrowLeft', 'KeyA'], right: ['ArrowRight', 'KeyD'] },
@@ -133,7 +133,7 @@ const Input = (() => {
   addEventListener('pointerup', e => { if (shootTouch === e.pointerId) shootTouch = null; if (passTouch === e.pointerId) passTouch = null; });
   addEventListener('pointercancel', e => { if (shootTouch === e.pointerId) shootTouch = null; if (passTouch === e.pointerId) passTouch = null; });
 
-  // Mando (Xbox/PlayStation/genérico, mapeo estándar): A pase · X tiro (mantener) · B profundidad · Y técnica · RB regate
+  // Mando (Xbox/PlayStation/genérico, mapeo estándar): A pase · X tiro (mantener) · B saque largo del portero · Y técnica · RB regate
   // LB cambiar jugador · LT cambiar técnica · RT esprint · Start pausa · stick izquierdo o cruceta para moverte
   const GP = { 0: 'A', 1: 'B', 3: 'tech', 5: 'dribble', 4: 'switch', 6: 'techNext' };
   let gpPrev = [], gpState = { x: 0, y: 0, sprint: false, shoot: false, pass: false };
@@ -205,12 +205,12 @@ const Pad = (() => {
   };
   const pad = document.getElementById('pad'), kh = document.getElementById('keyhud');
   const KEYS_CLASICAS = {
-    attack: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/C</b> ' + TX('profundidad ·') + ' <b>I/V</b> ' + TX('regate ·') + ' <b>L/X</b> ' + TX('tiro (mantén) ·') + ' <b>U</b> ' + TX('cambiar técnica'),
+    attack: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>I/V</b> ' + TX('regate ·') + ' <b>L/X</b> ' + TX('tiro (mantén) ·') + ' <b>U</b> ' + TX('cambiar técnica'),
     defense: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('entrada ·') + ' <b>Q/X</b> ' + TX('cambiar ·') + ' <b>U</b> ' + TX('cambiar técnica'),
     gk: '<b>' + TX('Portero') + '</b>: <b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover por el área ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/C</b> ' + TX('saque largo ·') + ' <b>L/X</b> ' + TX('despeje'),
   };
   const KEYS = {
-    attack: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/X</b> ' + TX('tiro (mantén) ·') + ' <b>L/C</b> ' + TX('profundidad ·') + ' <b>I/V</b> ' + TX('regate ·') + ' <b>E</b> ' + TX('cambiar técnica'),
+    attack: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/X</b> ' + TX('tiro (mantén) ·') + ' <b>I/V</b> ' + TX('regate ·') + ' <b>E</b> ' + TX('cambiar técnica'),
     defense: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('entrada ·') + ' <b>K/X</b> ' + TX('cambiar ·') + ' <b>E</b> ' + TX('cambiar técnica'),
     gk: '<b>' + TX('Portero') + '</b>: <b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover por el área ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/X</b> ' + TX('despeje ·') + ' <b>L/C</b> ' + TX('saque largo'),
   };
@@ -220,7 +220,7 @@ const Pad = (() => {
     const mv = [k.up, k.left, k.down, k.right].every(c => /^Key.$/.test(c)) ? '<b>' + [k.up, k.left, k.down, k.right].map(c => c.slice(3)).join('') + '</b>' : [k.up, k.left, k.down, k.right].map(n).join('');
     const sp = ' ' + n(k.sprint) + ' ' + TX('esprint ·') + ' ';
     const parts = {
-      attack: mv + ' ' + TX('mover ·') + sp + n(k.pass) + ' ' + TX('pase (mantén = fuerte) ·') + ' ' + n(k.shoot) + ' ' + TX('tiro (mantén) ·') + ' ' + n(k.through) + ' ' + TX('profundidad ·') + ' ' + n(k.dribble) + ' ' + TX('regate ·') + ' ' + n(k.techNext) + ' ' + TX('cambiar técnica'),
+      attack: mv + ' ' + TX('mover ·') + sp + n(k.pass) + ' ' + TX('pase (mantén = fuerte) ·') + ' ' + n(k.shoot) + ' ' + TX('tiro (mantén) ·') + ' ' + n(k.dribble) + ' ' + TX('regate ·') + ' ' + n(k.techNext) + ' ' + TX('cambiar técnica'),
       defense: mv + ' ' + TX('mover ·') + sp + n(k.pass) + ' ' + TX('entrada ·') + ' ' + n(k.switch) + ' ' + TX('cambiar ·') + ' ' + n(k.techNext) + ' ' + TX('cambiar técnica'),
       gk: '<b>' + TX('Portero') + '</b>: ' + mv + ' ' + TX('mover por el área ·') + ' ' + n(k.pass) + ' ' + TX('pase (mantén = fuerte) ·') + ' ' + n(k.shoot) + ' ' + TX('despeje ·') + ' ' + n(k.through) + ' ' + TX('saque largo'),
     };
