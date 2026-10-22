@@ -18,7 +18,7 @@ const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '�
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
 const VERSION = '0.31.8';
-const DISCORD_URL = 'https://discord.gg/W8bn6ZCV3';   // servidor de la comunidad (lo hizo un colega de Fran)
+const DISCORD_URL = 'https://discord.gg/W8bn6ZCV3', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 const App = (() => {
   const $ = id => document.getElementById(id);
@@ -104,7 +104,7 @@ const App = (() => {
       </div>
       <div class="grid2"><button class="ghost" id="mGift">${TX('🎁 Código de regalo')}</button><button class="ghost" id="mSaves">${TX('👤 Cuenta')}${Cloud.loggedIn() ? ' · ' + esc(Cloud.user()) : ''}</button></div>
       <button class="ghost" id="mNews">${TX('📰 Novedades')} · v${VERSION}${settings.seenNews !== VERSION ? ' <i class="newdot"></i>' : ''}</button>
-      <button class="ghost discordbtn" id="mDiscord">${TX('💬 Únete al Discord de la comunidad')}</button>
+      <button class="ghost discordbtn" id="mDiscord">${P.discordGift ? TX('💬 Únete al Discord de la comunidad') : TX('💬 Únete al Discord · +10 tickets 🎟️')}</button>
       <div data-cloudline>${cloudLine()}</div>
       ${Controls.pc() ? `<p class="note gpnote">${TX('🎮 ¿Tienes mando? Conéctalo y juega: Xbox, PlayStation o genérico.')} <small>${TX('Los botones están en Ajustes.')}</small></p>` : ''}
       ${r ? '<button class="ghost" id="mAbandon">' + TX('Abandonar partida en curso') + '</button>' : ''}
@@ -126,7 +126,12 @@ const App = (() => {
     $('mGacha').onclick = renderGacha; $('mTeam').onclick = () => renderTeam();
     $('mGift').onclick = renderGift;
     $('mNews').onclick = () => renderNews(renderMenu);
-    $('mDiscord').onclick = () => { Sound.sfx('click'); try { window.open(DISCORD_URL, '_blank', 'noopener'); } catch (_) { location.href = DISCORD_URL; } };
+    $('mDiscord').onclick = () => {
+      Sound.sfx('click');
+      // Regalo de bienvenida: 10 tickets la primera vez que se pulsa (una sola vez por perfil)
+      if (!P.discordGift) { P.discordGift = Date.now(); P.tickets += DISCORD_GIFT; Profile.save(); setTimeout(() => { renderMenu(); UI.toast(TX('¡Gracias por unirte! +10 tickets 🎟️'), 2600); }, 400); }
+      try { window.open(DISCORD_URL, '_blank', 'noopener'); } catch (_) { location.href = DISCORD_URL; }
+    };
     if (settings.seenNews !== VERSION && settings.newsShown !== VERSION) { settings.newsShown = VERSION; saveSettings(); setTimeout(() => { if ($('mNews')) renderNews(renderMenu); }, 400); }   // la primera vez tras actualizar
     $('mSaves').onclick = () => renderAccount(renderMenu);
     body.querySelector('[data-cloudline]').onclick = () => renderAccount(renderMenu);
