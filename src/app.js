@@ -2303,7 +2303,22 @@ const App = (() => {
   };
 
   api.renderMenu = () => renderMenu();
+  // Solo arranca en la web oficial (o en la beta y en las pruebas). Las direcciones van como números para que no se cambien con un simple «buscar y reemplazar».
+  const OFFICIAL = String.fromCharCode(104,116,116,112,115,58,47,47,102,114,97,110,109,110,100,101,122,122,122,122,46,103,105,116,104,117,98,46,105,111,47,73,110,97,122,117,109,97,45,82,111,103,117,101,47,106,117,101,103,111) + '/';
+  function hostOk() {
+    const h = (location.hostname || '').toLowerCase();
+    if (BETA) return true;
+    const ok = [[102,114,97,110,109,110,100,101,122,122,122,122,46,103,105,116,104,117,98,46,105,111], [108,111,99,97,108,104,111,115,116], [49,50,55,46,48,46,48,46,49]].map(a => String.fromCharCode(...a));
+    return ok.includes(h) || h.endsWith('.test');
+  }
+  function renderCopy() {
+    screen(`<div class="title"><img class="logo" src="ui/logo_rogue.png" alt="Inazuma Rogue" onerror="this.remove()">
+      <h2>${TX('Esta copia del juego no es oficial')}</h2>
+      <p class="note">${TX('Inazuma Rogue es gratis y solo se juega en su web oficial, donde tienes tu partida guardada, las novedades y los eventos.')}</p>
+      <a class="cta linkbtn" href="${OFFICIAL}">${TX('▶ Ir a la web oficial')}</a></div>`, 'bg_title');
+  }
   api.boot = () => {
+    if (!hostOk()) return renderCopy();
     Controls.apply();
     Career.load();
     if (api.run && (!api.run.roster || !api.run.kind)) api.run = null;
