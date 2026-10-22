@@ -339,6 +339,7 @@ select option{color:#111;font-family:system-ui}
 .hwreto div{display:flex;flex-direction:column;gap:2px}.hwreto small{font-size:12px}.hwreto b{color:#ffa23a;font-weight:400}
 .hwreto .cta{width:auto;padding:6px 10px;font-size:14px}.hwreto.ready{border-color:#ff8a1a}.hwreto.got{opacity:.7}
 .hwok{font-size:24px;color:#6fe06f}
+.ghost.discordbtn{background:linear-gradient(#5865f2,#4752c4);color:#fff;box-shadow:0 0 0 2px #2b2f7a}
 .kmap{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .kbtn{display:flex;justify-content:space-between;align-items:center;gap:6px;background:rgba(10,18,48,.55);border:2px solid var(--ink);padding:6px 8px;color:var(--chalk);font:14px var(--font-ui);cursor:pointer;text-align:left;min-width:0}
 .kbtn span{min-width:0;overflow:hidden;text-overflow:ellipsis}.kbtn b{font-weight:400;color:var(--yellow);background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.25);padding:1px 7px;white-space:nowrap}
@@ -1987,6 +1988,8 @@ const EN_TEXT = {
   '👥 Alineación (10 convocados · 2 equipos)': '👥 Line-up (10 called up · 2 teams)',
   '👥 Plantilla': '👥 Squad',
   '💎 ¡Cadena perfecta sin perder vidas! +5 🎟️': '💎 Perfect chain without losing a life! +5 🎟️',
+  '💬 ¡Ya tenemos Discord! Entra desde el botón del menú.': '💬 We have a Discord! Join from the menu button.',
+  '💬 Únete al Discord de la comunidad': '💬 Join the community Discord',
   '💰 Dinero infinito: NO': '💰 Infinite money: NO',
   '💰 Dinero infinito: SÍ': '💰 Infinite money: YES',
   '💰 para tu club · +': '💰 for your club · +',
@@ -7170,6 +7173,7 @@ const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '�
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
 const VERSION = '0.31.8';
+const DISCORD_URL = 'https://discord.gg/W8bn6ZCV3';   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 const App = (() => {
   const $ = id => document.getElementById(id);
@@ -7255,6 +7259,7 @@ const App = (() => {
       </div>
       <div class="grid2"><button class="ghost" id="mGift">${TX('🎁 Código de regalo')}</button><button class="ghost" id="mSaves">${TX('👤 Cuenta')}${Cloud.loggedIn() ? ' · ' + esc(Cloud.user()) : ''}</button></div>
       <button class="ghost" id="mNews">${TX('📰 Novedades')} · v${VERSION}${settings.seenNews !== VERSION ? ' <i class="newdot"></i>' : ''}</button>
+      <button class="ghost discordbtn" id="mDiscord">${TX('💬 Únete al Discord de la comunidad')}</button>
       <div data-cloudline>${cloudLine()}</div>
       ${Controls.pc() ? `<p class="note gpnote">${TX('🎮 ¿Tienes mando? Conéctalo y juega: Xbox, PlayStation o genérico.')} <small>${TX('Los botones están en Ajustes.')}</small></p>` : ''}
       ${r ? '<button class="ghost" id="mAbandon">' + TX('Abandonar partida en curso') + '</button>' : ''}
@@ -7276,6 +7281,7 @@ const App = (() => {
     $('mGacha').onclick = renderGacha; $('mTeam').onclick = () => renderTeam();
     $('mGift').onclick = renderGift;
     $('mNews').onclick = () => renderNews(renderMenu);
+    $('mDiscord').onclick = () => { Sound.sfx('click'); try { window.open(DISCORD_URL, '_blank', 'noopener'); } catch (_) { location.href = DISCORD_URL; } };
     if (settings.seenNews !== VERSION && settings.newsShown !== VERSION) { settings.newsShown = VERSION; saveSettings(); setTimeout(() => { if ($('mNews')) renderNews(renderMenu); }, 400); }   // la primera vez tras actualizar
     $('mSaves').onclick = () => renderAccount(renderMenu);
     body.querySelector('[data-cloudline]').onclick = () => renderAccount(renderMenu);
@@ -9052,6 +9058,7 @@ const App = (() => {
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
     { v: '0.31.8', date: '22/10/2026', items: [
+      TX('💬 ¡Ya tenemos Discord! Entra desde el botón del menú.'),
       TX('Móvil: joystick más grande y con zona muerta; ya no esprintas sin querer (para esprintar, lleva el dedo más allá del aro).'),
       TX('Móvil: botones más grandes y en arco alrededor de Tiro; nueva opción de tamaño en Ajustes.'),
       TX('Se quita el pase al hueco (móvil, teclado y mando): estorbaba. El portero sigue sacando en largo.'),

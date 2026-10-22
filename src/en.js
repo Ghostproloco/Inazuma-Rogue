@@ -1347,6 +1347,8 @@ const EN_TEXT = {
   '👥 Alineación (10 convocados · 2 equipos)': '👥 Line-up (10 called up · 2 teams)',
   '👥 Plantilla': '👥 Squad',
   '💎 ¡Cadena perfecta sin perder vidas! +5 🎟️': '💎 Perfect chain without losing a life! +5 🎟️',
+  '💬 ¡Ya tenemos Discord! Entra desde el botón del menú.': '💬 We have a Discord! Join from the menu button.',
+  '💬 Únete al Discord de la comunidad': '💬 Join the community Discord',
   '💰 Dinero infinito: NO': '💰 Infinite money: NO',
   '💰 Dinero infinito: SÍ': '💰 Infinite money: YES',
   '💰 para tu club · +': '💰 for your club · +',

@@ -18,6 +18,7 @@ const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '�
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
 const VERSION = '0.31.8';
+const DISCORD_URL = 'https://discord.gg/W8bn6ZCV3';   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 const App = (() => {
   const $ = id => document.getElementById(id);
@@ -103,6 +104,7 @@ const App = (() => {
       </div>
       <div class="grid2"><button class="ghost" id="mGift">${TX('🎁 Código de regalo')}</button><button class="ghost" id="mSaves">${TX('👤 Cuenta')}${Cloud.loggedIn() ? ' · ' + esc(Cloud.user()) : ''}</button></div>
       <button class="ghost" id="mNews">${TX('📰 Novedades')} · v${VERSION}${settings.seenNews !== VERSION ? ' <i class="newdot"></i>' : ''}</button>
+      <button class="ghost discordbtn" id="mDiscord">${TX('💬 Únete al Discord de la comunidad')}</button>
       <div data-cloudline>${cloudLine()}</div>
       ${Controls.pc() ? `<p class="note gpnote">${TX('🎮 ¿Tienes mando? Conéctalo y juega: Xbox, PlayStation o genérico.')} <small>${TX('Los botones están en Ajustes.')}</small></p>` : ''}
       ${r ? '<button class="ghost" id="mAbandon">' + TX('Abandonar partida en curso') + '</button>' : ''}
@@ -124,6 +126,7 @@ const App = (() => {
     $('mGacha').onclick = renderGacha; $('mTeam').onclick = () => renderTeam();
     $('mGift').onclick = renderGift;
     $('mNews').onclick = () => renderNews(renderMenu);
+    $('mDiscord').onclick = () => { Sound.sfx('click'); try { window.open(DISCORD_URL, '_blank', 'noopener'); } catch (_) { location.href = DISCORD_URL; } };
     if (settings.seenNews !== VERSION && settings.newsShown !== VERSION) { settings.newsShown = VERSION; saveSettings(); setTimeout(() => { if ($('mNews')) renderNews(renderMenu); }, 400); }   // la primera vez tras actualizar
     $('mSaves').onclick = () => renderAccount(renderMenu);
     body.querySelector('[data-cloudline]').onclick = () => renderAccount(renderMenu);
@@ -1900,6 +1903,7 @@ const App = (() => {
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
     { v: '0.31.8', date: '22/10/2026', items: [
+      TX('💬 ¡Ya tenemos Discord! Entra desde el botón del menú.'),
       TX('Móvil: joystick más grande y con zona muerta; ya no esprintas sin querer (para esprintar, lleva el dedo más allá del aro).'),
       TX('Móvil: botones más grandes y en arco alrededor de Tiro; nueva opción de tamaño en Ajustes.'),
       TX('Se quita el pase al hueco (móvil, teclado y mando): estorbaba. El portero sigue sacando en largo.'),

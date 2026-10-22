@@ -146,6 +146,7 @@ Cómo está hecho:
   **Pase al hueco eliminado del juego** (móvil, teclado y mando; Fran: estorbaba). La tecla/botón (L/C, K/C clásicas, B del mando) solo sirve para el saque largo del portero; la IA rival sí sigue usando pases al hueco. Joystick: radio 44 px, dibujo 100 px. + **Ajustes → Tamaño de los botones** (pequeños/normales/grandes: `settings.padSize`, `--padk`).
 - En defensa «Cambiar» va donde Regate (no donde Pase): al perder el balón, un toque en Pase ya no cambia de jugador.
 - `switchPlayer` (`logic.js`): al compañero que antes llega al balón; otra pulsación en 1,2 s → el siguiente; el cambio automático respeta el manual 1,2 s.
+- Botón «💬 Únete al Discord de la comunidad» en el menú (`DISCORD_URL` en `app.js`: https://discord.gg/W8bn6ZCV3).
 - Probado con toques reales simulados (CDP): tiros y pases 5/5 con el joystick puesto, sin cambios sin querer, ciclo de Cambiar correcto.
 
 ## 4. Cómo se construye y se prueba
