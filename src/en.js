@@ -530,7 +530,7 @@ const EN_TEXT = {
   'Ir al gacha': 'Go to the gacha',
   'Izquierda': 'Left',
   'Japón': 'Japan',
-  'Jim (Oscuro) de regalo': 'Free Jim (Dark)',
+  'Jim de Halloween (épico especial) de regalo': 'Halloween Jim (special epic) as a gift',
   'Jornada': 'Matchday',
   'Joyas que han encontrado tus ojeadores: mucho más baratas que en el mercado, pero solo durante unas semanas. Usa la actividad «Ojear» para buscar más.': 'Gems your scouts have found: much cheaper than on the market, but only for a few weeks. Use the «Scout» activity to find more.',
   'Joystick': 'Joystick',

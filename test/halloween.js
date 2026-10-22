@@ -11,8 +11,8 @@ ctx.GAME = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'juego', 'gamed
 ctx.Sprites = { refOf: () => ({ file: 'c00.png', row: 0 }) };
 vm.createContext(ctx);
 vm.runInContext(['logic.js', 'run.js', 'career.js', 'event.js'].map(f => fs.readFileSync(S + f, 'utf8')).join('\n') +
-  '\nProfile.load();Profile.data.firstDone=true;this.Profile=Profile;this.Halloween=Halloween;this.PLAYER=PLAYER;this.Career=Career;this.Gacha=Gacha;this.Logic=Logic;this.HW_LEGENDS=HW_LEGENDS;this.RAY_DARK=RAY_DARK;this.MANAGERS=MANAGERS;', ctx);
-const { Profile, Halloween, PLAYER, Career, Gacha, Logic, HW_LEGENDS, RAY_DARK } = ctx;
+  '\nProfile.load();Profile.data.firstDone=true;this.Profile=Profile;this.Halloween=Halloween;this.PLAYER=PLAYER;this.Career=Career;this.Gacha=Gacha;this.Logic=Logic;this.HW_LEGENDS=HW_LEGENDS;this.HW_EPIC=HW_EPIC;this.RAY_DARK=RAY_DARK;this.MANAGERS=MANAGERS;', ctx);
+const { Profile, Halloween, PLAYER, Career, Gacha, Logic, HW_LEGENDS, HW_EPIC, RAY_DARK } = ctx;
 const setDay = d => { NOW = new Date(d + 'T12:00:00'); };
 
 console.log('1. Fechas: del 22 de octubre al 3 de noviembre (incluidos)');
@@ -99,8 +99,9 @@ ok(JSON.stringify(Halloween.pickOptions()) === JSON.stringify(opts), 'las opcion
 const notIn = Halloween.pickPool().find(id => !opts.includes(id));
 ok(Halloween.claimLogin(notIn) === null, 'no vale elegir uno que no está entre los 3');
 const d4 = Halloween.claimLogin(opts[1]); ok(d4 && d4.day === 4 && Profile.data.coll[opts[1]], 'eliges uno y es tuyo');
-setDay('2026-10-28'); const hadJim = !!Profile.data.coll[21583]; const d5 = Halloween.claimLogin();
-ok(d5 && d5.day === 5 && Profile.data.coll[21583] && d5.players[0].id === 21583, 'día 5: Jim (Oscuro) de regalo' + (hadJim ? ' (ya lo tenía: +1 ★ o monedas)' : ''));
+setDay('2026-10-28'); const hadJim = !!Profile.data.coll[HW_EPIC.id]; const d5 = Halloween.claimLogin();
+ok(d5 && d5.day === 5 && Profile.data.coll[HW_EPIC.id] && d5.players[0].id === HW_EPIC.id, 'día 5: Jim de Halloween (épico especial, media 86) de regalo' + (hadJim ? ' (ya lo tenía: +1 ★ o monedas)' : ''));
+ok(PLAYER(HW_EPIC.id).rarity === 'epica' && PLAYER(HW_EPIC.id).halloween && PLAYER(HW_EPIC.id).hwFace === 6, 'Jim de Halloween: épico con retrato de evento');
 setDay('2026-10-29'); ok(!Halloween.loginReady() && Halloween.daily() === 20, 'tras los 5 días no hay más, pero el regalo diario de 20 sigue');
 setDay('2026-11-05'); H2.login = null; ok(!Halloween.loginReady(), 'fuera del evento no hay premios');
 

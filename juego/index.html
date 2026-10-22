@@ -349,6 +349,9 @@ select option{color:#111;font-family:system-ui}
 .gcard.legendaria.hw{box-shadow:0 0 0 2px #9a4a16,0 0 18px rgba(110,30,150,.75);filter:saturate(.8)}
 .gcard.legendaria.hw .pix,.ptile.legendaria.hw .pix{background:linear-gradient(#a8561c,#3a1446)}
 .pcard.legendaria.hw,.ptile.legendaria.hw{box-shadow:0 0 0 2px #9a4a16,0 0 8px rgba(110,30,150,.6)}
+.gcard.epica.hw{box-shadow:0 0 0 2px #5a2a86,0 0 18px rgba(60,200,90,.6)}
+.gcard.epica.hw .pix,.ptile.epica.hw .pix{background:linear-gradient(#6a3a9a,#14261a)}
+.pcard.epica.hw,.ptile.epica.hw{box-shadow:0 0 0 2px #5a2a86,0 0 8px rgba(60,200,90,.55)}
 .pslot.legendaria.hw .pf{box-shadow:0 0 0 2px #9a4a16,0 0 6px rgba(110,30,150,.6);background:linear-gradient(#a8561c,#3a1446)}
 .hw .rar.legendaria{background:linear-gradient(90deg,#a8561c,#5a1f6a);color:#f3d9c0}
 .hwleg{border-color:#9a4a16}.hwleg.own{box-shadow:0 0 8px rgba(110,30,150,.8)}
@@ -1171,7 +1174,7 @@ const EN_TEXT = {
   'Ir al gacha': 'Go to the gacha',
   'Izquierda': 'Left',
   'Japón': 'Japan',
-  'Jim (Oscuro) de regalo': 'Free Jim (Dark)',
+  'Jim de Halloween (épico especial) de regalo': 'Halloween Jim (special epic) as a gift',
   'Jornada': 'Matchday',
   'Joyas que han encontrado tus ojeadores: mucho más baratas que en el mercado, pero solo durante unas semanas. Usa la actividad «Ojear» para buscar más.': 'Gems your scouts have found: much cheaper than on the market, but only for a few weeks. Use the «Scout» activity to find more.',
   'Joystick': 'Joystick',
@@ -2111,7 +2114,7 @@ const Sprites = (() => {
     const c = document.createElement('canvas');
     c.width = 64; c.height = 64; c.className = 'pix';
     c.style.width = c.style.height = size + 'px';
-    const file = ref.ff ? ref.ff + '?v=2' : ref.file.replace(/^c/, 'f').replace(/^r/, 'q') + '?v=4';   // ?v=3: caras actualizadas, evita la copia vieja guardada
+    const file = ref.ff ? ref.ff + '?v=3' : ref.file.replace(/^c/, 'f').replace(/^r/, 'q') + '?v=4';   // ?v=3: caras actualizadas, evita la copia vieja guardada
     const row = ref.ff ? ref.fr : ref.row;
     img(file).then(i => c.getContext('2d').drawImage(i, 0, row * 64, 64, 64, 0, 0, 64, 64)).catch(() => {});
     return c;
@@ -4746,6 +4749,8 @@ const HW_LEGENDS = [
   { id: 996005, base: 32001 },                           // Bash Lancer
   { id: 996006, base: 21399 },                           // Zohen (DF, añadido el 22 oct)
 ];
+// Épico especial (premio del día 5): Jim (Oscuro) con retrato de evento y la mejor media de los épicos
+const HW_EPIC = { id: 996007, base: 21583, mean: 86, face: 6 };
 (function registerHalloween() {
   if (typeof GAME === 'undefined') return;
   const reg = (p, list) => { if (PBY[p.id]) return; if (list) GAME.players.push(p); PBY[p.id] = p; };
@@ -4756,8 +4761,16 @@ const HW_LEGENDS = [
     for (const k in b.ie) ie[k] = Math.min(99, Math.round(b.ie[k] * f));
     const moves = (b.moves || []).map(m => m.slice());
     if (L.extra) { const t = Object.values(GAME.techniques).find(x => x.name === L.extra && x.id < 30000); if (t && !moves.some(m => m[0] === t.id)) moves.unshift([t.id, 1]); }
-    reg(Object.assign({}, b, { id: L.id, full: b.full + ' (Halloween)', rarity: 'legendaria', ie, ie0: undefined, moves, gacha: false, banner: null, halloween: true, hwFace: i }), true);
+    reg(Object.assign({}, b, { id: L.id, full: b.full + ' (Halloween)', rarity: 'legendaria', ie, ie0: undefined, moves, gacha: false, banner: null, halloween: true, hwFace: i, hwBase: L.base }), true);
   });
+  { const b = PLAYER(HW_EPIC.base);
+    if (b) {
+      const mean = KEYS.reduce((t, k) => t + b.ie[k], 0) / KEYS.length, f = HW_EPIC.mean / mean, ie = {};
+      for (const k in b.ie) ie[k] = Math.min(99, Math.round(b.ie[k] * f));
+      reg(Object.assign({}, b, { id: HW_EPIC.id, full: b.full.replace(/ \(Oscuro\)$/, '') + ' (Halloween)', rarity: 'epica', ie, ie0: undefined, moves: (b.moves || []).map(m => m.slice()),
+        gacha: false, banner: null, halloween: true, hwFace: HW_EPIC.face, hwBase: HW_EPIC.base }), true);
+    }
+  }
   // Ray Dark: solo como mánager (retrato propio: juego/ui/raydark.png); no entra en las listas de jugadores
   reg({ id: RAY_DARK, name: 'Ray Dark', full: 'Ray Dark', role: 'MED', elem: 'neutro', rarity: 'legendaria', faceImg: 'ui/raydark.png', ie: { tiro: 50, control: 50, defensa: 50, rapidez: 50, fisico: 50, aguante: 50 }, moves: [], gacha: false, halloween: true });
 })();
@@ -4854,7 +4867,7 @@ const Halloween = {
     { tickets: 10, label: TX('10 tickets'), icon: '🎟️' },
     { coins: 1000, label: TX('1000 monedas'), icon: '🪙' },
     { pick: true, label: TX('Elige 1 de 3 jugadores de +80'), icon: '⭐' },
-    { player: 21583, label: TX('Jim (Oscuro) de regalo'), icon: '🎁' },
+    { player: HW_EPIC.id, label: TX('Jim de Halloween (épico especial) de regalo'), icon: '🎁' },
   ],
   login() { const H = this.data(); H.login = H.login || { n: 0, last: null, pick: null }; return H.login; },
   loginReady() { const L = this.login(); return this.active() && L.n < this.LOGIN.length && L.last !== this.today(); },

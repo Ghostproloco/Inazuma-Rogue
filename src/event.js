@@ -28,6 +28,8 @@ const HW_LEGENDS = [
   { id: 996005, base: 32001 },                           // Bash Lancer
   { id: 996006, base: 21399 },                           // Zohen (DF, añadido el 22 oct)
 ];
+// Épico especial (premio del día 5): Jim (Oscuro) con retrato de evento y la mejor media de los épicos
+const HW_EPIC = { id: 996007, base: 21583, mean: 86, face: 6 };
 (function registerHalloween() {
   if (typeof GAME === 'undefined') return;
   const reg = (p, list) => { if (PBY[p.id]) return; if (list) GAME.players.push(p); PBY[p.id] = p; };
@@ -38,8 +40,16 @@ const HW_LEGENDS = [
     for (const k in b.ie) ie[k] = Math.min(99, Math.round(b.ie[k] * f));
     const moves = (b.moves || []).map(m => m.slice());
     if (L.extra) { const t = Object.values(GAME.techniques).find(x => x.name === L.extra && x.id < 30000); if (t && !moves.some(m => m[0] === t.id)) moves.unshift([t.id, 1]); }
-    reg(Object.assign({}, b, { id: L.id, full: b.full + ' (Halloween)', rarity: 'legendaria', ie, ie0: undefined, moves, gacha: false, banner: null, halloween: true, hwFace: i }), true);
+    reg(Object.assign({}, b, { id: L.id, full: b.full + ' (Halloween)', rarity: 'legendaria', ie, ie0: undefined, moves, gacha: false, banner: null, halloween: true, hwFace: i, hwBase: L.base }), true);
   });
+  { const b = PLAYER(HW_EPIC.base);
+    if (b) {
+      const mean = KEYS.reduce((t, k) => t + b.ie[k], 0) / KEYS.length, f = HW_EPIC.mean / mean, ie = {};
+      for (const k in b.ie) ie[k] = Math.min(99, Math.round(b.ie[k] * f));
+      reg(Object.assign({}, b, { id: HW_EPIC.id, full: b.full.replace(/ \(Oscuro\)$/, '') + ' (Halloween)', rarity: 'epica', ie, ie0: undefined, moves: (b.moves || []).map(m => m.slice()),
+        gacha: false, banner: null, halloween: true, hwFace: HW_EPIC.face, hwBase: HW_EPIC.base }), true);
+    }
+  }
   // Ray Dark: solo como mánager (retrato propio: juego/ui/raydark.png); no entra en las listas de jugadores
   reg({ id: RAY_DARK, name: 'Ray Dark', full: 'Ray Dark', role: 'MED', elem: 'neutro', rarity: 'legendaria', faceImg: 'ui/raydark.png', ie: { tiro: 50, control: 50, defensa: 50, rapidez: 50, fisico: 50, aguante: 50 }, moves: [], gacha: false, halloween: true });
 })();
@@ -136,7 +146,7 @@ const Halloween = {
     { tickets: 10, label: TX('10 tickets'), icon: '🎟️' },
     { coins: 1000, label: TX('1000 monedas'), icon: '🪙' },
     { pick: true, label: TX('Elige 1 de 3 jugadores de +80'), icon: '⭐' },
-    { player: 21583, label: TX('Jim (Oscuro) de regalo'), icon: '🎁' },
+    { player: HW_EPIC.id, label: TX('Jim de Halloween (épico especial) de regalo'), icon: '🎁' },
   ],
   login() { const H = this.data(); H.login = H.login || { n: 0, last: null, pick: null }; return H.login; },
   loginReady() { const L = this.login(); return this.active() && L.n < this.LOGIN.length && L.last !== this.today(); },

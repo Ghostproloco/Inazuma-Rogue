@@ -1,11 +1,11 @@
-# Retratos de miedo de los 6 legendarios de Halloween (juego/sprites/fhw.png, una fila de 64 px por jugador).
+# Retratos de miedo de los 6 legendarios y del Jim épico especial de Halloween (juego/sprites/fhw.png, una fila de 64 px por jugador).
 # Parte de los retratos del juego (fNN.png) y les pone maquillaje/cicatrices + color apagado.
 # Uso: python3 tools/hw_faces.py
 import os, colorsys
 from PIL import Image, ImageDraw
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 SP = os.path.join(ROOT, 'juego', 'sprites')
-SRC = [(112, 12), (1, 7), (136, 10), (136, 3), (135, 2), (76, 15)]   # Tassman, Nathan Jones, Destra, Hebimos, Bash Lancer, Zohen
+SRC = [(112, 12), (1, 7), (136, 10), (136, 3), (135, 2), (76, 15), (82, 10)]   # Tassman, Nathan Jones, Destra, Hebimos, Bash Lancer, Zohen, Jim (Oscuro, épico especial)
 
 def face(f, r): return Image.open(os.path.join(SP, 'f%02d.png' % f)).convert('RGBA').crop((0, r * 64, 64, r * 64 + 64))
 def remap(im, m):
@@ -62,6 +62,19 @@ def zohen(im):     # necrófago: piel gris verdosa, ojos rojos que brillan y má
     for x0, n in ((27, 3), (32, 5), (38, 3)):
         put(im, [(x0, 48 + k) for k in range(n)], (120, 190, 70))   # gotas tóxicas
 
+def jim(im):       # espantapájaros del bosque: piel de fantasma, pelo musgo, un ojo verde entre el pelo y boca cosida
+    remap(im, {(213, 139, 90): (176, 184, 196), (164, 106, 65): (128, 136, 152), (123, 82, 57): (88, 92, 112),
+               (238, 180, 115): (208, 214, 222), (213, 131, 74): (160, 168, 184), (82, 49, 16): (52, 52, 70),
+               (189, 156, 156): (132, 150, 120), (164, 131, 139): (108, 124, 100), (148, 115, 115): (94, 110, 86),
+               (180, 148, 148): (122, 140, 110), (123, 90, 90): (76, 90, 70), (98, 74, 74): (60, 72, 56)})
+    put(im, line((29, 44), (37, 44)), STITCH)
+    for x in (30, 32, 34, 36): put(im, [(x, 43), (x, 45)], STITCH)   # boca cosida
+    put(im, [(28, 47), (28, 48), (37, 47)], (96, 70, 110))
+def jim_eye(im):   # después del color apagado, para que brille: ojo almendrado verde entre el pelo
+    glow = [(30, 35), (31, 34), (32, 34), (33, 34), (34, 34), (35, 35), (31, 36), (32, 36), (33, 36), (34, 36), (30, 36), (35, 36)]
+    put(im, [(29, 35), (36, 35), (32, 33), (33, 33), (32, 37), (33, 37)], (36, 90, 44))
+    put(im, glow, (90, 200, 80)); put(im, [(31, 35), (32, 35), (33, 35), (34, 35)], (190, 255, 150)); put(im, [(32, 35)], (20, 30, 20))
+
 def grade(im):     # color apagado: menos saturación, algo más oscuro y un toque morado
     px = im.load()
     for x in range(64):
@@ -73,8 +86,10 @@ def grade(im):     # color apagado: menos saturación, algo más oscuro y un toq
             px[x, y] = (int(min(255, r2 * 255 * 0.95 + 10)), int(g2 * 255 * 0.92), int(min(255, b2 * 255 * 1.0 + 16)), a)
 
 out = Image.new('RGBA', (64, 64 * len(SRC)), (0, 0, 0, 0))
-for i, ((f, r), fx) in enumerate(zip(SRC, (tassman, nathan, destra, hebimos, bash, zohen))):
-    im = face(f, r); fx(im); grade(im); out.paste(im, (0, i * 64))
+for i, ((f, r), fx) in enumerate(zip(SRC, (tassman, nathan, destra, hebimos, bash, zohen, jim))):
+    im = face(f, r); fx(im); grade(im)
+    if fx is jim: jim_eye(im)
+    out.paste(im, (0, i * 64))
 out.save(os.path.join(SP, 'fhw.png'))
 big = Image.new('RGBA', (320 * len(SRC), 320), (240, 240, 240, 255))
 for i in range(len(SRC)): big.alpha_composite(out.crop((0, i * 64, 64, i * 64 + 64)).resize((320, 320), Image.NEAREST), (i * 320, 0))
