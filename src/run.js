@@ -208,8 +208,28 @@ const GIFT_CODES = {
   FFI2026:           { tickets: 30, desc: TX('Torneo internacional') },
   MUNDIAL:           { tickets: 20, rayos: 2, coins: 1000, desc: TX('Premio del Mundial') },
   LEYENDA:           { leg: 1, tickets: 10, desc: TX('Una tirada legendaria asegurada') },
-  PESCADINHA:        { tickets: 100, coins: 1000, rayos: 3, player: 'Karl Kappa (Papi Gavi)', desc: TX('Para Papi Gavi: Kappa legendario, vale para cualquier puesto') },
+  KAPPARAYO:         { tickets: 100, coins: 1000, rayos: 3, player: 'Karl Kappa (Papi Gavi)', also: 'PESCADINHA', desc: TX('Kappa legendario, vale para cualquier puesto') },
+  // Elige 1 de 3 ("pick"): rarity = rareza mínima, role = puesto, elem = elemento, min = media mínima
+  FICHAJEESTRELLA:   { pick: { rarity: 'epica' }, tickets: 5, desc: TX('Elige 1 de 3 jugadores épicos o legendarios') },
+  ELECCIONLEGENDARIA:{ pick: { rarity: 'legendaria' }, desc: TX('Elige 1 de 3 jugadores legendarios') },
+  GUANTESDEORO:      { pick: { rarity: 'epica', role: 'POR' }, coins: 500, desc: TX('Elige 1 de 3 porteros épicos o mejores') },
+  MURALLA:           { pick: { rarity: 'epica', role: 'DEF' }, coins: 500, desc: TX('Elige 1 de 3 defensas épicos o mejores') },
+  CEREBRO:           { pick: { rarity: 'epica', role: 'MED' }, coins: 500, desc: TX('Elige 1 de 3 medios épicos o mejores') },
+  GOLEADOR:          { pick: { rarity: 'epica', role: 'DEL' }, coins: 500, desc: TX('Elige 1 de 3 delanteros épicos o mejores') },
+  FUEGOSAGRADO:      { pick: { rarity: 'epica', elem: 'fuego' }, tickets: 5, desc: TX('Elige 1 de 3 jugadores de fuego épicos o mejores') },
+  DISCORDINAZUMA:    { tickets: 15, rayos: 2, desc: TX('Regalo de la comunidad') },
+  TICKETAZO:         { tickets: 50, desc: TX('Lluvia de tickets') },
+  DOBLELEYENDA:      { leg: 2, desc: TX('Dos tiradas legendarias aseguradas') },
 };
+const PICK_TIERS = { comun: 0, rara: 1, epica: 2, legendaria: 3 };
+// Las 3 opciones de un "elige 1 de 3": jugadores del gacha (sin versiones de evento ni originales)
+function giftPickOptions(f, n = 3) {
+  const avg = pd => ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + pd.ie[k], 0) / 5;
+  const pool = GAME.players.filter(p => p.cs && p.gacha !== false && !p.halloween && !p.original && !p.special
+    && PICK_TIERS[p.rarity] >= PICK_TIERS[f.rarity || 'comun'] && (!f.role || p.role === f.role) && (!f.elem || p.elem === f.elem) && (!f.min || avg(p) >= f.min)).map(p => p.id);
+  const out = []; while (out.length < n && pool.length) out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+  return out;
+}
 const normCode = c => String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 
 const Profile = {
@@ -236,7 +256,7 @@ const Profile = {
     const k = normCode(raw), G = GIFT_CODES[k];
     if (!k) return { ok: false, msg: TX('Escribe un código') };
     if (!G) return { ok: false, msg: TX('Ese código no existe') };
-    if (this.data.codes[k]) return { ok: false, msg: TX('Ya canjeaste este código') };
+    if (this.data.codes[k] || (G.also && this.data.codes[G.also])) return { ok: false, msg: TX('Ya canjeaste este código') };
     const today = new Date().toISOString().slice(0, 10);
     if (G.hasta && today > G.hasta) return { ok: false, msg: TX('Este código ha caducado') };
     if (G.desde && today < G.desde) return { ok: false, msg: TX('Este código todavía no está activo') };
@@ -249,10 +269,21 @@ const Profile = {
       const pd = GAME.players.find(p => (p.gacha !== false || p.special) && p.cs && (p.full === G.player || p.name === G.player));
       if (pd) { const o = P.coll[pd.id]; if (!o) P.coll[pd.id] = { stars: 1, up: {} }; else if (o.stars < MAX_STARS) o.stars++; else P.coins += 200; who = pd; }
     }
+    if (G.pick) { const opts = giftPickOptions(G.pick); if (opts.length) (P.giftPicks = P.giftPicks || []).push({ code: k, opts, desc: G.desc }); }
     P.codes[k] = Date.now(); this.save();
     const parts = [who && '⭐ ' + who.name, G.leg && TXn(G.leg, '{0} tirada legendaria', '{0} tiradas legendarias'), G.epica && G.epica + TX(' tiradas épicas o mejores'),
-      G.tickets && G.tickets + TX(' 🎟️ tickets'), G.coins && G.coins + TX(' 🪙 monedas'), G.rayos && G.rayos + TX(' ⚡ Rayos')].filter(Boolean);
+      G.pick && TX('elige 1 de 3 jugadores'), G.tickets && G.tickets + TX(' 🎟️ tickets'), G.coins && G.coins + TX(' 🪙 monedas'), G.rayos && G.rayos + TX(' ⚡ Rayos')].filter(Boolean);
     return { ok: true, msg: TX('¡Código canjeado! ') + parts.join(TX(' y ')), code: k, gift: G };
+  },
+  // Resuelve un "elige 1 de 3" pendiente: nuevo, una estrella más o monedas si ya está al máximo
+  takePick(i, id) {
+    const P = this.data, g = (P.giftPicks || [])[i]; if (!g || !g.opts.includes(id)) return null;
+    const pd = PLAYER(id), o = P.coll[id], r = { id, tier: pd.rarity };
+    if (!o) { P.coll[id] = { stars: 1, up: {} }; r.isNew = true; }
+    else if (o.stars < MAX_STARS) { o.stars++; r.star = o.stars; }
+    else { const c = (RARITY[pd.rarity] || RARITY.comun).dupCoins; P.coins += c; r.coins = c; }
+    P.giftPicks.splice(i, 1); this.save();
+    return r;
   },
   owned(id) { return this.data.coll[id] || null; },
   ids() { return Object.keys(this.data.coll).map(Number); },

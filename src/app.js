@@ -1952,7 +1952,19 @@ const App = (() => {
       <p class="note">${TX('Escribe un código para recibir su premio. Cada código se puede canjear una vez.')}</p>
       <div class="giftin"><input id="gcode" type="text" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="${TX('CÓDIGO')}"><button class="cta" id="gok">${TX('Canjear')}</button></div>
       <p class="giftmsg" id="gmsg"></p>
+      ${(P.giftPicks || []).map((g, i) => `<h3>🎁 ${esc(g.code)} · ${TX('Elige a tu jugador')}</h3><p class="note">${esc(g.desc)}</p><div class="hwpick" data-gp="${i}"></div>`).join('')}
       ${used.length ? `<h3>${TX('Canjeados')}</h3><p class="note">${used.map(([k, t]) => `<b>${esc(k)}</b> · ${new Date(t).toLocaleDateString('es-ES')}`).join('<br>')}</p>` : ''}`, 'bg_green');
+    document.querySelectorAll('[data-gp]').forEach(box => {
+      const i = +box.dataset.gp;
+      P.giftPicks[i].opts.forEach(id => {
+        const pd = PLAYER(id); if (!pd) return;
+        const b = document.createElement('button'); b.className = 'hwpk';
+        b.appendChild(face(Sprites.refOf(pd), 72));
+        b.insertAdjacentHTML('beforeend', `<b>${esc(pd.name)}</b><small>${rchip(pd.rarity)} ${RAB(pd.role)} ${chip(pd.elem)}</small>${P.coll[id] ? `<small>${TX('ya lo tienes (+1 ★)')}</small>` : ''}`);
+        b.onclick = () => { const r = Profile.takePick(i, id); if (!r) return; Sound.sfx('reveal'); renderReveal([r], renderGift, TX('¡Código canjeado!')); };
+        box.appendChild(b);
+      });
+    });
     const inp = $('gcode');
     const go = () => {
       const r = Profile.redeem(inp.value), m = $('gmsg');
