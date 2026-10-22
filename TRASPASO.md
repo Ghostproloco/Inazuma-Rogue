@@ -133,6 +133,12 @@ Cómo está hecho:
   coge la siguiente tecla. La barra de teclas y la guía de controles enseñan tus teclas. Probado en el navegador (`/tmp/claude-0/ui_custom.py`).
 - Si aun así se agota la cuota: plan Blaze (~0,09 $ por 100 000 escrituras de más) con alerta de gasto. Ver qué límite se gasta en Firebase → Firestore → Uso.
 
+### v0.31.7 · Técnicas del Inazuma 3 en español (pedido de Fran, 22 oct; se sube el 22 a las 12:00)
+- `tools/ie3_es.py` (ya ejecutado; se puede repetir sin problema): las 103 técnicas del Inazuma 3 venían en inglés; ahora `name` en español y `name_en` con el inglés original.
+  Son traducciones (el 3 no salió en España): «Grand Fire» → «Gran fuego», «God Hand X» → «Mano celestial X», «Emperor Penguin No. 3» → «Pingüino emperador n.º 3»…
+- Técnicas nuevas: **Torbellino de fuego** (30480, tiro fuego 110: Axel y Axel IE3) y **Leyenda del lobo** (30481, tiro viento 110: Shawn y Shawn IE3).
+  Con animación propia (`techfx.js`: tornadoF y lobo).
+
 ## 4. Cómo se construye y se prueba
 - Todo el código está en `src/`. `python3 build.py` lo junta en `juego/index.html`
   (orden en esta rama: i18n, en, media, logic, run, career, **event**, cloud-config, cloud, view, techfx, app). Datos en `juego/gamedata.json`.

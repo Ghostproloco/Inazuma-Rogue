@@ -560,6 +560,7 @@ const EN_TEXT = {
   'Las cuentas todavía no están activadas en esta versión del juego. Tu partida se guarda en este móvil.': 'Accounts aren\'t enabled in this version of the game yet. Your save is stored on this device.',
   'Las paradas de la Caravana Inazuma por Japón.': 'The Inazuma Caravan\'s stops around Japan.',
   'Las próximas 10 tiradas serán legendarias': 'Your next 10 pulls will be legendary',
+  'Las supertécnicas del Inazuma 3 ya salen en español (antes estaban en inglés) y se han añadido algunas que faltaban.': 'Inazuma Eleven 3 special moves now have Spanish names in the Spanish version, and some missing ones have been added.',
   'Las supertécnicas tienen recarga: el botón se va llenando hasta que vuelve a estar lista.': 'Special moves have a cooldown: the button fills up until it\'s ready again.',
   'Las técnicas que ganas tras cada partido ahora encajan con la posición del jugador (un portero ya no recibe técnicas de tiro).': 'The moves you earn after each match now fit the player\'s position (a goalkeeper no longer gets shooting moves).',
   'Las técnicas recargan un 20 % antes': 'Techniques recharge 20% faster',

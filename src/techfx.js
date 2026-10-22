@@ -46,7 +46,7 @@ const SIG_RULES = {
     ['torre', /torre de osaka|torre/i],
     ['rebotes', /rebote/i],
     ['fango', /fango/i],
-    ['lobo', /aullido de lobo/i],
+    ['lobo', /aullido de lobo|leyenda del lobo/i],
     ['divino', /sabidur[íi]a divina|disparo sagrado|flecha divina|rapto divino/i],
     ['fenix', /f[ée]nix|p[áa]jaro de fuego/i],
     ['pegaso', /pegaso/i],
@@ -57,7 +57,7 @@ const SIG_RULES = {
     ['lluvia', /meteorit|meteoro/i],
     ['galaxia', /gal[áa]ctic|supernova|c[óo]smico|gan[íi]medes/i],
     ['tsunami', /tsunami/i],
-    ['tornadoF', /^tornado de fuego$|tornado inverso|tornado doble/i],
+    ['tornadoF', /^tornado de fuego$|torbellino de fuego|tornado inverso|tornado doble/i],
     ['relampago', /rel[áa]mpago|trampol[íi]n/i],
   ],
   parada: [
