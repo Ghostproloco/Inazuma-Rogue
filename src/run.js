@@ -395,13 +395,22 @@ function runMember(id, temp) {
   return { id, temp: !!temp, techs, passives: [] };
 }
 
-// Jugador exclusivo: el mejor jugador de campo del equipo vencido (nuevo, una estrella más o monedas)
-function teamStarReward(P, teamKey) {
+// La estrella de un equipo: su mejor jugador de campo. En los equipos especiales no se repite el premio:
+// si la estrella ya es el premio de un equipo especial anterior (p. ej. Byron en Tanques Centella y Ultra Zeus), se da la siguiente.
+function teamStar(teamKey, special) {
   const sum = p => Object.values(p.ie).reduce((x, y) => x + y, 0);
   // si la ficha del rival no está en el gacha, se usa su versión del gacha (mismo nombre o «(IE2)»/«(IE3)»)
   const baseN = n => n.replace(/ \((IE2|IE3)\)$/, '');
   const inPool = p => p.cs && p.gacha !== false ? p : (GAME.idmap && GAME.idmap[p.id] && PLAYER(GAME.idmap[p.id])) || GAME.players.find(q => q.cs && q.gacha !== false && (baseN(q.full) === baseN(p.full) || (q.also || []).includes(p.full)));
-  const best = TEAM(teamKey).players.filter(m => m.role !== 'POR').map(m => inPool(PLAYER(m.id))).filter(Boolean).sort((a, b) => sum(b) - sum(a))[0];
+  const list = TEAM(teamKey).players.filter(m => m.role !== 'POR').map(m => inPool(PLAYER(m.id))).filter(Boolean).sort((a, b) => sum(b) - sum(a));
+  if (!special || typeof SPECIALS === 'undefined') return list[0] || null;
+  const i = SPECIALS.findIndex(x => x.key === teamKey); if (i < 0) return list[0] || null;
+  const taken = new Set(SPECIALS.slice(0, i).map(x => teamStar(x.key, true)).filter(Boolean).map(p => p.id));
+  return list.find(p => !taken.has(p.id)) || list[0] || null;
+}
+// Jugador exclusivo: la estrella del equipo vencido (nuevo, una estrella más o monedas)
+function teamStarReward(P, teamKey, special) {
+  const best = teamStar(teamKey, special);
   if (!best) return null;
   const o = P.coll[best.id];
   if (!o) { P.coll[best.id] = { stars: 1, up: {} }; return { id: best.id, isNew: true }; }
@@ -491,7 +500,7 @@ const Run = {
         if (finalMatch) { out.tickets += 3; SS.done = true; }
       } else if (run.kind === 'special') {
         out.coins = 60 + goals * 5; out.tickets = 2;
-        out.exclusive = teamStarReward(P, rival);
+        out.exclusive = teamStarReward(P, rival, true);
         P.specials[rival] = (P.specials[rival] || 0) + 1;
       } else if (run.kind === 'chain') {
         out.coins = 30 + run.index * 10 + goals * 5;

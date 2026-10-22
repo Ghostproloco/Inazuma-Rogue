@@ -196,6 +196,8 @@ const Sound = (() => {
   }
   function music(role, rival) {
     let key = cfg.roles[role];
+    // Durante Halloween el menú suena más oscuro: «La sombra negra», el tema de Ray Dark (si no has elegido otra pista para el menú)
+    if (role === 'menu' && key === DEF_ROLES.menu && typeof Halloween !== 'undefined' && Halloween.active() && TRACKS.e204) key = 'e204';
     if (rival && cfg.teamThemes !== false && TEAM_THEMES[rival]) key = TEAM_THEMES[rival];
     if (key === 'random') key = RANDOM_POOL[Math.floor(Math.random() * RANDOM_POOL.length)];
     if (key) play(key);

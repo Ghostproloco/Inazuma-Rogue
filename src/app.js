@@ -186,8 +186,7 @@ const App = (() => {
       <div class="modes" id="sp"></div>`);
     SPECIALS.forEach(x => {
       const t = TEAM(x.key), open = Profile.unlocked({ special: x });
-      const sum = p => Object.values(p.ie).reduce((a, b) => a + b, 0);
-      const star = t.players.filter(m => m.role !== 'POR').map(m => PLAYER(m.id)).filter(p => p.cs).sort((a, b) => sum(b) - sum(a))[0];
+      const star = teamStar(t.key, true);
       const b = document.createElement('button'); b.className = 'mode' + (open ? '' : ' locked');
       b.innerHTML = `${Sprites.crest(t.crest)}<span class="mt"><b>${esc(t.name)}</b><small>${open ? `${FIELD_LABEL[TEAM_FIELD[t.key]] || ''} ${TX('· Premio:')} ${star ? esc(star.name) : '—'}${P.specials[t.key] ? TX(' · ganado ×') + P.specials[t.key] : ''}`
         : '🔒 ' + (x.unlock === 'done' ? TX('Completa la Etapa 1') : x.unlock === 'done2' ? TX('Completa la Etapa 2') : `${TX('Gana')} ${x.unlock} ${TX('partidos en la Etapa 1')}`)}</small></span>`;
@@ -674,7 +673,7 @@ const App = (() => {
         const ids = all.filter(pfMatch), tl = $('tl'); tl.innerHTML = '';
         $('tcount').textContent = (pfActive() ? ids.length + TX(' de ') + all.length : ids.length) + TX(' jugadores · toca uno para entrenarlo');
         if (!ids.length) tl.innerHTML = '<p class="note">' + TX('Ningún jugador coincide. Prueba con otro nombre o quita filtros (✕).') + '</p>';
-        ids.forEach(id => { const c = tile(id); c.onclick = () => renderPlayer(id); tl.appendChild(c); });
+        ids.forEach(id => { const pd = PLAYER(id), c = tile(id, `<span class="slot">${TX('Nota ')}${rate(id, pd.role)} ${chip(pd.elem)}</span>`); c.onclick = () => renderPlayer(id); tl.appendChild(c); });
       };
       pfWire(body, drawList, renderTeam); drawList();
     }
