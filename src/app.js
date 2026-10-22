@@ -430,6 +430,11 @@ const App = (() => {
       return `<div class="hwreto ${st}"><div><b>${R.name}</b><small>${R.desc} · ${v}/${R.goal}</small><small>${TX('Premio:')} ${R.reward.candy} 🍬 · ${R.reward.tickets} 🎟️</small></div>
         ${st === 'got' ? '<span class="hwok">✓</span>' : `<button class="cta" data-reto="${R.id}" ${st === 'ready' ? '' : 'disabled'}>${TX('Recoger')}</button>`}</div>`;
     }).join('');
+    const daily = Halloween.DAILY.map(R => {
+      const st = Halloween.dailyState(R), v = Math.min(R.goal, R.val(Halloween.dayData()));
+      return `<div class="hwreto ${st}"><div><b>${R.name}</b><small>${R.desc} · ${v}/${R.goal}</small><small>${TX('Premio:')} ${R.reward.candy} 🍬 · ${R.reward.tickets} 🎟️</small></div>
+        ${st === 'got' ? '<span class="hwok">✓</span>' : `<button class="cta" data-daily="${R.id}" ${st === 'ready' ? '' : 'disabled'}>${TX('Recoger')}</button>`}</div>`;
+    }).join('');
     screen(`${top('🎃 ' + TX('Halloween'))}
       <div class="runbar hwbar"><span>🍬 ${H.candy}</span><span>🎟️ ${Profile.data.tickets}</span><span>${d <= 1 ? TX('¡Último día!') : TX('Quedan') + ' ' + d + ' ' + TX('días')}</span></div>
       <h3>${TX('Premios por entrar')} <small>${TX('5 días del evento (no hace falta que sean seguidos)')}</small></h3>
@@ -443,10 +448,12 @@ const App = (() => {
       <div class="grid2"><button class="cta" id="hw1" ${H.candy < HW_PRICE ? 'disabled' : ''}>${TX('Tirar ×1')}<small>${HW_PRICE} 🍬</small></button><button class="cta" id="hw10" ${H.candy < HW_PRICE * 10 ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${HW_PRICE * 10} 🍬</small></button></div>
       <h3>${TX('Partido jefe')}</h3>
       <button class="mode hwmode" id="hwBoss">${Sprites.crest(3)}<span class="mt"><b>${TX('Instituto Ocultismo')}</b><small>${TX('Versión jefe · campo nocturno con niebla')}<br>${Halloween.bossDone() ? TX('Premio de hoy ya cobrado (puedes repetir)') : TX('Gánale: +60 🍬 (una vez al día)')}</small></span></button>
-      <h3>${TX('Retos')}</h3>
+      <h3>${TX('Retos del día')} <small>${TX('se renuevan cada medianoche')}</small></h3>
+      <div class="hwretos">${daily}</div>
+      <h3>${TX('Retos del evento')}</h3>
       <div class="hwretos">${retos}</div>
       <p class="note">${Halloween.rayUnlocked() ? '<b>' + TX('✓ Ray Dark ya es mánager en el Modo Carrera (+10 % de ingresos).') + '</b>' : TX('Completa los 3 retos y') + ' <b>' + TX('Ray Dark') + '</b> ' + TX('se podrá elegir como mánager en el Modo Carrera, con') + ' <b>' + TX('+10 % de ingresos') + '</b>.'}</p>
-      <p class="note">${TX('Caramelos: +5 por partido en cualquier modo (+10 más si ganas), +20 de regalo cada día, +60 al ganar al Ocultismo jefe y los retos. El evento dura hasta el 3 de noviembre; los jugadores que consigas son tuyos para siempre.')}</p>`, 'bg_title');
+      <p class="note">${TX('Caramelos: +5 por partido en cualquier modo (+10 más si ganas), +20 de regalo cada día, +60 al ganar al Ocultismo jefe, los retos del día y los del evento. El evento dura hasta el 3 de noviembre; los jugadores que consigas son tuyos para siempre.')}</p>`, 'bg_title');
     hwDecor();
     legs.forEach(p => { const w = document.createElement('div'); w.className = 'hwleg' + (Profile.data.coll[p.id] ? ' own' : ''); w.appendChild(face(Sprites.refOf(p), 48)); w.insertAdjacentHTML('beforeend', `<small>${esc(p.full.replace(/ \(Halloween\)$/, ''))}</small>`); $('hwLegs').appendChild(w); });
     const go = n => { const res = Halloween.pull(n); if (!res) return UI.toast(TX('No tienes caramelos suficientes')); renderMachine(res, HW_BANNER, renderHalloween, TX('Sobre Calabaza')); };
@@ -460,6 +467,10 @@ const App = (() => {
       if (out.players.length) return renderReveal(out.players, renderHalloween, TX('¡Premio del día {0}!', out.day));
       UI.toast(TX('Día {0}:', out.day) + ' ' + R.label, 2400); renderHalloween();
     };
+    body.querySelectorAll('[data-daily]').forEach(b => b.onclick = () => {
+      const r = Halloween.claimDaily(b.dataset.daily); if (!r) return;
+      Sound.sfx('reveal'); renderHalloween(); UI.toast('+' + r.candy + ' 🍬 · +' + r.tickets + ' 🎟️', 2600);
+    });
     body.querySelectorAll('[data-reto]').forEach(b => b.onclick = () => {
       const r = Halloween.claim(b.dataset.reto); if (!r) return;
       Sound.sfx('reveal'); renderHalloween();

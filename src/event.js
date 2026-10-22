@@ -76,12 +76,14 @@ const Halloween = {
   matchPlayed(won) {
     if (!this.active()) return 0;
     const H = this.data(), n = HW_MATCH + (won ? HW_WIN : 0);
-    H.candy += n; H.matches++; Profile.save(); return n;
+    H.candy += n; H.matches++;
+    const T = this.dayData(); T.matches++; if (won) T.wins++;
+    Profile.save(); return n;
   },
   bossDone() { return this.data().boss === this.today(); },
   bossResult(won) {
     const H = this.data(); let n = 0;
-    if (won) { H.bossWins++; if (H.boss !== this.today()) { H.boss = this.today(); n = HW_BOSS; H.candy += n; } }
+    if (won) { H.bossWins++; this.dayData().boss++; if (H.boss !== this.today()) { H.boss = this.today(); n = HW_BOSS; H.candy += n; } }
     Profile.save(); return n;
   },
   // Rival jefe: el Instituto Ocultismo con media 85 (Johan Tassman, 93 como su legendario), en campo nocturno con niebla
@@ -117,7 +119,7 @@ const Halloween = {
       else if (o.stars < MAX_STARS) { o.stars++; r.star = o.stars; }
       else { const c = RARITY[r.tier].dupCoins; P.coins += c; r.coins = c; }
     }
-    H.pulls += n; H.legends = HW_LEGENDS.filter(L => P.coll[L.id]).length;
+    H.pulls += n; this.dayData().pulls += n; H.legends = HW_LEGENDS.filter(L => P.coll[L.id]).length;
     P.pulls = (P.pulls || 0) + n;
     Profile.save();
     return res;
@@ -137,7 +139,25 @@ const Halloween = {
     Profile.save();
     return { reward: R.reward, ray: all };
   },
-  pending() { return this.active() ? this.RETOS.filter(R => this.retoState(R) === 'ready').length : 0; },
+  /* ---------- Retos diarios: se renuevan cada medianoche (hora del dispositivo) ---------- */
+  DAILY: [
+    { id: 'd_play', name: TX('Noche de partidos'), desc: TX('Juega 3 partidos hoy'), goal: 3, val: T => T.matches, reward: { candy: 25, tickets: 1 } },
+    { id: 'd_win', name: TX('Victoria de ultratumba'), desc: TX('Gana 2 partidos hoy'), goal: 2, val: T => T.wins, reward: { candy: 35, tickets: 2 } },
+    { id: 'd_pull', name: TX('Caramelo o susto'), desc: TX('Haz 3 tiradas del Sobre Calabaza hoy'), goal: 3, val: T => T.pulls, reward: { candy: 20, tickets: 3 } },
+    { id: 'd_boss', name: TX('Exorcista del día'), desc: TX('Gana hoy al Ocultismo jefe'), goal: 1, val: T => T.boss, reward: { candy: 20, tickets: 2 } },
+  ],
+  dayData() {
+    const H = this.data(), t = this.today();
+    if (!H.day || H.day.date !== t) H.day = { date: t, matches: 0, wins: 0, pulls: 0, boss: 0, got: {} };
+    return H.day;
+  },
+  dailyState(R) { const T = this.dayData(); return T.got[R.id] ? 'got' : R.val(T) >= R.goal ? 'ready' : 'locked'; },
+  claimDaily(id) {
+    const R = this.DAILY.find(x => x.id === id); if (!R || !this.active() || this.dailyState(R) !== 'ready') return null;
+    const T = this.dayData(); T.got[id] = Date.now(); this.data().candy += R.reward.candy || 0; Profile.data.tickets += R.reward.tickets || 0;
+    Profile.save(); return R.reward;
+  },
+  pending() { return this.active() ? this.RETOS.filter(R => this.retoState(R) === 'ready').length + this.DAILY.filter(R => this.dailyState(R) === 'ready').length : 0; },
   rayUnlocked() { return !!(Profile.data.hw && Profile.data.hw.ray); },
 
   /* ---------- Premios por entrar: 5 días (no hace falta que sean seguidos), además del regalo diario ---------- */

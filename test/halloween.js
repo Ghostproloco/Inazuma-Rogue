@@ -105,5 +105,20 @@ ok(PLAYER(HW_EPIC.id).rarity === 'epica' && PLAYER(HW_EPIC.id).halloween && PLAY
 setDay('2026-10-29'); ok(!Halloween.loginReady() && Halloween.daily() === 20, 'tras los 5 días no hay más, pero el regalo diario de 20 sigue');
 setDay('2026-11-05'); H2.login = null; ok(!Halloween.loginReady(), 'fuera del evento no hay premios');
 
+console.log('9. Retos del día (se renuevan cada medianoche)');
+setDay('2026-10-30'); const Hd = Halloween.data(); Hd.candy = 1000;
+const st = id => Halloween.dailyState(Halloween.DAILY.find(R => R.id === id));
+ok(Halloween.DAILY.every(R => Halloween.dailyState(R) === 'locked'), 'al empezar el día, los 4 retos están por hacer');
+Halloween.matchPlayed(true); Halloween.matchPlayed(false); ok(st('d_play') === 'locked' && st('d_win') === 'locked', '2 partidos y 1 victoria: aún no');
+Halloween.matchPlayed(true); ok(st('d_play') === 'ready' && st('d_win') === 'ready', '3 partidos y 2 victorias: listos para recoger');
+const c0 = Hd.candy, tk0 = Profile.data.tickets; const rw = Halloween.claimDaily('d_win');
+ok(rw && Hd.candy === c0 + 35 && Profile.data.tickets === tk0 + 2, 'recoger «Gana 2 partidos»: +35 🍬 y +2 tickets');
+ok(Halloween.claimDaily('d_win') === null, 'no se puede recoger dos veces el mismo día');
+Halloween.pull(3); ok(st('d_pull') === 'ready', '3 tiradas del Sobre Calabaza: listo');
+Halloween.bossResult(true); ok(st('d_boss') === 'ready', 'ganar al jefe: listo');
+ok(Halloween.pending() >= 3, 'el menú avisa de los retos pendientes');
+setDay('2026-10-31'); ok(Halloween.DAILY.every(R => Halloween.dailyState(R) === 'locked') && Halloween.claimDaily('d_win') === null, 'al día siguiente se renuevan (y lo de ayer ya no vale)');
+setDay('2026-11-05'); ok(Halloween.claimDaily('d_play') === null, 'fuera del evento no dan premio');
+
 console.log(fails ? '\n✗ ' + fails + ' fallos' : '\n✓ Todo bien');
 process.exit(fails ? 1 : 0);
