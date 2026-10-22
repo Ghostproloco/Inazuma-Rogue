@@ -381,16 +381,20 @@ const Logic = (() => {
   }
 
   // Cambia al compañero que está hacia donde apunta el joystick; sin dirección, al más cercano al balón
+  // Cambiar de jugador: al compañero que antes llega al balón (antes, con el joystick movido, elegía «hacia donde apuntabas»
+  // y en el móvil casi siempre lo estás moviendo, así que cambiaba a quien no querías). Si pulsas otra vez enseguida, al siguiente.
   function switchPlayer(s, dir) {
-    const cur = controlled(s), b = s.ball;
+    const cur = controlled(s), b = s.ball, tgt = b.owner || b;
     const mates = s.players.filter(p => p.team === 'A' && p.role !== 'POR' && p !== cur);
-    let c;
-    if (dir && Math.hypot(dir.x, dir.y) > 0.3) {
-      const a = Math.atan2(dir.y, dir.x);
-      const score = m => angDiff(a, Math.atan2(m.y - cur.y, m.x - cur.x)) * 4 + dist(m, cur) * 0.04;
-      c = mates.sort((m, q) => score(m) - score(q))[0];
-    } else c = mates.sort((a, q) => dist(a, b) - dist(q, b))[0];
-    if (c) { s.controlledId = c.id; s.events.push({ type: 'switch', id: c.id }); }
+    const eta = p => (b.owner ? dist(p, tgt) : dist(p, interceptPoint(s, p))) / Math.max(4, p.speed);
+    const order = mates.sort((m, q) => eta(m) - eta(q));
+    s.swHist = (s.swHist || []).filter(h => s.t - h.t < 1.2);
+    const c = order.find(m => !s.swHist.some(h => h.id === m.id)) || order[0];
+    if (c) {
+      s.swHist.push({ id: cur ? cur.id : null, t: s.t });
+      s.controlledId = c.id; s.swT = 1.2;   // el cambio automático no te lo deshace enseguida
+      s.events.push({ type: 'switch', id: c.id });
+    }
   }
 
   // Cambio automático: si el balón está suelto o lo tiene el rival y otro compañero llega mucho antes, pasas a él

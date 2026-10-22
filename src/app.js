@@ -17,7 +17,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.31.7';
+const VERSION = '0.31.8';
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 const App = (() => {
   const $ = id => document.getElementById(id);
@@ -1862,10 +1862,10 @@ const App = (() => {
     const row = (k, a, b) => `<tr><td><b>${k}</b></td><td>${a}</td><td>${b}</td></tr>`;
     const table = rows => `<table class="gtable"><tr><th></th><th>${TX('Con balón')}</th><th>${TX('Sin balón')}</th></tr>${rows}</table>`;
     const T = {
-      movil: `<p class="note">${TX('El joystick aparece donde pongas el dedo en la mitad izquierda de la pantalla. A tope = esprint. Los botones de la derecha cambian según tu equipo tenga el balón o no.')}</p>
+      movil: `<p class="note">${TX('El joystick aparece donde pongas el dedo en la mitad izquierda de la pantalla. Para esprintar, lleva el dedo más allá del aro (se pone naranja). Los botones de la derecha cambian según tu equipo tenga el balón o no.')}</p>
         ${table(row(TX('Joystick'), TX('mover y apuntar'), TX('mover')) + row(TX('Tiro'), TX('mantén para cargar, suelta para chutar (un toque = tiro rápido)'), '—') +
           row(TX('Pase'), TX('toque = pase · mantén = pase fuerte'), '—') + row(TX('Entrada'), '—', TX('robar el balón')) + row(TX('Profund.'), TX('pase al hueco'), '—') +
-          row(TX('Regate'), TX('recorte rápido sin técnica'), '—') + row(TX('Cambiar'), '—', TX('cambia al compañero hacia donde apuntas')) +
+          row(TX('Regate'), TX('recorte rápido sin técnica'), '—') + row(TX('Cambiar'), '—', TX('al compañero que antes llega al balón (pulsa otra vez para el siguiente)')) +
           row(TX('Técnica'), TX('supertécnica de tiro o regate'), TX('supertécnica de bloqueo')) + row('⇄', TX('elegir otra supertécnica'), TX('elegir otra supertécnica')))}
         <p class="note">${TX('Con el portero: Despeje (suelta) manda el balón lejos, Pase y Saque largo.')}</p>`,
       pc: settings.keys === 'custom' ? (() => { const k = Input.customKeys(), n = c => esc(Input.keyName(c));
@@ -1899,6 +1899,11 @@ const App = (() => {
   }
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
+    { v: '0.31.8', date: '22/10/2026', items: [
+      TX('Móvil: joystick más grande y con zona muerta; ya no esprintas sin querer (para esprintar, lleva el dedo más allá del aro).'),
+      TX('Móvil: botones más grandes y más separados, y nueva opción de tamaño en Ajustes.'),
+      TX('Al perder el balón, un toque en Pase ya no te cambia de jugador sin querer.'),
+      TX('Cambiar de jugador te lleva al compañero que antes llega al balón; si vuelves a pulsar, al siguiente.')] },
     { v: '0.31.7', date: '22/10/2026', items: [
       TX('Las supertécnicas del Inazuma 3 ya salen en español (antes estaban en inglés) y se han añadido algunas que faltaban.')] },
     { v: '0.31.6', date: '22/10/2026', items: [
@@ -1972,11 +1977,12 @@ const App = (() => {
       ${opts(TX('Cambio automático de jugador'), 'autoSwitch', [[1, TX('Sí')], [0, TX('No')]])}
       <h3>${TX('Controles')}</h3>
       ${opts(TX('Botones en pantalla'), 'controls', [['auto', TX('Auto')], ['tactil', TX('Siempre')], ['teclado', TX('Nunca (PC)')]])}
+      ${opts(TX('Tamaño de los botones (móvil)'), 'padSize', [['pequeno', TX('Pequeños')], ['normal', TX('Normales')], ['grande', TX('Grandes')]], Object.assign({ padSize: 'normal' }, settings))}
       ${opts(TX('Teclas del ordenador'), 'keys', [['nuevas', TX('Nuevas (K tiro)')], ['clasicas', TX('Clásicas (L tiro)')], ['custom', TX('A tu gusto')]], Object.assign({ keys: 'nuevas' }, settings))}
       ${settings.keys === 'custom' ? keyMapHtml() : ''}
       <button class="ghost" id="sGuide">${TX('🎮 Guía de controles')}</button>
       <p class="keys"><b>${TX('Mando:')}</b> ${TX('stick o cruceta para moverte · RT esprint · A pase (mantén = fuerte) · X tiro (mantén) · B profundidad / entrada · Y supertécnica · LT cambiar técnica · RB regate · LB cambiar jugador · Start pausa.')}<br>
-      <b>${TX('Móvil:')}</b> ${TX('joystick a la izquierda (a tope = esprint). Mantén Pase para un pase fuerte y usa Regate para un recorte rápido sin técnica. Para cambiar de jugador apunta con el joystick y pulsa Cambiar (también cambia solo al ir a por el balón).')}<br>
+      <b>${TX('Móvil:')}</b> ${TX('joystick a la izquierda (más allá del aro = esprint). Mantén Pase para un pase fuerte y usa Regate para un recorte rápido sin técnica. Cambiar te pasa al compañero que antes llega al balón (también cambia solo al ir a por el balón).')}<br>
       <b>${TX('PC:')}</b> ${settings.keys === 'custom' ? TX('tus teclas están justo encima (Esc también pausa).') : settings.keys === 'clasicas' ? TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o C: profundidad / saque largo · L o X: tiro (mantén) / despeje · I o V: regate · Q: cambiar jugador · Espacio: supertécnica · U: cambiar técnica · P o Esc: pausa') : TX('WASD o flechas para moverte · Shift esprint · J o Z: pase (mantén = fuerte) / entrada · K o X: tiro (mantén) / cambiar jugador · L o C: profundidad / saque largo · I o V: regate · Espacio: supertécnica · E: cambiar técnica · P o Esc: pausa')}</p>
       <h3>${TX('Sonido')}</h3>
       <div class="mixer"><label>${TX('🎵 Música')} <b id="mvT">${Math.round((c.music ? c.mv ?? 1 : 0) * 100)} %</b><input type="range" id="mvR" min="0" max="100" step="5" value="${Math.round((c.music ? c.mv ?? 1 : 0) * 100)}"></label>
@@ -1994,7 +2000,7 @@ const App = (() => {
       <button class="ghost" id="stopAll">${TX('Parar')}</button>
       ${settings.dev ? '<button class="ghost" id="toDev">' + TX('🛠 Modo desarrollador') + '</button>' : ''}
       <p class="note">${TX('Inazuma Rogue v')}${VERSION} ${TX('· fan game gratuito y no oficial. Inazuma Eleven es de Level-5.')}</p>`);
-    bindOpts(settings, k => { saveSettings(); if (k === 'controls') Controls.apply(); if (k === 'keys') { const y = $('screen').scrollTop; renderSettings(); $('screen').scrollTop = y; } });
+    bindOpts(settings, k => { saveSettings(); if (k === 'controls' || k === 'padSize') Controls.apply(); if (k === 'keys') { const y = $('screen').scrollTop; renderSettings(); $('screen').scrollTop = y; } });
     body.querySelectorAll('[data-lang]').forEach(b => b.onclick = () => {
       if (b.dataset.lang === I18N.lang) return;
       I18N.set(b.dataset.lang); Sound.sfx('click');

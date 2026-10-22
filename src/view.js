@@ -7,7 +7,11 @@ const Controls = (() => {
   let sawTouch = mm('(pointer: coarse)') || (navigator.maxTouchPoints > 0 && !mm('(pointer: fine)'));
   const pref = () => { try { return App.settings.controls || 'auto'; } catch (_) { return 'auto'; } };   // App aún no existe al cargar
   const isTouch = () => { const c = pref(); return c === 'tactil' ? true : c === 'teclado' ? false : sawTouch; };
-  function apply() { document.documentElement.classList.toggle('pc', !isTouch()); }
+  function apply() {
+    document.documentElement.classList.toggle('pc', !isTouch());
+    let k = 1; try { k = App.settings.padSize === 'grande' ? 1.15 : App.settings.padSize === 'pequeno' ? 0.88 : 1; } catch (_) {}
+    document.documentElement.style.setProperty('--padk', k);
+  }
   addEventListener('pointerdown', e => { if (e.pointerType === 'touch' && !sawTouch) { sawTouch = true; apply(); } }, { capture: true });
   apply();
   return { apply, isTouch, pc: () => !isTouch() };
@@ -35,7 +39,10 @@ const Input = (() => {
   const keys = new Set(), pressed = new Set();
   const joy = { x: 0, y: 0, id: null, ox: 0, oy: 0 };
   let shootTouch = null;
-  const R = 36;   // recorrido del joystick (px)
+  // Joystick (móvil): más grande que antes (36 px) para poder apuntar fino; zona muerta para que el dedo quieto no mueva al jugador;
+  // el esprint solo al llevar el dedo MÁS ALLÁ del aro (antes cualquier empujón a tope esprintaba y el jugador se cansaba sin querer);
+  // y si el dedo se aleja mucho, el joystick lo sigue (así girar en seco responde al momento).
+  const R = 50, DEAD = 0.16, SPRINT_AT = 1.3, FOLLOW = 1.9;
   const shell = document.getElementById('shell'), touch = document.getElementById('touch');
   const stick = document.getElementById('stick'), knob = document.getElementById('knob');
   // Teclas (Ajustes → «Teclas del ordenador»): «nuevas» = J pase · K tiro/cambiar · L profundidad · E técnica;
@@ -105,12 +112,16 @@ const Input = (() => {
   });
   touch.addEventListener('pointermove', e => {
     if (e.pointerId !== joy.id) return;
-    let dx = e.clientX - joy.ox, dy = e.clientY - joy.oy;
-    const len = Math.hypot(dx, dy);
-    if (len > R) { dx = dx / len * R; dy = dy / len * R; }
-    joy.x = dx / R; joy.y = dy / R;
-    knob.style.transform = `translate(${dx}px,${dy}px)`;
-    stick.classList.toggle('sprint', Math.hypot(joy.x, joy.y) > 0.95);
+    let dx = e.clientX - joy.ox, dy = e.clientY - joy.oy, len = Math.hypot(dx, dy);
+    if (len > R * FOLLOW) {   // el centro sigue al dedo
+      const k = (len - R * FOLLOW) / len; joy.ox += dx * k; joy.oy += dy * k; dx -= dx * k; dy -= dy * k; len = R * FOLLOW;
+      const r = shell.getBoundingClientRect(); stick.style.left = (joy.ox - r.left) + 'px'; stick.style.top = (joy.oy - r.top) + 'px';
+    }
+    const sprint = len > R * SPRINT_AT, m = len < R * DEAD ? 0 : Math.min(1, (len - R * DEAD) / (R * (1 - DEAD)));
+    const out = sprint ? 1 : m * 0.92;   // por debajo de 0,95: corre sin esprintar
+    joy.x = len ? dx / len * out : 0; joy.y = len ? dy / len * out : 0;
+    const kl = Math.min(len, R); knob.style.transform = `translate(${len ? dx / len * kl : 0}px,${len ? dy / len * kl : 0}px)`;
+    stick.classList.toggle('sprint', sprint);
   });
   const end = e => {
     if (e.pointerId !== joy.id) return;
@@ -186,9 +197,9 @@ const Pad = (() => {
       { label: TX('Pase'), sub: TX('mantén'), cls: 's2', action: 'A', holdPass: true },
       { label: TX('Saque<br>largo'), cls: 's4', action: 'B' },
     ],
-    defense: [
+    defense: [   // «Cambiar» va donde Regate, no donde Pase: al perder el balón, un toque en Pase ya no te cambia de jugador sin querer
       { label: TX('Entrada'), cls: 'big', action: 'A' },
-      { label: TX('Cambiar'), cls: 's2', action: 'switch' },
+      { label: TX('Cambiar'), cls: 's5', action: 'switch' },
       { label: TX('Técnica'), cls: 's3 fire', action: 'tech', tech: true },
       { label: '⇄', cls: 's6 tnext', action: 'techNext' },
     ],
