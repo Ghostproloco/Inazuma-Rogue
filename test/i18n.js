@@ -5,7 +5,7 @@ let fails = 0; const ok = (c, t) => { console.log((c ? '  ✓ ' : '  ✗ ') + t)
 
 console.log('1. Todas las claves TX(…) tienen traducción');
 const KEY = /TXn?\(\s*(?:[^,()']+,\s*)?'((?:[^'\\]|\\.)*)'/g;
-const files = ['app.js', 'view.js', 'logic.js', 'run.js', 'career.js', 'event.js', 'cloud.js', 'media.js', 'techfx.js'];
+const files = ['app.js', 'view.js', 'logic.js', 'run.js', 'career.js', 'event.js', 'dialog.js', 'christmas.js', 'go.js', 'limited.js', 'cloud.js', 'media.js', 'techfx.js'];
 const used = new Set();
 for (const f of files) { const src = fs.readFileSync(S + f, 'utf8'); let m; while ((m = KEY.exec(src))) used.add(eval("'" + m[1] + "'")); }
 const store = { 'inazuma-idioma': 'en' };
