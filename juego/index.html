@@ -694,6 +694,53 @@ details.adv[open]{display:flex;flex-direction:column;gap:8px}
 input,textarea,select{font-size:max(16px,1em)}
 html,body,button,.act,#shell{touch-action:manipulation}
 #touch,.act,.gmach canvas{touch-action:none}
+
+/* ===== Gacha limitado de Bai Long: rareza «limitada», rayos y aviso de jugador nuevo ===== */
+.rar.limitada{background:linear-gradient(90deg,#35d6ff,#ffd23a,#35d6ff);background-size:200% 100%;color:#06143a;animation:limShine 2.2s linear infinite}
+@keyframes limShine{to{background-position:200% 0}}
+.gcard.limitada{box-shadow:0 0 0 2px #35d6ff,0 0 0 4px #ffd23a,0 0 22px rgba(60,200,255,.9)}
+.gcard.limitada .pix,.ptile.limitada .pix,.npface{background:linear-gradient(#35d6ff,#1f3fb0 60%,#ffd23a);background-size:100% 200%;animation:limPix 3s ease-in-out infinite alternate}
+@keyframes limPix{to{background-position:0 100%}}
+.pcard.limitada,.ptile.limitada{box-shadow:0 0 0 2px #35d6ff,0 0 0 4px #ffd23a,0 0 10px rgba(60,200,255,.8)}
+.pslot.limitada .pf{box-shadow:0 0 0 2px #35d6ff,0 0 8px rgba(60,200,255,.8);background:linear-gradient(#35d6ff,#1f3fb0)}
+.cap.t-limitada{--cc:linear-gradient(90deg,#35d6ff,#ffffff,#ffd23a,#35d6ff);filter:drop-shadow(0 0 10px #35d6ff)}
+.cap.t-limitada .ct{background-size:300% 100%;animation:capRain 1s linear infinite}
+.lmbolts{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen;z-index:1}
+.lb{fill:none;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;stroke-width:3;opacity:0;animation:lmBolt 2.6s infinite}
+.lb0{stroke:#ffe14a;filter:drop-shadow(0 0 4px #ffd23a)}.lb1{stroke:#8fdcff;filter:drop-shadow(0 0 4px #35a8ff)}
+@keyframes lmBolt{0%,100%{opacity:0}5%{opacity:1}8%{opacity:.15}11%{opacity:1}22%{opacity:0}}
+.limbg{position:absolute;inset:0;z-index:0;background:linear-gradient(90deg,rgba(6,14,50,.92) 30%,rgba(6,14,50,.0) 75%),url(ui/bailong.jpg) 70% 22%/cover no-repeat}
+.mode.lmmode,.banner-card.lim{position:relative;overflow:hidden;min-height:70px;padding:8px 10px;background:#06143a;box-shadow:0 0 0 2px #35d6ff,0 0 16px rgba(60,200,255,.6)}
+.lmmode .mt,.banner-card.lim .mt{position:relative;z-index:2}
+.lmmode b,.banner-card.lim b{color:#ffe27a;text-shadow:0 0 8px #35d6ff}
+.lmnew{font-style:normal;font-size:11px;background:#ffd23a;color:#06143a;padding:1px 5px;vertical-align:middle;text-shadow:none}
+.lmhero{position:relative;overflow:hidden;border:2px solid var(--ink);box-shadow:0 0 0 2px #35d6ff,0 0 22px rgba(60,200,255,.7);line-height:0}
+.lmhero img{width:100%;display:block}
+.lmhero::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.7),transparent 60%);opacity:0;animation:lmFlash 5s infinite;pointer-events:none;z-index:2}
+@keyframes lmFlash{0%,88%,100%{opacity:0}90%{opacity:.8}92%{opacity:.1}94%{opacity:.6}}
+.lmtag{position:absolute;top:8px;left:8px;z-index:3;background:#ffd23a;color:#06143a;font-size:14px;padding:2px 8px;line-height:1.3;box-shadow:0 0 10px #ffd23a}
+.lmname{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:18px 10px 6px;background:linear-gradient(transparent,rgba(4,10,40,.92));line-height:1.2;display:flex;flex-direction:column}
+.lmname b{font-size:32px;color:#ffe27a;font-weight:400;text-shadow:0 0 10px #35d6ff}.lmname small{font-size:14px;color:#fff}
+.lmtechs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lmtech{display:flex;flex-direction:column;padding:6px 8px;background:var(--navy);border:2px solid #35d6ff}.lmtech b{font-size:16px;color:#ffe27a;font-weight:400}.lmtech small{font-size:12px}
+.lmlist{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.lmp{display:flex;flex-direction:column;align-items:center;gap:2px;width:78px;padding:4px;background:var(--navy);border:2px solid #5a7ab8;text-align:center;opacity:.65}
+.lmp small{font-size:11px;line-height:1.1;min-height:24px}.lmp.own{opacity:1}.lmp.limitada{border-color:#35d6ff;box-shadow:0 0 10px rgba(60,200,255,.8);opacity:1}.lmp.legendaria{border-color:#ffd23a}.lmp.epica{border-color:#b07cff}
+.lmgo{box-shadow:0 0 0 2px #35d6ff,0 0 14px rgba(60,200,255,.7)}
+.lmboom{position:fixed;inset:0;z-index:60;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.85),rgba(60,160,255,.35) 55%,transparent 75%);animation:lmBoom 1.4s ease-out forwards}
+.lmboom .lb{animation:lmBoomBolt .45s ease-out 3 both;stroke-width:5}.lmboom .lmbolts:nth-child(2){transform:scaleX(-1)}
+@keyframes lmBoom{0%{opacity:1}100%{opacity:0}}
+@keyframes lmBoomBolt{0%{opacity:0}20%{opacity:1}60%{opacity:.4}100%{opacity:0}}
+.npov{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:rgba(2,6,24,.9);padding:12px;overflow:auto}
+.npbox{position:relative;overflow:hidden;width:min(340px,100%);display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 14px;background:linear-gradient(#10286a,#060f30);border:3px solid #ffd23a;box-shadow:0 0 0 3px #35d6ff,0 0 30px rgba(60,200,255,.8);text-align:center}
+.npbox>*{position:relative;z-index:2}.npbox>.lmbolts{position:absolute;z-index:1}
+.npk{font-size:16px;color:#06143a;background:#ffd23a;padding:2px 10px;animation:npPulse 1s ease-in-out infinite alternate}
+@keyframes npPulse{to{transform:scale(1.08)}}
+.npface{width:112px;height:112px;border:3px solid #fff;box-shadow:0 0 18px #35d6ff}.npface .pix,.npface canvas{display:block;width:112px;height:112px;background:none;border:0}
+.npbox h2{margin:0;font-size:30px;color:#ffe27a;text-shadow:0 0 10px #35d6ff}
+.npavg{font-size:22px;color:#fff;font-weight:400}.nptechs{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}.nptechs span{font-size:13px;padding:2px 8px;background:#0b1c55;border:1px solid #35d6ff;color:#e8f6ff}
+.npbox button{width:100%}
+@media (prefers-reduced-motion:reduce){.lb,.lmhero::after,.npk,.rar.limitada,.gcard.limitada .pix,.npface,.cap.t-limitada .ct{animation:none!important}}
 </style>
 
 <div id="shell">
@@ -772,10 +819,6 @@ function TXn(n, one, many) { return TX(n === 1 ? one : many, n); }
    test/i18n.js avisa si falta alguna.
    ===================================================================== */
 const EN_TEXT = {
-  'Arion Sherwind: medio legendario de Inazuma Eleven GO': 'Arion Sherwind: legendary midfielder from Inazuma Eleven GO',
-  'Bai Long: delantero legendario de Inazuma Eleven GO': 'Bai Long: legendary forward from Inazuma Eleven GO',
-  'Riccardo Di Rigo: defensa legendario de Inazuma Eleven GO': 'Riccardo Di Rigo: legendary defender from Inazuma Eleven GO',
-  'Victor Blade: medio legendario de Inazuma Eleven GO': 'Victor Blade: legendary midfielder from Inazuma Eleven GO',
   ' (Google)': ' (Google)',
   ' (por el playoff)': ' (through the playoff)',
   ' (se gradúa al acabar)': ' (graduates at the end)',
@@ -836,6 +879,7 @@ const EN_TEXT = {
   '). Se reintentará.': '). It will try again.',
   '). Vende o libera a alguien.': '). Sell or release someone.',
   '). ¿Le haces hueco?': '). Will you make room?',
+  '); con 5 estrellas dan monedas.': '); at 5 stars they give coins.',
   '); con 5 estrellas, o una técnica repetida, dan monedas.': '); at 5 stars, or with a duplicate technique, they give coins.',
   '+1 estrella sin necesitar repetidos (tienes ': '+1 star without needing duplicates (you have ',
   '+1 extra en cada entrenamiento por nivel': '+1 extra on each training session per level',
@@ -890,6 +934,7 @@ const EN_TEXT = {
   ': tienes vidas ♥, tras cada victoria eliges una mejora (técnica, habilidad o fichaje temporal) y todo eso se pierde al acabar el intento. Completar una etapa la deja superada para siempre y abre más modos.': ': you have lives ♥, after every win you pick an upgrade (technique, skill or temporary signing) and you lose all of it when the run ends. Completing a stage clears it forever and unlocks more modes.',
   'A portería solo pueden ir porteros': 'Only goalkeepers can play in goal',
   'A tu gusto': 'Custom',
+  'A ver si puedes ganarme.': 'Let\'s see if you can beat me.',
   'Abajo': 'Down',
   'Abandonar carrera': 'Abandon career',
   'Abandonar:': 'Abandon:',
@@ -899,6 +944,7 @@ const EN_TEXT = {
   'Abrir todas': 'Open all',
   'Aceptar': 'Accept',
   'Aceptar ': 'Accept ',
+  'Acepto el reto. ¡Que gane el mejor!': 'Challenge accepted. May the best team win!',
   'Actividad de la semana': 'Activity of the week',
   'Acércate al rival que lleva el balón': 'Get closer to the rival with the ball',
   'Acércate más a la portería': 'Get closer to the goal',
@@ -933,11 +979,11 @@ const EN_TEXT = {
   'Aún no hay nadie ojeado.': 'Nobody has been scouted yet.',
   'Aún no hay ninguna carrera terminada.': 'No careers finished yet.',
   'Aún no tienes ninguna. Salen en el tramo legendario del gacha.': 'You don\'t have any yet. They come from the legendary tier of the gacha.',
+  'Bai Long': 'Bai Long',
   'Bajar a Tercera': 'Drop to Third Division',
   'Banda': 'Band',
   'Banda sonora original': 'Original soundtrack',
   'Banquillo': 'Bench',
-  'Bianchi Christmas: delantero de media 105 con gorro navideño': 'Bianchi Christmas: forward rated 105 with a Christmas hat',
   'Bloq Mayús': 'Caps Lock',
   'Bloqueo': 'Block',
   'Borrar partida': 'Delete run',
@@ -952,6 +998,7 @@ const EN_TEXT = {
   'Cada 3 temporadas: convoca a 10 y lleva a Inazuma Japón a lo más alto': 'Every 3 seasons: call up 10 and take Inazuma Japan to the top',
   'Cada intento es roguelite: las técnicas, habilidades y fichajes se pierden al acabar. La etapa que completas queda superada para siempre y abre las Cadenas, el Infinito y más equipos especiales.': 'Each attempt is roguelite: techniques, skills and signings are lost when it ends. A stage you complete stays cleared forever and unlocks Chains, Infinite and more special teams.',
   'Cada partida es distinta: vidas, mejoras y jefes': 'Every run is different: lives, upgrades and bosses',
+  'Cada sobre trae al menos una épica o mejor, y Bai Long está asegurado a las': 'Every pack has at least one epic or better, and Bai Long is guaranteed after',
   'Cadena': 'Chain',
   'Cadenas': 'Chains',
   'Cadenas completadas con oro': 'Chains completed with gold',
@@ -990,6 +1037,7 @@ const EN_TEXT = {
   'Carrera:': 'Career:',
   'Cartas a Papá Noel': 'Letters to Santa',
   'Centro de entrenamiento': 'Training centre',
+  'Cerrar': 'Close',
   'Cerrar sesión': 'Log out',
   'Cerrojo': 'Lockdown',
   'Clasificación': 'Standings',
@@ -1062,6 +1110,7 @@ const EN_TEXT = {
   'Código de partida (sin cuenta)': 'Save code (no account)',
   'Código de regalo': 'Gift code',
   'Córner': 'Corner',
+  'Dame un buen partido, si eres capaz.': 'Give me a good game, if you can.',
   'Datos en pantalla (FPS, recargas…)': 'On-screen data (FPS, cooldowns…)',
   'De': 'From',
   'De ': 'From ',
@@ -1124,6 +1173,7 @@ const EN_TEXT = {
   'El premio del jefe ya lo cobraste hoy.': 'You already claimed today\'s boss prize.',
   'El primero que marque, gana': 'First to score wins',
   'El regreso del Royal': 'The Return of Royal',
+  'El viento sopla a mi favor hoy.': 'The wind is on my side today.',
   'El óvalo - Estadio': 'The Oval - Stadium',
   'Elegir': 'Choose',
   'Elegir club': 'Choose club',
@@ -1174,7 +1224,6 @@ const EN_TEXT = {
   'Entrenamiento de': 'Training:',
   'Entrenar': 'Train',
   'Entrenar al máximo': 'Max out training',
-  'Entrenar y Rayos': 'Training and Bolts',
   'Equilibrada': 'Balanced',
   'Equipación': 'Kit',
   'Equipación del Raimon': 'Raimon kit',
@@ -1209,6 +1258,7 @@ const EN_TEXT = {
   'Esta web no está autorizada en Firebase (Authentication → Configuración → Dominios autorizados).': 'This website isn\'t authorised in Firebase (Authentication → Settings → Authorised domains).',
   'Estadio': 'Stadium',
   'Estadio de acero': 'Steel stadium',
+  'Este campo es mi bosque. ¡Perderás en casa ajena!': 'This field is my forest. You\'ll lose on my turf!',
   'Este código ha caducado': 'This code has expired',
   'Este código todavía no está activo': 'This code isn\'t active yet',
   'Este es el equipo que sale en el partido rápido y al empezar cualquier modo. Se guarda solo.': 'This is the team used in quick matches and when you start any mode. It saves automatically.',
@@ -1274,6 +1324,9 @@ const EN_TEXT = {
   'Físico': 'Body',
   'Fútbol 5 contra 5': '5-a-side football',
   'Gacha': 'Gacha',
+  'Gacha de Bai Long': 'Bai Long gacha',
+  'Gacha limitado': 'Limited gacha',
+  'Gacha limitado · 100 🎟️ = 10 jugadores': 'Limited gacha · 100 🎟️ = 10 players',
   'Gana': 'Win',
   'Gana 2 partidos hoy': 'Win 2 matches today',
   'Gana al Alpino jefe': 'Beat the boss Alpine',
@@ -1302,6 +1355,7 @@ const EN_TEXT = {
   'Génesis - El equipo G': 'Genesis - Team G',
   'Génesis - Los superhumanos': 'Genesis - The Superhumans',
   'Habilidad': 'Skill',
+  'Hablar es fácil. ¡Demuéstralo en el campo!': 'Talk is cheap. Prove it on the pitch!',
   'Halloween': 'Halloween',
   'Has completado la carrera. Tu club entra en el salón de la fama… y puedes seguir jugando temporadas para siempre (los rivales mejoran cada año).': 'You\'ve completed the career. Your club enters the hall of fame… and you can keep playing seasons forever (rivals get better every year).',
   'Has ganado': 'You won',
@@ -1320,6 +1374,8 @@ const EN_TEXT = {
   'Historia': 'Story',
   'Historia · Inazuma Eleven 2': 'Story · Inazuma Eleven 2',
   'Hokkaido - Paraíso nevado': 'Hokkaido - Snowy Paradise',
+  'Hoy mi balón arde. ¡Aguanta si puedes!': 'My ball is burning today. Hold on if you can!',
+  'Hoy no pienso perder. ¡Prepárate!': 'I\'m not losing today. Get ready!',
   'Hueco': 'Slot',
   'Hurley Kane (versión del Infinito)': 'Hurley Kane (Infinite version)',
   'Héroes': 'Heroes',
@@ -1356,11 +1412,14 @@ const EN_TEXT = {
   'Jugadores': 'Players',
   'Jugadores (': 'Players (',
   'Jugadores de nieve y hielo, y 6 legendarios exclusivos de Navidad.': 'Snow and ice players, and 6 exclusive Christmas legendaries.',
+  'Jugadores del sobre': 'Players in the pack',
   'Jugar como invitado': 'Play as a guest',
   'Jugar contra': 'Play against',
   'J{0}': 'MD{0}',
   'Kappa legendario, vale para cualquier puesto': 'Legendary Kappa, fits any position',
   'Kirkwood, Royal Academy y Zeus, uno detrás de otro y al máximo.': 'Kirkwood, Royal Academy and Zeus, back to back and at full strength.',
+  'LIMITADO': 'LIMITED',
+  'LIMITADO · 100 🎟️ = 10 jugadores · nota 100': 'LIMITED · 100 🎟️ = 10 players · rating 100',
   'La Caravana Inazuma': 'The Inazuma Caravan',
   'La Copa empieza la temporada que viene': 'The Cup starts next season',
   'La Copa empieza la temporada que viene.': 'The Cup starts next season.',
@@ -1404,6 +1463,7 @@ const EN_TEXT = {
   'Libres': 'Free agents',
   'Liga ': 'League ',
   'Liga Centella': 'Lightning League',
+  'Limitada': 'Limited',
   'Lisa': 'Plain',
   'Listo': 'Done',
   'Llega de la Academia Alius': 'Arrives from the Alius Academy',
@@ -1412,6 +1472,7 @@ const EN_TEXT = {
   'Los botones están en Ajustes.': 'The buttons are in Settings.',
   'Los equipos de la Academia Alius, de Géminis a Génesis.': 'The Alius Academy teams, from Gemini to Genesis.',
   'Los equipos del Fútbol Frontier, la gira por Japón y las selecciones del mundo': 'The Football Frontier teams, the tour around Japan and the world\'s national teams',
+  'Los repetidos suben una estrella (máx.': 'Duplicates add a star (max.',
   'Los sueños del Raimon': 'Raimon\'s Dreams',
   'Lugares · Inazuma Eleven 2': 'Places · Inazuma Eleven 2',
   'Mando desconectado': 'Controller disconnected',
@@ -1429,6 +1490,8 @@ const EN_TEXT = {
   'Menús': 'Menus',
   'Mercury (versión del Infinito)': 'Mercury (Infinite version)',
   'Mi equipo': 'My team',
+  'Mi equipo no se rinde jamás.': 'My team never gives up.',
+  'Mis raíces son profundas. ¡No me moverás!': 'My roots run deep. You won\'t move me!',
   'Mitades': 'Halves',
   'Modo': 'Mode',
   'Modo Carrera': 'Career Mode',
@@ -1458,6 +1521,7 @@ const EN_TEXT = {
   'Móvil: los botones ya no se «comen» los toques (antes a veces no chutaba ni pasaba).': 'Mobile: the buttons no longer "swallow" taps (sometimes you couldn\'t shoot or pass).',
   'Música de serie': 'Default music',
   'Nadie ha aprendido nada nuevo esta vez, pero todos mejoran el control (+1).': 'Nobody learned anything new this time, but everyone improves their control (+1).',
+  'Nadie ha movido esta montaña. ¿Serás tú el primero?': 'Nobody has ever moved this mountain. Will you be the first?',
   'Navidad': 'Christmas',
   'Necesitas al menos': 'You need at least',
   'Negociación': 'Negotiation',
@@ -1472,6 +1536,8 @@ const EN_TEXT = {
   'No hay conexión. Prueba otra vez cuando tengas internet.': 'No connection. Try again when you have internet.',
   'No hay ninguna carrera empezada.': 'No career has been started.',
   'No juegas el playoff esta temporada: se juega sin ti.': 'You\'re not in the playoff this season: it goes on without you.',
+  'No me asustas. ¡Empecemos!': 'You don\'t scare me. Let\'s start!',
+  'No me subestimes. ¡Voy a por todas!': 'Don\'t underestimate me. I\'m going all out!',
   'No queda nadie disponible con ese filtro.': 'Nobody left with that filter.',
   'No se ha podido crear la cuenta': 'The account couldn\'t be created',
   'No se ha podido entrar': 'Couldn\'t log in',
@@ -1487,11 +1553,13 @@ const EN_TEXT = {
   'No tienes dinero suficiente.': 'You don\'t have enough money.',
   'No tienes jugadores de este puesto. Toca «Todos».': 'You have no players in this position. Tap «All».',
   'No tienes tanto dinero.': 'You don\'t have that much money.',
+  'No tienes tickets suficientes': 'You don\'t have enough tickets',
   'No, que': 'No, let',
   'Noche de partidos': 'Match night',
   'Nombre del instituto': 'School name',
   'Normal': 'Normal',
   'Normales': 'Normal',
+  'Nota': 'Rating',
   'Nota ': 'Rating ',
   'Nube: la partida se guarda comprimida (ocupa unas 8 veces menos) y se sube al acabar cada partido, al salir del juego y, mientras juegas, cada 5 minutos. Así el servidor aguanta a muchos más jugadores.': 'Cloud: your save is now compressed (about 8 times smaller) and uploads after every match, when you leave the game and, while playing, every 5 minutes. This way the server can handle many more players.',
   'Nueva carrera': 'New career',
@@ -1523,6 +1591,7 @@ const EN_TEXT = {
   'Otros clubes': 'Other clubs',
   'PC:': 'PC:',
   'PJ ·': 'GP ·',
+  'Paciencia… el balón acabará en mis manos.': 'Patience… the ball will end up with me.',
   'Para llevar tu partida a otro dispositivo usa tu': 'To take your save to another device, use your',
   'Parada': 'Save',
   'Parar': 'Stop',
@@ -1538,7 +1607,6 @@ const EN_TEXT = {
   'Partido de liga': 'League match',
   'Partido jefe': 'Boss match',
   'Partido rápido': 'Quick match',
-  'Partido, controles y sonido': 'Match, controls and sound',
   'Partidos más equilibrados: con el balón se esprinta un poco menos y los rivales corren algo más cuando defienden. Ya no te escapas solo corriendo.': 'More balanced matches: you sprint a bit less with the ball and rivals run a bit more when defending. You can no longer escape just by running.',
   'Partidos · Inazuma Eleven': 'Matches · Inazuma Eleven',
   'Partidos · Inazuma Eleven 2': 'Matches · Inazuma Eleven 2',
@@ -1551,6 +1619,7 @@ const EN_TEXT = {
   'Pega primero un código.': 'Paste a code first.',
   'Penaltis:': 'Penalties:',
   'Pequeños': 'Small',
+  'Pequeños ajustes y mejoras en el gacha y en los avisos al abrir el juego.': 'Small tweaks and improvements to the gacha and to the notices when you open the game.',
   'Perfil borrado': 'Profile deleted',
   'Plantilla': 'Squad',
   'Plantilla: en Jugadores ves la nota y el elemento de cada uno, y en Mi equipo el elemento de cada jugador en el campo.': 'Squad: Players now shows each player\'s rating and element, and My team shows each player\'s element on the pitch.',
@@ -1582,6 +1651,7 @@ const EN_TEXT = {
   'Premio:': 'Prize:',
   'Premios por completarla:': 'Rewards for completing it:',
   'Premios por entrar': 'Login rewards',
+  'Prepárate: mis tiros pesan como piedras.': 'Get ready: my shots hit like boulders.',
   'Presión alta': 'High press',
   'Primera': 'First',
   'Primero convoca a tu selección': 'Call up your national team first',
@@ -1673,6 +1743,7 @@ const EN_TEXT = {
   'Semifinal': 'Semi-final',
   'Semifinales:': 'Semi-finals:',
   'Semifinalistas': 'Semi-finalists',
+  'Seré más rápido que tu mirada. ¡Parpadea y pierdes!': 'I\'m faster than your eyes. Blink and you lose!',
   'Sesión caducada: vuelve a entrar en 👤 Cuenta': 'Session expired: log in again in 👤 Account',
   'Sesión cerrada': 'Logged out',
   'Shawn Froste de Navidad': 'Christmas Shawn Froste',
@@ -1700,6 +1771,7 @@ const EN_TEXT = {
   'Sobre Navideño, partido jefe y retos': 'Christmas Pack, boss match and challenges',
   'Solo jugadores villanos y de miedo, y 6 legendarios exclusivos de Halloween.': 'Only villains and spooky players, plus 6 exclusive Halloween legendaries.',
   'Sonido': 'Sound',
+  'Soy una muralla. ¡Pasa si te atreves!': 'I\'m a wall. Get past me if you dare!',
   'Stick / cruceta': 'Stick / D-pad',
   'Su Majestad': 'His Majesty',
   'Su música': 'Their music',
@@ -1798,7 +1870,6 @@ const EN_TEXT = {
   'Tu sesión se ha cerrado. Entra otra vez para seguir guardando en la nube.': 'You\'ve been logged out. Log in again to keep saving to the cloud.',
   'Tu sesión se ha cerrado. Vuelve a entrar para seguir guardando en la nube.': 'You\'ve been logged out. Log in again to keep saving to the cloud.',
   'Tus carreras de mánager: las terminadas, las abandonadas y la que llevas ahora.': 'Your manager careers: finished, abandoned and the one you\'re playing now.',
-  'Tus mejores 5': 'Your best 5',
   'Tus ojeadores han encontrado': 'Your scouts have found',
   'T{0}': 'S{0}',
   'T{0} S{1}': 'S{0} W{1}',
@@ -1807,6 +1878,7 @@ const EN_TEXT = {
   'Técnica: ': 'Technique: ',
   'Técnicas': 'Techniques',
   'Técnicas (': 'Techniques (',
+  'Técnicas de Bai Long': 'Bai Long\'s techniques',
   'Técnicas equipadas': 'Equipped techniques',
   'Técnicas legendarias que has sacado en el gacha. Las puede equipar cualquier jugador de su elemento desde su ficha.': 'Legendary techniques you\'ve pulled from the gacha. Any player of their element can equip them from their profile.',
   'Técnicas · ': 'Techniques · ',
@@ -1832,6 +1904,7 @@ const EN_TEXT = {
   'Vender': 'Sell',
   'Vender ·': 'Sell ·',
   'Vender: un club paga el 70 % de su valor. Liberar: se va gratis (para hacer hueco). Mínimo': 'Sell: a club pays 70% of their value. Release: they leave for free (to make room). Minimum',
+  'Ver el gacha limitado': 'See the limited gacha',
   'Ver resumen': 'See summary',
   'Ver técnicas del equipo': 'See team techniques',
   'Versión jefe · campo nevado': 'Boss version · snowy pitch',
@@ -1860,6 +1933,7 @@ const EN_TEXT = {
   'Ya tengo cuenta': 'I have an account',
   'Ya tiene 5 estrellas': 'Already has 5 stars',
   'Ya tienes 10: quita uno antes': 'You already have 10: remove one first',
+  'Ya veremos quién se ríe al final.': 'We\'ll see who\'s laughing at the end.',
   'Zeus, Ultra Zeus y Génesis: lo más duro del 1 y del 2.': 'Zeus, Ultra Zeus and Genesis: the toughest of 1 and 2.',
   'Zeus, la Academia Alius, los Emperadores Oscuros, el Ogro, Team D y los demonios': 'Zeus, the Alius Academy, the Dark Emperors, the Ogre, Team D and the demons',
   'Zona residencial - Una promesa solemne': 'Residential Area - A Solemn Promise',
@@ -2022,6 +2096,7 @@ const EN_TEXT = {
   'tickets para el gacha por tus logros de la temporada': 'tickets for the gacha for your achievements this season',
   'tiene una partida en la nube distinta de la de este móvil. Elige con cuál sigues. La otra se guarda como copia en este móvil (Cuenta → Opciones avanzadas), así que no se pierde.': 'has a save in the cloud that\'s different from the one on this device. Choose which one to continue with. The other one is kept as a copy on this device (Account → Advanced options), so nothing is lost.',
   'tiradas (llevas': 'pulls (you\'re at',
+  'tiradas sin él (llevas': 'pulls without him (you have',
   'tiro (mantén para cargar)': 'shoot (hold to charge)',
   'tiro (mantén) ·': 'shot (hold) ·',
   'titular': 'starter',
@@ -2057,6 +2132,11 @@ const EN_TEXT = {
   '¡5 goles de diferencia! Partido ganado': '5-goal lead! Match won',
   '¡A jugar!': 'Let\'s play!',
   '¡A la final!': 'Into the final!',
+  '¡Allá va mi técnica!': 'Here comes my technique!',
+  '¡Aquí me quedo yo!': 'This is where I stand!',
+  '¡Aquí no pasa nada!': 'Nothing gets through here!',
+  '¡Arde, balón, arde!': 'Burn, ball, burn!',
+  '¡Así se hace, equipo!': 'That\'s how it\'s done, team!',
   '¡Balón recuperado!': 'Ball won back!',
   '¡Bienvenido!': 'Welcome!',
   '¡Bloqueo!': 'Block!',
@@ -2065,14 +2145,26 @@ const EN_TEXT = {
   '¡Campeones de Primera División!': 'First Division champions!',
   '¡Campeones de la Copa Inazuma!': 'Inazuma Cup champions!',
   '¡Campeones del mundo!': 'World champions!',
+  '¡Casi, pero no!': 'Close, but no!',
+  '¡Con todas mis fuerzas!': 'With all my strength!',
+  '¡Corre, balón, corre!': 'Run, ball, run!',
+  '¡Crece, mi técnica!': 'Grow, my technique!',
   '¡Cuenta creada! Tu partida ya se guarda en la nube.': 'Account created! Your save is now stored in the cloud.',
   '¡Código canjeado!': 'Code redeemed!',
   '¡Código canjeado! ': 'Code redeemed! ',
+  '¡Demasiado fácil!': 'Too easy!',
   '¡Entendido!': 'Got it!',
   '¡Entrada!': 'Tackle!',
+  '¡Eso quería oír! Vamos a jugar.': 'That\'s what I wanted to hear! Let\'s play.',
+  '¡Esta es la buena!': 'This is the one!',
+  '¡Esto es solo el principio!': 'This is only the beginning!',
+  '¡Esto pesa mucho!': 'This one\'s heavy!',
+  '¡Está parado!': 'Saved!',
   '¡Etapa completada!': 'Stage completed!',
   '¡FINAL!': 'THE FINAL!',
+  '¡Firme como una roca!': 'Solid as a rock!',
   '¡Fuera de juego!': 'Offside!',
+  '¡GOOOL! ¡Lo hemos conseguido!': 'GOOOAL! We did it!',
   '¡Gol': 'Goal',
   '¡Gol de oro!': 'Golden goal!',
   '¡Gol!': 'Goal!',
@@ -2081,12 +2173,23 @@ const EN_TEXT = {
   '¡Has vencido al Alpino!': 'You beat Alpine!',
   '¡Has vencido al Ocultismo!': 'You beat Occult!',
   '¡Hola, ': 'Hi, ',
+  '¡La fuerza del bosque!': 'The power of the forest!',
   '¡La técnica supera al portero!': 'The technique beats the goalkeeper!',
   '¡Llega el Inazuma 3!': 'Inazuma 3 is here!',
   '¡Llega el Mundial!': 'The World Cup is here!',
+  '¡Lo paro, lo paro!': 'I\'ve got it, I\'ve got it!',
+  '¡Mejor suerte la próxima!': 'Better luck next time!',
+  '¡Mi portería es sagrada!': 'My goal is sacred!',
+  '¡Más rápido que el viento!': 'Faster than the wind!',
+  '¡NUEVO JUGADOR!': 'NEW PLAYER!',
   '¡NUEVO!': 'NEW!',
+  '¡Ni lo verás pasar!': 'You won\'t even see it pass!',
+  '¡No pasarás!': 'You shall not pass!',
+  '¡No podrás ni tocar el balón!': 'You won\'t even touch the ball!',
+  '¡Nos vemos en el campo!': 'See you on the pitch!',
   '¡Nueva versión!': 'New version!',
   '¡Nuevos jugadores!': 'New players!',
+  '¡Os lo dije!': 'I told you so!',
   '¡Para el portero rival!': 'The rival goalkeeper stops it!',
   '¡Parada!': 'Save!',
   '¡Paradón!': 'Great save!',
@@ -2095,15 +2198,25 @@ const EN_TEXT = {
   '¡Partida traída! Cargando…': 'Save brought over! Loading…',
   '¡Partida traída! Crea una cuenta en 👤 Cuenta para tenerla siempre a salvo': 'Save brought over! Create an account in 👤 Account to keep it safe forever',
   '¡Pasáis a semifinales!': 'Through to the semi-finals!',
+  '¡Por aquí no pasa nadie!': 'Nobody gets past me!',
   '¡Premio del día {0}!': 'Day {0} prize!',
+  '¡Que tiemble el suelo!': 'Let the ground shake!',
   '¡Ray Dark desbloqueado como mánager!': 'Ray Dark unlocked as manager!',
+  '¡Raíces, sostenedme!': 'Roots, hold me up!',
   '¡Regalo de Navidad!': 'Christmas gift!',
   '¡Regate!': 'Dribble!',
   '¡Robo!': 'Stolen!',
   '¡Se une a tu plantilla!': 'Joins your squad!',
+  '¡Siente mi fuego!': 'Feel my fire!',
   '¡Supertécnicas nuevas! ': 'New special moves! ',
+  '¡Todo mi calor en este tiro!': 'All my heat in this shot!',
+  '¡Tranquilos, lo tengo!': 'Relax, I\'ve got it!',
+  '¡Tu tiro no me asusta!': 'Your shot doesn\'t scare me!',
   '¡TÉCNICA NUEVA!': 'NEW TECHNIQUE!',
+  '¡Uno menos para vosotros!': 'One more against you!',
+  '¡Uno más para nosotros!': 'One more for us!',
   '¡Vamos allá!': 'Let\'s go!',
+  '¡Vas a quemarte antes del descanso!': 'You\'ll burn out before halftime!',
   '¡Victoria!': 'Victory!',
   '¡Ya están todas abiertas!': 'They\'re all open!',
   '¡oleada especial!': 'special wave!',
@@ -2143,6 +2256,9 @@ const EN_TEXT = {
   '· valor': '· value',
   '· velocidad': '· speed',
   '· ☁️ guardado en la nube': '· ☁️ saved to the cloud',
+  '¿Así que tú eres mi rival? ¡Será divertido!': 'So you\'re my opponent? This will be fun!',
+  '¿Crees que puedes apagar mi fuego? ¡Inténtalo!': 'Think you can put my fire out? Try it!',
+  '¿Eso es todo lo que tenéis?': 'Is that all you\'ve got?',
   '¿Jugabas en la versión antigua?': 'Did you play the old version?',
   '¿Preparado?': 'Ready?',
   '¿Qué entrenáis esta semana? (+': 'What are you training this week? (+',
@@ -2265,64 +2381,6 @@ const EN_TEXT = {
   '🛠 Modo desarrollador': '🛠 Developer mode',
   '🥉 1 vez · 🥈 3 veces · 🥇 5 veces (15 🎟️ y otro Rayo).': '🥉 1 time · 🥈 3 times · 🥇 5 times (15 🎟️ and another Bolt).',
   '🧤 Parada de': '🧤 Save by',
-  "¿Crees que puedes apagar mi fuego? ¡Inténtalo!": "Think you can put my fire out? Try it!",
-  "Hoy mi balón arde. ¡Aguanta si puedes!": "My ball is burning today. Hold on if you can!",
-  "¡Vas a quemarte antes del descanso!": "You'll burn out before halftime!",
-  "Seré más rápido que tu mirada. ¡Parpadea y pierdes!": "I'm faster than your eyes. Blink and you lose!",
-  "El viento sopla a mi favor hoy.": "The wind is on my side today.",
-  "¡No podrás ni tocar el balón!": "You won't even touch the ball!",
-  "Mis raíces son profundas. ¡No me moverás!": "My roots run deep. You won't move me!",
-  "Este campo es mi bosque. ¡Perderás en casa ajena!": "This field is my forest. You'll lose on my turf!",
-  "Paciencia… el balón acabará en mis manos.": "Patience… the ball will end up with me.",
-  "Soy una muralla. ¡Pasa si te atreves!": "I'm a wall. Get past me if you dare!",
-  "Nadie ha movido esta montaña. ¿Serás tú el primero?": "Nobody has ever moved this mountain. Will you be the first?",
-  "Prepárate: mis tiros pesan como piedras.": "Get ready: my shots hit like boulders.",
-  "¿Así que tú eres mi rival? ¡Será divertido!": "So you're my opponent? This will be fun!",
-  "A ver si puedes ganarme.": "Let's see if you can beat me.",
-  "No me subestimes. ¡Voy a por todas!": "Don't underestimate me. I'm going all out!",
-  "Hoy no pienso perder. ¡Prepárate!": "I'm not losing today. Get ready!",
-  "Dame un buen partido, si eres capaz.": "Give me a good game, if you can.",
-  "¡Eso quería oír! Vamos a jugar.": "That's what I wanted to hear! Let's play.",
-  "Hablar es fácil. ¡Demuéstralo en el campo!": "Talk is cheap. Prove it on the pitch!",
-  "Mi equipo no se rinde jamás.": "My team never gives up.",
-  "Acepto el reto. ¡Que gane el mejor!": "Challenge accepted. May the best team win!",
-  "Ya veremos quién se ríe al final.": "We'll see who's laughing at the end.",
-  "No me asustas. ¡Empecemos!": "You don't scare me. Let's start!",
-  "¡Nos vemos en el campo!": "See you on the pitch!",
-  "¡Siente mi fuego!": "Feel my fire!",
-  "¡Arde, balón, arde!": "Burn, ball, burn!",
-  "¡Todo mi calor en este tiro!": "All my heat in this shot!",
-  "¡Más rápido que el viento!": "Faster than the wind!",
-  "¡Ni lo verás pasar!": "You won't even see it pass!",
-  "¡Corre, balón, corre!": "Run, ball, run!",
-  "¡La fuerza del bosque!": "The power of the forest!",
-  "¡Crece, mi técnica!": "Grow, my technique!",
-  "¡Raíces, sostenedme!": "Roots, hold me up!",
-  "¡Firme como una roca!": "Solid as a rock!",
-  "¡Esto pesa mucho!": "This one's heavy!",
-  "¡Que tiemble el suelo!": "Let the ground shake!",
-  "¡Allá va mi técnica!": "Here comes my technique!",
-  "¡Con todas mis fuerzas!": "With all my strength!",
-  "¡Esta es la buena!": "This is the one!",
-  "¡Por aquí no pasa nadie!": "Nobody gets past me!",
-  "¡Mi portería es sagrada!": "My goal is sacred!",
-  "¡Lo paro, lo paro!": "I've got it, I've got it!",
-  "¡No pasarás!": "You shall not pass!",
-  "¡Aquí me quedo yo!": "This is where I stand!",
-  "¡GOOOL! ¡Lo hemos conseguido!": "GOOOAL! We did it!",
-  "¡Así se hace, equipo!": "That's how it's done, team!",
-  "¡Uno más para nosotros!": "One more for us!",
-  "¡Esto es solo el principio!": "This is only the beginning!",
-  "¿Eso es todo lo que tenéis?": "Is that all you've got?",
-  "¡Os lo dije!": "I told you so!",
-  "¡Demasiado fácil!": "Too easy!",
-  "¡Uno menos para vosotros!": "One more against you!",
-  "¡Aquí no pasa nada!": "Nothing gets through here!",
-  "¡Tranquilos, lo tengo!": "Relax, I've got it!",
-  "¡Está parado!": "Saved!",
-  "¡Tu tiro no me asusta!": "Your shot doesn't scare me!",
-  "¡Casi, pero no!": "Close, but no!",
-  "¡Mejor suerte la próxima!": "Better luck next time!",
 };
 I18N.applyData();
 // Textos fijos del HTML (marcados con data-tx / data-tx-aria)
@@ -3714,6 +3772,7 @@ const RARITY = {
   rara:       { label: TX('Rara'),       rate: 28, dupCoins: 25 },
   epica:      { label: TX('Épica'),      rate: 10, dupCoins: 60 },
   legendaria: { label: TX('Legendaria'), rate: 2,  dupCoins: 150 },
+  limitada:   { label: TX('Limitada'),   rate: 0,  dupCoins: 300 },   // solo en el Gacha limitado (src/limited.js)
 };
 const MAX_STARS = 5;
 const TECH_SLOTS = 2;   // técnicas equipadas por jugador
@@ -3866,14 +3925,10 @@ const GIFT_CODES = {
   FUEGOSAGRADO:      { pick: { rarity: 'epica', elem: 'fuego' }, tickets: 5, desc: TX('Elige 1 de 3 jugadores de fuego épicos o mejores') },
   DISCORDINAZUMA:    { tickets: 15, rayos: 2, desc: TX('Regalo de la comunidad') },
   TICKETAZO:         { tickets: 50, desc: TX('Lluvia de tickets') },
+  // Arion, Victor, Riccardo, Bai Long y Bianchi Christmas ya NO se consiguen con códigos: solo en el Gacha limitado (src/limited.js)
   DOBLELEYENDA:      { leg: 2, desc: TX('Dos tiradas legendarias aseguradas') },
-  ARIONGOLD:         { player: 998001, desc: TX('Arion Sherwind: medio legendario de Inazuma Eleven GO') },
-  VICTORGOLD:        { player: 998002, desc: TX('Victor Blade: medio legendario de Inazuma Eleven GO') },
-  RICCARDOGOLD:      { player: 998003, desc: TX('Riccardo Di Rigo: defensa legendario de Inazuma Eleven GO') },
-  BAILONGGOLD:       { player: 998004, desc: TX('Bai Long: delantero legendario de Inazuma Eleven GO') },
-  BIANCHINAVIDAD:    { player: 997008, desc: TX('Bianchi Christmas: delantero de media 105 con gorro navideño') },
 };
-const PICK_TIERS = { comun: 0, rara: 1, epica: 2, legendaria: 3 };
+const PICK_TIERS = { comun: 0, rara: 1, epica: 2, legendaria: 3, limitada: 4 };
 // Las 3 opciones de un "elige 1 de 3": jugadores del gacha (sin versiones de evento ni originales)
 function giftPickOptions(f, n = 3) {
   if (f.inf) return infPickOptions(f.n || n);
@@ -4230,7 +4285,7 @@ const Run = {
       const mi = rnd(members), m = run.roster[mi], pd = PLAYER(m.id);
       if (opts.some(o => o.member === mi && o.kind === 'tech')) continue;
       const type = rollFitType(pd.role);
-      const ok = t => t && t.type === type && !m.techs.includes(t.id) && Object.values(GAME.evo).indexOf(t.id) < 0;
+      const ok = t => t && !t.lim && t.type === type && !m.techs.includes(t.id) && Object.values(GAME.evo).indexOf(t.id) < 0;
       const own = pd.moves.map(x => TECH(x[0])).filter(ok).map(t => t.id);
       let id = null, rare = false;
       if (own.length && Math.random() > 0.25) id = rnd(own);
@@ -4354,7 +4409,7 @@ const FACILITIES = {
 const KIT_COLORS = ['#e8c21a', '#f2f2f2', '#d8361a', '#1f4fc0', '#2f9a3a', '#ff7a1a', '#7a3ad8', '#222222', '#3fb6e8', '#ff8ac0', '#8a5a2a', '#0e2a6a'];
 const CREST_SHAPES = ['escudo', 'circulo', 'rombo'];
 const CREST_SYMBOLS = { rayo: '⚡', estrella: '★', balon: '⚽', llama: '🔥', hoja: '🍃', montana: '⛰', ola: '🌊', corona: '♛' };
-const RARITY_MUL = { comun: 1, rara: 1.3, epica: 1.8, legendaria: 2.6 };
+const RARITY_MUL = { comun: 1, rara: 1.3, epica: 1.8, legendaria: 2.6, limitada: 3.2 };
 
 const cRnd = Math.random, pickR = a => a[Math.floor(cRnd() * a.length)];
 const Career = {
@@ -5503,7 +5558,7 @@ const Navidad = {
 
 /* =====================================================================
    JUGADORES DE INAZUMA ELEVEN GO: Arion Sherwind, Victor Blade, Riccardo Di Rigo y Bai Long.
-   - Legendarios que NO salen en el gacha: se consiguen con códigos de regalo (GIFT_CODES en run.js).
+   - Ya NO se consiguen con códigos: salen en el Gacha limitado de Bai Long (src/limited.js).
    - Retrato propio en sprites/fgo.png (una fila de 64 px por jugador; fila = goFace).
    - Muñeco del partido provisional: el de otro jugador parecido (goBase); se cambia poniendo otro `cs`.
    - Estadísticas y técnicas: editar aquí (técnicas copiadas de un jugador de referencia, ref).
@@ -5516,7 +5571,7 @@ const GO_PLAYERS = [
   { id: 998003, name: 'Riccardo Di Rigo', nick: 'Riccardo', role: 'DEF', elem: 'montaña', face: 3, sprite: 21770, ref: 21399,
     ie: { tiro: 76, control: 88, defensa: 98, rapidez: 90, fisico: 97, aguante: 94 } },
   { id: 998004, name: 'Bai Long', nick: 'Bai Long', role: 'DEL', elem: 'fuego', face: 0, sprite: 21607, ref: 10,
-    ie: { tiro: 98, control: 90, defensa: 72, rapidez: 96, fisico: 90, aguante: 92 } },
+    ie: { tiro: 104, control: 98, defensa: 96, rapidez: 102, fisico: 100, aguante: 100 } },   // media 100; su rareza «limitada» y sus técnicas se ponen en limited.js
 ];
 (function registerGO() {
   if (typeof GAME === 'undefined') return;
@@ -5529,6 +5584,104 @@ const GO_PLAYERS = [
       gacha: false, banner: null, inf: false, go: true, goBase: G.sprite, goFace: G.face }), true);
   });
 })();
+
+/* =====================================================================
+   GACHA LIMITADO DE BAI LONG + AVISO DE JUGADORES NUEVOS
+   - Rareza nueva «limitada» (RARITY.limitada en run.js): solo Bai Long.
+   - Bai Long (id 998004, registrado en go.js): media 100, delantero de fuego,
+     con su tiro «Dragón relámpago» y su técnica «Estela del dragón blanco».
+   - Sobre limitado: 100 🎟️ = 10 jugadores. Bote de 10 jugadores:
+       limitada · Bai Long
+       legendaria · Arion, Victor, Riccardo y Bianchi Christmas
+         (ya NO se consiguen con códigos: solo aquí)
+       épica · Jang Cho, Jim Flareson · rara · Changsu Choi, Umi Wang · común · Sol Crater
+   - Cada sobre de 10 trae al menos una épica o mejor; Bai Long asegurado a las 30 tiradas sin él.
+   - NEW_PLAYERS: al añadir un jugador nuevo, pon aquí su id y la versión: al abrir
+     el juego sale una pantalla con él (una sola vez por dispositivo).
+   ===================================================================== */
+const LM_BANNER = 68;
+const LM_PRICE = 100, LM_N = 10;                  // 100 tickets por sobre de 10 jugadores
+const LM_PITY = 30;                               // Bai Long asegurado a las 30 tiradas sin él
+const LM_RATES = [['limitada', 2], ['legendaria', 10], ['epica', 23], ['rara', 30], ['comun', 35]];
+const LM_END = null;                              // último día del gacha limitado (AAAA-MM-DD); null = sin fecha de fin
+const BAI_ID = 998004;
+const LM_POOL_IDS = {
+  limitada: [BAI_ID],
+  legendaria: [998001, 998002, 998003, 997008],
+  epica: [31766, 21459],
+  rara: [31775, 31767],
+  comun: [277],
+};
+// Jugadores nuevos: se enseñan al abrir el juego la primera vez (settings.seenPlayers)
+const NEW_PLAYERS = [
+  { id: BAI_ID, v: '0.31.13' },
+];
+
+// Técnicas de Bai Long (solo suyas: `lim` las saca de los premios aleatorios y de las técnicas legendarias del gacha)
+const BAI_TECHS = [
+  { id: 30490, name: 'Dragón relámpago', name_en: 'Lightning Dragon', type: 'tiro', tp: 80, power: 125, elem: 'fuego', lim: true },
+  { id: 30491, name: 'Estela del dragón blanco', name_en: 'White Dragon Trail', type: 'regate', tp: 60, power: 100, elem: 'fuego', lim: true },
+];
+(function registerBaiLong() {
+  if (typeof GAME === 'undefined') return;
+  BAI_TECHS.forEach(t => { if (!GAME.techniques[String(t.id)]) GAME.techniques[String(t.id)] = Object.assign({}, t, typeof I18N !== 'undefined' && I18N.en() ? { name: t.name_en } : {}); });
+  const b = PLAYER(BAI_ID); if (!b) return;
+  const rest = (b.moves || []).filter(m => m[1] !== 100 && !BAI_TECHS.some(t => t.id === m[0])).map(m => m.slice());
+  b.moves = [[30490, 100], [30491, 100]].concat(rest);   // nivel 100 = técnica de historia: la primera es su tiro
+  b.rarity = 'limitada'; b.lim = true;
+  b.ie = Object.assign({}, b.ie, { tiro: 104, control: 98, defensa: 96, rapidez: 102, fisico: 100, aguante: 100 });   // media 100 (tiro+control+defensa+rapidez+físico)
+})();
+
+const Limitado = {
+  active() {
+    if (!LM_END) return true;
+    const d = new Date(), t = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    return t <= LM_END;
+  },
+  data() {
+    const P = Profile.data, D = { pulls: 0, pity: 0, packs: 0 }, H = P.lm = P.lm || {};
+    for (const k in D) if (H[k] === undefined) H[k] = D[k];
+    return H;
+  },
+  pool() {
+    if (this._pool) return this._pool;
+    const P = {};
+    for (const t in LM_POOL_IDS) P[t] = LM_POOL_IDS[t].filter(id => PLAYER(id));
+    return (this._pool = P);
+  },
+  ids() { const P = this.pool(); return ['limitada', 'legendaria', 'epica', 'rara', 'comun'].reduce((a, t) => a.concat(P[t]), []); },
+  avgOf(pd) { return ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + pd.ie[k], 0) / 5; },
+  // Un sobre: 10 jugadores por 100 tickets (null si no te llegan)
+  pull() {
+    const P = Profile.data, H = this.data(), pool = this.pool(), res = [];
+    if (P.tickets < LM_PRICE) return null;
+    P.tickets -= LM_PRICE;
+    for (let i = 0; i < LM_N; i++) {
+      let tier = 'comun';
+      if (H.pity >= LM_PITY - 1) tier = 'limitada';
+      else { let r = Math.random() * 100; for (const [t, w] of LM_RATES) { if (r < w) { tier = t; break; } r -= w; } }
+      H.pity = tier === 'limitada' ? 0 : H.pity + 1;
+      const list = pool[tier].length ? pool[tier] : pool.epica;
+      res.push({ id: list[Math.floor(Math.random() * list.length)], tier });
+    }
+    // cada sobre trae al menos una épica o mejor
+    if (!res.some(r => r.tier === 'epica' || r.tier === 'legendaria' || r.tier === 'limitada')) {
+      const k = res.length - 1, list = pool.epica;
+      res[k] = { id: list[Math.floor(Math.random() * list.length)], tier: 'epica' };
+    }
+    for (const r of res) {   // igual que el gacha normal: nuevo, una estrella más o monedas
+      const o = P.coll[r.id];
+      if (!o) { P.coll[r.id] = { stars: 1, up: {} }; r.isNew = true; }
+      else if (o.stars < MAX_STARS) { o.stars++; r.star = o.stars; }
+      else { const c = (RARITY[r.tier] || RARITY.comun).dupCoins; P.coins += c; r.coins = c; }
+    }
+    H.pulls += LM_N; H.packs++; P.pulls = (P.pulls || 0) + LM_N;
+    Profile.save();
+    return res;
+  },
+  // Jugadores nuevos que este dispositivo todavía no ha visto
+  pendingNew(seen) { return NEW_PLAYERS.filter(n => PLAYER(n.id) && !(seen || []).includes(n.id)); },
+};
 
 /* =====================================================================
    CONFIGURACIÓN DE LAS CUENTAS (Firebase)
@@ -8035,7 +8188,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.31.12';
+const VERSION = '0.31.13';
 const DISCORD_URL = 'https://discord.gg/G6SyT2rZW', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 const App = (() => {
@@ -8114,6 +8267,7 @@ const App = (() => {
       <div class="title nm-title"><img class="logo" id="logo" src="ui/logo_gold.png" alt="Inazuma Gold"><span>${TX('5 contra 5 · roguelite')}</span></div>${wallet()}
       ${Halloween.active() ? hwMenuBtn() : ''}
       ${Navidad.active() ? xmMenuBtn() : ''}
+      ${Limitado.active() ? lmMenuBtn() : ''}
       ${open.map(r => `<button class="cta" data-cont="${r.kind}">${TX('Continuar:')} ${esc(r.name)}<small>${TX('Partido')} ${r.index + 1}${r.kind === 'infinite' ? '' : TX(' de ') + r.schedule.length} · ${'♥'.repeat(r.lives)}</small></button>`).join('')}
       <div class="modes">
         <button class="mode nm-hero" id="mCareer"><span class="cicon">🏆</span><span class="mt"><b>${TX('Modo Carrera')}</b><small>${Career.data && !Career.data.over ? TX('Temporada ') + Career.data.season + ' · ' + DIV_NAME[Career.myDiv()] + TX(' · semana ') + Career.data.week : TX('Eres el mánager: 3 divisiones y ascensos')}</small></span></button>
@@ -8162,12 +8316,15 @@ const App = (() => {
       if (!P.discordGift) { P.discordGift = Date.now(); P.tickets += DISCORD_GIFT; Profile.save(); setTimeout(() => { renderMenu(); UI.toast(TX('¡Gracias por unirte! +10 tickets 🎟️'), 2600); }, 400); }
       try { window.open(DISCORD_URL, '_blank', 'noopener'); } catch (_) { location.href = DISCORD_URL; }
     };
-    if (settings.seenNews !== VERSION && settings.newsShown !== VERSION) { settings.newsShown = VERSION; saveSettings(); setTimeout(() => { if ($('mNews')) renderNews(renderMenu); }, 400); }   // la primera vez tras actualizar
+    const newPl = Limitado.pendingNew(settings.seenPlayers);   // jugadores nuevos: sale su pantalla al abrir el juego (y luego las Novedades)
+    if (newPl.length) setTimeout(() => { if ($('mNews')) showNewPlayers(newPl, 0, renderMenu); }, 450);
+    else if (settings.seenNews !== VERSION && settings.newsShown !== VERSION) { settings.newsShown = VERSION; saveSettings(); setTimeout(() => { if ($('mNews')) renderNews(renderMenu); }, 400); }   // la primera vez tras actualizar
     $('mSaves').onclick = () => renderAccount(renderMenu);
     body.querySelector('[data-cloudline]').onclick = () => renderAccount(renderMenu);
     $('mQuick').onclick = startQuick; $('mSound').onclick = renderSettings;
     if ($('mHw')) $('mHw').onclick = renderHalloween;
     if ($('mXm')) $('mXm').onclick = renderNavidad;
+    if ($('mLm')) $('mLm').onclick = renderLimitado;
     if (Navidad.active()) xmDecor(); else if (Halloween.active()) hwDecor();   // el menú lleva el tema del evento activo (niebla y calabazas, o nieve)
     if (settings.seenNews === VERSION || settings.newsShown === VERSION) setTimeout(aviso, 500);
     Sound.music('menu');
@@ -8286,6 +8443,12 @@ const App = (() => {
       ${TX('Épica o mejor asegurada cada 10 tiradas (llevas')} ${P.pity} ${TX('de 10). Los repetidos suben una estrella (máx.')} ${MAX_STARS}${TX('); con 5 estrellas, o una técnica repetida, dan monedas.')}</p>
       <p class="note">${TX('Tickets: Historia (1 por victoria y 3 al completarla), Especiales (2), Cadenas (2 al completarlas) e Infinito (2 por oleada especial).')}</p>
       ${bottom(`<div class="grid2"><button class="cta" id="g1" ${P.tickets < 1 ? 'disabled' : ''}>${TX('Tirar ×1')}<small>${TX('1 ticket')}</small></button><button class="cta" id="g10" ${P.tickets < 10 ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${TX('10 tickets')}</small></button></div>`)}`, 'bg_green');
+    if (Limitado.active()) {
+      const lim = document.createElement('button'); lim.className = 'banner-card lim';
+      lim.innerHTML = `<span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Gacha de Bai Long')}</b><small>${TX('LIMITADO · 100 🎟️ = 10 jugadores · nota 100')}</small></span>`;
+      lim.onclick = () => { Sound.sfx('click'); renderLimitado(); };
+      $('bn').appendChild(lim);
+    }
     BANNERS.forEach(b => {
       const seenL = new Set(), legs = GAME.players.filter(p => p.banner === b.id && p.rarity === 'legendaria').filter(p => { const k = p.full.replace(/ \((IE2|IE3)\)$/, ''); return !seenL.has(k) && seenL.add(k); });
       const el = document.createElement('button');
@@ -8301,7 +8464,7 @@ const App = (() => {
     tutorial('gacha'); if (!$('tutq-gacha')) body.insertAdjacentHTML('beforeend', `<p class="note" id="tutq-gacha">${tutBtn('gacha')}</p>`);
   }
   // Legendarios de Halloween: marco naranja apagado, estilo miedo (clase .hw)
-  const hwc = pd => pd && pd.halloween ? ' hw' : pd && pd.xmas ? ' xm' : pd && pd.inf ? ' inf' : '';   // marcos especiales: Halloween y versiones del Infinito
+  const hwc = pd => pd && pd.halloween ? ' hw' : pd && pd.xmas ? ' xm' : pd && pd.lim ? ' lim' : pd && pd.inf ? ' inf' : '';   // marcos especiales: Halloween y versiones del Infinito
   // Carta de un resultado del gacha (jugador o técnica legendaria)
   function makeCard(r) {
     const c = document.createElement('div');
@@ -8316,7 +8479,7 @@ const App = (() => {
     }
     const pd = PLAYER(r.id);
     c.appendChild(face(Sprites.refOf(pd), 80));
-    c.insertAdjacentHTML('beforeend', `<div class="gname">${pd.halloween ? '🎃' : pd.xmas ? '🎄' : ''}${esc(pd.name)}</div><div class="gmeta">${rchip(r.tier)}<span>${RAB(pd.role)}</span>${chip(pd.elem)}</div>
+    c.insertAdjacentHTML('beforeend', `<div class="gname">${pd.halloween ? '🎃' : pd.xmas ? '🎄' : pd.lim ? '⚡' : ''}${esc(pd.name)}</div><div class="gmeta">${rchip(r.tier)}<span>${RAB(pd.role)}</span>${chip(pd.elem)}</div>
       <div class="gtag">${r.isNew ? 'NUEVO' : r.coins ? '+' + r.coins + ' 🪙' : '★ ' + r.star}</div>`);
     return c;
   }
@@ -8325,15 +8488,15 @@ const App = (() => {
     const box = $('rv');
     res.forEach((r, i) => {
       const c = makeCard(r); c.style.animationDelay = (i * 0.18) + 's'; box.appendChild(c);
-      setTimeout(() => Sound.sfx(r.tier === 'legendaria' || r.tier === 'epica' ? 'reveal' : 'click'), i * 180);
+      setTimeout(() => Sound.sfx(r.tier === 'limitada' || r.tier === 'legendaria' || r.tier === 'epica' ? 'reveal' : 'click'), i * 180);
     });
     setTimeout(() => { $('ok').hidden = false; }, res.length * 180 + 300);
     $('ok').onclick = done;
   }
 
   /* ---------- Máquina de gachapón ---------- */
-  const MACHINE_COLORS = { 1: ['#e8c21a', '#1f4fc0'], 2: ['#2a5fd0', '#e8e8f0'], 3: ['#5a1a8a', '#e01a4a'], 4: ['#b8742a', '#f2e6c0'], [HW_BANNER]: ['#ff7a1a', '#6a2aa8'], [XM_BANNER]: ['#d8283a', '#1f7a3a'] };
-  const CAP_COLORS = { comun: '#b8bcc8', rara: '#3f8fff', epica: '#a24cff', legendaria: '#ffcc22' };
+  const MACHINE_COLORS = { 1: ['#e8c21a', '#1f4fc0'], 2: ['#2a5fd0', '#e8e8f0'], 3: ['#5a1a8a', '#e01a4a'], 4: ['#b8742a', '#f2e6c0'], [HW_BANNER]: ['#ff7a1a', '#6a2aa8'], [XM_BANNER]: ['#d8283a', '#1f7a3a'], [LM_BANNER]: ['#1f3fb0', '#ffd23a'] };
+  const CAP_COLORS = { comun: '#b8bcc8', rara: '#3f8fff', epica: '#a24cff', legendaria: '#ffcc22', limitada: '#35d6ff' };
   function drawMachine(cv, st) {
     const g = cv.getContext('2d'), [c1, c2] = st.colors;
     g.imageSmoothingEnabled = false; g.clearRect(0, 0, 96, 128);
@@ -8370,7 +8533,7 @@ const App = (() => {
     g.fillStyle = '#10183a'; g.fillRect(16, 122, 64, 6);
   }
   function renderMachine(res, bannerId, done, title) {
-    const B = BANNERS.find(b => b.id === bannerId) || (bannerId === HW_BANNER ? { name: TX('Sobre Calabaza'), crest: 3 } : bannerId === XM_BANNER ? { name: TX('Sobre Navideño'), crest: 36 } : BANNERS[0]);
+    const B = BANNERS.find(b => b.id === bannerId) || (bannerId === HW_BANNER ? { name: TX('Sobre Calabaza'), crest: 3 } : bannerId === XM_BANNER ? { name: TX('Sobre Navideño'), crest: 36 } : bannerId === LM_BANNER ? { name: TX('Gacha de Bai Long'), crest: 3021 } : BANNERS[0]);
     screen(`<h2>${esc(title || B.name)}</h2>
       <div class="gmach"><canvas id="mc" width="96" height="128"></canvas><div class="gm-hint" id="mHint">${Controls.pc() ? TX('Arrastra la manivela en círculo (o pulsa Espacio)') : TX('Gira la manivela con el dedo ↻')}</div></div>
       <div class="caps" id="caps"></div>
@@ -8386,7 +8549,7 @@ const App = (() => {
     raf = requestAnimationFrame(loop);
     crest.onload = () => drawMachine(cv, st);
     // Cápsulas: a veces una legendaria llega disfrazada de épica y sube al abrirla
-    const items = res.map(r => ({ r, shown: r.tier === 'legendaria' && Math.random() < 0.5 ? 'epica' : r.tier, opened: false }));
+    const items = res.map(r => ({ r, shown: (r.tier === 'legendaria' || r.tier === 'limitada') && Math.random() < 0.5 ? 'epica' : r.tier, opened: false }));
     let left = items.length;
     const finish = () => { $('mHint').textContent = TX('¡Ya están todas abiertas!'); $('mAll').hidden = true; $('mSkip').hidden = true; $('mOk').hidden = false; };
     function openCap(it, el) {
@@ -8395,10 +8558,10 @@ const App = (() => {
         const up = it.shown !== it.r.tier;
         el.classList.add('shake'); Sound.sfx('click');
         setTimeout(() => {
-          if (up) { el.classList.remove('t-' + it.shown); el.classList.add('t-' + it.r.tier, 'upgrade'); Sound.sfx('tech'); flash(CAP_COLORS.legendaria); }
+          if (up) { el.classList.remove('t-' + it.shown); el.classList.add('t-' + it.r.tier, 'upgrade'); Sound.sfx('tech'); flash(CAP_COLORS[it.r.tier] || CAP_COLORS.legendaria); }
           setTimeout(() => {
             el.classList.remove('shake'); el.classList.add('open');
-            if (it.r.tier === 'legendaria' || it.r.tier === 'epica') { flash(CAP_COLORS[it.r.tier]); Sound.sfx('reveal'); } else Sound.sfx('pass');
+            if (it.r.tier === 'limitada') { lmBoom(); Sound.sfx('reveal'); } else if (it.r.tier === 'legendaria' || it.r.tier === 'epica') { flash(CAP_COLORS[it.r.tier]); Sound.sfx('reveal'); } else Sound.sfx('pass');
             setTimeout(() => {
               const card = makeCard(it.r); card.classList.add('fromcap'); if (items.length === 1) card.classList.add('solo'); el.replaceWith(card);
               if (--left === 0) finish();
@@ -8649,8 +8812,69 @@ const App = (() => {
     $('again').onclick = renderNavidad; $('toMenu').onclick = renderMenu;
   }
 
+  /* =====================================================================
+     GACHA LIMITADO DE BAI LONG (pantalla propia) y AVISO DE JUGADORES NUEVOS
+     ===================================================================== */
+  // Rayos animados (amarillos y azules) para el gacha limitado
+  function lmBolts() {
+    const P = ['M12 0 L22 30 L10 40 L26 70 L16 80 L30 100', 'M88 0 L76 26 L90 38 L70 66 L82 78 L64 100', 'M50 0 L44 22 L58 36 L40 62 L52 74 L42 100',
+      'M0 40 L24 46 L18 56 L44 62', 'M100 55 L76 60 L84 70 L58 76', 'M30 100 L40 80 L34 74 L52 56'];
+    return `<svg class="lmbolts" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${P.map((d, i) => `<path class="lb lb${i % 2}" style="animation-delay:${(i * 0.37).toFixed(2)}s" d="${d}"/>`).join('')}</svg>`;
+  }
+  // Destello de rayos a pantalla completa al salir Bai Long
+  function lmBoom() { const d = document.createElement('div'); d.className = 'lmboom'; d.innerHTML = lmBolts() + lmBolts(); document.body.appendChild(d); setTimeout(() => d.remove(), 1500); }
+  function lmMenuBtn() {
+    const H = Limitado.data();
+    return `<button class="mode lmmode" id="mLm"><span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Bai Long')} <em class="lmnew">${TX('LIMITADO')}</em></b><small>${TX('Gacha limitado · 100 🎟️ = 10 jugadores')}${H.pity ? ' · ' + H.pity + '/' + LM_PITY : ''}</small></span></button>`;
+  }
+  function renderLimitado() {
+    const H = Limitado.data(), P = Profile.data, bai = PLAYER(BAI_ID);
+    const rates = LM_RATES.map(([t, w]) => RARITY[t].label + ' ' + w + ' %').join(' · ');
+    screen(`${top('⚡ ' + TX('Gacha limitado'))}${wallet()}
+      <div class="lmhero"><img src="ui/bailong.jpg" alt="Bai Long">${lmBolts()}<span class="lmtag">${TX('LIMITADO')}</span>
+        <div class="lmname"><b>Bai Long</b><small>${TX('Nota')} ${Math.round(Limitado.avgOf(bai))} · ${RAB(bai.role)} · ${ELEM_LABEL[bai.elem]}</small></div></div>
+      <h3>${TX('Técnicas de Bai Long')}</h3>
+      <div class="lmtechs">${BAI_TECHS.map(b => { const t = TECH(b.id); return `<div class="lmtech ${EL(t.elem).css}"><b>${esc(t.name)}</b><small>${TYPE_LABEL[t.type]} · ${t.power}</small></div>`; }).join('')}</div>
+      <h3>${TX('Jugadores del sobre')}</h3>
+      <div class="lmlist" id="lmList"></div>
+      <p class="note">${rates}.<br>${TX('Cada sobre trae al menos una épica o mejor, y Bai Long está asegurado a las')} ${LM_PITY} ${TX('tiradas sin él (llevas')} ${H.pity}${TX(').')}<br>
+        ${TX('Los repetidos suben una estrella (máx.')} ${MAX_STARS}${TX('); con 5 estrellas dan monedas.')}</p>
+      ${bottom(`<button class="cta lmgo" id="lm10" ${P.tickets < LM_PRICE ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${LM_PRICE} 🎟️ · ${TX('10 jugadores')}</small></button>`)}`, 'bg_title');
+    Limitado.ids().forEach(id => {
+      const pd = PLAYER(id), w = document.createElement('div');
+      w.className = 'lmp ' + pd.rarity + (P.coll[id] ? ' own' : '');
+      w.appendChild(face(Sprites.refOf(pd), 48));
+      w.insertAdjacentHTML('beforeend', `<small>${esc(pd.name)}</small>${rchip(pd.rarity)}`);
+      $('lmList').appendChild(w);
+    });
+    $('lm10').onclick = () => {
+      const res = Limitado.pull(); if (!res) return UI.toast(TX('No tienes tickets suficientes'));
+      renderMachine(res, LM_BANNER, renderLimitado, TX('Gacha de Bai Long'));
+    };
+    $('back').onclick = renderGacha;
+    Sound.music('menu');
+  }
+  // Aviso al abrir el juego cuando hay un jugador nuevo (NEW_PLAYERS en src/limited.js): una vez por dispositivo
+  function showNewPlayers(list, i, after) {
+    const n = list[i]; if (!n) { if (after) after(); return; }
+    const pd = PLAYER(n.id); if (!pd) return showNewPlayers(list, i + 1, after);
+    settings.seenPlayers = (settings.seenPlayers || []).concat(n.id); saveSettings();
+    const ov = document.createElement('div'); ov.className = 'npov' + (pd.lim ? ' lim' : '');
+    const techs = startingTechs(pd).map(TECH).filter(Boolean);
+    ov.innerHTML = `<div class="npbox">${lmBolts()}<small class="npk">${TX('¡NUEVO JUGADOR!')}</small><div class="npface"></div><h2>${esc(pd.name)}</h2>
+      <div class="gmeta">${rchip(pd.rarity)}<span>${RAB(pd.role)}</span>${chip(pd.elem)}</div>
+      <b class="npavg">${TX('Nota')} ${Math.round(Limitado.avgOf(pd))}</b>
+      <div class="nptechs">${techs.map(t => `<span>${esc(t.name)}</span>`).join('')}</div>
+      <button class="cta" id="npGo">${pd.lim ? TX('Ver el gacha limitado') : TX('Ir al gacha')}</button><button class="ghost" id="npX">${TX('Cerrar')}</button></div>`;
+    document.body.appendChild(ov);
+    ov.querySelector('.npface').appendChild(face(Sprites.refOf(pd), 112));
+    Sound.sfx('reveal'); if (pd.lim) lmBoom();
+    $('npGo').onclick = () => { ov.remove(); pd.lim ? renderLimitado() : renderGacha(); };
+    $('npX').onclick = () => { ov.remove(); showNewPlayers(list, i + 1, after); };
+  }
+
   /* ---------- Plantilla, entrenamiento y Rayos ---------- */
-  const RORDER = { legendaria: 0, epica: 1, rara: 2, comun: 3 };
+  const RORDER = { limitada: -1, legendaria: 0, epica: 1, rara: 2, comun: 3 };
   function sortedIds(filter) {
     return Profile.ids().filter(id => !filter || PLAYER(id).role === filter)
       .sort((a, b) => RORDER[PLAYER(a).rarity] - RORDER[PLAYER(b).rarity] || Profile.owned(b).stars - Profile.owned(a).stars || PLAYER(a).name.localeCompare(PLAYER(b).name));
@@ -8685,7 +8909,7 @@ const App = (() => {
   function pfBar() {
     const opt = (v, t, cur) => `<option value="${v}" ${cur === v ? 'selected' : ''}>${t}</option>`;
     return `<div class="pfbar"><div class="pfq"><input id="pfQ" type="search" placeholder="${TX('Buscar por nombre o mote…')}" value="${esc(PF.q)}" autocomplete="off"><button class="ghost" id="pfX" ${pfActive() ? '' : 'hidden'} title="${TX('Quitar filtros')}">✕</button></div>
-      <div class="pfsel"><select id="pfR" aria-label="${TX('Rareza')}">${opt('', TX('Rareza'), PF.rar)}${['legendaria', 'epica', 'rara', 'comun'].map(r => opt(r, RARITY[r].label, PF.rar)).join('')}</select>
+      <div class="pfsel"><select id="pfR" aria-label="${TX('Rareza')}">${opt('', TX('Rareza'), PF.rar)}${['limitada', 'legendaria', 'epica', 'rara', 'comun'].map(r => opt(r, RARITY[r].label, PF.rar)).join('')}</select>
       <select id="pfE" aria-label="${TX('Elemento')}">${opt('', TX('Elemento'), PF.elem)}${['fuego', 'bosque', 'viento', 'montaña'].map(e => opt(e, ELEM_LABEL[e], PF.elem)).join('')}</select>
       <select id="pfG" aria-label="${TX('Juego')}">${opt('', TX('Juego'), PF.game)}${opt('1', TX('Inazuma 1'), PF.game)}${opt('2', TX('Inazuma 2'), PF.game)}${opt('3', TX('Inazuma 3'), PF.game)}</select></div></div>`;
   }
@@ -10109,6 +10333,8 @@ const App = (() => {
   }
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
+    { v: '0.31.13', date: '24/10/2026', items: [
+      TX('Pequeños ajustes y mejoras en el gacha y en los avisos al abrir el juego.')] },
     { v: '0.31.12', date: '23/10/2026', items: [
       TX('Partidos más equilibrados: con el balón se esprinta un poco menos y los rivales corren algo más cuando defienden. Ya no te escapas solo corriendo.')] },
     { v: '0.31.11', date: '23/10/2026', items: [
