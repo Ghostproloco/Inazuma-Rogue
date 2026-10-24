@@ -285,7 +285,7 @@ const Pad = (() => {
    ===================================================================== */
 const UI = (() => {
   const $ = id => document.getElementById(id);
-  let toastT, bannerT, last = {};
+  let toastT, bannerT, sayT, sayCool = 0, last = {};
   function toast(text, ms = 1300) {
     const t = $('toast'); t.textContent = text; t.classList.add('on');
     clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), ms);
@@ -317,7 +317,21 @@ const UI = (() => {
     Pad.setDribble(me ? (me.dribbleCd || 0) / Logic.DRIBBLE_CD : 0);
     Pad.setChoices(Logic.techChoices(s, me));
   }
-  function reset() { last = {}; }
+  function reset() { last = {}; sayCool = 0; const d = $('say'); if (d) d.className = 'say'; }
+  // Globo de diálogo de un jugador (con su retrato). Sin «force» respeta una pausa entre frases para no saturar.
+  function say(ref, name, text, team, force, ms = 2300) {
+    const d = $('say'), now = performance.now();
+    if (!d || !text || (!force && now < sayCool)) return false;
+    sayCool = now + ms + 1200;
+    d.className = 'say'; void d.offsetWidth;
+    d.className = 'say on' + (team === 'B' ? ' rival' : '');
+    d.querySelector('.sy-txt small').textContent = name || '';
+    d.querySelector('.sy-txt span').textContent = text;
+    const slot = d.querySelector('.sy-face'); slot.innerHTML = '';
+    if (ref) slot.appendChild(Sprites.face(ref, 56));
+    clearTimeout(sayT); sayT = setTimeout(() => { d.classList.add('out'); sayT = setTimeout(() => { d.className = 'say'; }, 260); }, ms);
+    return true;
+  }
   // Presentación de una supertécnica: franja con el retrato del jugador y el nombre
   let cutT;
   function cutin(name, elem, team, kind, ref, ms) {
@@ -331,7 +345,7 @@ const UI = (() => {
     clearTimeout(cutT);
     cutT = setTimeout(() => { c.classList.add('out'); cutT = setTimeout(() => { c.className = 'cutin'; }, 240); }, ms);
   }
-  return { toast, banner, update, reset, cutin };
+  return { toast, banner, update, reset, cutin, say };
 })();
 
 /* =====================================================================
@@ -608,6 +622,7 @@ class MatchScene extends Phaser.Scene {
     const s = App.match;
     if (!s || !this.views.size) return;
     if (App.running) Logic.update(s, Input.read(), Math.min(delta / 1000, 0.05)); else Input.read();
+    this.drawAura(s, time);
 
     for (const p of s.players) {
       const v = this.views.get(p.id);
@@ -727,6 +742,41 @@ class MatchScene extends Phaser.Scene {
     }
   }
 
+  // El mejor jugador de campo de cada equipo (suma de estadísticas): habla al marcar y brilla con el balón
+  starOf(s, team) {
+    s._stars = s._stars || {};
+    if (s._stars[team] === undefined) {
+      const sum = p => (p.kick || 0) + (p.control || 0) + (p.defense || 0) + (p.body || 0);
+      const l = s.players.filter(p => p.team === team && p.role !== 'POR').sort((a, b) => sum(b) - sum(a));
+      s._stars[team] = l[0] ? l[0].id : null;
+    }
+    return s.players.find(p => p.id === s._stars[team]);
+  }
+  // Aura: llamas del color del elemento mientras lanzas una técnica; brillo suave en la estrella que lleva el balón
+  drawAura(s, time) {
+    if (!this.auraG) { this.auraG = this.add.graphics(); this.starG = this.add.graphics(); }
+    const g = this.auraG, h = this.starG; g.clear(); h.clear();
+    const k = 0.5 + 0.5 * Math.sin(time / 90), t = s.tech && s.tech.p;
+    if (t) {
+      const el = (s.tech.tech && s.tech.tech.elem) || t.elem, col = EL(el).main, x = t.x * PX, y = t.y * PX;
+      g.setDepth(y - 2);
+      g.fillStyle(col, 0.14 + 0.1 * k).fillEllipse(x, y - 26, 70 + 12 * k, 112 + 14 * k);
+      g.fillStyle(col, 0.2).fillEllipse(x, y - 26, 48 + 8 * k, 84 + 10 * k);
+      g.lineStyle(2, 0xffffff, 0.55).strokeEllipse(x, y - 26, 58 + 10 * k, 98 + 12 * k);
+      for (let i = 0; i < 5; i++) { const px = x + (i - 2) * 11, hh = 22 + 12 * Math.abs(Math.sin(time / 110 + i * 1.7)); g.lineStyle(3, col, 0.55).lineBetween(px, y + 6, px + Math.sin(time / 130 + i) * 3, y - hh - 24); }
+      if (time - (this.auraT || 0) > 120) { this.auraT = time; this.burst(el, x, y - 24, 2, y + 4); }
+    }
+    const o = s.ball && s.ball.owner;
+    if (o && !t) {
+      const st = this.starOf(s, o.team);
+      if (st && st.id === o.id) {
+        const col = EL(o.elem).main, x = o.x * PX, y = o.y * PX; h.setDepth(y - 2);
+        h.fillStyle(col, 0.1 + 0.06 * k).fillEllipse(x, y - 26, 56 + 6 * k, 96 + 8 * k);
+        h.lineStyle(2, col, 0.4).strokeEllipse(x, y + 10, 44 + 6 * k, 18);
+      }
+    }
+  }
+
   handleEvents(s) {
     for (const e of s.events) {
       this.tfx.event(e, s);
@@ -735,11 +785,13 @@ class MatchScene extends Phaser.Scene {
           Sound.sfx('goal'); Sound.jingle(e.team === 'A' ? 'goal' : null);
           UI.banner(e.team === 'A' ? TX('¡Gol!') : TX('Gol de ') + s.teams.B.name, e.team === 'A' ? '' : 'rival', 1800);
           this.cameras.main.shake(260, 0.006);
+          { const who = this.starOf(s, e.team); if (who) UI.say(who.sprite, who.name, e.team === 'A' ? Dialog.goal() : Dialog.goalRival(), e.team, true, 2600); }
           break;
         case 'golden': UI.banner(TX('¡Gol de oro!'), 'gold', 1600); UI.toast(TX('El primero que marque, gana'), 2000); break;
         case 'mercy': UI.toast(e.team === 'A' ? TX('¡5 goles de diferencia! Partido ganado') : TX('5 goles de diferencia: se acabó el partido'), 2400); break;
         case 'save':
           Sound.sfx('save');
+          { const k = s.players.find(q => q.team === e.team && q.role === 'POR'); if (k && Math.random() < 0.7) UI.say(k.sprite, k.name, e.team === 'A' ? Dialog.save() : Dialog.saveRival(), e.team); }
           if (e.elem) { this.cameras.main.shake(220, 0.008); UI.banner(TX('¡Parada!'), 'gold', 900); }
           UI.toast(e.team === 'A' ? TX('¡Paradón!') : TX('¡Para el portero rival!'));
           this.fxRing(e.x * PX, e.y * PX, e.elem ? EL(e.elem).main : 0xffffff, e.big ? 3.4 : 2, e.y * PX + 5);

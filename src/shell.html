@@ -647,6 +647,25 @@ details.techs .cards{margin-top:6px}
 .nm-dk:active{transform:translateY(2px)}
 .nm-dk.main{color:var(--sky-t);background:linear-gradient(var(--orange) 0 62%,var(--orange-d) 62%)}
 .nm-dk .nm-badge{position:absolute;top:-9px;right:-3px}
+/* ===== Diálogos: globo durante el partido y charla antes del partido ===== */
+.say{position:absolute;left:10px;right:10px;top:31%;z-index:6;pointer-events:none;display:none;justify-content:flex-start}
+.say.on{display:flex;animation:sayIn .22s ease-out both}
+.say.rival{top:auto;bottom:34%;justify-content:flex-end}
+.say.out{opacity:0;transition:opacity .25s}
+.say .sy-in{display:flex;align-items:flex-end;gap:8px;max-width:88%}
+.say.rival .sy-in{flex-direction:row-reverse}
+.say .sy-face{width:56px;height:56px;flex-shrink:0;border:2px solid var(--ink);background:var(--navy-d);box-shadow:0 0 0 2px var(--line)}
+.say .sy-txt,.talk .tkb{position:relative;background:#fff;color:#101010;border:2px solid var(--ink);box-shadow:0 0 0 2px var(--line);padding:6px 10px;border-radius:10px;font-size:15px;line-height:1.25}
+.say .sy-txt small,.talk .tkb small{display:block;font-size:11px;color:#8b3908;margin-bottom:2px}
+.say .sy-txt::after,.talk .tk .tkb::after{content:"";position:absolute;bottom:12px;left:-9px;border-style:solid;border-width:6px 9px 6px 0;border-color:transparent #fff transparent transparent}
+.say.rival .sy-txt::after,.talk .tk.me .tkb::after{left:auto;right:-9px;border-width:6px 0 6px 9px;border-color:transparent transparent transparent #fff}
+@keyframes sayIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.talk{display:flex;flex-direction:column;gap:8px;margin:2px 0}
+.talk .tk{display:flex;align-items:flex-end;gap:10px}
+.talk .tk.me{flex-direction:row-reverse}
+.talk .tkf{width:48px;height:48px;flex-shrink:0;border:2px solid var(--ink);background:var(--navy-d);box-shadow:0 0 0 2px var(--line)}
+.talk .tkb{font-size:14px;max-width:calc(100% - 70px)}
+.talk .tk.me .tkb{background:#ffe9b8}
 .dbg{position:absolute;left:8px;top:calc(env(safe-area-inset-top,0px) + 56px);z-index:8;margin:0;pointer-events:none;
   font:12px/1.4 var(--font-ui);color:#7fff7f;background:rgba(0,0,0,.6);padding:4px 6px;white-space:pre-wrap;max-width:70%}
 @media (prefers-reduced-motion:reduce){.toast,.act,.banner{transition:none}.gcard{animation:none;opacity:1;transform:none}.cap,.gm-hint,.cap .ct{animation:none!important}}
@@ -695,6 +714,7 @@ html,body,button,.act,#shell{touch-action:manipulation}
   <div id="pad" hidden></div>
   <div id="cine"><i class="lb t"></i><i class="lb b"></i></div>
   <div class="cutin" id="cutin"><div class="ci-in"><div class="ci-face"></div><div class="ci-txt"><small></small><b></b></div></div></div>
+  <div class="say" id="say"><div class="sy-in"><div class="sy-face"></div><div class="sy-txt"><small></small><span></span></div></div></div>
   <pre class="dbg" id="dbg" hidden></pre>
   <div class="toast" id="toast"></div>
   <div class="banner" id="banner"></div>

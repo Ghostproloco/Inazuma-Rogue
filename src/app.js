@@ -1016,6 +1016,19 @@ const App = (() => {
     if (r.state === 'over') return renderOver();
     renderMap();
   }
+  // Antes del partido: la estrella rival te provoca y tu mejor jugador le contesta (la frase se queda fija en cada partido)
+  function fillTalk(r, rival) {
+    const box = $('talk'); if (!box) return;
+    let star = null; try { star = teamStar(rival, false); } catch (_) {}
+    const sum = pd => Object.values(pd.ie).reduce((x, y) => x + y, 0);
+    const mine = r.lineup.slice(0, 5).map(mi => r.roster[mi] && PLAYER(r.roster[mi].id)).filter(Boolean).sort((a, b) => sum(b) - sum(a))[0];
+    if (!star || !mine) { box.remove(); return; }
+    const key = r.kind + ':' + r.index + ':' + rival;
+    if (!api.talk || api.talk.key !== key) api.talk = { key, a: Dialog.taunt(star.elem), b: Dialog.reply() };
+    box.innerHTML = `<div class="tk"><span class="tkf" id="tkR"></span><div class="tkb"><small>${esc(star.name)}</small>${esc(api.talk.a)}</div></div>
+      <div class="tk me"><span class="tkf" id="tkM"></span><div class="tkb"><small>${esc(mine.name)}</small>${esc(api.talk.b)}</div></div>`;
+    $('tkR').appendChild(face(Sprites.refOf(star), 48)); $('tkM').appendChild(face(Sprites.refOf(mine), 48));
+  }
   function renderMap() {
     const r = api.run, rival = Run.rivalName(r), F = FORMATIONS[r.formation];
     const path = r.kind === 'infinite'
@@ -1023,6 +1036,7 @@ const App = (() => {
       : `<ol class="path">${r.schedule.map((t, i) => `<li class="${i < r.index ? 'done' : i === r.index ? 'now' : ''}">${Sprites.crest(crestOf(t))}<span>${esc(t)}</span></li>`).join('')}</ol>`;
     screen(`${top(r.kind === 'infinite' ? TX('Oleada ') + (r.index + 1) : TX('Partido ') + (r.index + 1) + TX(' de ') + r.schedule.length, 'toMenu', TX('Menú'))}${runHeader()}
       ${path}<div class="vsrow">${Sprites.crest(crestOf(rival))}<div><b>${esc(rival)}</b><span class="note">${FIELD_LABEL[Run.field(r)] || ''}</span><div class="faces" id="rfaces"></div></div></div>
+      <div class="talk" id="talk"></div>
       ${formSelect(r)}
       <h3>${TX('Alineación')} <small>${TX('toca un puesto y luego un suplente (u otro puesto) para cambiarlos')}</small></h3>
       <div id="lineup"></div>
@@ -1031,6 +1045,7 @@ const App = (() => {
       ${bottom(`<button class="cta" id="goMatch">${TX('Jugar contra')} ${esc(rival)}</button>`)}`, 'bg_vs');
     const rt = TEAM(rival);
     if (rt) rt.players.forEach(m => $('rfaces').appendChild(face({ file: m.file, row: m.row }, 40)));
+    fillTalk(r, rival);
     $('formSel').onchange = e => { r.formation = e.target.value; Run.save(r); renderMap(); };
     const sel = api.mapSel;
     const items = r.lineup.slice(0, 5).map(mi => { const pd = PLAYER(r.roster[mi].id); return { ref: Sprites.refOf(pd), name: pd.name, rarity: pd.rarity, halloween: pd.halloween, xmas: pd.xmas }; });
