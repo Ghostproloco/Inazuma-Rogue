@@ -694,6 +694,53 @@ details.adv[open]{display:flex;flex-direction:column;gap:8px}
 input,textarea,select{font-size:max(16px,1em)}
 html,body,button,.act,#shell{touch-action:manipulation}
 #touch,.act,.gmach canvas{touch-action:none}
+
+/* ===== Gacha limitado de Bai Long: rareza «limitada», rayos y aviso de jugador nuevo ===== */
+.rar.limitada{background:linear-gradient(90deg,#35d6ff,#ffd23a,#35d6ff);background-size:200% 100%;color:#06143a;animation:limShine 2.2s linear infinite}
+@keyframes limShine{to{background-position:200% 0}}
+.gcard.limitada{box-shadow:0 0 0 2px #35d6ff,0 0 0 4px #ffd23a,0 0 22px rgba(60,200,255,.9)}
+.gcard.limitada .pix,.ptile.limitada .pix,.npface{background:linear-gradient(#35d6ff,#1f3fb0 60%,#ffd23a);background-size:100% 200%;animation:limPix 3s ease-in-out infinite alternate}
+@keyframes limPix{to{background-position:0 100%}}
+.pcard.limitada,.ptile.limitada{box-shadow:0 0 0 2px #35d6ff,0 0 0 4px #ffd23a,0 0 10px rgba(60,200,255,.8)}
+.pslot.limitada .pf{box-shadow:0 0 0 2px #35d6ff,0 0 8px rgba(60,200,255,.8);background:linear-gradient(#35d6ff,#1f3fb0)}
+.cap.t-limitada{--cc:linear-gradient(90deg,#35d6ff,#ffffff,#ffd23a,#35d6ff);filter:drop-shadow(0 0 10px #35d6ff)}
+.cap.t-limitada .ct{background-size:300% 100%;animation:capRain 1s linear infinite}
+.lmbolts{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen;z-index:1}
+.lb{fill:none;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;stroke-width:3;opacity:0;animation:lmBolt 2.6s infinite}
+.lb0{stroke:#ffe14a;filter:drop-shadow(0 0 4px #ffd23a)}.lb1{stroke:#8fdcff;filter:drop-shadow(0 0 4px #35a8ff)}
+@keyframes lmBolt{0%,100%{opacity:0}5%{opacity:1}8%{opacity:.15}11%{opacity:1}22%{opacity:0}}
+.limbg{position:absolute;inset:0;z-index:0;background:linear-gradient(90deg,rgba(6,14,50,.92) 30%,rgba(6,14,50,.0) 75%),url(ui/bailong.jpg) 70% 22%/cover no-repeat}
+.mode.lmmode,.banner-card.lim{position:relative;overflow:hidden;min-height:70px;padding:8px 10px;background:#06143a;box-shadow:0 0 0 2px #35d6ff,0 0 16px rgba(60,200,255,.6)}
+.lmmode .mt,.banner-card.lim .mt{position:relative;z-index:2}
+.lmmode b,.banner-card.lim b{color:#ffe27a;text-shadow:0 0 8px #35d6ff}
+.lmnew{font-style:normal;font-size:11px;background:#ffd23a;color:#06143a;padding:1px 5px;vertical-align:middle;text-shadow:none}
+.lmhero{position:relative;overflow:hidden;border:2px solid var(--ink);box-shadow:0 0 0 2px #35d6ff,0 0 22px rgba(60,200,255,.7);line-height:0}
+.lmhero img{width:100%;display:block}
+.lmhero::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.7),transparent 60%);opacity:0;animation:lmFlash 5s infinite;pointer-events:none;z-index:2}
+@keyframes lmFlash{0%,88%,100%{opacity:0}90%{opacity:.8}92%{opacity:.1}94%{opacity:.6}}
+.lmtag{position:absolute;top:8px;left:8px;z-index:3;background:#ffd23a;color:#06143a;font-size:14px;padding:2px 8px;line-height:1.3;box-shadow:0 0 10px #ffd23a}
+.lmname{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:18px 10px 6px;background:linear-gradient(transparent,rgba(4,10,40,.92));line-height:1.2;display:flex;flex-direction:column}
+.lmname b{font-size:32px;color:#ffe27a;font-weight:400;text-shadow:0 0 10px #35d6ff}.lmname small{font-size:14px;color:#fff}
+.lmtechs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lmtech{display:flex;flex-direction:column;padding:6px 8px;background:var(--navy);border:2px solid #35d6ff}.lmtech b{font-size:16px;color:#ffe27a;font-weight:400}.lmtech small{font-size:12px}
+.lmlist{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.lmp{display:flex;flex-direction:column;align-items:center;gap:2px;width:78px;padding:4px;background:var(--navy);border:2px solid #5a7ab8;text-align:center;opacity:.65}
+.lmp small{font-size:11px;line-height:1.1;min-height:24px}.lmp.own{opacity:1}.lmp.limitada{border-color:#35d6ff;box-shadow:0 0 10px rgba(60,200,255,.8);opacity:1}.lmp.legendaria{border-color:#ffd23a}.lmp.epica{border-color:#b07cff}
+.lmgo{box-shadow:0 0 0 2px #35d6ff,0 0 14px rgba(60,200,255,.7)}
+.lmboom{position:fixed;inset:0;z-index:60;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.85),rgba(60,160,255,.35) 55%,transparent 75%);animation:lmBoom 1.4s ease-out forwards}
+.lmboom .lb{animation:lmBoomBolt .45s ease-out 3 both;stroke-width:5}.lmboom .lmbolts:nth-child(2){transform:scaleX(-1)}
+@keyframes lmBoom{0%{opacity:1}100%{opacity:0}}
+@keyframes lmBoomBolt{0%{opacity:0}20%{opacity:1}60%{opacity:.4}100%{opacity:0}}
+.npov{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:rgba(2,6,24,.9);padding:12px;overflow:auto}
+.npbox{position:relative;overflow:hidden;width:min(340px,100%);display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 14px;background:linear-gradient(#10286a,#060f30);border:3px solid #ffd23a;box-shadow:0 0 0 3px #35d6ff,0 0 30px rgba(60,200,255,.8);text-align:center}
+.npbox>*{position:relative;z-index:2}.npbox>.lmbolts{position:absolute;z-index:1}
+.npk{font-size:16px;color:#06143a;background:#ffd23a;padding:2px 10px;animation:npPulse 1s ease-in-out infinite alternate}
+@keyframes npPulse{to{transform:scale(1.08)}}
+.npface{width:112px;height:112px;border:3px solid #fff;box-shadow:0 0 18px #35d6ff}.npface .pix,.npface canvas{display:block;width:112px;height:112px;background:none;border:0}
+.npbox h2{margin:0;font-size:30px;color:#ffe27a;text-shadow:0 0 10px #35d6ff}
+.npavg{font-size:22px;color:#fff;font-weight:400}.nptechs{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}.nptechs span{font-size:13px;padding:2px 8px;background:#0b1c55;border:1px solid #35d6ff;color:#e8f6ff}
+.npbox button{width:100%}
+@media (prefers-reduced-motion:reduce){.lb,.lmhero::after,.npk,.rar.limitada,.gcard.limitada .pix,.npface,.cap.t-limitada .ct{animation:none!important}}
 </style>
 
 <div id="shell">

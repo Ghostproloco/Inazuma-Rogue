@@ -17,7 +17,7 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.31.12';
+const VERSION = '0.31.13';
 const DISCORD_URL = 'https://discord.gg/G6SyT2rZW', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 const App = (() => {
@@ -96,6 +96,7 @@ const App = (() => {
       <div class="title nm-title"><img class="logo" id="logo" src="ui/logo_gold.png" alt="Inazuma Gold"><span>${TX('5 contra 5 · roguelite')}</span></div>${wallet()}
       ${Halloween.active() ? hwMenuBtn() : ''}
       ${Navidad.active() ? xmMenuBtn() : ''}
+      ${Limitado.active() ? lmMenuBtn() : ''}
       ${open.map(r => `<button class="cta" data-cont="${r.kind}">${TX('Continuar:')} ${esc(r.name)}<small>${TX('Partido')} ${r.index + 1}${r.kind === 'infinite' ? '' : TX(' de ') + r.schedule.length} · ${'♥'.repeat(r.lives)}</small></button>`).join('')}
       <div class="modes">
         <button class="mode nm-hero" id="mCareer"><span class="cicon">🏆</span><span class="mt"><b>${TX('Modo Carrera')}</b><small>${Career.data && !Career.data.over ? TX('Temporada ') + Career.data.season + ' · ' + DIV_NAME[Career.myDiv()] + TX(' · semana ') + Career.data.week : TX('Eres el mánager: 3 divisiones y ascensos')}</small></span></button>
@@ -144,12 +145,15 @@ const App = (() => {
       if (!P.discordGift) { P.discordGift = Date.now(); P.tickets += DISCORD_GIFT; Profile.save(); setTimeout(() => { renderMenu(); UI.toast(TX('¡Gracias por unirte! +10 tickets 🎟️'), 2600); }, 400); }
       try { window.open(DISCORD_URL, '_blank', 'noopener'); } catch (_) { location.href = DISCORD_URL; }
     };
-    if (settings.seenNews !== VERSION && settings.newsShown !== VERSION) { settings.newsShown = VERSION; saveSettings(); setTimeout(() => { if ($('mNews')) renderNews(renderMenu); }, 400); }   // la primera vez tras actualizar
+    const newPl = Limitado.pendingNew(settings.seenPlayers);   // jugadores nuevos: sale su pantalla al abrir el juego (y luego las Novedades)
+    if (newPl.length) setTimeout(() => { if ($('mNews')) showNewPlayers(newPl, 0, renderMenu); }, 450);
+    else if (settings.seenNews !== VERSION && settings.newsShown !== VERSION) { settings.newsShown = VERSION; saveSettings(); setTimeout(() => { if ($('mNews')) renderNews(renderMenu); }, 400); }   // la primera vez tras actualizar
     $('mSaves').onclick = () => renderAccount(renderMenu);
     body.querySelector('[data-cloudline]').onclick = () => renderAccount(renderMenu);
     $('mQuick').onclick = startQuick; $('mSound').onclick = renderSettings;
     if ($('mHw')) $('mHw').onclick = renderHalloween;
     if ($('mXm')) $('mXm').onclick = renderNavidad;
+    if ($('mLm')) $('mLm').onclick = renderLimitado;
     if (Navidad.active()) xmDecor(); else if (Halloween.active()) hwDecor();   // el menú lleva el tema del evento activo (niebla y calabazas, o nieve)
     if (settings.seenNews === VERSION || settings.newsShown === VERSION) setTimeout(aviso, 500);
     Sound.music('menu');
@@ -268,6 +272,12 @@ const App = (() => {
       ${TX('Épica o mejor asegurada cada 10 tiradas (llevas')} ${P.pity} ${TX('de 10). Los repetidos suben una estrella (máx.')} ${MAX_STARS}${TX('); con 5 estrellas, o una técnica repetida, dan monedas.')}</p>
       <p class="note">${TX('Tickets: Historia (1 por victoria y 3 al completarla), Especiales (2), Cadenas (2 al completarlas) e Infinito (2 por oleada especial).')}</p>
       ${bottom(`<div class="grid2"><button class="cta" id="g1" ${P.tickets < 1 ? 'disabled' : ''}>${TX('Tirar ×1')}<small>${TX('1 ticket')}</small></button><button class="cta" id="g10" ${P.tickets < 10 ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${TX('10 tickets')}</small></button></div>`)}`, 'bg_green');
+    if (Limitado.active()) {
+      const lim = document.createElement('button'); lim.className = 'banner-card lim';
+      lim.innerHTML = `<span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Gacha de Bai Long')}</b><small>${TX('LIMITADO · 100 🎟️ = 10 jugadores · nota 100')}</small></span>`;
+      lim.onclick = () => { Sound.sfx('click'); renderLimitado(); };
+      $('bn').appendChild(lim);
+    }
     BANNERS.forEach(b => {
       const seenL = new Set(), legs = GAME.players.filter(p => p.banner === b.id && p.rarity === 'legendaria').filter(p => { const k = p.full.replace(/ \((IE2|IE3)\)$/, ''); return !seenL.has(k) && seenL.add(k); });
       const el = document.createElement('button');
@@ -283,7 +293,7 @@ const App = (() => {
     tutorial('gacha'); if (!$('tutq-gacha')) body.insertAdjacentHTML('beforeend', `<p class="note" id="tutq-gacha">${tutBtn('gacha')}</p>`);
   }
   // Legendarios de Halloween: marco naranja apagado, estilo miedo (clase .hw)
-  const hwc = pd => pd && pd.halloween ? ' hw' : pd && pd.xmas ? ' xm' : pd && pd.inf ? ' inf' : '';   // marcos especiales: Halloween y versiones del Infinito
+  const hwc = pd => pd && pd.halloween ? ' hw' : pd && pd.xmas ? ' xm' : pd && pd.lim ? ' lim' : pd && pd.inf ? ' inf' : '';   // marcos especiales: Halloween y versiones del Infinito
   // Carta de un resultado del gacha (jugador o técnica legendaria)
   function makeCard(r) {
     const c = document.createElement('div');
@@ -298,7 +308,7 @@ const App = (() => {
     }
     const pd = PLAYER(r.id);
     c.appendChild(face(Sprites.refOf(pd), 80));
-    c.insertAdjacentHTML('beforeend', `<div class="gname">${pd.halloween ? '🎃' : pd.xmas ? '🎄' : ''}${esc(pd.name)}</div><div class="gmeta">${rchip(r.tier)}<span>${RAB(pd.role)}</span>${chip(pd.elem)}</div>
+    c.insertAdjacentHTML('beforeend', `<div class="gname">${pd.halloween ? '🎃' : pd.xmas ? '🎄' : pd.lim ? '⚡' : ''}${esc(pd.name)}</div><div class="gmeta">${rchip(r.tier)}<span>${RAB(pd.role)}</span>${chip(pd.elem)}</div>
       <div class="gtag">${r.isNew ? 'NUEVO' : r.coins ? '+' + r.coins + ' 🪙' : '★ ' + r.star}</div>`);
     return c;
   }
@@ -307,15 +317,15 @@ const App = (() => {
     const box = $('rv');
     res.forEach((r, i) => {
       const c = makeCard(r); c.style.animationDelay = (i * 0.18) + 's'; box.appendChild(c);
-      setTimeout(() => Sound.sfx(r.tier === 'legendaria' || r.tier === 'epica' ? 'reveal' : 'click'), i * 180);
+      setTimeout(() => Sound.sfx(r.tier === 'limitada' || r.tier === 'legendaria' || r.tier === 'epica' ? 'reveal' : 'click'), i * 180);
     });
     setTimeout(() => { $('ok').hidden = false; }, res.length * 180 + 300);
     $('ok').onclick = done;
   }
 
   /* ---------- Máquina de gachapón ---------- */
-  const MACHINE_COLORS = { 1: ['#e8c21a', '#1f4fc0'], 2: ['#2a5fd0', '#e8e8f0'], 3: ['#5a1a8a', '#e01a4a'], 4: ['#b8742a', '#f2e6c0'], [HW_BANNER]: ['#ff7a1a', '#6a2aa8'], [XM_BANNER]: ['#d8283a', '#1f7a3a'] };
-  const CAP_COLORS = { comun: '#b8bcc8', rara: '#3f8fff', epica: '#a24cff', legendaria: '#ffcc22' };
+  const MACHINE_COLORS = { 1: ['#e8c21a', '#1f4fc0'], 2: ['#2a5fd0', '#e8e8f0'], 3: ['#5a1a8a', '#e01a4a'], 4: ['#b8742a', '#f2e6c0'], [HW_BANNER]: ['#ff7a1a', '#6a2aa8'], [XM_BANNER]: ['#d8283a', '#1f7a3a'], [LM_BANNER]: ['#1f3fb0', '#ffd23a'] };
+  const CAP_COLORS = { comun: '#b8bcc8', rara: '#3f8fff', epica: '#a24cff', legendaria: '#ffcc22', limitada: '#35d6ff' };
   function drawMachine(cv, st) {
     const g = cv.getContext('2d'), [c1, c2] = st.colors;
     g.imageSmoothingEnabled = false; g.clearRect(0, 0, 96, 128);
@@ -352,7 +362,7 @@ const App = (() => {
     g.fillStyle = '#10183a'; g.fillRect(16, 122, 64, 6);
   }
   function renderMachine(res, bannerId, done, title) {
-    const B = BANNERS.find(b => b.id === bannerId) || (bannerId === HW_BANNER ? { name: TX('Sobre Calabaza'), crest: 3 } : bannerId === XM_BANNER ? { name: TX('Sobre Navideño'), crest: 36 } : BANNERS[0]);
+    const B = BANNERS.find(b => b.id === bannerId) || (bannerId === HW_BANNER ? { name: TX('Sobre Calabaza'), crest: 3 } : bannerId === XM_BANNER ? { name: TX('Sobre Navideño'), crest: 36 } : bannerId === LM_BANNER ? { name: TX('Gacha de Bai Long'), crest: 3021 } : BANNERS[0]);
     screen(`<h2>${esc(title || B.name)}</h2>
       <div class="gmach"><canvas id="mc" width="96" height="128"></canvas><div class="gm-hint" id="mHint">${Controls.pc() ? TX('Arrastra la manivela en círculo (o pulsa Espacio)') : TX('Gira la manivela con el dedo ↻')}</div></div>
       <div class="caps" id="caps"></div>
@@ -368,7 +378,7 @@ const App = (() => {
     raf = requestAnimationFrame(loop);
     crest.onload = () => drawMachine(cv, st);
     // Cápsulas: a veces una legendaria llega disfrazada de épica y sube al abrirla
-    const items = res.map(r => ({ r, shown: r.tier === 'legendaria' && Math.random() < 0.5 ? 'epica' : r.tier, opened: false }));
+    const items = res.map(r => ({ r, shown: (r.tier === 'legendaria' || r.tier === 'limitada') && Math.random() < 0.5 ? 'epica' : r.tier, opened: false }));
     let left = items.length;
     const finish = () => { $('mHint').textContent = TX('¡Ya están todas abiertas!'); $('mAll').hidden = true; $('mSkip').hidden = true; $('mOk').hidden = false; };
     function openCap(it, el) {
@@ -377,10 +387,10 @@ const App = (() => {
         const up = it.shown !== it.r.tier;
         el.classList.add('shake'); Sound.sfx('click');
         setTimeout(() => {
-          if (up) { el.classList.remove('t-' + it.shown); el.classList.add('t-' + it.r.tier, 'upgrade'); Sound.sfx('tech'); flash(CAP_COLORS.legendaria); }
+          if (up) { el.classList.remove('t-' + it.shown); el.classList.add('t-' + it.r.tier, 'upgrade'); Sound.sfx('tech'); flash(CAP_COLORS[it.r.tier] || CAP_COLORS.legendaria); }
           setTimeout(() => {
             el.classList.remove('shake'); el.classList.add('open');
-            if (it.r.tier === 'legendaria' || it.r.tier === 'epica') { flash(CAP_COLORS[it.r.tier]); Sound.sfx('reveal'); } else Sound.sfx('pass');
+            if (it.r.tier === 'limitada') { lmBoom(); Sound.sfx('reveal'); } else if (it.r.tier === 'legendaria' || it.r.tier === 'epica') { flash(CAP_COLORS[it.r.tier]); Sound.sfx('reveal'); } else Sound.sfx('pass');
             setTimeout(() => {
               const card = makeCard(it.r); card.classList.add('fromcap'); if (items.length === 1) card.classList.add('solo'); el.replaceWith(card);
               if (--left === 0) finish();
@@ -631,8 +641,69 @@ const App = (() => {
     $('again').onclick = renderNavidad; $('toMenu').onclick = renderMenu;
   }
 
+  /* =====================================================================
+     GACHA LIMITADO DE BAI LONG (pantalla propia) y AVISO DE JUGADORES NUEVOS
+     ===================================================================== */
+  // Rayos animados (amarillos y azules) para el gacha limitado
+  function lmBolts() {
+    const P = ['M12 0 L22 30 L10 40 L26 70 L16 80 L30 100', 'M88 0 L76 26 L90 38 L70 66 L82 78 L64 100', 'M50 0 L44 22 L58 36 L40 62 L52 74 L42 100',
+      'M0 40 L24 46 L18 56 L44 62', 'M100 55 L76 60 L84 70 L58 76', 'M30 100 L40 80 L34 74 L52 56'];
+    return `<svg class="lmbolts" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${P.map((d, i) => `<path class="lb lb${i % 2}" style="animation-delay:${(i * 0.37).toFixed(2)}s" d="${d}"/>`).join('')}</svg>`;
+  }
+  // Destello de rayos a pantalla completa al salir Bai Long
+  function lmBoom() { const d = document.createElement('div'); d.className = 'lmboom'; d.innerHTML = lmBolts() + lmBolts(); document.body.appendChild(d); setTimeout(() => d.remove(), 1500); }
+  function lmMenuBtn() {
+    const H = Limitado.data();
+    return `<button class="mode lmmode" id="mLm"><span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Bai Long')} <em class="lmnew">${TX('LIMITADO')}</em></b><small>${TX('Gacha limitado · 100 🎟️ = 10 jugadores')}${H.pity ? ' · ' + H.pity + '/' + LM_PITY : ''}</small></span></button>`;
+  }
+  function renderLimitado() {
+    const H = Limitado.data(), P = Profile.data, bai = PLAYER(BAI_ID);
+    const rates = LM_RATES.map(([t, w]) => RARITY[t].label + ' ' + w + ' %').join(' · ');
+    screen(`${top('⚡ ' + TX('Gacha limitado'))}${wallet()}
+      <div class="lmhero"><img src="ui/bailong.jpg" alt="Bai Long">${lmBolts()}<span class="lmtag">${TX('LIMITADO')}</span>
+        <div class="lmname"><b>Bai Long</b><small>${TX('Nota')} ${Math.round(Limitado.avgOf(bai))} · ${RAB(bai.role)} · ${ELEM_LABEL[bai.elem]}</small></div></div>
+      <h3>${TX('Técnicas de Bai Long')}</h3>
+      <div class="lmtechs">${BAI_TECHS.map(b => { const t = TECH(b.id); return `<div class="lmtech ${EL(t.elem).css}"><b>${esc(t.name)}</b><small>${TYPE_LABEL[t.type]} · ${t.power}</small></div>`; }).join('')}</div>
+      <h3>${TX('Jugadores del sobre')}</h3>
+      <div class="lmlist" id="lmList"></div>
+      <p class="note">${rates}.<br>${TX('Cada sobre trae al menos una épica o mejor, y Bai Long está asegurado a las')} ${LM_PITY} ${TX('tiradas sin él (llevas')} ${H.pity}${TX(').')}<br>
+        ${TX('Los repetidos suben una estrella (máx.')} ${MAX_STARS}${TX('); con 5 estrellas dan monedas.')}</p>
+      ${bottom(`<button class="cta lmgo" id="lm10" ${P.tickets < LM_PRICE ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${LM_PRICE} 🎟️ · ${TX('10 jugadores')}</small></button>`)}`, 'bg_title');
+    Limitado.ids().forEach(id => {
+      const pd = PLAYER(id), w = document.createElement('div');
+      w.className = 'lmp ' + pd.rarity + (P.coll[id] ? ' own' : '');
+      w.appendChild(face(Sprites.refOf(pd), 48));
+      w.insertAdjacentHTML('beforeend', `<small>${esc(pd.name)}</small>${rchip(pd.rarity)}`);
+      $('lmList').appendChild(w);
+    });
+    $('lm10').onclick = () => {
+      const res = Limitado.pull(); if (!res) return UI.toast(TX('No tienes tickets suficientes'));
+      renderMachine(res, LM_BANNER, renderLimitado, TX('Gacha de Bai Long'));
+    };
+    $('back').onclick = renderGacha;
+    Sound.music('menu');
+  }
+  // Aviso al abrir el juego cuando hay un jugador nuevo (NEW_PLAYERS en src/limited.js): una vez por dispositivo
+  function showNewPlayers(list, i, after) {
+    const n = list[i]; if (!n) { if (after) after(); return; }
+    const pd = PLAYER(n.id); if (!pd) return showNewPlayers(list, i + 1, after);
+    settings.seenPlayers = (settings.seenPlayers || []).concat(n.id); saveSettings();
+    const ov = document.createElement('div'); ov.className = 'npov' + (pd.lim ? ' lim' : '');
+    const techs = startingTechs(pd).map(TECH).filter(Boolean);
+    ov.innerHTML = `<div class="npbox">${lmBolts()}<small class="npk">${TX('¡NUEVO JUGADOR!')}</small><div class="npface"></div><h2>${esc(pd.name)}</h2>
+      <div class="gmeta">${rchip(pd.rarity)}<span>${RAB(pd.role)}</span>${chip(pd.elem)}</div>
+      <b class="npavg">${TX('Nota')} ${Math.round(Limitado.avgOf(pd))}</b>
+      <div class="nptechs">${techs.map(t => `<span>${esc(t.name)}</span>`).join('')}</div>
+      <button class="cta" id="npGo">${pd.lim ? TX('Ver el gacha limitado') : TX('Ir al gacha')}</button><button class="ghost" id="npX">${TX('Cerrar')}</button></div>`;
+    document.body.appendChild(ov);
+    ov.querySelector('.npface').appendChild(face(Sprites.refOf(pd), 112));
+    Sound.sfx('reveal'); if (pd.lim) lmBoom();
+    $('npGo').onclick = () => { ov.remove(); pd.lim ? renderLimitado() : renderGacha(); };
+    $('npX').onclick = () => { ov.remove(); showNewPlayers(list, i + 1, after); };
+  }
+
   /* ---------- Plantilla, entrenamiento y Rayos ---------- */
-  const RORDER = { legendaria: 0, epica: 1, rara: 2, comun: 3 };
+  const RORDER = { limitada: -1, legendaria: 0, epica: 1, rara: 2, comun: 3 };
   function sortedIds(filter) {
     return Profile.ids().filter(id => !filter || PLAYER(id).role === filter)
       .sort((a, b) => RORDER[PLAYER(a).rarity] - RORDER[PLAYER(b).rarity] || Profile.owned(b).stars - Profile.owned(a).stars || PLAYER(a).name.localeCompare(PLAYER(b).name));
@@ -667,7 +738,7 @@ const App = (() => {
   function pfBar() {
     const opt = (v, t, cur) => `<option value="${v}" ${cur === v ? 'selected' : ''}>${t}</option>`;
     return `<div class="pfbar"><div class="pfq"><input id="pfQ" type="search" placeholder="${TX('Buscar por nombre o mote…')}" value="${esc(PF.q)}" autocomplete="off"><button class="ghost" id="pfX" ${pfActive() ? '' : 'hidden'} title="${TX('Quitar filtros')}">✕</button></div>
-      <div class="pfsel"><select id="pfR" aria-label="${TX('Rareza')}">${opt('', TX('Rareza'), PF.rar)}${['legendaria', 'epica', 'rara', 'comun'].map(r => opt(r, RARITY[r].label, PF.rar)).join('')}</select>
+      <div class="pfsel"><select id="pfR" aria-label="${TX('Rareza')}">${opt('', TX('Rareza'), PF.rar)}${['limitada', 'legendaria', 'epica', 'rara', 'comun'].map(r => opt(r, RARITY[r].label, PF.rar)).join('')}</select>
       <select id="pfE" aria-label="${TX('Elemento')}">${opt('', TX('Elemento'), PF.elem)}${['fuego', 'bosque', 'viento', 'montaña'].map(e => opt(e, ELEM_LABEL[e], PF.elem)).join('')}</select>
       <select id="pfG" aria-label="${TX('Juego')}">${opt('', TX('Juego'), PF.game)}${opt('1', TX('Inazuma 1'), PF.game)}${opt('2', TX('Inazuma 2'), PF.game)}${opt('3', TX('Inazuma 3'), PF.game)}</select></div></div>`;
   }
@@ -2091,6 +2162,8 @@ const App = (() => {
   }
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
+    { v: '0.31.13', date: '24/10/2026', items: [
+      TX('Pequeños ajustes y mejoras en el gacha y en los avisos al abrir el juego.')] },
     { v: '0.31.12', date: '23/10/2026', items: [
       TX('Partidos más equilibrados: con el balón se esprinta un poco menos y los rivales corren algo más cuando defienden. Ya no te escapas solo corriendo.')] },
     { v: '0.31.11', date: '23/10/2026', items: [

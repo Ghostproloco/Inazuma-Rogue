@@ -1,6 +1,6 @@
 /* =====================================================================
    JUGADORES DE INAZUMA ELEVEN GO: Arion Sherwind, Victor Blade, Riccardo Di Rigo y Bai Long.
-   - Legendarios que NO salen en el gacha: se consiguen con códigos de regalo (GIFT_CODES en run.js).
+   - Ya NO se consiguen con códigos: salen en el Gacha limitado de Bai Long (src/limited.js).
    - Retrato propio en sprites/fgo.png (una fila de 64 px por jugador; fila = goFace).
    - Muñeco del partido provisional: el de otro jugador parecido (goBase); se cambia poniendo otro `cs`.
    - Estadísticas y técnicas: editar aquí (técnicas copiadas de un jugador de referencia, ref).
@@ -13,7 +13,7 @@ const GO_PLAYERS = [
   { id: 998003, name: 'Riccardo Di Rigo', nick: 'Riccardo', role: 'DEF', elem: 'montaña', face: 3, sprite: 21770, ref: 21399,
     ie: { tiro: 76, control: 88, defensa: 98, rapidez: 90, fisico: 97, aguante: 94 } },
   { id: 998004, name: 'Bai Long', nick: 'Bai Long', role: 'DEL', elem: 'fuego', face: 0, sprite: 21607, ref: 10,
-    ie: { tiro: 98, control: 90, defensa: 72, rapidez: 96, fisico: 90, aguante: 92 } },
+    ie: { tiro: 104, control: 98, defensa: 96, rapidez: 102, fisico: 100, aguante: 100 } },   // media 100; su rareza «limitada» y sus técnicas se ponen en limited.js
 ];
 (function registerGO() {
   if (typeof GAME === 'undefined') return;

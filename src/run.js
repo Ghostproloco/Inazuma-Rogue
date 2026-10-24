@@ -84,6 +84,7 @@ const RARITY = {
   rara:       { label: TX('Rara'),       rate: 28, dupCoins: 25 },
   epica:      { label: TX('Épica'),      rate: 10, dupCoins: 60 },
   legendaria: { label: TX('Legendaria'), rate: 2,  dupCoins: 150 },
+  limitada:   { label: TX('Limitada'),   rate: 0,  dupCoins: 300 },   // solo en el Gacha limitado (src/limited.js)
 };
 const MAX_STARS = 5;
 const TECH_SLOTS = 2;   // técnicas equipadas por jugador
@@ -236,14 +237,10 @@ const GIFT_CODES = {
   FUEGOSAGRADO:      { pick: { rarity: 'epica', elem: 'fuego' }, tickets: 5, desc: TX('Elige 1 de 3 jugadores de fuego épicos o mejores') },
   DISCORDINAZUMA:    { tickets: 15, rayos: 2, desc: TX('Regalo de la comunidad') },
   TICKETAZO:         { tickets: 50, desc: TX('Lluvia de tickets') },
+  // Arion, Victor, Riccardo, Bai Long y Bianchi Christmas ya NO se consiguen con códigos: solo en el Gacha limitado (src/limited.js)
   DOBLELEYENDA:      { leg: 2, desc: TX('Dos tiradas legendarias aseguradas') },
-  ARIONGOLD:         { player: 998001, desc: TX('Arion Sherwind: medio legendario de Inazuma Eleven GO') },
-  VICTORGOLD:        { player: 998002, desc: TX('Victor Blade: medio legendario de Inazuma Eleven GO') },
-  RICCARDOGOLD:      { player: 998003, desc: TX('Riccardo Di Rigo: defensa legendario de Inazuma Eleven GO') },
-  BAILONGGOLD:       { player: 998004, desc: TX('Bai Long: delantero legendario de Inazuma Eleven GO') },
-  BIANCHINAVIDAD:    { player: 997008, desc: TX('Bianchi Christmas: delantero de media 105 con gorro navideño') },
 };
-const PICK_TIERS = { comun: 0, rara: 1, epica: 2, legendaria: 3 };
+const PICK_TIERS = { comun: 0, rara: 1, epica: 2, legendaria: 3, limitada: 4 };
 // Las 3 opciones de un "elige 1 de 3": jugadores del gacha (sin versiones de evento ni originales)
 function giftPickOptions(f, n = 3) {
   if (f.inf) return infPickOptions(f.n || n);
@@ -600,7 +597,7 @@ const Run = {
       const mi = rnd(members), m = run.roster[mi], pd = PLAYER(m.id);
       if (opts.some(o => o.member === mi && o.kind === 'tech')) continue;
       const type = rollFitType(pd.role);
-      const ok = t => t && t.type === type && !m.techs.includes(t.id) && Object.values(GAME.evo).indexOf(t.id) < 0;
+      const ok = t => t && !t.lim && t.type === type && !m.techs.includes(t.id) && Object.values(GAME.evo).indexOf(t.id) < 0;
       const own = pd.moves.map(x => TECH(x[0])).filter(ok).map(t => t.id);
       let id = null, rare = false;
       if (own.length && Math.random() > 0.25) id = rnd(own);
