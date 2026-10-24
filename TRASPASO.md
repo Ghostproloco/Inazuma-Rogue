@@ -213,3 +213,16 @@ Misma estructura que Halloween, con tema navideño y **botón 🎄 Navidad justo
 - Muñeco del partido **provisional**: copia el `cs` de otro jugador parecido (`sprite` en `GO_PLAYERS`). Para ponerles el suyo propio: añadir una fila a una hoja `cNN.png` y cambiar el `cs`.
 - Estadísticas y técnicas (copiadas de un jugador de referencia, `ref`) se editan en `GO_PLAYERS`. Prueba: `node test/go.js`.
 - `build.py` incluye `go.js` justo después de `christmas.js`.
+
+---
+
+## Gacha limitado de Bai Long (v0.31.13)
+
+- `src/limited.js`: rareza nueva **limitada** (`RARITY.limitada` en run.js), Bai Long (id 998004, nota 100, `lim: true`) con sus técnicas **Dragón relámpago** (30490, tiro) y **Estela del dragón blanco** (30491, regate), marcadas `lim` para que no salgan como premio aleatorio.
+- Sobre: 100 🎟️ = 10 jugadores (`Limitado.pull()`), bote de 10: Bai Long, Arion, Victor, Riccardo, Bianchi Christmas, Jang Cho, Jim Flareson, Changsu Choi, Umi Wang, Sol Crater. Probabilidades 2/10/23/30/35 %, al menos una épica o mejor por sobre, Bai Long asegurado a las 30 tiradas (`profile.lm`). `LM_END` = fecha de fin (null = sin fin).
+- **Ya no hay códigos** para Arion, Victor, Riccardo, Bai Long ni Bianchi Christmas (quien los canjeó los conserva).
+- Foto: `juego/ui/bailong.jpg` (tarjeta en el Gacha, botón del menú, cabecera). Rayos con SVG/CSS (`lmBolts`, `lmBoom` en app.js).
+- **Aviso de jugador nuevo:** añade `{ id, v }` a `NEW_PLAYERS` (limited.js) y al abrir el juego sale su pantalla una vez por dispositivo (`settings.seenPlayers`).
+- `tools/i18n_sync.js` y `test/i18n.js` ahora incluyen christmas.js, go.js, dialog.js y limited.js (antes `add` borraba esas traducciones).
+- Test nuevo: `node test/limited.js`. `test/cloud.js` ya fallaba una prueba (intermitente) antes de estos cambios.
+- Pendiente: animación propia para las técnicas de Bai Long (ahora usan las de «dragón» y regate por nombre).
