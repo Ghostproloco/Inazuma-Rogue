@@ -647,6 +647,25 @@ details.techs .cards{margin-top:6px}
 .nm-dk:active{transform:translateY(2px)}
 .nm-dk.main{color:var(--sky-t);background:linear-gradient(var(--orange) 0 62%,var(--orange-d) 62%)}
 .nm-dk .nm-badge{position:absolute;top:-9px;right:-3px}
+/* ===== Diálogos: globo durante el partido y charla antes del partido ===== */
+.say{position:absolute;left:10px;right:10px;top:31%;z-index:6;pointer-events:none;display:none;justify-content:flex-start}
+.say.on{display:flex;animation:sayIn .22s ease-out both}
+.say.rival{top:auto;bottom:34%;justify-content:flex-end}
+.say.out{opacity:0;transition:opacity .25s}
+.say .sy-in{display:flex;align-items:flex-end;gap:8px;max-width:88%}
+.say.rival .sy-in{flex-direction:row-reverse}
+.say .sy-face{width:56px;height:56px;flex-shrink:0;border:2px solid var(--ink);background:var(--navy-d);box-shadow:0 0 0 2px var(--line)}
+.say .sy-txt,.talk .tkb{position:relative;background:#fff;color:#101010;border:2px solid var(--ink);box-shadow:0 0 0 2px var(--line);padding:6px 10px;border-radius:10px;font-size:15px;line-height:1.25}
+.say .sy-txt small,.talk .tkb small{display:block;font-size:11px;color:#8b3908;margin-bottom:2px}
+.say .sy-txt::after,.talk .tk .tkb::after{content:"";position:absolute;bottom:12px;left:-9px;border-style:solid;border-width:6px 9px 6px 0;border-color:transparent #fff transparent transparent}
+.say.rival .sy-txt::after,.talk .tk.me .tkb::after{left:auto;right:-9px;border-width:6px 0 6px 9px;border-color:transparent transparent transparent #fff}
+@keyframes sayIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.talk{display:flex;flex-direction:column;gap:8px;margin:2px 0}
+.talk .tk{display:flex;align-items:flex-end;gap:10px}
+.talk .tk.me{flex-direction:row-reverse}
+.talk .tkf{width:48px;height:48px;flex-shrink:0;border:2px solid var(--ink);background:var(--navy-d);box-shadow:0 0 0 2px var(--line)}
+.talk .tkb{font-size:14px;max-width:calc(100% - 70px)}
+.talk .tk.me .tkb{background:#ffe9b8}
 .dbg{position:absolute;left:8px;top:calc(env(safe-area-inset-top,0px) + 56px);z-index:8;margin:0;pointer-events:none;
   font:12px/1.4 var(--font-ui);color:#7fff7f;background:rgba(0,0,0,.6);padding:4px 6px;white-space:pre-wrap;max-width:70%}
 @media (prefers-reduced-motion:reduce){.toast,.act,.banner{transition:none}.gcard{animation:none;opacity:1;transform:none}.cap,.gm-hint,.cap .ct{animation:none!important}}
@@ -695,6 +714,7 @@ html,body,button,.act,#shell{touch-action:manipulation}
   <div id="pad" hidden></div>
   <div id="cine"><i class="lb t"></i><i class="lb b"></i></div>
   <div class="cutin" id="cutin"><div class="ci-in"><div class="ci-face"></div><div class="ci-txt"><small></small><b></b></div></div></div>
+  <div class="say" id="say"><div class="sy-in"><div class="sy-face"></div><div class="sy-txt"><small></small><span></span></div></div></div>
   <pre class="dbg" id="dbg" hidden></pre>
   <div class="toast" id="toast"></div>
   <div class="banner" id="banner"></div>
@@ -2245,6 +2265,64 @@ const EN_TEXT = {
   '🛠 Modo desarrollador': '🛠 Developer mode',
   '🥉 1 vez · 🥈 3 veces · 🥇 5 veces (15 🎟️ y otro Rayo).': '🥉 1 time · 🥈 3 times · 🥇 5 times (15 🎟️ and another Bolt).',
   '🧤 Parada de': '🧤 Save by',
+  "¿Crees que puedes apagar mi fuego? ¡Inténtalo!": "Think you can put my fire out? Try it!",
+  "Hoy mi balón arde. ¡Aguanta si puedes!": "My ball is burning today. Hold on if you can!",
+  "¡Vas a quemarte antes del descanso!": "You'll burn out before halftime!",
+  "Seré más rápido que tu mirada. ¡Parpadea y pierdes!": "I'm faster than your eyes. Blink and you lose!",
+  "El viento sopla a mi favor hoy.": "The wind is on my side today.",
+  "¡No podrás ni tocar el balón!": "You won't even touch the ball!",
+  "Mis raíces son profundas. ¡No me moverás!": "My roots run deep. You won't move me!",
+  "Este campo es mi bosque. ¡Perderás en casa ajena!": "This field is my forest. You'll lose on my turf!",
+  "Paciencia… el balón acabará en mis manos.": "Patience… the ball will end up with me.",
+  "Soy una muralla. ¡Pasa si te atreves!": "I'm a wall. Get past me if you dare!",
+  "Nadie ha movido esta montaña. ¿Serás tú el primero?": "Nobody has ever moved this mountain. Will you be the first?",
+  "Prepárate: mis tiros pesan como piedras.": "Get ready: my shots hit like boulders.",
+  "¿Así que tú eres mi rival? ¡Será divertido!": "So you're my opponent? This will be fun!",
+  "A ver si puedes ganarme.": "Let's see if you can beat me.",
+  "No me subestimes. ¡Voy a por todas!": "Don't underestimate me. I'm going all out!",
+  "Hoy no pienso perder. ¡Prepárate!": "I'm not losing today. Get ready!",
+  "Dame un buen partido, si eres capaz.": "Give me a good game, if you can.",
+  "¡Eso quería oír! Vamos a jugar.": "That's what I wanted to hear! Let's play.",
+  "Hablar es fácil. ¡Demuéstralo en el campo!": "Talk is cheap. Prove it on the pitch!",
+  "Mi equipo no se rinde jamás.": "My team never gives up.",
+  "Acepto el reto. ¡Que gane el mejor!": "Challenge accepted. May the best team win!",
+  "Ya veremos quién se ríe al final.": "We'll see who's laughing at the end.",
+  "No me asustas. ¡Empecemos!": "You don't scare me. Let's start!",
+  "¡Nos vemos en el campo!": "See you on the pitch!",
+  "¡Siente mi fuego!": "Feel my fire!",
+  "¡Arde, balón, arde!": "Burn, ball, burn!",
+  "¡Todo mi calor en este tiro!": "All my heat in this shot!",
+  "¡Más rápido que el viento!": "Faster than the wind!",
+  "¡Ni lo verás pasar!": "You won't even see it pass!",
+  "¡Corre, balón, corre!": "Run, ball, run!",
+  "¡La fuerza del bosque!": "The power of the forest!",
+  "¡Crece, mi técnica!": "Grow, my technique!",
+  "¡Raíces, sostenedme!": "Roots, hold me up!",
+  "¡Firme como una roca!": "Solid as a rock!",
+  "¡Esto pesa mucho!": "This one's heavy!",
+  "¡Que tiemble el suelo!": "Let the ground shake!",
+  "¡Allá va mi técnica!": "Here comes my technique!",
+  "¡Con todas mis fuerzas!": "With all my strength!",
+  "¡Esta es la buena!": "This is the one!",
+  "¡Por aquí no pasa nadie!": "Nobody gets past me!",
+  "¡Mi portería es sagrada!": "My goal is sacred!",
+  "¡Lo paro, lo paro!": "I've got it, I've got it!",
+  "¡No pasarás!": "You shall not pass!",
+  "¡Aquí me quedo yo!": "This is where I stand!",
+  "¡GOOOL! ¡Lo hemos conseguido!": "GOOOAL! We did it!",
+  "¡Así se hace, equipo!": "That's how it's done, team!",
+  "¡Uno más para nosotros!": "One more for us!",
+  "¡Esto es solo el principio!": "This is only the beginning!",
+  "¿Eso es todo lo que tenéis?": "Is that all you've got?",
+  "¡Os lo dije!": "I told you so!",
+  "¡Demasiado fácil!": "Too easy!",
+  "¡Uno menos para vosotros!": "One more against you!",
+  "¡Aquí no pasa nada!": "Nothing gets through here!",
+  "¡Tranquilos, lo tengo!": "Relax, I've got it!",
+  "¡Está parado!": "Saved!",
+  "¡Tu tiro no me asusta!": "Your shot doesn't scare me!",
+  "¡Casi, pero no!": "Close, but no!",
+  "¡Mejor suerte la próxima!": "Better luck next time!",
 };
 I18N.applyData();
 // Textos fijos del HTML (marcados con data-tx / data-tx-aria)
@@ -5837,6 +5915,117 @@ const Cloud = (() => {
 })();
 
 /* =====================================================================
+   DIÁLOGOS: frases que dicen los jugadores (antes del partido y durante él).
+   Son frases originales con el espíritu de la serie. Se pasan por TX(), así que
+   las traducciones están en src/en.js.
+   ===================================================================== */
+const Dialog = (() => {
+  const L = {
+ "taunt_fuego": [
+  "¿Crees que puedes apagar mi fuego? ¡Inténtalo!",
+  "Hoy mi balón arde. ¡Aguanta si puedes!",
+  "¡Vas a quemarte antes del descanso!"
+ ],
+ "taunt_viento": [
+  "Seré más rápido que tu mirada. ¡Parpadea y pierdes!",
+  "El viento sopla a mi favor hoy.",
+  "¡No podrás ni tocar el balón!"
+ ],
+ "taunt_bosque": [
+  "Mis raíces son profundas. ¡No me moverás!",
+  "Este campo es mi bosque. ¡Perderás en casa ajena!",
+  "Paciencia… el balón acabará en mis manos."
+ ],
+ "taunt_montaña": [
+  "Soy una muralla. ¡Pasa si te atreves!",
+  "Nadie ha movido esta montaña. ¿Serás tú el primero?",
+  "Prepárate: mis tiros pesan como piedras."
+ ],
+ "taunt_neutro": [
+  "¿Así que tú eres mi rival? ¡Será divertido!",
+  "A ver si puedes ganarme.",
+  "No me subestimes. ¡Voy a por todas!",
+  "Hoy no pienso perder. ¡Prepárate!",
+  "Dame un buen partido, si eres capaz."
+ ],
+ "reply": [
+  "¡Eso quería oír! Vamos a jugar.",
+  "Hablar es fácil. ¡Demuéstralo en el campo!",
+  "Mi equipo no se rinde jamás.",
+  "Acepto el reto. ¡Que gane el mejor!",
+  "Ya veremos quién se ríe al final.",
+  "No me asustas. ¡Empecemos!",
+  "¡Nos vemos en el campo!"
+ ],
+ "shout_fuego": [
+  "¡Siente mi fuego!",
+  "¡Arde, balón, arde!",
+  "¡Todo mi calor en este tiro!"
+ ],
+ "shout_viento": [
+  "¡Más rápido que el viento!",
+  "¡Ni lo verás pasar!",
+  "¡Corre, balón, corre!"
+ ],
+ "shout_bosque": [
+  "¡La fuerza del bosque!",
+  "¡Crece, mi técnica!",
+  "¡Raíces, sostenedme!"
+ ],
+ "shout_montaña": [
+  "¡Firme como una roca!",
+  "¡Esto pesa mucho!",
+  "¡Que tiemble el suelo!"
+ ],
+ "shout_neutro": [
+  "¡Allá va mi técnica!",
+  "¡Con todas mis fuerzas!",
+  "¡Esta es la buena!"
+ ],
+ "kind_parada": [
+  "¡Por aquí no pasa nadie!",
+  "¡Mi portería es sagrada!",
+  "¡Lo paro, lo paro!"
+ ],
+ "kind_bloqueo": [
+  "¡No pasarás!",
+  "¡Aquí me quedo yo!"
+ ],
+ "goal": [
+  "¡GOOOL! ¡Lo hemos conseguido!",
+  "¡Así se hace, equipo!",
+  "¡Uno más para nosotros!",
+  "¡Esto es solo el principio!"
+ ],
+ "goalRival": [
+  "¿Eso es todo lo que tenéis?",
+  "¡Os lo dije!",
+  "¡Demasiado fácil!",
+  "¡Uno menos para vosotros!"
+ ],
+ "save": [
+  "¡Aquí no pasa nada!",
+  "¡Tranquilos, lo tengo!",
+  "¡Está parado!"
+ ],
+ "saveRival": [
+  "¡Tu tiro no me asusta!",
+  "¡Casi, pero no!",
+  "¡Mejor suerte la próxima!"
+ ]
+};
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const key = e => (L['taunt_' + e] ? e : 'neutro');
+  return {
+    taunt: e => TX(pick(L['taunt_' + key(e)].concat(L.taunt_neutro))),   // el rival antes del partido
+    reply: () => TX(pick(L.reply)),                                        // tu mejor jugador le contesta
+    shout: (e, kind) => TX(pick(L['kind_' + kind] || L['shout_' + key(e)].concat(L.shout_neutro))),   // al lanzar una técnica
+    goal: () => TX(pick(L.goal)), goalRival: () => TX(pick(L.goalRival)),
+    save: () => TX(pick(L.save)), saveRival: () => TX(pick(L.saveRival)),
+  };
+})();
+
+/* =====================================================================
    CONTROLES: en PC (ratón y teclado) se quitan el joystick y los botones
    de la pantalla; en móvil y tablet se muestran. Se puede forzar en Ajustes.
    ===================================================================== */
@@ -6123,7 +6312,7 @@ const Pad = (() => {
    ===================================================================== */
 const UI = (() => {
   const $ = id => document.getElementById(id);
-  let toastT, bannerT, last = {};
+  let toastT, bannerT, sayT, sayCool = 0, last = {};
   function toast(text, ms = 1300) {
     const t = $('toast'); t.textContent = text; t.classList.add('on');
     clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), ms);
@@ -6155,7 +6344,21 @@ const UI = (() => {
     Pad.setDribble(me ? (me.dribbleCd || 0) / Logic.DRIBBLE_CD : 0);
     Pad.setChoices(Logic.techChoices(s, me));
   }
-  function reset() { last = {}; }
+  function reset() { last = {}; sayCool = 0; const d = $('say'); if (d) d.className = 'say'; }
+  // Globo de diálogo de un jugador (con su retrato). Sin «force» respeta una pausa entre frases para no saturar.
+  function say(ref, name, text, team, force, ms = 2300) {
+    const d = $('say'), now = performance.now();
+    if (!d || !text || (!force && now < sayCool)) return false;
+    sayCool = now + ms + 1200;
+    d.className = 'say'; void d.offsetWidth;
+    d.className = 'say on' + (team === 'B' ? ' rival' : '');
+    d.querySelector('.sy-txt small').textContent = name || '';
+    d.querySelector('.sy-txt span').textContent = text;
+    const slot = d.querySelector('.sy-face'); slot.innerHTML = '';
+    if (ref) slot.appendChild(Sprites.face(ref, 56));
+    clearTimeout(sayT); sayT = setTimeout(() => { d.classList.add('out'); sayT = setTimeout(() => { d.className = 'say'; }, 260); }, ms);
+    return true;
+  }
   // Presentación de una supertécnica: franja con el retrato del jugador y el nombre
   let cutT;
   function cutin(name, elem, team, kind, ref, ms) {
@@ -6169,7 +6372,7 @@ const UI = (() => {
     clearTimeout(cutT);
     cutT = setTimeout(() => { c.classList.add('out'); cutT = setTimeout(() => { c.className = 'cutin'; }, 240); }, ms);
   }
-  return { toast, banner, update, reset, cutin };
+  return { toast, banner, update, reset, cutin, say };
 })();
 
 /* =====================================================================
@@ -6446,6 +6649,7 @@ class MatchScene extends Phaser.Scene {
     const s = App.match;
     if (!s || !this.views.size) return;
     if (App.running) Logic.update(s, Input.read(), Math.min(delta / 1000, 0.05)); else Input.read();
+    this.drawAura(s, time);
 
     for (const p of s.players) {
       const v = this.views.get(p.id);
@@ -6565,6 +6769,41 @@ class MatchScene extends Phaser.Scene {
     }
   }
 
+  // El mejor jugador de campo de cada equipo (suma de estadísticas): habla al marcar y brilla con el balón
+  starOf(s, team) {
+    s._stars = s._stars || {};
+    if (s._stars[team] === undefined) {
+      const sum = p => (p.kick || 0) + (p.control || 0) + (p.defense || 0) + (p.body || 0);
+      const l = s.players.filter(p => p.team === team && p.role !== 'POR').sort((a, b) => sum(b) - sum(a));
+      s._stars[team] = l[0] ? l[0].id : null;
+    }
+    return s.players.find(p => p.id === s._stars[team]);
+  }
+  // Aura: llamas del color del elemento mientras lanzas una técnica; brillo suave en la estrella que lleva el balón
+  drawAura(s, time) {
+    if (!this.auraG) { this.auraG = this.add.graphics(); this.starG = this.add.graphics(); }
+    const g = this.auraG, h = this.starG; g.clear(); h.clear();
+    const k = 0.5 + 0.5 * Math.sin(time / 90), t = s.tech && s.tech.p;
+    if (t) {
+      const el = (s.tech.tech && s.tech.tech.elem) || t.elem, col = EL(el).main, x = t.x * PX, y = t.y * PX;
+      g.setDepth(y - 2);
+      g.fillStyle(col, 0.14 + 0.1 * k).fillEllipse(x, y - 26, 70 + 12 * k, 112 + 14 * k);
+      g.fillStyle(col, 0.2).fillEllipse(x, y - 26, 48 + 8 * k, 84 + 10 * k);
+      g.lineStyle(2, 0xffffff, 0.55).strokeEllipse(x, y - 26, 58 + 10 * k, 98 + 12 * k);
+      for (let i = 0; i < 5; i++) { const px = x + (i - 2) * 11, hh = 22 + 12 * Math.abs(Math.sin(time / 110 + i * 1.7)); g.lineStyle(3, col, 0.55).lineBetween(px, y + 6, px + Math.sin(time / 130 + i) * 3, y - hh - 24); }
+      if (time - (this.auraT || 0) > 120) { this.auraT = time; this.burst(el, x, y - 24, 2, y + 4); }
+    }
+    const o = s.ball && s.ball.owner;
+    if (o && !t) {
+      const st = this.starOf(s, o.team);
+      if (st && st.id === o.id) {
+        const col = EL(o.elem).main, x = o.x * PX, y = o.y * PX; h.setDepth(y - 2);
+        h.fillStyle(col, 0.1 + 0.06 * k).fillEllipse(x, y - 26, 56 + 6 * k, 96 + 8 * k);
+        h.lineStyle(2, col, 0.4).strokeEllipse(x, y + 10, 44 + 6 * k, 18);
+      }
+    }
+  }
+
   handleEvents(s) {
     for (const e of s.events) {
       this.tfx.event(e, s);
@@ -6573,11 +6812,13 @@ class MatchScene extends Phaser.Scene {
           Sound.sfx('goal'); Sound.jingle(e.team === 'A' ? 'goal' : null);
           UI.banner(e.team === 'A' ? TX('¡Gol!') : TX('Gol de ') + s.teams.B.name, e.team === 'A' ? '' : 'rival', 1800);
           this.cameras.main.shake(260, 0.006);
+          { const who = this.starOf(s, e.team); if (who) UI.say(who.sprite, who.name, e.team === 'A' ? Dialog.goal() : Dialog.goalRival(), e.team, true, 2600); }
           break;
         case 'golden': UI.banner(TX('¡Gol de oro!'), 'gold', 1600); UI.toast(TX('El primero que marque, gana'), 2000); break;
         case 'mercy': UI.toast(e.team === 'A' ? TX('¡5 goles de diferencia! Partido ganado') : TX('5 goles de diferencia: se acabó el partido'), 2400); break;
         case 'save':
           Sound.sfx('save');
+          { const k = s.players.find(q => q.team === e.team && q.role === 'POR'); if (k && Math.random() < 0.7) UI.say(k.sprite, k.name, e.team === 'A' ? Dialog.save() : Dialog.saveRival(), e.team); }
           if (e.elem) { this.cameras.main.shake(220, 0.008); UI.banner(TX('¡Parada!'), 'gold', 900); }
           UI.toast(e.team === 'A' ? TX('¡Paradón!') : TX('¡Para el portero rival!'));
           this.fxRing(e.x * PX, e.y * PX, e.elem ? EL(e.elem).main : 0xffffff, e.big ? 3.4 : 2, e.y * PX + 5);
@@ -6786,6 +7027,7 @@ class TechFX {
       case 'techStart': {
         const p = P(e.id), t = p && p.techs.find(x => x.name === e.name);
         UI.cutin(e.name, e.elem, e.team, e.kind, p && p.sprite, e.kind === 'tiro' || e.kind === 'parada' ? 1250 : 800);
+        if (p) UI.say(p.sprite, p.name, Dialog.shout(e.elem, e.kind), e.team, false, 1500);
         if (t && (e.kind === 'tiro' || e.kind === 'parada')) { this.zoomBack = false; this.sc.cameras.main.zoomTo(1.3, 220, 'Sine.easeOut', true); }
         break;
       }
@@ -8792,6 +9034,19 @@ const App = (() => {
     if (r.state === 'over') return renderOver();
     renderMap();
   }
+  // Antes del partido: la estrella rival te provoca y tu mejor jugador le contesta (la frase se queda fija en cada partido)
+  function fillTalk(r, rival) {
+    const box = $('talk'); if (!box) return;
+    let star = null; try { star = teamStar(rival, false); } catch (_) {}
+    const sum = pd => Object.values(pd.ie).reduce((x, y) => x + y, 0);
+    const mine = r.lineup.slice(0, 5).map(mi => r.roster[mi] && PLAYER(r.roster[mi].id)).filter(Boolean).sort((a, b) => sum(b) - sum(a))[0];
+    if (!star || !mine) { box.remove(); return; }
+    const key = r.kind + ':' + r.index + ':' + rival;
+    if (!api.talk || api.talk.key !== key) api.talk = { key, a: Dialog.taunt(star.elem), b: Dialog.reply() };
+    box.innerHTML = `<div class="tk"><span class="tkf" id="tkR"></span><div class="tkb"><small>${esc(star.name)}</small>${esc(api.talk.a)}</div></div>
+      <div class="tk me"><span class="tkf" id="tkM"></span><div class="tkb"><small>${esc(mine.name)}</small>${esc(api.talk.b)}</div></div>`;
+    $('tkR').appendChild(face(Sprites.refOf(star), 48)); $('tkM').appendChild(face(Sprites.refOf(mine), 48));
+  }
   function renderMap() {
     const r = api.run, rival = Run.rivalName(r), F = FORMATIONS[r.formation];
     const path = r.kind === 'infinite'
@@ -8799,6 +9054,7 @@ const App = (() => {
       : `<ol class="path">${r.schedule.map((t, i) => `<li class="${i < r.index ? 'done' : i === r.index ? 'now' : ''}">${Sprites.crest(crestOf(t))}<span>${esc(t)}</span></li>`).join('')}</ol>`;
     screen(`${top(r.kind === 'infinite' ? TX('Oleada ') + (r.index + 1) : TX('Partido ') + (r.index + 1) + TX(' de ') + r.schedule.length, 'toMenu', TX('Menú'))}${runHeader()}
       ${path}<div class="vsrow">${Sprites.crest(crestOf(rival))}<div><b>${esc(rival)}</b><span class="note">${FIELD_LABEL[Run.field(r)] || ''}</span><div class="faces" id="rfaces"></div></div></div>
+      <div class="talk" id="talk"></div>
       ${formSelect(r)}
       <h3>${TX('Alineación')} <small>${TX('toca un puesto y luego un suplente (u otro puesto) para cambiarlos')}</small></h3>
       <div id="lineup"></div>
@@ -8807,6 +9063,7 @@ const App = (() => {
       ${bottom(`<button class="cta" id="goMatch">${TX('Jugar contra')} ${esc(rival)}</button>`)}`, 'bg_vs');
     const rt = TEAM(rival);
     if (rt) rt.players.forEach(m => $('rfaces').appendChild(face({ file: m.file, row: m.row }, 40)));
+    fillTalk(r, rival);
     $('formSel').onchange = e => { r.formation = e.target.value; Run.save(r); renderMap(); };
     const sel = api.mapSel;
     const items = r.lineup.slice(0, 5).map(mi => { const pd = PLAYER(r.roster[mi].id); return { ref: Sprites.refOf(pd), name: pd.name, rarity: pd.rarity, halloween: pd.halloween, xmas: pd.xmas }; });
