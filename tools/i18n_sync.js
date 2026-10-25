@@ -6,11 +6,9 @@ const fs = require('fs'), path = require('path');
 const S = path.join(__dirname, '..', 'src') + '/';
 const KEY = /TXn?\(\s*(?:[^,()']+,\s*)?'((?:[^'\\]|\\.)*)'/g;
 const used = new Set();
-for (const f of ['app.js', 'view.js', 'logic.js', 'run.js', 'career.js', 'event.js', 'dialog.js', 'christmas.js', 'go.js', 'limited.js', 'cloud.js', 'media.js', 'techfx.js']) {
-  const src = fs.readFileSync(S + f, 'utf8'); let m; while ((m = KEY.exec(src))) used.add(eval("'" + m[1] + "'"));
+for (const f of ['app.js', 'view.js', 'logic.js', 'run.js', 'career.js', 'event.js', 'shop.js', 'selva.js', 'leyenda.js', 'cloud.js', 'media.js', 'techfx.js', 'pcareer.js', 'ach.js', 'christmas.js', 'go.js', 'limited.js', 'dialog.js']) {
+  const src = fs.readFileSync(S + f, 'utf8'); let m; while ((m = KEY.exec(src))) used.add(eval("'" + m[1] + "'")); const PL = /TXn\([^,]+,\s*'((?:[^'\\]|\\.)*)'\s*,\s*'((?:[^'\\]|\\.)*)'/g; while ((m = PL.exec(src))) { used.add(eval("'" + m[1] + "'")); used.add(eval("'" + m[2] + "'")); }
 }
-// Las frases de dialog.js van entre comillas dobles: no se listan como «faltan», pero sus traducciones no se borran
-const keepD = new Set(); { const D = /"((?:[^"\\]|\\.)*)"/g, d = fs.readFileSync(S + 'dialog.js', 'utf8'); let m; while ((m = D.exec(d))) { try { keepD.add(JSON.parse('"' + m[1] + '"')); } catch (_) {} } }
 const enSrc = fs.readFileSync(S + 'en.js', 'utf8');
 const EN = new Function(enSrc.split('const EN_TEXT =')[1].split('\nI18N.applyData')[0].replace(/;\s*$/, '').replace(/^/, 'return '))();
 const [, , cmd, file] = process.argv;
@@ -23,7 +21,7 @@ if (cmd === 'add') {
     EN[k] = lead + v + trail;
   }
 }
-const keys = Object.keys(EN).filter(k => used.has(k) || keepD.has(k)).sort();
+const keys = Object.keys(EN).filter(k => used.has(k)).sort();
 const q = s => "'" + s.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
 const body = keys.map(k => `  ${q(k)}: ${q(EN[k])},`).join('\n');
 const [head] = enSrc.split('const EN_TEXT = {');

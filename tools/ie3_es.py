@@ -1,4 +1,5 @@
-# Técnicas del Inazuma 3 en español (el juego nunca salió en España: venían en inglés) y algunas que faltaban.
+# Técnicas del Inazuma 3 en español y algunas que faltaban. Al acabar aplica tools/tech_oficial.py
+# (nombres oficiales de los juegos españoles), que manda sobre estas traducciones.
 # - name pasa a español; name_en guarda el nombre inglés original (para el juego en inglés).
 # - Técnicas nuevas: Torbellino de fuego (Axel, Inazuma 3) y Leyenda del lobo (Shawn, Inazuma 3).
 # Se ejecuta UNA vez sobre juego/gamedata.json:  python3 tools/ie3_es.py
@@ -58,3 +59,4 @@ for p in G['players']:
 json.dump(G, open(P, 'w'), ensure_ascii=False, separators=(',', ':'))
 names = [t['name'] for t in T.values()]
 print('traducidas', done, '· sin traducir', left, '· repetidas', sorted({n for n in names if names.count(n) > 1})[:20])
+import runpy; runpy.run_path(os.path.join(os.path.dirname(__file__), 'tech_oficial.py'))   # nombres oficiales de España
