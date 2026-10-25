@@ -317,7 +317,29 @@ const UI = (() => {
     Pad.setDribble(me ? (me.dribbleCd || 0) / Logic.DRIBBLE_CD : 0);
     Pad.setChoices(Logic.techChoices(s, me));
   }
-  function reset() { last = {}; sayCool = 0; const d = $('say'); if (d) d.className = 'say'; }
+  // Balón parado: el partido espera y eliges quién saca (o a quién controlas)
+  let pickOn = false;
+  function pickSync(s) {
+    const el = $('pick'); if (!el) return;
+    if (!s.pick) { if (pickOn) { el.hidden = true; el.innerHTML = ''; pickOn = false; } return; }
+    if (pickOn) return;
+    pickOn = true;
+    const pk = s.pick, K = { falta: TX('Falta'), penalti: TX('Penalti'), banda: TX('Saque de banda'), corner: TX('Córner'), libre: TX('Tiro libre'), puerta: TX('Saque de puerta') }[pk.kind] || TX('Balón parado');
+    const ask = pk.own ? (pk.kind === 'penalti' ? TX('elige quién lo tira') : TX('elige quién lo saca')) : TX('elige a quién controlas');
+    el.innerHTML = '<h4></h4><div class="pk-row"></div><button class="pk-skip"></button>';
+    el.querySelector('h4').textContent = K + ' · ' + ask;
+    const row = el.querySelector('.pk-row'), choose = id => { Sound.sfx('click'); Logic.pickPlayer(s, id); pickSync(s); };
+    for (const id of pk.ids) {
+      const p = s.players.find(q => q.id === id); if (!p) continue;
+      const b = document.createElement('button'); b.className = 'pk' + (id === s.controlledId ? ' cur' : '');
+      try { b.appendChild(Sprites.face(p.sprite, 44)); } catch (_) {}
+      const n = document.createElement('b'); n.textContent = p.name; const r = document.createElement('small'); r.textContent = (p.yellow ? '🟨 ' : '') + p.role;
+      b.append(n, r); b.onclick = () => choose(id); row.appendChild(b);
+    }
+    const sk = el.querySelector('.pk-skip'); sk.textContent = TX('Seguir con el de siempre'); sk.onclick = () => choose(null);
+    el.hidden = false;
+  }
+  function reset() { last = {}; sayCool = 0; const d = $('say'); if (d) d.className = 'say'; pickOn = false; const k = $('pick'); if (k) { k.hidden = true; k.innerHTML = ''; } }
   // Globo de diálogo de un jugador (con su retrato). Sin «force» respeta una pausa entre frases para no saturar.
   function say(ref, name, text, team, force, ms = 2300) {
     const d = $('say'), now = performance.now();
@@ -348,7 +370,7 @@ const UI = (() => {
     clearTimeout(cutT);
     cutT = setTimeout(() => { c.classList.add('out'); if (dim) dim.classList.remove('on'); cutT = setTimeout(() => { c.className = 'cutin'; }, 240); }, ms);
   }
-  return { toast, banner, update, reset, cutin, say };
+  return { toast, banner, update, reset, cutin, say, pickSync };
 })();
 
 /* =====================================================================
@@ -625,6 +647,8 @@ class MatchScene extends Phaser.Scene {
     const s = App.match;
     if (!s || !this.views.size) return;
     if (App.running) Logic.update(s, Input.read(), Math.min(delta / 1000, 0.05)); else Input.read();
+    UI.pickSync(s);
+    if (this.views.size !== s.players.length) for (const [id, v] of this.views) if (!s.players.some(p => p.id === id)) v.root.setVisible(false);   // expulsados
     this.drawAura(s, time);
 
     for (const p of s.players) {
@@ -810,6 +834,18 @@ class MatchScene extends Phaser.Scene {
           UI.toast(T + ' ' + who, 1400);
           break;
         }
+        case 'foul': {
+          Sound.sfx('whistle');
+          const mine = e.team === 'A';
+          const C = { amarilla: TX('🟨 Tarjeta amarilla'), roja: TX('🟥 Tarjeta roja'), roja2: TX('🟨🟥 Doble amarilla: expulsado') }[e.card];
+          UI.banner(C || (e.penalty ? TX('¡Penalti!') : TX('¡Falta!')), e.card && e.card !== 'amarilla' ? 'rival' : e.penalty ? 'flag' : 'gold', e.card ? 1700 : 1200);
+          UI.toast((mine ? (e.penalty ? TX('Falta tuya: penalti para el rival') : TX('Falta tuya')) : (e.penalty ? TX('Falta del rival: ¡penalti para ti!') : TX('Falta del rival'))) + (e.card ? ' · ' + e.name : ''), 2000);
+          this.cameras.main.shake(140, 0.004);
+          break;
+        }
+        case 'penalty':
+          UI.toast(e.team === 'A' ? TX('Tu penalti: apunta con el joystick y mantén Tiro') : TX('Penalti para {0}', s.teams.B.name), 2400);
+          break;
         case 'tackle':
           Sound.sfx(e.ok ? 'tackle' : 'whiff');
           if (e.ok) { this.dust.setDepth(e.y * PX + 5); this.dust.explode(14, e.x * PX, e.y * PX); if (e.team === 'A') UI.toast(TX('¡Entrada!')); }

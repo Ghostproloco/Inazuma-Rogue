@@ -366,13 +366,17 @@ const Logic = (() => {
       const chance = clamp(0.55 + (p.defense - (h.control * 0.6 + h.body * 0.4)) / 70 + front, 0.2, 0.92);
       if (rnd() < chance) {
         T.ok = true;
+        if (foulCheck(s, p, h, true, front > 0)) { T.t = 0.02; return; }   // entrada con falta: se para el juego
         h.stun = 0.8; h.kickLock = 0.5;
         h.vx = Math.cos(T.dir) * 4; h.vy = Math.sin(T.dir) * 4;   // empujón
         if (rnd() < 0.7) take(s, p);
         else Object.assign(s.ball, { owner: null, vx: Math.cos(T.dir) * 6, vy: Math.sin(T.dir) * 6, vz: 1, lastTeam: p.team, intended: null });
         s.events.push({ type: 'tackle', ok: true, team: p.team, x: h.x, y: h.y });
         T.t = Math.min(T.t, 0.06);
-      } else s.events.push({ type: 'tackle', ok: false, team: p.team, x: h.x, y: h.y });
+      } else {
+        s.events.push({ type: 'tackle', ok: false, team: p.team, x: h.x, y: h.y });
+        if (foulCheck(s, p, h, false, front > 0)) { T.t = 0.02; return; }   // le has dado a él y no al balón
+      }
     }
     if (T.t <= 0) {
       p.tackle = null; p.recover = T.ok ? 0.1 : 0.4;
@@ -807,29 +811,118 @@ const Logic = (() => {
     }
     Object.assign(b, { vx: 0, vy: 0, vz: 0, shot: null, fire: null, intended: null, offside: null });
     s.events.push({ type: 'setpiece', kind, team });
-    s.pause = { t: 1.0, then: () => restart(s, team, x, y, kind) };
+    deadBall(s, 1.0, id => restart(s, team, x, y, kind, id), { team, kind });
   }
   function offsideCall(s, m) {
     const team = m.team === 'A' ? 'B' : 'A', x = clamp(m.x, 1, F.w - 1), y = clamp(m.y, 1, F.l - 1);
     Object.assign(s.ball, { vx: 0, vy: 0, vz: 0, shot: null, fire: null, intended: null, offside: null });
     s.events.push({ type: 'setpiece', kind: 'offside', team, x, y });
-    s.pause = { t: 1.2, then: () => restart(s, team, x, y, 'libre') };
+    deadBall(s, 1.2, id => restart(s, team, x, y, 'libre', id), { team, kind: 'libre' });
   }
 
-  function restart(s, team, x, y, kind) {
+  /* ---------- Balón parado: elegir jugador, faltas, tarjetas y penaltis ---------- */
+  // Tras una pausa de balón parado: si está activado «Elegir jugador», el partido espera a que elijas quién saca / a quién controlas
+  function deadBall(s, delay, resume, o = {}) {
+    s.pause = { t: delay, then: () => {
+      if (s.settings.pickStop && !s.settings.allAI && !(o.kind === 'puerta' && o.team === 'A') && !(o.kind === 'penalti' && o.team !== 'A')) {
+        const ids = s.players.filter(p => p.team === 'A' && p.role !== 'POR').map(p => p.id);
+        if (ids.length > 1) { s.pick = { ids, resume, kind: o.kind || null, own: o.team === 'A' }; s.events.push({ type: 'pick', kind: o.kind || null, own: o.team === 'A' }); return; }
+      }
+      resume(null);
+    } };
+  }
+  function pickPlayer(s, id) {   // id = jugador elegido; null = seguir con el que está
+    const pk = s.pick; if (!pk) return false;
+    if (id != null && !pk.ids.includes(id)) return false;
+    s.pick = null; pk.resume(id); return true;
+  }
+
+  const foulsOn = s => (s.settings.fouls ?? 1) !== 0 && s.settings.fouls !== false;
+  // ¿Esta entrada es falta? Por detrás o sin tocar el balón es mucho más probable
+  function foulCheck(s, p, h, ok, fromFront) {
+    if (!foulsOn(s) || s.penalty || s.tech || s.pause || h.role === 'POR') return false;
+    const k = ok ? (fromFront ? 0.03 : 0.26) : (fromFront ? 0.14 : 0.5);
+    if (rnd() >= k) return false;
+    foulCall(s, p, h, !fromFront || !ok);
+    return true;
+  }
+  function foulCall(s, p, h, rough) {
+    const team = h.team, x = clamp(h.x, 1, F.w - 1), y = clamp(h.y, 1, F.l - 1);
+    const inBox = inOwnBox(p.team, { x, y });
+    // Tarjetas: amarilla (la segunda es roja) o roja directa. Nunca al portero ni dejando al equipo con menos de 4
+    let card = null; const r = rnd();
+    if (rough ? r < 0.35 : r < 0.1) card = 'amarilla';
+    if (rough && r < 0.05) card = 'roja';
+    if (card === 'amarilla') { p.yellow = (p.yellow || 0) + 1; if (p.yellow >= 2) card = 'roja2'; }
+    const field = s.players.filter(q => q.team === p.team && q.role !== 'POR').length;
+    if ((card === 'roja' || card === 'roja2') && (p.role === 'POR' || field <= 3)) card = 'amarilla';
+    s.cards = s.cards || { A: { y: 0, r: 0 }, B: { y: 0, r: 0 } };
+    if (card === 'amarilla') s.cards[p.team].y++; else if (card) s.cards[p.team].r++;
+    for (const q of s.players) { q.dvx = q.dvy = 0; q.tackle = null; q.windup = null; q.tkWind = 0; }
+    p.recover = 0.4;
+    Object.assign(s.ball, { owner: null, x, y, z: 0, vx: 0, vy: 0, vz: 0, shot: null, fire: null, intended: null, offside: null, lastTeam: p.team });
+    s.shoot.charging = false; s.pass = null;
+    s.events.push({ type: 'foul', team: p.team, id: p.id, name: p.name, victim: h.id, card, x, y, penalty: inBox });
+    if (card === 'roja' || card === 'roja2') sendOff(s, p);
+    const delay = card ? 2.2 : 1.5;
+    if (inBox) deadBall(s, delay, id => startPenalty(s, team, id), { team, kind: 'penalti' });
+    else deadBall(s, delay, id => restart(s, team, x, y, 'falta', id), { team, kind: 'falta' });
+  }
+  function sendOff(s, p) {
+    const i = s.players.indexOf(p); if (i >= 0) s.players.splice(i, 1);
+    (s.sentOff = s.sentOff || []).push(p.id);
+    if (s.controlledId === p.id) { const m = s.players.find(q => q.team === 'A' && q.role !== 'POR'); s.controlledId = m ? m.id : null; }
+  }
+
+  // Penalti: el que lo tira con el balón en el punto, el portero en su línea y todos los demás fuera del área, quietos hasta el disparo
+  function startPenalty(s, team, chosenId) {
+    const opp = team === 'A' ? 'B' : 'A';
+    const field = s.players.filter(q => q.team === team && q.role !== 'POR');
+    const taker = (team === 'A' && chosenId && field.find(q => q.id === chosenId)) || field.slice().sort((a, q) => q.kick - a.kick)[0];
+    const spot = toAbs(team, 0, F.l - F.spot), dir = attackDir(team);
+    const place = (q, ox, depth) => { const a = toAbs(q.team, ox, depth); Object.assign(q, { x: a.x, y: a.y, vx: 0, vy: 0, dvx: 0, dvy: 0, stun: 0, recover: 0, tackle: null, dash: null, windup: null, tkWind: 0, kickLock: 0 }); q.facing = q.aim = dir < 0 ? -Math.PI / 2 : Math.PI / 2; };
+    const lineA = F.l - (F.boxD + 2.8), lineD = F.boxD + 1.2;
+    field.filter(q => q !== taker).forEach((q, i, a) => place(q, (i - (a.length - 1) / 2) * 4, lineA));
+    s.players.filter(q => q.team === opp && q.role !== 'POR').forEach((q, i, a) => { place(q, (i - (a.length - 1) / 2) * 4, lineD); q.facing = q.aim = dir < 0 ? Math.PI / 2 : -Math.PI / 2; });
+    const gk = s.players.find(q => q.team === opp && q.role === 'POR'); if (gk) place(gk, 0, 1.2);
+    Object.assign(taker, { x: spot.x, y: spot.y - dir * 0.45, vx: 0, vy: 0, dvx: 0, dvy: 0, stun: 0, recover: 0, tackle: null, dash: null, windup: null, tkWind: 0, kickLock: 0 });
+    taker.facing = taker.aim = dir < 0 ? -Math.PI / 2 : Math.PI / 2;
+    s.tech = null; s.slow = 0; s.shoot.charging = false; s.shoot.charge = 0; s.shoot.aimX = 0;
+    take(s, taker);
+    s.penalty = { team, taker: taker.id, t: 0, delay: 1.1 + rnd() * 0.6, fired: false, held: false };
+    s.events.push({ type: 'penalty', team, id: taker.id, name: taker.name });
+    s.pause = { t: 0.5 };
+  }
+  function penaltyStep(s, pen, dt) {
+    const taker = s.players.find(q => q.id === pen.taker), b = s.ball;
+    if (!taker) { s.penalty = null; return; }
+    pen.t += dt / GAME_SPEED;   // segundos reales
+    if (b.owner !== taker || b.shot) {   // ya ha chutado: todos se mueven
+      if (pen.held) s.time = Math.max(s.time, 4);
+      s.penalty = null; return;
+    }
+    if (pen.team === 'B' || s.settings.allAI || pen.t > 12) {   // el rival (o tú, si tardas mucho) chuta a una esquina
+      if (pen.t >= pen.delay) shoot(s, taker, 0.5 + rnd() * 0.4, (rnd() < 0.5 ? -1 : 1) * (0.5 + rnd() * 0.4));
+    }
+  }
+
+  function restart(s, team, x, y, kind, chosenId) {
     const spot = { x, y };
-    const cand = kind === 'puerta' ? s.players.find(p => p.team === team && p.role === 'POR')
-      : s.players.filter(p => p.team === team && (p.role !== 'POR' || inOwnBox(team, spot))).sort((a, q) => dist(a, spot) - dist(q, spot))[0];
+    const chosen = chosenId && team === 'A' && kind !== 'puerta' ? s.players.find(p => p.id === chosenId && p.team === 'A' && p.role !== 'POR') : null;
+    const cand = chosen || (kind === 'puerta' ? s.players.find(p => p.team === team && p.role === 'POR')
+      : s.players.filter(p => p.team === team && (p.role !== 'POR' || inOwnBox(team, spot))).sort((a, q) => dist(a, spot) - dist(q, spot))[0]);
+    cand.stun = 0; cand.recover = 0;
     cand.x = x; cand.y = y; cand.vx = cand.vy = 0;
     cand.aim = kind === 'corner' ? Math.atan2(oppGoalY(team) + attackDir(team) * -6 - y, cx - x) : Math.atan2(F.l / 2 - y, cx - x);
     cand.facing = snap8(cand.aim);
-    const room = kind === 'corner' ? 6 : 4;
+    const room = kind === 'corner' || kind === 'falta' ? 6 : 4;
     for (const o of s.players) {
       if (o.team === team || o === cand) continue;
       const d = dist(o, spot);
       if (d < room) { const ux = (o.x - x) / (d || 1), uy = (o.y - y) / (d || 1); o.x = clamp(x + ux * room, 0.5, F.w - 0.5); o.y = clamp(y + uy * room, 0.5, F.l - 0.5); }
     }
     take(s, cand);
+    if (chosenId && team !== 'A') { const c = s.players.find(p => p.id === chosenId && p.team === 'A'); if (c) s.controlledId = c.id; }   // defiendes con el que elijas
     s.ball.setPiece = cand.id;   // el primer pase de un saque no puede ser fuera de juego
     cand.think = 0.5;
     s.pause = { t: 0.35 };
@@ -962,8 +1055,11 @@ const Logic = (() => {
       if (s.pause.t <= 0) { const fn = s.pause.then; s.pause = null; fn && fn(); }
       return;
     }
+    if (s.pick) return;   // esperando a que elijas jugador (balón parado)
     s.t += dt;
     s.time -= dt / GAME_SPEED;
+    const pen = s.penalty && !s.penalty.fired ? s.penalty : null;
+    if (s.time <= 0 && pen) { s.time = 0.2; pen.held = true; }   // un penalti pendiente se tira aunque se acabe el tiempo
     if (s.time <= 0) {
       s.time = 0;
       if (s.score.A === s.score.B && s.settings.golden && !s.golden) {
@@ -978,8 +1074,14 @@ const Logic = (() => {
     for (const p of s.players) p.sprint = false;
     assignMarks(s);
     input.dt = dt;
-    if (!s.settings.allAI) { autoSwitch(s, dt); handleUser(s, input); }
-    for (const p of s.players) if (s.settings.allAI || p.id !== s.controlledId) ai(s, p, dt);
+    if (pen) penaltyStep(s, pen, dt);
+    if (!s.settings.allAI) { if (!pen) autoSwitch(s, dt); handleUser(s, input); }
+    if (pen) { const me = controlled(s); if (me && me.id !== pen.taker) me.dvx = me.dvy = 0; }   // en un penalti, quieto hasta el chut
+    for (const p of s.players) {
+      if (pen && p.id !== pen.taker && p.role !== 'POR') { p.dvx = p.dvy = 0; continue; }
+      if (pen && p.id === pen.taker && (pen.team === 'B' || s.settings.allAI)) { p.dvx = p.dvy = 0; continue; }
+      if (s.settings.allAI || p.id !== s.controlledId) ai(s, p, dt);
+    }
     updateTech(s, dt);
 
     for (const p of s.players) {
@@ -1016,5 +1118,5 @@ const Logic = (() => {
     if (!s.pause) checkSteals(s, dt);
   }
 
-  return { FIELD: F, DRIBBLE_CD, techChoices, createMatch, update, possession, controlled, contextTech, _t: { take, startTech, shoot, goal } };
+  return { FIELD: F, DRIBBLE_CD, techChoices, createMatch, update, possession, controlled, contextTech, pickPlayer, _t: { take, startTech, shoot, goal, foulCall, startPenalty, restart } };
 })();

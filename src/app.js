@@ -17,12 +17,12 @@ const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
 
-const VERSION = '0.31.13';
+const VERSION = '0.31.14';
 const DISCORD_URL = 'https://discord.gg/G6SyT2rZW', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 const App = (() => {
   const $ = id => document.getElementById(id);
-  const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1 };
+  const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1, fouls: 1, pickStop: 0 };
   try { Object.assign(settings, JSON.parse(localStorage.getItem('inazuma-ajustes') || '{}')); } catch (_) {}
   const saveSettings = () => { try { localStorage.setItem('inazuma-ajustes', JSON.stringify(settings)); } catch (_) {} };
   // Fuera de la beta no hay modo desarrollador: si alguien lo tenía encendido, se apaga sin avisar
@@ -244,7 +244,7 @@ const App = (() => {
 
   function renderWelcome() {
     screen(`<div class="title"><img class="logo" src="ui/logo_gold.png" alt="Inazuma Gold"><span>${TX('¡Bienvenido!')}</span></div>
-      <p class="note">${TX('Tu plantilla empieza vacía. Haz tu tirada de bienvenida:')} <b>${TX('10 jugadores')}</b> ${TX('del juego, con un')} <b>${TX('portero asegurado')}</b> ${TX('y al menos uno épico o mejor. Además recibes 60 monedas para entrenar.')}</p>
+      <p class="note">${TX('Tu plantilla empieza vacía. Haz tu tirada de bienvenida:')} <b>${TX('10 jugadores')}</b> ${TX('del juego, con un')} <b>${TX('portero asegurado')}</b> ${TX('y al menos uno épico o mejor. Además recibes 100 monedas para entrenar.')}</p>
       <p class="note">${TX('Probabilidades: común 60 % · rara 28 % · épica 10 % · legendaria 2 %. Cada 10 tiradas sin épica, la siguiente lo es seguro.')}</p>
       <button class="cta" id="wPull">${TX('Tirada de bienvenida ×10')}</button>
       ${Cloud.enabled() && !Cloud.loggedIn() ? `<div class="grid2"><button class="ghost big" id="wIn">${TX('Ya tengo cuenta')}<small>${TX('Recuperar mi partida')}</small></button><button class="ghost big" id="wUp">${TX('Crear cuenta')}<small>${TX('Guardar en la nube')}</small></button></div>` : ''}
@@ -258,7 +258,7 @@ const App = (() => {
       Sound.unlock();
       Profile.data.pity = 0;
       const res = Gacha.pull(10, { keeper: true });
-      Profile.data.firstDone = true; Profile.data.coins += 60; Profile.save();
+      Profile.data.firstDone = true; Profile.data.coins += 100; Profile.save();
       renderMachine(res, 1, renderMenu, TX('Tirada de bienvenida'));
     };
   }
@@ -658,22 +658,24 @@ const App = (() => {
   }
   function renderLimitado() {
     const H = Limitado.data(), P = Profile.data, bai = PLAYER(BAI_ID);
-    const rates = LM_RATES.map(([t, w]) => RARITY[t].label + ' ' + w + ' %').join(' · ');
+    const pct = n => { const t = String(+n.toFixed(2)); return (I18N.en() ? t : t.replace('.', ',')) + ' %'; };
     screen(`${top('⚡ ' + TX('Gacha limitado'))}${wallet()}
       <div class="lmhero"><img src="ui/bailong.jpg" alt="Bai Long">${lmBolts()}<span class="lmtag">${TX('LIMITADO')}</span>
         <div class="lmname"><b>Bai Long</b><small>${TX('Nota')} ${Math.round(Limitado.avgOf(bai))} · ${RAB(bai.role)} · ${ELEM_LABEL[bai.elem]}</small></div></div>
       <h3>${TX('Técnicas de Bai Long')}</h3>
       <div class="lmtechs">${BAI_TECHS.map(b => { const t = TECH(b.id); return `<div class="lmtech ${EL(t.elem).css}"><b>${esc(t.name)}</b><small>${TYPE_LABEL[t.type]} · ${t.power}</small></div>`; }).join('')}</div>
+      <h3>${TX('Probabilidades')}</h3>
+      <div class="lmrates">${LM_RATES.map(([t, w]) => `<div class="${t}">${rchip(t)}<b>${pct(w)}</b></div>`).join('')}</div>
+      <p class="note">${TX('Bai Long es súper difícil de conseguir: solo')} <b>${pct(LM_RATES[0][1])}</b> ${TX('por jugador. Está asegurado a las')} ${LM_PITY} ${TX('tiradas sin él (llevas')} ${H.pity}${TX(').')}<br>
+        ${TX('Los repetidos suben una estrella (máx.')} ${MAX_STARS}${TX('); con 5 estrellas dan monedas.')}</p>
       <h3>${TX('Jugadores del sobre')}</h3>
       <div class="lmlist" id="lmList"></div>
-      <p class="note">${rates}.<br>${TX('Cada sobre trae al menos una épica o mejor, y Bai Long está asegurado a las')} ${LM_PITY} ${TX('tiradas sin él (llevas')} ${H.pity}${TX(').')}<br>
-        ${TX('Los repetidos suben una estrella (máx.')} ${MAX_STARS}${TX('); con 5 estrellas dan monedas.')}</p>
       ${bottom(`<button class="cta lmgo" id="lm10" ${P.tickets < LM_PRICE ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${LM_PRICE} 🎟️ · ${TX('10 jugadores')}</small></button>`)}`, 'bg_title');
     Limitado.ids().forEach(id => {
       const pd = PLAYER(id), w = document.createElement('div');
       w.className = 'lmp ' + pd.rarity + (P.coll[id] ? ' own' : '');
       w.appendChild(face(Sprites.refOf(pd), 48));
-      w.insertAdjacentHTML('beforeend', `<small>${esc(pd.name)}</small>${rchip(pd.rarity)}`);
+      w.insertAdjacentHTML('beforeend', `<small>${esc(pd.name)}</small>${rchip(pd.rarity)}<em class="lmpc">${pct(Limitado.chanceOf(id))}</em>`);
       $('lmList').appendChild(w);
     });
     $('lm10').onclick = () => {
@@ -2162,6 +2164,9 @@ const App = (() => {
   }
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
+    { v: '0.31.14', date: '25/10/2026', items: [
+      TX('⚖️ Faltas, tarjetas y penaltis: las entradas por detrás o sin tocar el balón pueden ser falta (tiro libre, o penalti en el área). Hay tarjetas amarillas y rojas: con la segunda amarilla, o con una roja, el jugador se va y su equipo juega con uno menos. Se puede desactivar en Ajustes.'),
+      TX('🔄 Ajustes → «Elegir jugador con el balón parado»: cuando el balón sale, hay falta o penalti, el partido espera y eliges quién saca o a quién controlas.')] },
     { v: '0.31.13', date: '24/10/2026', items: [
       TX('Pequeños ajustes y mejoras en el gacha y en los avisos al abrir el juego.')] },
     { v: '0.31.12', date: '23/10/2026', items: [
@@ -2300,6 +2305,9 @@ const App = (() => {
       ${opts(TX('Supertécnicas'), 'techMode', [['boton', TX('Con botón')], ['auto', TX('Automáticas')]])}
       ${opts(TX('Cámara lenta en supertécnicas'), 'slowmo', [[1, TX('Sí')], [0, TX('No')]])}
       ${opts(TX('Cambio automático de jugador'), 'autoSwitch', [[1, TX('Sí')], [0, TX('No')]])}
+      ${opts(TX('Faltas, tarjetas y penaltis'), 'fouls', [[1, TX('Sí')], [0, TX('No')]])}
+      ${opts(TX('Elegir jugador con el balón parado'), 'pickStop', [[1, TX('Sí')], [0, TX('No')]])}
+      <p class="note">${TX('Con «Elegir jugador», cuando el balón sale, hay falta o penalti, el partido espera y eliges quién saca o a quién controlas.')}</p>
       <h3>${TX('Controles')}</h3>
       ${opts(TX('Botones en pantalla'), 'controls', [['auto', TX('Auto')], ['tactil', TX('Siempre')], ['teclado', TX('Nunca (PC)')]])}
       ${opts(TX('Tamaño de los botones (móvil)'), 'padSize', [['pequeno', TX('Pequeños')], ['normal', TX('Normales')], ['grande', TX('Grandes')]], Object.assign({ padSize: 'normal' }, settings))}
@@ -2497,7 +2505,9 @@ const App = (() => {
     };
     el.hidden = false; stage.innerHTML = ''; say('');
     el.querySelector('.in-skip').onclick = e => { e.stopPropagation(); finish(); };
-    layer(`<img class="in-logo" src="ui/logo_gold.png" alt="Inazuma Gold"><p class="in-tap">${Controls.pc() ? TX('Haz clic o pulsa una tecla') : TX('Toca para empezar')}</p>`, 'in-center');
+    // Portada: la ilustración entera (ajustada al ancho) con su propio fondo difuminado detrás
+    { const d = layer(`<div class="in-bg"></div><div class="in-fg"></div><p class="in-tap">${Controls.pc() ? TX('Haz clic o pulsa una tecla') : TX('Toca para empezar')}</p>`, 'in-slide in-cover');
+      d.firstChild.style.backgroundImage = d.children[1].style.backgroundImage = 'url("ui/portada.jpg")'; }
     el.onclick = () => {
       el.onclick = null; Sound.unlock(); Sound.music('intro');
       const n = GAME.players.filter(p => p.gacha !== false).length;
