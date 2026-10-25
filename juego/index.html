@@ -740,6 +740,14 @@ html,body,button,.act,#shell{touch-action:manipulation}
 .npbox h2{margin:0;font-size:30px;color:#ffe27a;text-shadow:0 0 10px #35d6ff}
 .npavg{font-size:22px;color:#fff;font-weight:400}.nptechs{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}.nptechs span{font-size:13px;padding:2px 8px;background:#0b1c55;border:1px solid #35d6ff;color:#e8f6ff}
 .npbox button{width:100%}
+.in-cover .in-bg{filter:blur(14px) brightness(.5) saturate(1.2)}
+.in-cover .in-fg{image-rendering:auto}
+.in-cover .in-tap{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 7%);text-align:center;z-index:3;text-shadow:0 2px 0 #000,0 0 12px #000}
+.lmrates{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lmrates>div{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:var(--navy);border:2px solid #5a7ab8}
+.lmrates>div.limitada{border-color:#35d6ff;box-shadow:0 0 10px rgba(60,200,255,.7)}.lmrates>div.epica{border-color:#b07cff}
+.lmrates b{font-size:18px;color:#ffe27a;font-weight:400}
+.lmpc{font-style:normal;font-size:12px;color:#ffe27a}
 @media (prefers-reduced-motion:reduce){.lb,.lmhero::after,.npk,.rar.limitada,.gcard.limitada .pix,.npface,.cap.t-limitada .ct{animation:none!important}}
 </style>
 
@@ -980,6 +988,7 @@ const EN_TEXT = {
   'Aún no hay ninguna carrera terminada.': 'No careers finished yet.',
   'Aún no tienes ninguna. Salen en el tramo legendario del gacha.': 'You don\'t have any yet. They come from the legendary tier of the gacha.',
   'Bai Long': 'Bai Long',
+  'Bai Long es súper difícil de conseguir: solo': 'Bai Long is super hard to get: only',
   'Bajar a Tercera': 'Drop to Third Division',
   'Banda': 'Band',
   'Banda sonora original': 'Original soundtrack',
@@ -998,7 +1007,6 @@ const EN_TEXT = {
   'Cada 3 temporadas: convoca a 10 y lleva a Inazuma Japón a lo más alto': 'Every 3 seasons: call up 10 and take Inazuma Japan to the top',
   'Cada intento es roguelite: las técnicas, habilidades y fichajes se pierden al acabar. La etapa que completas queda superada para siempre y abre las Cadenas, el Infinito y más equipos especiales.': 'Each attempt is roguelite: techniques, skills and signings are lost when it ends. A stage you complete stays cleared forever and unlocks Chains, Infinite and more special teams.',
   'Cada partida es distinta: vidas, mejoras y jefes': 'Every run is different: lives, upgrades and bosses',
-  'Cada sobre trae al menos una épica o mejor, y Bai Long está asegurado a las': 'Every pack has at least one epic or better, and Bai Long is guaranteed after',
   'Cadena': 'Chain',
   'Cadenas': 'Chains',
   'Cadenas completadas con oro': 'Chains completed with gold',
@@ -1658,6 +1666,7 @@ const EN_TEXT = {
   'Primero juega o simula el partido de esta semana': 'Play or simulate this week\'s match first',
   'Primero pega el código.': 'Paste the code first.',
   'Primero toca el puesto del campo': 'Tap a position on the pitch first',
+  'Probabilidades': 'Odds',
   'Probabilidades: común 60 % · rara 28 % · épica 10 % · legendaria 2 %. Cada 10 tiradas sin épica, la siguiente lo es seguro.': 'Odds: common 60% · rare 28% · epic 10% · legendary 2%. After 10 pulls without an epic, the next one is guaranteed.',
   'Progreso': 'Progress',
   'Prominence, Polvo de Diamantes y su fusión, Caos.': 'Prominence, Diamond Dust and their fusion, Chaos.',
@@ -2055,6 +2064,7 @@ const EN_TEXT = {
   'playoff': 'playoff',
   'playoff ·': 'playoff ·',
   'por': 'for',
+  'por jugador. Está asegurado a las': 'per player. He is guaranteed after',
   'por jugar': 'for playing',
   'por la tercera plaza; los 3 últimos bajan. Ficha jugadores, mejora el club y gana la': 'for the third spot; the bottom 3 go down. Sign players, upgrade the club and win the',
   'portero asegurado': 'guaranteed goalkeeper',
@@ -2120,7 +2130,7 @@ const EN_TEXT = {
   'versión antigua': 'old version',
   'vuelve a entrar': 'log in again',
   'y': 'and',
-  'y al menos uno épico o mejor. Además recibes 60 monedas para entrenar.': 'and at least one epic or better. You also get 60 coins for training.',
+  'y al menos uno épico o mejor. Además recibes 100 monedas para entrenar.': 'and at least one epic or better. You also get 100 coins to train.',
   'y es un texto largo.': 'and it\'s a long text.',
   'y la cantera trae chavales nuevos. Cuida la fama: si llega a 0, cierran el club. Cada 3 temporadas,': 'and the academy brings new kids. Look after your fame: if it reaches 0, they close the club. Every 3 seasons,',
   'y pasa la semana': 'and the week goes by',
@@ -3810,7 +3820,7 @@ const PASSIVES = {
 /* ---------- Estadísticas ---------- */
 // Valor de una estadística de un jugador de tu colección (permanente)
 // Los legendarios empiezan ya al máximo (media de 90 o más); el resto empieza al 82 % y se entrena
-const startMul = pd => pd.rarity === 'legendaria' ? 1 : 0.82;
+const startMul = pd => pd.rarity === 'legendaria' || pd.rarity === 'limitada' ? 1 : 0.82;   // las legendarias y la limitada empiezan con todas sus stats
 function statOf(id, owned, k) {
   const pd = PLAYER(id), ie = pd.ie[k], stars = owned ? owned.stars : 1, up = owned ? (owned.up[k] || 0) : 0;
   return Math.min(ie + 2 * (stars - 1), Math.round(ie * startMul(pd)) + up * 3 + (stars - 1) * 2);
@@ -3969,7 +3979,7 @@ const Profile = {
   load() {
     let d = null;
     try { d = JSON.parse(localStorage.getItem('inazuma-perfil') || 'null'); } catch (_) {}
-    this.data = Object.assign({ coll: {}, coins: 99999, tickets: 99999, pity: 0, firstDone: false, pulls: 0,
+    this.data = Object.assign({ coll: {}, coins: 0, tickets: 10, pity: 0, firstDone: false, pulls: 0,
       rayos: 0, wins: 0, story: { s1: { best: 0, done: false } }, specials: {}, chains: {}, infBest: 0, techs: {}, banner: 1 }, d || {});
     this.data.techs = this.data.techs || {};
     this.data.codes = this.data.codes || {};
@@ -3982,6 +3992,10 @@ const Profile = {
       const c = this.data.coll;
       if (c[o]) { if (!c[n]) c[n] = c[o]; else c[n].stars = Math.max(c[n].stars, c[o].stars); delete c[o]; }
     }
+    // Jugadores que ya no existen en el juego (Arion, Victor y Riccardo): se quitan de las colecciones guardadas
+    for (const id of Object.keys(this.data.coll)) if (!PLAYER(id)) delete this.data.coll[id];
+    // Los 99999 de monedas y tickets eran de pruebas: si no se ha gastado ni una, se pasa a lo normal (una sola vez)
+    if (!this.data.econFix) { this.data.econFix = 1; if (this.data.coins === 99999 && this.data.tickets === 99999) { this.data.coins = 100; this.data.tickets = 10; } }
     return this.data;
   },
   save() { try { localStorage.setItem('inazuma-perfil', JSON.stringify(this.data)); } catch (_) {} },
@@ -5557,19 +5571,13 @@ const Navidad = {
 };
 
 /* =====================================================================
-   JUGADORES DE INAZUMA ELEVEN GO: Arion Sherwind, Victor Blade, Riccardo Di Rigo y Bai Long.
-   - Ya NO se consiguen con códigos: salen en el Gacha limitado de Bai Long (src/limited.js).
+   JUGADORES DE INAZUMA ELEVEN GO: de momento solo Bai Long (Arion, Victor y Riccardo se quitaron del juego).
+   - Bai Long solo sale en el Gacha limitado (src/limited.js), no con códigos.
    - Retrato propio en sprites/fgo.png (una fila de 64 px por jugador; fila = goFace).
    - Muñeco del partido provisional: el de otro jugador parecido (goBase); se cambia poniendo otro `cs`.
    - Estadísticas y técnicas: editar aquí (técnicas copiadas de un jugador de referencia, ref).
    ===================================================================== */
 const GO_PLAYERS = [
-  { id: 998001, name: 'Arion Sherwind', nick: 'Arion', role: 'MED', elem: 'viento',  face: 1, sprite: 31763, ref: 29,
-    ie: { tiro: 88, control: 96, defensa: 84, rapidez: 94, fisico: 86, aguante: 96 } },
-  { id: 998002, name: 'Victor Blade', nick: 'Victor', role: 'MED', elem: 'bosque', face: 2, sprite: 21905, ref: 157,
-    ie: { tiro: 86, control: 97, defensa: 85, rapidez: 90, fisico: 84, aguante: 94 } },
-  { id: 998003, name: 'Riccardo Di Rigo', nick: 'Riccardo', role: 'DEF', elem: 'montaña', face: 3, sprite: 21770, ref: 21399,
-    ie: { tiro: 76, control: 88, defensa: 98, rapidez: 90, fisico: 97, aguante: 94 } },
   { id: 998004, name: 'Bai Long', nick: 'Bai Long', role: 'DEL', elem: 'fuego', face: 0, sprite: 21607, ref: 10,
     ie: { tiro: 104, control: 98, defensa: 96, rapidez: 102, fisico: 100, aguante: 100 } },   // media 100; su rareza «limitada» y sus técnicas se ponen en limited.js
 ];
@@ -5591,26 +5599,27 @@ const GO_PLAYERS = [
    - Bai Long (id 998004, registrado en go.js): media 100, delantero de fuego,
      con su tiro «Dragón relámpago» y su técnica «Estela del dragón blanco».
    - Sobre limitado: 100 🎟️ = 10 jugadores. Bote de 10 jugadores:
-       limitada · Bai Long
-       legendaria · Arion, Victor, Riccardo y Bianchi Christmas
-         (ya NO se consiguen con códigos: solo aquí)
-       épica · Jang Cho, Jim Flareson · rara · Changsu Choi, Umi Wang · común · Sol Crater
-   - Cada sobre de 10 trae al menos una épica o mejor; Bai Long asegurado a las 30 tiradas sin él.
+       limitada · Bai Long (0,3 % por jugador: SÚPER difícil)
+       épica · Jang Cho, Jim Flareson, Clive Mooney (12 % en total)
+       rara · Changsu Choi, Umi Wang, Rick Hatter (32 %)
+       común · Sol Crater, Lou Edmonds, Hugo Tallgeese (55,7 %)
+   - Bai Long asegurado a las 200 tiradas sin él (20 sobres). Sin más garantías: las probabilidades
+     que se enseñan en pantalla son las reales.
+   - Arion, Victor y Riccardo ya no existen en el juego; Bianchi Christmas no sale en este gacha.
    - NEW_PLAYERS: al añadir un jugador nuevo, pon aquí su id y la versión: al abrir
      el juego sale una pantalla con él (una sola vez por dispositivo).
    ===================================================================== */
 const LM_BANNER = 68;
 const LM_PRICE = 100, LM_N = 10;                  // 100 tickets por sobre de 10 jugadores
-const LM_PITY = 30;                               // Bai Long asegurado a las 30 tiradas sin él
-const LM_RATES = [['limitada', 2], ['legendaria', 10], ['epica', 23], ['rara', 30], ['comun', 35]];
+const LM_PITY = 200;                              // Bai Long asegurado a las 200 tiradas sin él (20 sobres)
+const LM_RATES = [['limitada', 0.3], ['epica', 12], ['rara', 32], ['comun', 55.7]];   // % por jugador sacado (suman 100)
 const LM_END = null;                              // último día del gacha limitado (AAAA-MM-DD); null = sin fecha de fin
 const BAI_ID = 998004;
 const LM_POOL_IDS = {
   limitada: [BAI_ID],
-  legendaria: [998001, 998002, 998003, 997008],
-  epica: [31766, 21459],
-  rara: [31775, 31767],
-  comun: [277],
+  epica: [31766, 21459, 82],
+  rara: [31775, 31767, 393],
+  comun: [277, 188, 53],
 };
 // Jugadores nuevos: se enseñan al abrir el juego la primera vez (settings.seenPlayers)
 const NEW_PLAYERS = [
@@ -5649,7 +5658,9 @@ const Limitado = {
     for (const t in LM_POOL_IDS) P[t] = LM_POOL_IDS[t].filter(id => PLAYER(id));
     return (this._pool = P);
   },
-  ids() { const P = this.pool(); return ['limitada', 'legendaria', 'epica', 'rara', 'comun'].reduce((a, t) => a.concat(P[t]), []); },
+  ids() { const P = this.pool(); return ['limitada', 'epica', 'rara', 'comun'].reduce((a, t) => a.concat(P[t]), []); },
+  // % de sacar a ese jugador en una tirada (su rareza dividida entre los de su rareza)
+  chanceOf(id) { const P = this.pool(); for (const [t, w] of LM_RATES) if (P[t].includes(id)) return w / P[t].length; return 0; },
   avgOf(pd) { return ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + pd.ie[k], 0) / 5; },
   // Un sobre: 10 jugadores por 100 tickets (null si no te llegan)
   pull() {
@@ -5661,13 +5672,8 @@ const Limitado = {
       if (H.pity >= LM_PITY - 1) tier = 'limitada';
       else { let r = Math.random() * 100; for (const [t, w] of LM_RATES) { if (r < w) { tier = t; break; } r -= w; } }
       H.pity = tier === 'limitada' ? 0 : H.pity + 1;
-      const list = pool[tier].length ? pool[tier] : pool.epica;
+      const list = pool[tier].length ? pool[tier] : pool.comun;
       res.push({ id: list[Math.floor(Math.random() * list.length)], tier });
-    }
-    // cada sobre trae al menos una épica o mejor
-    if (!res.some(r => r.tier === 'epica' || r.tier === 'legendaria' || r.tier === 'limitada')) {
-      const k = res.length - 1, list = pool.epica;
-      res[k] = { id: list[Math.floor(Math.random() * list.length)], tier: 'epica' };
     }
     for (const r of res) {   // igual que el gacha normal: nuevo, una estrella más o monedas
       const o = P.coll[r.id];
@@ -8415,7 +8421,7 @@ const App = (() => {
 
   function renderWelcome() {
     screen(`<div class="title"><img class="logo" src="ui/logo_gold.png" alt="Inazuma Gold"><span>${TX('¡Bienvenido!')}</span></div>
-      <p class="note">${TX('Tu plantilla empieza vacía. Haz tu tirada de bienvenida:')} <b>${TX('10 jugadores')}</b> ${TX('del juego, con un')} <b>${TX('portero asegurado')}</b> ${TX('y al menos uno épico o mejor. Además recibes 60 monedas para entrenar.')}</p>
+      <p class="note">${TX('Tu plantilla empieza vacía. Haz tu tirada de bienvenida:')} <b>${TX('10 jugadores')}</b> ${TX('del juego, con un')} <b>${TX('portero asegurado')}</b> ${TX('y al menos uno épico o mejor. Además recibes 100 monedas para entrenar.')}</p>
       <p class="note">${TX('Probabilidades: común 60 % · rara 28 % · épica 10 % · legendaria 2 %. Cada 10 tiradas sin épica, la siguiente lo es seguro.')}</p>
       <button class="cta" id="wPull">${TX('Tirada de bienvenida ×10')}</button>
       ${Cloud.enabled() && !Cloud.loggedIn() ? `<div class="grid2"><button class="ghost big" id="wIn">${TX('Ya tengo cuenta')}<small>${TX('Recuperar mi partida')}</small></button><button class="ghost big" id="wUp">${TX('Crear cuenta')}<small>${TX('Guardar en la nube')}</small></button></div>` : ''}
@@ -8429,7 +8435,7 @@ const App = (() => {
       Sound.unlock();
       Profile.data.pity = 0;
       const res = Gacha.pull(10, { keeper: true });
-      Profile.data.firstDone = true; Profile.data.coins += 60; Profile.save();
+      Profile.data.firstDone = true; Profile.data.coins += 100; Profile.save();
       renderMachine(res, 1, renderMenu, TX('Tirada de bienvenida'));
     };
   }
@@ -8829,22 +8835,24 @@ const App = (() => {
   }
   function renderLimitado() {
     const H = Limitado.data(), P = Profile.data, bai = PLAYER(BAI_ID);
-    const rates = LM_RATES.map(([t, w]) => RARITY[t].label + ' ' + w + ' %').join(' · ');
+    const pct = n => { const t = String(+n.toFixed(2)); return (I18N.en() ? t : t.replace('.', ',')) + ' %'; };
     screen(`${top('⚡ ' + TX('Gacha limitado'))}${wallet()}
       <div class="lmhero"><img src="ui/bailong.jpg" alt="Bai Long">${lmBolts()}<span class="lmtag">${TX('LIMITADO')}</span>
         <div class="lmname"><b>Bai Long</b><small>${TX('Nota')} ${Math.round(Limitado.avgOf(bai))} · ${RAB(bai.role)} · ${ELEM_LABEL[bai.elem]}</small></div></div>
       <h3>${TX('Técnicas de Bai Long')}</h3>
       <div class="lmtechs">${BAI_TECHS.map(b => { const t = TECH(b.id); return `<div class="lmtech ${EL(t.elem).css}"><b>${esc(t.name)}</b><small>${TYPE_LABEL[t.type]} · ${t.power}</small></div>`; }).join('')}</div>
+      <h3>${TX('Probabilidades')}</h3>
+      <div class="lmrates">${LM_RATES.map(([t, w]) => `<div class="${t}">${rchip(t)}<b>${pct(w)}</b></div>`).join('')}</div>
+      <p class="note">${TX('Bai Long es súper difícil de conseguir: solo')} <b>${pct(LM_RATES[0][1])}</b> ${TX('por jugador. Está asegurado a las')} ${LM_PITY} ${TX('tiradas sin él (llevas')} ${H.pity}${TX(').')}<br>
+        ${TX('Los repetidos suben una estrella (máx.')} ${MAX_STARS}${TX('); con 5 estrellas dan monedas.')}</p>
       <h3>${TX('Jugadores del sobre')}</h3>
       <div class="lmlist" id="lmList"></div>
-      <p class="note">${rates}.<br>${TX('Cada sobre trae al menos una épica o mejor, y Bai Long está asegurado a las')} ${LM_PITY} ${TX('tiradas sin él (llevas')} ${H.pity}${TX(').')}<br>
-        ${TX('Los repetidos suben una estrella (máx.')} ${MAX_STARS}${TX('); con 5 estrellas dan monedas.')}</p>
       ${bottom(`<button class="cta lmgo" id="lm10" ${P.tickets < LM_PRICE ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${LM_PRICE} 🎟️ · ${TX('10 jugadores')}</small></button>`)}`, 'bg_title');
     Limitado.ids().forEach(id => {
       const pd = PLAYER(id), w = document.createElement('div');
       w.className = 'lmp ' + pd.rarity + (P.coll[id] ? ' own' : '');
       w.appendChild(face(Sprites.refOf(pd), 48));
-      w.insertAdjacentHTML('beforeend', `<small>${esc(pd.name)}</small>${rchip(pd.rarity)}`);
+      w.insertAdjacentHTML('beforeend', `<small>${esc(pd.name)}</small>${rchip(pd.rarity)}<em class="lmpc">${pct(Limitado.chanceOf(id))}</em>`);
       $('lmList').appendChild(w);
     });
     $('lm10').onclick = () => {
@@ -10668,7 +10676,9 @@ const App = (() => {
     };
     el.hidden = false; stage.innerHTML = ''; say('');
     el.querySelector('.in-skip').onclick = e => { e.stopPropagation(); finish(); };
-    layer(`<img class="in-logo" src="ui/logo_gold.png" alt="Inazuma Gold"><p class="in-tap">${Controls.pc() ? TX('Haz clic o pulsa una tecla') : TX('Toca para empezar')}</p>`, 'in-center');
+    // Portada: la ilustración entera (ajustada al ancho) con su propio fondo difuminado detrás
+    { const d = layer(`<div class="in-bg"></div><div class="in-fg"></div><p class="in-tap">${Controls.pc() ? TX('Haz clic o pulsa una tecla') : TX('Toca para empezar')}</p>`, 'in-slide in-cover');
+      d.firstChild.style.backgroundImage = d.children[1].style.backgroundImage = 'url("ui/portada.jpg")'; }
     el.onclick = () => {
       el.onclick = null; Sound.unlock(); Sound.music('intro');
       const n = GAME.players.filter(p => p.gacha !== false).length;
