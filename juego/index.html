@@ -748,6 +748,24 @@ html,body,button,.act,#shell{touch-action:manipulation}
 .lmrates>div.limitada{border-color:#35d6ff;box-shadow:0 0 10px rgba(60,200,255,.7)}.lmrates>div.epica{border-color:#b07cff}
 .lmrates b{font-size:18px;color:#ffe27a;font-weight:400}
 .lmpc{font-style:normal;font-size:12px;color:#ffe27a}
+/* ===== Cinemática de supertécnica (tiros y paradas) ===== */
+.cine-dim{position:absolute;inset:0;z-index:6;pointer-events:none;background:radial-gradient(circle at 50% 42%,rgba(0,0,20,.1),rgba(0,0,16,.74));opacity:0;transition:opacity .18s}
+.cine-dim.on{opacity:1}
+.cutin .ci-fx{display:none}
+.cutin.big{top:9%;padding:26px 0;overflow:visible}
+.cutin.big.rival{top:auto;bottom:13%}
+.cutin.big .ci-fx{display:block;position:absolute;inset:-70% -30%;z-index:0;pointer-events:none;mix-blend-mode:screen;opacity:.6;background:repeating-conic-gradient(from 0deg at 50% 50%,var(--c1) 0 4deg,transparent 4deg 12deg);-webkit-mask:radial-gradient(circle,#000 6%,transparent 60%);mask:radial-gradient(circle,#000 6%,transparent 60%);animation:ciSpin 3.5s linear infinite}
+@keyframes ciSpin{to{transform:rotate(360deg)}}
+.cutin.big .ci-in{position:relative;z-index:1;padding:14px 36px;gap:16px}
+.cutin.big .ci-face canvas{width:clamp(88px,16vw,132px);height:clamp(88px,16vw,132px);image-rendering:pixelated;border-width:4px;box-shadow:0 0 0 3px var(--c3),0 0 26px var(--c1);animation:ciFace .35s cubic-bezier(.2,.9,.3,1.3) both}
+@keyframes ciFace{from{transform:scale(1.7) rotate(-6deg);opacity:0}to{transform:none;opacity:1}}
+.cutin.big .ci-txt b{font-size:clamp(26px,6vw,46px)}
+.cutin.big .ci-txt small{font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+.cutin.lim{--c1:#fff3a0;--c2:#2f7bff;--c3:#06143a}
+.cutin.lim .ci-fx{background:repeating-conic-gradient(from 0deg at 50% 50%,#ffe14a 0 3deg,transparent 3deg 9deg,#7fd0ff 9deg 12deg,transparent 12deg 20deg)}
+.cutin.lim .ci-in{background:linear-gradient(90deg,#06143a,#1f5fe0 45%,#ffe14a)}
+.cutin.rival.lim .ci-in{background:linear-gradient(270deg,#06143a,#1f5fe0 45%,#ffe14a)}
+@media (prefers-reduced-motion:reduce){.cutin .ci-fx,.cutin.big .ci-face canvas{animation:none!important}}
 @media (prefers-reduced-motion:reduce){.lb,.lmhero::after,.npk,.rar.limitada,.gcard.limitada .pix,.npface,.cap.t-limitada .ct{animation:none!important}}
 </style>
 
@@ -768,7 +786,7 @@ html,body,button,.act,#shell{touch-action:manipulation}
   <div id="keyhud" hidden><div class="kh-keys"></div><div class="kh-tech off"><b data-tx>Espacio</b> <span data-tx>Técnica</span><i></i></div></div>
   <div id="pad" hidden></div>
   <div id="cine"><i class="lb t"></i><i class="lb b"></i></div>
-  <div class="cutin" id="cutin"><div class="ci-in"><div class="ci-face"></div><div class="ci-txt"><small></small><b></b></div></div></div>
+  <div class="cine-dim" id="cineDim"></div><div class="cutin" id="cutin"><i class="ci-fx"></i><div class="ci-in"><div class="ci-face"></div><div class="ci-txt"><small></small><b></b></div></div></div>
   <div class="say" id="say"><div class="sy-in"><div class="sy-face"></div><div class="sy-txt"><small></small><span></span></div></div></div>
   <pre class="dbg" id="dbg" hidden></pre>
   <div class="toast" id="toast"></div>
@@ -6520,16 +6538,19 @@ const UI = (() => {
   }
   // Presentación de una supertécnica: franja con el retrato del jugador y el nombre
   let cutT;
-  function cutin(name, elem, team, kind, ref, ms) {
-    const c = $('cutin');
+  // Los tiros y las paradas (no las rápidas) llevan cinemática: fondo oscurecido, retrato grande y rayos. `opts.lim` = técnica de Bai Long (rayos azules y dorados)
+  function cutin(name, elem, team, kind, ref, ms, opts) {
+    const c = $('cutin'), dim = $('cineDim'), o = opts || {};
+    const big = (kind === 'tiro' || kind === 'parada') && !o.small;
     c.className = 'cutin'; void c.offsetWidth;
-    c.className = 'cutin on ' + (EL(elem).css || 'neutro') + (team === 'B' ? ' rival' : '');
+    c.className = 'cutin on ' + (EL(elem).css || 'neutro') + (team === 'B' ? ' rival' : '') + (big ? ' big' : '') + (o.lim ? ' lim' : '');
+    if (dim) dim.classList.toggle('on', big);
     c.querySelector('.ci-txt b').textContent = name;
     c.querySelector('.ci-txt small').textContent = (team === 'B' ? TX('Rival · ') : '') + (TYPE_TXT[kind] || TX('Supertécnica'));
     const slot = c.querySelector('.ci-face'); slot.innerHTML = '';
-    if (ref) slot.appendChild(Sprites.face(ref, 80));
+    if (ref) slot.appendChild(Sprites.face(ref, big ? 128 : 80));
     clearTimeout(cutT);
-    cutT = setTimeout(() => { c.classList.add('out'); cutT = setTimeout(() => { c.className = 'cutin'; }, 240); }, ms);
+    cutT = setTimeout(() => { c.classList.add('out'); if (dim) dim.classList.remove('on'); cutT = setTimeout(() => { c.className = 'cutin'; }, 240); }, ms);
   }
   return { toast, banner, update, reset, cutin, say };
 })();
@@ -7185,7 +7206,7 @@ class TechFX {
     switch (e.type) {
       case 'techStart': {
         const p = P(e.id), t = p && p.techs.find(x => x.name === e.name);
-        UI.cutin(e.name, e.elem, e.team, e.kind, p && p.sprite, e.kind === 'tiro' || e.kind === 'parada' ? 1250 : 800);
+        UI.cutin(e.name, e.elem, e.team, e.kind, p && p.sprite, e.kind === 'tiro' || e.kind === 'parada' ? 1250 : 800, { lim: !!(t && t.lim), small: !!e.quick });
         if (p) UI.say(p.sprite, p.name, Dialog.shout(e.elem, e.kind), e.team, false, 1500);
         if (t && (e.kind === 'tiro' || e.kind === 'parada')) { this.zoomBack = false; this.sc.cameras.main.zoomTo(1.3, 220, 'Sine.easeOut', true); }
         break;
