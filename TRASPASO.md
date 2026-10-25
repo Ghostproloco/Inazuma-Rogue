@@ -168,6 +168,16 @@ Misma estructura que Halloween, con tema navideño y **botón 🎄 Navidad justo
 - Falta: versión (`VERSION`) y entrada en `NEWS` (sin spoilers), decidir si Fran quiere un mánager o equipación de Navidad, y subir el código a GitHub (`git add . && git commit && git push`).
 - Si cambian las fechas: `XM_START` y `XM_END` arriba de `src/christmas.js`; `test/christmas.js` usa esas fechas (sección 1) y hay que ajustarlas a la vez.
 
+### v0.31.14 · Faltas, tarjetas y penaltis + elegir jugador con el balón parado (pedido de Fran, 25 oct)
+- **Faltas** (`logic.js`: `foulCheck`, `foulCall`): al entrar a un rival con balón, por detrás o sin tocar el balón es muy probable falta (por delante y con éxito, casi nunca).
+  Se para el juego y saca el que la sufre (`restart(..., 'falta')`, barrera a 6 m). Dentro del área del que la hace → **penalti**.
+- **Tarjetas**: amarilla (la 2ª = roja) o roja directa; el expulsado sale del campo (`sendOff`, se quita de `s.players`; la vista lo oculta). Nunca al portero y nunca por debajo de 4 jugadores (3 de campo + portero). `s.cards` lleva la cuenta.
+- **Penalti** (`startPenalty`, `penaltyStep`): balón en el punto, portero en su línea, todos los demás fuera del área y quietos hasta el chut. Rival: chuta solo a una esquina; tú: apuntas con el joystick y mantienes Tiro (si no chutas en 12 s, chuta solo). Si se acaba el tiempo con un penalti pendiente, se tira igual.
+- **Ajustes → Partido**: «Faltas, tarjetas y penaltis» (`settings.fouls`, por defecto Sí) y «Elegir jugador con el balón parado» (`settings.pickStop`, por defecto No).
+  Con `pickStop`, en saques de banda/córner/puerta rival, fuera de juego, faltas y tu penalti, el partido **espera** (`s.pick`, el reloj no corre) y sale un panel (`UI.pickSync` en `view.js`, `#pick` en `shell.html`): eliges quién saca (si es tuyo) o a quién controlas (si es del rival). `Logic.pickPlayer(s, id)`; `id = null` = seguir igual.
+- Pruebas: `test/fouls.js` (falta, penalti propio y rival, tarjetas, selector, partidos IA vs IA). Las demás pruebas siguen pasando. La interfaz del selector se probó en navegador con un Phaser falso (Phaser viene de internet).
+- NEWS 0.31.14 y traducciones al inglés añadidas. Posible mejora futura: marcador de tarjetas en pantalla y estadísticas de faltas al final del partido.
+
 ## 4. Cómo se construye y se prueba
 - Todo el código está en `src/`. `python3 build.py` lo junta en `juego/index.html`
   (orden en esta rama: i18n, en, media, logic, run, career, **event**, cloud-config, cloud, view, techfx, app). Datos en `juego/gamedata.json`.
