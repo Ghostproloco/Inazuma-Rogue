@@ -334,16 +334,19 @@ const UI = (() => {
   }
   // Presentación de una supertécnica: franja con el retrato del jugador y el nombre
   let cutT;
-  function cutin(name, elem, team, kind, ref, ms) {
-    const c = $('cutin');
+  // Los tiros y las paradas (no las rápidas) llevan cinemática: fondo oscurecido, retrato grande y rayos. `opts.lim` = técnica de Bai Long (rayos azules y dorados)
+  function cutin(name, elem, team, kind, ref, ms, opts) {
+    const c = $('cutin'), dim = $('cineDim'), o = opts || {};
+    const big = (kind === 'tiro' || kind === 'parada') && !o.small;
     c.className = 'cutin'; void c.offsetWidth;
-    c.className = 'cutin on ' + (EL(elem).css || 'neutro') + (team === 'B' ? ' rival' : '');
+    c.className = 'cutin on ' + (EL(elem).css || 'neutro') + (team === 'B' ? ' rival' : '') + (big ? ' big' : '') + (o.lim ? ' lim' : '');
+    if (dim) dim.classList.toggle('on', big);
     c.querySelector('.ci-txt b').textContent = name;
     c.querySelector('.ci-txt small').textContent = (team === 'B' ? TX('Rival · ') : '') + (TYPE_TXT[kind] || TX('Supertécnica'));
     const slot = c.querySelector('.ci-face'); slot.innerHTML = '';
-    if (ref) slot.appendChild(Sprites.face(ref, 80));
+    if (ref) slot.appendChild(Sprites.face(ref, big ? 128 : 80));
     clearTimeout(cutT);
-    cutT = setTimeout(() => { c.classList.add('out'); cutT = setTimeout(() => { c.className = 'cutin'; }, 240); }, ms);
+    cutT = setTimeout(() => { c.classList.add('out'); if (dim) dim.classList.remove('on'); cutT = setTimeout(() => { c.className = 'cutin'; }, 240); }, ms);
   }
   return { toast, banner, update, reset, cutin, say };
 })();

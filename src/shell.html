@@ -740,6 +740,32 @@ html,body,button,.act,#shell{touch-action:manipulation}
 .npbox h2{margin:0;font-size:30px;color:#ffe27a;text-shadow:0 0 10px #35d6ff}
 .npavg{font-size:22px;color:#fff;font-weight:400}.nptechs{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}.nptechs span{font-size:13px;padding:2px 8px;background:#0b1c55;border:1px solid #35d6ff;color:#e8f6ff}
 .npbox button{width:100%}
+.in-cover .in-bg{filter:blur(14px) brightness(.5) saturate(1.2)}
+.in-cover .in-fg{image-rendering:auto}
+.in-cover .in-tap{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 7%);text-align:center;z-index:3;text-shadow:0 2px 0 #000,0 0 12px #000}
+.lmrates{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lmrates>div{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:var(--navy);border:2px solid #5a7ab8}
+.lmrates>div.limitada{border-color:#35d6ff;box-shadow:0 0 10px rgba(60,200,255,.7)}.lmrates>div.epica{border-color:#b07cff}
+.lmrates b{font-size:18px;color:#ffe27a;font-weight:400}
+.lmpc{font-style:normal;font-size:12px;color:#ffe27a}
+/* ===== Cinemática de supertécnica (tiros y paradas) ===== */
+.cine-dim{position:absolute;inset:0;z-index:6;pointer-events:none;background:radial-gradient(circle at 50% 42%,rgba(0,0,20,.1),rgba(0,0,16,.74));opacity:0;transition:opacity .18s}
+.cine-dim.on{opacity:1}
+.cutin .ci-fx{display:none}
+.cutin.big{top:9%;padding:26px 0;overflow:visible}
+.cutin.big.rival{top:auto;bottom:13%}
+.cutin.big .ci-fx{display:block;position:absolute;inset:-70% -30%;z-index:0;pointer-events:none;mix-blend-mode:screen;opacity:.6;background:repeating-conic-gradient(from 0deg at 50% 50%,var(--c1) 0 4deg,transparent 4deg 12deg);-webkit-mask:radial-gradient(circle,#000 6%,transparent 60%);mask:radial-gradient(circle,#000 6%,transparent 60%);animation:ciSpin 3.5s linear infinite}
+@keyframes ciSpin{to{transform:rotate(360deg)}}
+.cutin.big .ci-in{position:relative;z-index:1;padding:14px 36px;gap:16px}
+.cutin.big .ci-face canvas{width:clamp(88px,16vw,132px);height:clamp(88px,16vw,132px);image-rendering:pixelated;border-width:4px;box-shadow:0 0 0 3px var(--c3),0 0 26px var(--c1);animation:ciFace .35s cubic-bezier(.2,.9,.3,1.3) both}
+@keyframes ciFace{from{transform:scale(1.7) rotate(-6deg);opacity:0}to{transform:none;opacity:1}}
+.cutin.big .ci-txt b{font-size:clamp(26px,6vw,46px)}
+.cutin.big .ci-txt small{font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+.cutin.lim{--c1:#fff3a0;--c2:#2f7bff;--c3:#06143a}
+.cutin.lim .ci-fx{background:repeating-conic-gradient(from 0deg at 50% 50%,#ffe14a 0 3deg,transparent 3deg 9deg,#7fd0ff 9deg 12deg,transparent 12deg 20deg)}
+.cutin.lim .ci-in{background:linear-gradient(90deg,#06143a,#1f5fe0 45%,#ffe14a)}
+.cutin.rival.lim .ci-in{background:linear-gradient(270deg,#06143a,#1f5fe0 45%,#ffe14a)}
+@media (prefers-reduced-motion:reduce){.cutin .ci-fx,.cutin.big .ci-face canvas{animation:none!important}}
 @media (prefers-reduced-motion:reduce){.lb,.lmhero::after,.npk,.rar.limitada,.gcard.limitada .pix,.npface,.cap.t-limitada .ct{animation:none!important}}
 </style>
 
@@ -760,7 +786,7 @@ html,body,button,.act,#shell{touch-action:manipulation}
   <div id="keyhud" hidden><div class="kh-keys"></div><div class="kh-tech off"><b data-tx>Espacio</b> <span data-tx>Técnica</span><i></i></div></div>
   <div id="pad" hidden></div>
   <div id="cine"><i class="lb t"></i><i class="lb b"></i></div>
-  <div class="cutin" id="cutin"><div class="ci-in"><div class="ci-face"></div><div class="ci-txt"><small></small><b></b></div></div></div>
+  <div class="cine-dim" id="cineDim"></div><div class="cutin" id="cutin"><i class="ci-fx"></i><div class="ci-in"><div class="ci-face"></div><div class="ci-txt"><small></small><b></b></div></div></div>
   <div class="say" id="say"><div class="sy-in"><div class="sy-face"></div><div class="sy-txt"><small></small><span></span></div></div></div>
   <pre class="dbg" id="dbg" hidden></pre>
   <div class="toast" id="toast"></div>
