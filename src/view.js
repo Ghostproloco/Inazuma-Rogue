@@ -99,6 +99,7 @@ const Input = (() => {
   }, true);
   addEventListener('keyup', e => keys.delete(e.code));
   addEventListener('blur', () => { keys.clear(); shootTouch = null; passTouch = null; });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { keys.clear(); shootTouch = null; passTouch = null; } });   // al cambiar de pestaña no se quedan teclas «pulsadas»
 
   touch.addEventListener('pointerdown', e => {
     if (joy.id !== null) return;
@@ -196,6 +197,16 @@ const Pad = (() => {
       { label: TX('Pase'), sub: TX('mantén'), cls: 's2', action: 'A', holdPass: true },
       { label: TX('Saque<br>largo'), cls: 's4', action: 'B' },
     ],
+    defense1: [
+      { label: TX('Entrada'), cls: 'big', action: 'A' },
+      { label: TX('Técnica'), cls: 's3 fire', action: 'tech', tech: true },
+      { label: '⇄', cls: 's6 tnext', action: 'techNext' },
+    ],
+    support: [   // Modo Carrera Jugador: un compañero lleva el balón
+      { label: TX('¡Pásamela!'), cls: 'big', action: 'A' },
+      { label: TX('Técnica'), cls: 's3 fire', action: 'tech', tech: true },
+      { label: '⇄', cls: 's6 tnext', action: 'techNext' },
+    ],
     defense: [   // «Cambiar» va donde Regate, no donde Pase: al perder el balón, un toque en Pase ya no te cambia de jugador sin querer
       { label: TX('Entrada'), cls: 'big', action: 'A' },
       { label: TX('Cambiar'), cls: 's5', action: 'switch' },
@@ -208,11 +219,15 @@ const Pad = (() => {
     attack: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>I/V</b> ' + TX('regate ·') + ' <b>L/X</b> ' + TX('tiro (mantén) ·') + ' <b>U</b> ' + TX('cambiar técnica'),
     defense: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('entrada ·') + ' <b>Q/X</b> ' + TX('cambiar ·') + ' <b>U</b> ' + TX('cambiar técnica'),
     gk: '<b>' + TX('Portero') + '</b>: <b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover por el área ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/C</b> ' + TX('saque largo ·') + ' <b>L/X</b> ' + TX('despeje'),
+    support: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>J/Z</b> ' + TX('¡Pásamela!'),
+    defense1: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>Shift</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('entrada ·') + ' <b>U</b> ' + TX('cambiar técnica'),
   };
   const KEYS = {
     attack: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/X</b> ' + TX('tiro (mantén) ·') + ' <b>I/V</b> ' + TX('regate ·') + ' <b>E</b> ' + TX('cambiar técnica'),
     defense: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>' + TX('Shift') + '</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('entrada ·') + ' <b>K/X</b> ' + TX('cambiar ·') + ' <b>E</b> ' + TX('cambiar técnica'),
     gk: '<b>' + TX('Portero') + '</b>: <b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover por el área ·') + ' <b>J/Z</b> ' + TX('pase (mantén = fuerte) ·') + ' <b>K/X</b> ' + TX('despeje ·') + ' <b>L/C</b> ' + TX('saque largo'),
+    support: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>J/Z</b> ' + TX('¡Pásamela!'),
+    defense1: '<b>WASD</b>/<b>' + TX('flechas') + '</b> ' + TX('mover ·') + ' <b>Shift</b> ' + TX('esprint ·') + ' <b>J/Z</b> ' + TX('entrada ·') + ' <b>E</b> ' + TX('cambiar técnica'),
   };
   // Barra de teclas con las teclas «A tu gusto»
   function customHud(m) {
@@ -223,6 +238,8 @@ const Pad = (() => {
       attack: mv + ' ' + TX('mover ·') + sp + n(k.pass) + ' ' + TX('pase (mantén = fuerte) ·') + ' ' + n(k.shoot) + ' ' + TX('tiro (mantén) ·') + ' ' + n(k.dribble) + ' ' + TX('regate ·') + ' ' + n(k.techNext) + ' ' + TX('cambiar técnica'),
       defense: mv + ' ' + TX('mover ·') + sp + n(k.pass) + ' ' + TX('entrada ·') + ' ' + n(k.switch) + ' ' + TX('cambiar ·') + ' ' + n(k.techNext) + ' ' + TX('cambiar técnica'),
       gk: '<b>' + TX('Portero') + '</b>: ' + mv + ' ' + TX('mover por el área ·') + ' ' + n(k.pass) + ' ' + TX('pase (mantén = fuerte) ·') + ' ' + n(k.shoot) + ' ' + TX('despeje ·') + ' ' + n(k.through) + ' ' + TX('saque largo'),
+      support: mv + ' ' + TX('mover ·') + ' ' + n(k.pass) + ' ' + TX('¡Pásamela!'),   // Carrera Jugador: un compañero lleva el balón
+      defense1: mv + ' ' + TX('mover ·') + sp + n(k.pass) + ' ' + TX('entrada ·') + ' ' + n(k.techNext) + ' ' + TX('cambiar técnica'),
     };
     return (parts[m] || parts.attack) + ' · ' + n(k.pause) + ' ' + TX('pausa');
   }
@@ -237,6 +254,7 @@ const Pad = (() => {
     SETS[m].forEach(b => {
       const el = document.createElement('button');
       el.className = 'act ' + b.cls;
+      applyLayout(el, b.cls.split(' ')[0]);   // posición y tamaño a tu gusto (Ajustes → Colocar los botones)
       el.innerHTML = (b.tech ? `<span class="tt">${b.label}</span>` : b.label) + (b.sub ? `<small>${b.sub}</small>` : '') + (b.tech ? '<small class="tn"></small>' : '');
       el.addEventListener('pointerdown', e => {
         e.preventDefault(); el.classList.add('down'); down.add(e.pointerId);
@@ -276,8 +294,15 @@ const Pad = (() => {
     dribBtn.style.setProperty('--cd', (k / 30).toFixed(2)); dribBtn.classList.toggle('cool', k > 0);
   }
   addEventListener('pointerup', e => down.delete(e.pointerId)); addEventListener('pointercancel', e => down.delete(e.pointerId));
+  // Botones colocados a tu gusto: settings.padLayout = { big: { x, y, s }, s2: …, s3, s4, s5, s6 } (desplazamiento en px y tamaño)
+  function applyLayout(el, key) {
+    let L = null; try { L = (App.settings.padLayout || {})[key]; } catch (_) {}
+    el.style.translate = L && (L.x || L.y) ? `${L.x || 0}px ${L.y || 0}px` : '';
+    el.style.scale = L && L.s && L.s !== 1 ? String(L.s) : '';
+  }
+  function refresh() { mode = null; }
   function show(on) { if (!on) down.clear(); pad.hidden = !on; document.getElementById('stick').hidden = !on; kh.hidden = !on; }
-  return { render, setTech, setDribble, setChoices, show };
+  return { render, setTech, setDribble, setChoices, show, refresh, applyLayout };
 })();
 
 /* =====================================================================
@@ -312,7 +337,8 @@ const UI = (() => {
     if (last.b !== s.score.B) { $('sB').textContent = s.score.B; last.b = s.score.B; }
     if (last.nb !== s.teams.B.name) { $('nB').textContent = s.teams.B.name; last.nb = s.teams.B.name; const T = TEAM(s.teams.B.name); $('cB').src = 'ui/crest' + (T && T.crest || 2) + '.png'; }
     const me = Logic.controlled(s);
-    Pad.render(me && me.role === 'POR' && s.ball.owner === me ? 'gk' : Logic.possession(s) === 'A' ? 'attack' : 'defense');
+    const lockSupport = s.settings.lockId && s.ball.owner && s.ball.owner.team === 'A' && s.ball.owner !== me;
+    Pad.render(me && me.role === 'POR' && s.ball.owner === me ? 'gk' : lockSupport ? 'support' : Logic.possession(s) === 'A' ? 'attack' : s.settings.lockId ? 'defense1' : 'defense');
     Pad.setTech(Logic.contextTech(s, Logic.controlled(s)));
     Pad.setDribble(me ? (me.dribbleCd || 0) / Logic.DRIBBLE_CD : 0);
     Pad.setChoices(Logic.techChoices(s, me));
@@ -413,6 +439,9 @@ const FIELDS = {
   acero:     { runoff: 0x2a2e34, a: 0x3d5a40, b: 0x456446, line: 0xe0e6ec, bg: '#181b1f', dark: 0.12, stands: 0xb0b8c4 },
   cielo:     { runoff: 0xd8c890, a: 0x7fbf6a, b: 0x8ccc76, line: 0xfff6c8, bg: '#c9b878', amb: { tex: 'spark', tint: [0xfff2a0, 0xffffff], up: true, n: 0.8 } },
   niebla:    { runoff: 0x161026, a: 0x22402f, b: 0x284a35, line: 0xe2d4ff, bg: '#0b0714', dark: 0.3, tint: 0x14062a, stands: 0x9a7ab8, fog: true, amb: { tex: 'spark', tint: [0xff8a1a, 0xffc04a, 0xb07aff], up: true, n: 0.45 } },
+  playa:     { runoff: 0xe2c98a, a: 0x5aa84a, b: 0x63b452, line: 0xffffff, bg: '#d9bf7f', tint: 0xfff0d0, stands: 0xfff2d8, amb: { tex: 'spark', tint: [0xffffff, 0xbfefff], up: true, n: 0.5 } },
+  galaxia:   { runoff: 0x120a2a, a: 0x24304a, b: 0x2a3858, line: 0xd8c8ff, bg: '#07041a', dark: 0.2, tint: 0x281a5a, stands: 0x9a8ad8, amb: { tex: 'spark', tint: [0xffffff, 0xb08aff, 0x7ad8ff], up: false, n: 1.2 } },
+  dorado:    { runoff: 0x6a5420, a: 0x4f8a34, b: 0x5a963a, line: 0xffe27a, bg: '#2a2008', stands: 0xffe0a0, amb: { tex: 'spark', tint: [0xffd23a, 0xfff2a0], up: true, n: 1.2 } },
   volcan:    { runoff: 0x2a120c, a: 0x4a2a1c, b: 0x55311f, line: 0xffb070, bg: '#160806', dark: 0.18, stands: 0xc8907a, amb: { tex: 'spark', tint: [0xff7a1a, 0xffc23a, 0xe8361a], up: true, n: 1.6 } },
 };
 // Gradas: cuatro texturas (una por lado) con la valla de publicidad y el público en pixel art
@@ -622,6 +651,7 @@ class MatchScene extends Phaser.Scene {
   }
   bind(s, sheet) {
     this.setField(s.settings.field || 'normal');
+    { const F = Logic.FIELD, m = F.margin * PX; this.cameras.main.setBounds(-m, -m - 40, F.w * PX + 2 * m, F.l * PX + 2 * m + 80); }   // el minicampo es más pequeño
     if (sheet) {
       if (this.textures.exists('match')) this.textures.remove('match');
       this.textures.addSpriteSheet('match', sheet, { frameWidth: 48, frameHeight: 48 });

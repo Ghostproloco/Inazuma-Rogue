@@ -7,19 +7,31 @@ const Sprites = (() => {
     const i = new Image();
     i.onload = () => res(i);
     i.onerror = () => { delete cache[file]; rej(new Error('No se pudo cargar ' + file)); };
-    i.src = 'sprites/' + file + (file.includes('?') ? '' : '?v=7');   // ?v=7: muñecos del Inazuma 3 rehechos con los datos del juego (tools/ie3_sprites.py)
+    i.src = 'sprites/' + file + (file.includes('?') ? '' : '?v=8');   // ?v=8: muñecos del Inazuma 3 rehechos con los datos del juego (tools/ie3_sprites.py)
   }));
-  const collFile = pd => 'c' + String(pd.cs[0]).padStart(2, '0') + '.png';
+  // Algunos jugadores (23 rivales del Inazuma 2, p. ej. Caleb Stonewall del Royal Academy Redux) no tienen muñeco de colección:
+  // se usa el de su equipo rival o el de otra versión suya. Antes el reto 1 contra 1 contra ellos daba error y se quedaba congelado.
+  const teamRef = {};
+  function fallbackRef(pd) {
+    if (!pd) return { file: 'c00.png', row: 0 };
+    if (teamRef[pd.id]) return teamRef[pd.id];
+    for (const t of (typeof GAME !== 'undefined' ? GAME.teams : [])) for (const m of t.players) if (m.id === pd.id && m.file) return (teamRef[pd.id] = { file: m.file, row: m.row });
+    const base = String(pd.full || pd.name || '').replace(/ \((IE2|IE3)\)$/, ''), twin = typeof GAME !== 'undefined' && GAME.players.find(q => q.cs && q !== pd && (q.name === pd.name || String(q.full || q.name).replace(/ \((IE2|IE3)\)$/, '') === base));
+    return (teamRef[pd.id] = twin ? { file: 'c' + String(twin.cs[0]).padStart(2, '0') + '.png', row: twin.cs[1] } : { file: 'c00.png', row: 0 });
+  }
+  const collFile = pd => pd && pd.cs ? 'c' + String(pd.cs[0]).padStart(2, '0') + '.png' : fallbackRef(pd).file;
   // hwFace: retrato de miedo de los legendarios de Halloween (sprites/fhw.png, hecho con tools/hw_faces.py)
-  const refOf = pd => Object.assign({ file: collFile(pd), row: pd.cs[1] }, pd.hwFace != null ? { ff: 'fhw.png', fr: pd.hwFace } : pd.xmFace != null ? { ff: 'fxm.png', fr: pd.xmFace } : pd.goFace != null ? { ff: 'fgo.png', fr: pd.goFace } : {});   // goFace: jugadores de GO (sprites/fgo.png)   // xmFace: retrato navideño (sprites/fxm.png, tools/xm_faces.py)
+  const refOf = pd => !pd || !pd.cs ? Object.assign({}, fallbackRef(pd), pd && pd.look ? { look: pd.look } : {}) : Object.assign({ file: collFile(pd), row: pd.cs[1] }, pd.hwFace != null ? { ff: 'fhw.png', fr: pd.hwFace } : pd.xmFace != null ? { ff: 'fxm.png', fr: pd.xmFace } : pd.goFace != null ? { ff: 'fgo.png', fr: pd.goFace } : {}, pd.look ? { look: pd.look } : {});   // look: personalización del jugador creado   // goFace: jugadores de GO (sprites/fgo.png)   // xmFace: retrato navideño (sprites/fxm.png)
   // Dibuja el primer fotograma (de frente) de un jugador en un <canvas>
   function portrait(ref, scale = 2) {
     const c = document.createElement('canvas');
     c.width = 48; c.height = 48; c.className = 'pix';
     c.style.width = c.style.height = (48 * scale) + 'px';
-    img(ref.file).then(i => c.getContext('2d').drawImage(i, 0, ref.row * 48, 48, 48, 0, 0, 48, 48)).catch(() => {});
+    img(ref.file).then(i => { const g = c.getContext('2d'); g.drawImage(i, 0, ref.row * 48, 48, 48, 0, 0, 48, 48); if (hasLook(ref)) lookFrame0(i, ref, g); }).catch(() => {});
     return c;
   }
+  // Primer fotograma con la personalización (se analiza la fila entera para encontrar pelo, piel y botas)
+  function lookFrame0(i, ref, g) { const t = document.createElement('canvas'); t.width = i.width; t.height = 48; const tg = t.getContext('2d'); tg.drawImage(i, 0, ref.row * 48, i.width, 48, 0, 0, i.width, 48); applyLook(tg, i.width, 0, ref.look, ref.file + ':' + ref.row); g.clearRect(0, 0, 48, 48); g.drawImage(t, 0, 0, 48, 48, 0, 0, 48, 48); return t; }
   // Monta una hoja con una fila por jugador del partido
   async function matchSheet(refs) {
     const imgs = await Promise.all(refs.map(r => img(r.file)));
@@ -27,7 +39,7 @@ const Sprites = (() => {
     const c = document.createElement('canvas');
     c.width = w; c.height = refs.length * 48;
     const g = c.getContext('2d');
-    refs.forEach((r, k) => { g.drawImage(imgs[k], 0, r.row * 48, w, 48, 0, k * 48, w, 48); if (r.kit) recolor(g, w, k * 48, r.kit); });
+    refs.forEach((r, k) => { g.drawImage(imgs[k], 0, r.row * 48, w, 48, 0, k * 48, w, 48); const A = hasLook(r) && applyLook(g, w, k * 48, r.look, r.file + ':' + r.row); if (r.kit) recolor(g, w, k * 48, r.kit); if (A) paintNum(g, w, k * 48, A, r.kit); });
     return c;
   }
   // Equipación propia: cambia los colores de la camiseta del Raimon (amarillo) y de mangas/pantalón (azul)
@@ -54,6 +66,13 @@ const Sprites = (() => {
     banda: (x, y) => y >= 29 && y <= 31,                // franja en el pecho
     cuadros: (x, y) => (((x >> 1) + (y >> 1)) & 1) === 0,
     diagonal: (x, y) => Math.abs((x - 14) - (y - 22)) <= 2,
+    // de la tienda (v0.35)
+    aros: (x, y) => ((y >> 1) & 1) === 0,               // rayas horizontales
+    franja: (x, y) => x >= 22 && x <= 25,               // franja vertical en el centro
+    hombros: (x, y) => y <= 26,                         // hombros de otro color
+    cruz: (x, y) => (x >= 22 && x <= 25) || (y >= 28 && y <= 30),
+    chevron: (x, y) => Math.abs(Math.abs(x - 24) - (y - 22)) <= 1,   // pico en V
+    puntos: (x, y) => (x % 4) === 1 && (y % 4) === 1,   // lunares
   };
   function recolor(g, w, y0, kit) {
     const map = kitMap(kit), y = y0 + 20, h = 28, d = g.getImageData(0, y, w, h), p = d.data;
@@ -67,11 +86,183 @@ const Sprites = (() => {
     }
     g.putImageData(d, 0, y);
   }
+  /* ---------- Personalización del jugador creado (Carrera Jugador, v0.35) ----------
+     look = { hair: '#rrggbb', skin: '#rrggbb', boots: '#rrggbb', num: 1–99 } (cada campo es opcional).
+     Sin mapas de colores fijos: en cada fila del muñeco se buscan los colores del pelo (solo en la cabeza), de la piel (cabeza y brazos)
+     y de las botas (abajo del todo); en las vistas de espaldas (sin cara) se pinta el dorsal sobre la camiseta. */
+  const BACK_FRAMES = new Set([17, 18, 36, 37, 38, 39]);   // vistas de espaldas (quieto y corriendo)
+  const SHIRT_A = new Set(KIT_A.map(c => (c[0] << 16) | (c[1] << 8) | c[2]));
+  const KIT_ALL = new Set([...KIT_A, ...KIT_B, ...KIT_GA, ...KIT_GB].map(c => (c[0] << 16) | (c[1] << 8) | c[2]));
+  const rgbOf = k => [(k >> 16) & 255, (k >> 8) & 255, k & 255];
+  const angOf = c => Math.atan2((c[0] + c[1]) / 2 - c[2], c[0] - c[1]) * 180 / Math.PI;
+  const warm = c => c[0] > c[2] + 25 && c[0] >= c[1] && lum(c) >= 70 && angOf(c) > 30 && angOf(c) < 70;   // tonos de piel (ni el amarillo de la camiseta ni el rojo de las medias)
+  const lookCache = {};
+  function analyzeRow(d, w) {
+    const p = d.data, H = new Map(), B = new Map(), F = new Map(), frames = [];
+    const add = (m, k) => m.set(k, (m.get(k) || 0) + 1);
+    for (let f = 0; f < w / 48; f++) {
+      let top = -1, bot = -1;
+      for (let y = 0; y < 48 && top < 0; y++) for (let x = 0; x < 48; x++) if (p[(y * w + f * 48 + x) * 4 + 3]) { top = y; break; }
+      for (let y = 47; y >= 0 && bot < 0; y--) for (let x = 0; x < 48; x++) if (p[(y * w + f * 48 + x) * 4 + 3]) { bot = y; break; }
+      frames.push({ top, bot });
+      if (top < 0) continue;
+      for (let y = top; y <= bot; y++) for (let x = 0; x < 48; x++) {
+        const i = (y * w + f * 48 + x) * 4; if (!p[i + 3]) continue;
+        const k = (p[i] << 16) | (p[i + 1] << 8) | p[i + 2], c = rgbOf(k);
+        if (lum(c) < 40 || KIT_ALL.has(k)) continue;
+        if (y <= top + 12) add(H, k); else if (y >= bot - 1) add(F, k); else if (y >= top + 14) add(B, k);
+      }
+    }
+    const skin = new Set(), hair = new Set(), boots = new Set();
+    for (const [k, n] of H) { const c = rgbOf(k); if (n >= 4 && (B.get(k) || 0) >= 4 && warm(c)) skin.add(k); }
+    for (const [k, n] of B) { const c = rgbOf(k); if (n >= 6 && warm(c) && (H.get(k) || 0) >= 2) skin.add(k); }
+    const top = (set, m) => [...set].filter(k => lum(rgbOf(k)) >= 80).sort((a, b) => (m.get(b) || 0) - (m.get(a) || 0))[0] ?? [...set].sort((a, b) => (m.get(b) || 0) - (m.get(a) || 0))[0];
+    const refSkin = top(skin, H), sAng = refSkin != null ? angOf(rgbOf(refSkin)) : null, sL = refSkin != null ? lum(rgbOf(refSkin)) : 0;
+    for (const [k, n] of H) {
+      const c = rgbOf(k), sat = Math.max(...c) - Math.min(...c);
+      if (skin.has(k) || n < 8 || (B.get(k) || 0) > n * 0.15 || (lum(c) > 225 && sat < 30)) continue;
+      if (sAng != null && warm(c) && Math.abs(angOf(c) - sAng) < 12 && lum(c) > sL * 0.9) continue;   // brillo de la cara, no pelo
+      hair.add(k);
+    }
+    // vistas de espaldas: casi sin piel en la cabeza
+    frames.forEach((fr, f) => { if (fr.top < 0) return; let sk = 0;
+      for (let y = fr.top; y <= fr.top + 12; y++) for (let x = 0; x < 48; x++) { const i = (y * w + f * 48 + x) * 4; if (p[i + 3] && skin.has((p[i] << 16) | (p[i + 1] << 8) | p[i + 2])) sk++; }
+      fr.back = BACK_FRAMES.has(f) && fr.bot - fr.top >= 20;   // todas las hojas tienen el mismo orden de fotogramas
+      let sh = 0; for (let y = fr.top + 14; y <= fr.top + 22; y++) for (let x = 0; x < 48; x++) { const i = (y * w + f * 48 + x) * 4; if (p[i + 3] && SHIRT_A.has((p[i] << 16) | (p[i + 1] << 8) | p[i + 2])) sh++; }
+      fr.shirt = sh; });
+    return { skin, hair, boots, frames, refHair: top(hair, H), refSkin };
+  }
+  function shadeMap(set, ref, target) {
+    const m = new Map(); if (!target || ref == null) return m;
+    const T = hex(target), L = lum(rgbOf(ref)) || 1;
+    set.forEach(s => { const k = lum(rgbOf(s)) / L; m.set(s, T.map(v => Math.max(0, Math.min(255, Math.round(v * k + (k > 1 ? (k - 1) * 50 : 0)))))); });
+    return m;
+  }
+  // Números de 3×5 para el dorsal
+  const DIG = ['111101101101111', '010110010010111', '111001111100111', '111001111001111', '101101111001001', '111100111001111', '111100111101111', '111001010010010', '111101111101111', '111101111001111'];
+  function applyLook(g, w, y0, look, key) {
+    const d = g.getImageData(0, y0, w, 48), p = d.data;
+    const A = key && lookCache[key] || analyzeRow(d, w); if (key) lookCache[key] = A;
+    // look.hs: colores exactos del pelo en el muñeco (para los legendarios de evento, elegidos a mano)
+    const hs = look.hs && new Set(look.hs.map(h => parseInt(h.slice(1), 16)));
+    const midRef = set => [...set].sort((x, y) => lum(rgbOf(x)) - lum(rgbOf(y)))[set.size >> 1];
+    const maps = [hs ? shadeMap(hs, midRef(hs), look.hair) : shadeMap(A.hair, A.refHair, look.hair), shadeMap(A.skin, A.refSkin, look.skin)];
+    // Botas: las 2 filas de abajo de cada fotograma (lo que no es piel ni contorno)
+    if (look.boots) { const T = hex(look.boots); A.frames.forEach((fr, f) => { if (fr.top < 0) return;
+      for (let y = Math.max(fr.top, fr.bot - 1); y <= fr.bot; y++) for (let x = 0; x < 48; x++) { const i = (y * w + f * 48 + x) * 4; if (!p[i + 3]) continue;
+        const c = [p[i], p[i + 1], p[i + 2]], l = lum(c); if (l < 40 || A.skin.has((c[0] << 16) | (c[1] << 8) | c[2])) continue;
+        const k = l / 110; for (let j = 0; j < 3; j++) p[i + j] = Math.max(0, Math.min(255, Math.round(T[j] * k + (k > 1 ? (k - 1) * 50 : 0)))); } }); }
+    for (let i = 0; i < p.length; i += 4) {
+      if (!p[i + 3]) continue;
+      const k = (p[i] << 16) | (p[i + 1] << 8) | p[i + 2];
+      for (const m of maps) { const o = m.get(k); if (o) { p[i] = o[0]; p[i + 1] = o[1]; p[i + 2] = o[2]; break; } }
+    }
+    // Dorsal: en las vistas de espaldas (casi sin piel en la cabeza) sobre la camiseta; se pinta con el azul del Raimon, que luego toma el segundo color de la equipación
+    const num = Math.max(0, Math.min(99, look.num | 0)), numPx = [];
+    if (num) {
+      const shirt = new Set([...KIT_A, ...KIT_B].map(c => (c[0] << 16) | (c[1] << 8) | c[2])), digits = String(num).split('').map(Number);
+      A.frames.forEach((fr, f) => {
+        if (fr.top < 0) return;
+        let sx = 0, sn = 0;
+        if (!fr.back) return;
+        const y1 = fr.top + 16;
+        for (let y = y1; y < y1 + 5; y++) for (let x = 0; x < 48; x++) { const i = (y * w + f * 48 + x) * 4; if (p[i + 3] && shirt.has((p[i] << 16) | (p[i + 1] << 8) | p[i + 2])) { sx += x; sn++; } }
+        if (sn < 24) return;
+        const W = digits.length * 4 - 1, x0 = Math.round(sx / sn - W / 2 + 0.5);
+        digits.forEach((dg, j) => { for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) if (DIG[dg][r * 3 + c] === '1') {
+          const i = ((y1 + r) * w + f * 48 + x0 + j * 4 + c) * 4; if (p[i + 3] && shirt.has((p[i] << 16) | (p[i + 1] << 8) | p[i + 2])) numPx.push(i); } });
+      });
+    }
+    g.putImageData(d, 0, y0);
+    A.numPx = numPx;   // dónde va el dorsal: se pinta después de poner la equipación (paintNum), en blanco o en oscuro según la camiseta
+    return A;
+  }
+  function paintNum(g, w, y0, A, kit) {
+    if (!A || !A.numPx || !A.numPx.length) return;
+    const d = g.getImageData(0, y0, w, 48), p = d.data, A1 = lum(hex((kit && kit.a) || '#e8c21a')), B1 = lum(hex((kit && kit.b) || '#1f4fc0'));
+    // el color que más se distingue de los dos colores de la equipación
+    const ink = [[244, 244, 244], [16, 20, 40], [255, 214, 40], [220, 30, 30]].map(c => [c, Math.min(Math.abs(lum(c) - A1), Math.abs(lum(c) - B1))]).sort((x, y) => y[1] - x[1])[0][0];
+    A.numPx.forEach(i => { p[i] = ink[0]; p[i + 1] = ink[1]; p[i + 2] = ink[2]; });
+    g.putImageData(d, 0, y0);
+  }
+  // Cara (retrato 64×64): el pelo y la piel se rellenan desde arriba y desde el centro de la cara, por tono parecido al del muñeco
+  const chroma = c => { const a = c[0] - c[1], b = (c[0] + c[1]) / 2 - c[2]; return { m: Math.hypot(a, b), ang: Math.atan2(b, a) * 180 / Math.PI }; };
+  function likeOf(anchor, tol = 20, lo = 0.45, hi = 1.8) {
+    const A = chroma(anchor), L = lum(anchor);
+    return c => {
+      const l = lum(c); if (l < Math.max(30, L * lo) || l > Math.min(255, L * hi + 20)) return false;
+      const C = chroma(c);
+      if (A.m < 22) return C.m < 26;
+      if (C.m < 10) return false;
+      let dA = Math.abs(C.ang - A.ang); if (dA > 180) dA = 360 - dA;
+      return dA < tol;
+    };
+  }
+  function flood(p, seeds, ok, done) {
+    const st = seeds.slice(), out = [];
+    while (st.length) {
+      const n = st.pop(); if (done[n]) continue;
+      const i = n * 4; if (!p[i + 3] || !ok([p[i], p[i + 1], p[i + 2]])) continue;
+      done[n] = 1; out.push(n);
+      const x = n % 64, y = (n / 64) | 0;
+      if (x > 0) st.push(n - 1); if (x < 63) st.push(n + 1); if (y > 0) st.push(n - 64); if (y < 63) st.push(n + 64);
+    }
+    return out;
+  }
+  function faceLook(g, look, A) {
+    const d = g.getImageData(0, 0, 64, 64), p = d.data, done = new Uint8Array(64 * 64);
+    if (look.hf && look.hair) {   // colores exactos del pelo en la cara (legendarios de evento)
+      const set = new Set(look.hf.map(h => parseInt(h.slice(1), 16))), arr = [...set].map(rgbOf).sort((x, y) => lum(x) - lum(y)), L = lum(arr[arr.length >> 1]) || 1, T = hex(look.hair);
+      for (let i = 0; i < p.length; i += 4) { if (!p[i + 3] || !set.has((p[i] << 16) | (p[i + 1] << 8) | p[i + 2])) continue; const k = lum([p[i], p[i + 1], p[i + 2]]) / L; for (let j = 0; j < 3; j++) p[i + j] = Math.max(0, Math.min(255, Math.round(T[j] * k + (k > 1 ? (k - 1) * 50 : 0)))); }
+      g.putImageData(d, 0, 0); return;
+    }
+    const paint = (px, anchor, target) => { if (!px.length) return; const T = hex(target), L = lum(anchor) || 1;
+      px.forEach(n => { const i = n * 4, k = lum([p[i], p[i + 1], p[i + 2]]) / L; for (let j = 0; j < 3; j++) p[i + j] = Math.max(0, Math.min(255, Math.round(T[j] * k + (k > 1 ? (k - 1) * 50 : 0)))); }); };
+    const sample = (ok, x0, x1, y0, y1) => { const c = []; for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = (y * 64 + x) * 4; if (p[i + 3] && ok([p[i], p[i + 1], p[i + 2]])) c.push(y * 64 + x); } return c; };
+    const median = px => { const v = px.map(n => [p[n * 4], p[n * 4 + 1], p[n * 4 + 2]]).sort((a, b) => lum(a) - lum(b)); return v[v.length >> 1]; };
+    let skinPx = [];
+    if (A.refSkin != null) {
+      const ok0 = likeOf(rgbOf(A.refSkin), 35), seeds = sample(c => ok0(c), 22, 42, 26, 46);
+      if (seeds.length) { const ok = likeOf(median(seeds), 20, 0.62, 1.6); skinPx = flood(p, seeds, ok, done); }
+    }
+    let hairPx = [];
+    if (A.refHair != null && A.hair.size) {
+      // semillas: lo primero que no es contorno ni piel en lo alto de cada columna; el tono más repetido manda
+      const cand = [];
+      for (let x = 4; x < 60; x++) for (let y = 0, seen = 0; y < 30; y++) { const i = (y * 64 + x) * 4; if (!p[i + 3] || lum([p[i], p[i + 1], p[i + 2]]) < 40) { if (seen) seen = 9; continue; } if (seen === 9) break; if (++seen === 3) { if (!done[y * 64 + x]) cand.push(y * 64 + x); break; } }
+      if (cand.length >= 6) { const ok1 = likeOf(median(cand), 25, 0.4, 2.5), seeds = cand.filter(n => ok1([p[n * 4], p[n * 4 + 1], p[n * 4 + 2]])); if (seeds.length >= 4) {
+        const m0 = median(seeds); hairPx = flood(p, seeds, likeOf(m0, 24, 0.4, 2.2), done);
+        // segunda pasada más tolerante desde el borde del pelo (mechas con otro tono), sin bajar al cuerpo
+        const ok2 = likeOf(m0, 40, 0.3, 2.6), edge = [];
+        hairPx.forEach(n => { const x = n % 64; [n - 1, n + 1, n - 64, n + 64].forEach(q => { if (q >= 0 && q < 4096 && !done[q] && Math.abs((q % 64) - x) <= 1) edge.push(q); }); });
+        hairPx = hairPx.concat(flood(p, edge, c => ok2(c), done).filter(n => n < 46 * 64));
+      } }
+    }
+    const anc = px => px.length ? median(px) : null;
+    const aH = anc(hairPx), aS = anc(skinPx);
+    if (look.hair && aH) paint(hairPx, aH, look.hair);
+    if (look.skin && aS) paint(skinPx, aS, look.skin);
+    g.putImageData(d, 0, 0);
+  }
+  const hasLook = ref => ref && ref.look && (ref.look.hair || ref.look.skin || ref.look.boots || ref.look.num);
+  // Muñeco de espaldas (para ver el dorsal en el editor del jugador)
+  function backView(ref, kit, scale = 2) {
+    const c = document.createElement('canvas'); c.width = c.height = 48; c.className = 'pix kitpv';
+    c.style.width = c.style.height = (48 * scale) + 'px';
+    img(ref.file).then(i => {
+      const t = document.createElement('canvas'); t.width = i.width; t.height = 48; const tg = t.getContext('2d');
+      tg.drawImage(i, 0, ref.row * 48, i.width, 48, 0, 0, i.width, 48);
+      const A = applyLook(tg, i.width, 0, ref.look || {}, ref.file + ':' + ref.row); if (kit) recolor(tg, i.width, 0, kit); paintNum(tg, i.width, 0, A, kit);
+      const f = 17;
+      c.getContext('2d').drawImage(t, f * 48, 0, 48, 48, 0, 0, 48, 48);
+    }).catch(() => {});
+    return c;
+  }
   // Muñeco de muestra con una equipación (para el editor del club)
   function kitPreview(ref, kit, scale = 2) {
     const c = document.createElement('canvas'); c.width = c.height = 48; c.className = 'pix kitpv';
     c.style.width = c.style.height = (48 * scale) + 'px';
-    img(ref.file).then(i => { const g = c.getContext('2d'); g.drawImage(i, 0, ref.row * 48, 48, 48, 0, 0, 48, 48); recolor(g, 48, 0, kit); }).catch(() => {});
+    img(ref.file).then(i => { const g = c.getContext('2d'); g.drawImage(i, 0, ref.row * 48, 48, 48, 0, 0, 48, 48); if (hasLook(ref)) lookFrame0(i, ref, g); recolor(g, 48, 0, kit); }).catch(() => {});
     return c;
   }
   // Retrato del juego (cara + cuerpo, 64×64): fNN.png para la colección, qNN.png para los rivales
@@ -79,13 +270,20 @@ const Sprites = (() => {
     const c = document.createElement('canvas');
     c.width = 64; c.height = 64; c.className = 'pix';
     c.style.width = c.style.height = size + 'px';
-    const file = ref.ff ? ref.ff + '?v=4' : ref.file.replace(/^c/, 'f').replace(/^r/, 'q') + '?v=4';   // ?v=3: caras actualizadas, evita la copia vieja guardada
+    const file = ref.ff ? ref.ff + '?v=3' : ref.file.replace(/^c/, 'f').replace(/^r/, 'q') + '?v=4';   // ?v=3: caras actualizadas, evita la copia vieja guardada
     const row = ref.ff ? ref.fr : ref.row;
-    img(file).then(i => c.getContext('2d').drawImage(i, 0, row * 64, 64, 64, 0, 0, 64, 64)).catch(() => {});
+    img(file).then(async i => {
+      const g = c.getContext('2d'); g.drawImage(i, 0, row * 64, 64, 64, 0, 0, 64, 64);
+      if (hasLook(ref) && (ref.look.hair || ref.look.skin) && !ref.ff) {
+        const s = await img(ref.file), key = ref.file + ':' + ref.row;
+        if (!lookCache[key]) { const t = document.createElement('canvas'); t.width = s.width; t.height = 48; const tg = t.getContext('2d'); tg.drawImage(s, 0, ref.row * 48, s.width, 48, 0, 0, s.width, 48); lookCache[key] = analyzeRow(tg.getImageData(0, 0, s.width, 48), s.width); }
+        faceLook(g, ref.look, lookCache[key]);
+      }
+    }).catch(() => {});
     return c;
   }
   const crest = id => `<img class="crest" src="ui/crest${id || 1}.png" alt="" width="40" height="40">`;
-  return { img, collFile, refOf, portrait, face, crest, matchSheet, kitPreview, DESIGNS };
+  return { img, collFile, refOf, portrait, face, crest, matchSheet, kitPreview, backView, DESIGNS };
 })();
 
 /* =====================================================================
@@ -102,6 +300,11 @@ const ClubCrest = (() => {
       g.beginPath();
       const a = inset, b = S - inset;
       if (cr.shape === 'circulo') g.arc(S / 2, S / 2, S / 2 - inset, 0, Math.PI * 2);
+      else if (cr.shape === 'hexagono' || cr.shape === 'estrella') {
+        const n = cr.shape === 'hexagono' ? 6 : 10, R = S / 2 - inset;
+        for (let i = 0; i < n; i++) { const ang = -Math.PI / 2 + i * 2 * Math.PI / n, r = cr.shape === 'estrella' && i % 2 ? R * 0.62 : R; g[i ? 'lineTo' : 'moveTo'](S / 2 + r * Math.cos(ang), S / 2 + r * Math.sin(ang)); }
+        g.closePath();
+      }
       else if (cr.shape === 'rombo') { g.moveTo(S / 2, a); g.lineTo(b, S / 2); g.lineTo(S / 2, b); g.lineTo(a, S / 2); g.closePath(); }
       else { g.moveTo(a + 4, a); g.lineTo(b - 4, a); g.lineTo(b - 4, S * 0.55); g.quadraticCurveTo(b - 6, b - 8, S / 2, b); g.quadraticCurveTo(a + 6, b - 8, a + 4, S * 0.55); g.closePath(); }
     };

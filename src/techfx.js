@@ -33,6 +33,7 @@ const FAM_RULES = {
 // Técnicas famosas con animación propia (van antes que las familias)
 const SIG_RULES = {
   tiro: [
+    ['royale', /gafas royale/i],   // Willy Glass LEYENDA (evento Cadena Leyenda)
     ['fantasma', /fantasma/i],
     ['cohete', /misil|cohete/i],
     ['explosivo', /dinamita|granada|bomba acrob/i],
@@ -57,7 +58,7 @@ const SIG_RULES = {
     ['lluvia', /meteorit|meteoro/i],
     ['galaxia', /gal[áa]ctic|supernova|c[óo]smico|gan[íi]medes/i],
     ['tsunami', /tsunami/i],
-    ['tornadoF', /^tornado de fuego$|torbellino de fuego|tornado inverso|tornado doble/i],
+    ['tornadoF', /^tornado de fuego$|torbellino de fuego|v[óo]rtice de fuego|tornado inverso|tornado doble/i],
     ['relampago', /rel[áa]mpago|trampol[íi]n/i],
   ],
   parada: [
@@ -136,7 +137,7 @@ class TechFX {
     this.clones.forEach(c => c.destroy());
     this.clones = [];
     for (let i = 0; i < 6; i++) this.clones.push(this.sc.add.sprite(0, 0, 'match', 0).setOrigin(24 / 48, 43 / 48).setScale(1.4).setVisible(false));
-    this.trail = []; this.flight = null; this.impacts = []; this.zoom = 1; this.setCine(false);
+    this.trail = []; this.flight = null; this.impacts = []; this.zoom = 1; this.crew = null; this.setCine(false);
   }
   setCine(on) {
     if (on === this.cine) return;
@@ -152,6 +153,7 @@ class TechFX {
         const p = P(e.id), t = p && p.techs.find(x => x.name === e.name);
         UI.cutin(e.name, e.elem, e.team, e.kind, p && p.sprite, e.kind === 'tiro' || e.kind === 'parada' ? 1250 : 800, { lim: !!(t && t.lim), small: !!e.quick });
         if (p) UI.say(p.sprite, p.name, Dialog.shout(e.elem, e.kind), e.team, false, 1500);
+        this.crewStart(s, p, e);
         if (t && (e.kind === 'tiro' || e.kind === 'parada')) { this.zoomBack = false; this.sc.cameras.main.zoomTo(1.3, 220, 'Sine.easeOut', true); }
         break;
       }
@@ -175,7 +177,8 @@ class TechFX {
         this.impacts.push({ kind: 'shatter', x: e.x * PX, y: e.y * PX - 22, elem: e.elem || 'neutro', t: 0, life: 0.6 });
         break;
       case 'goal':
-        if (e.tech) this.impacts.push({ kind: 'boom', x: e.x * PX, y: e.y * PX, elem: e.tech, t: 0, life: 0.9 });
+        if (e.tech && this.flight && this.flight.fam === 'royale') { this.impacts.push({ kind: 'royale', x: e.x * PX, y: e.y * PX, elem: e.tech, t: 0, life: 1.4 }); this.sc.cameras.main.flash(220, 255, 230, 120); this.sc.cameras.main.shake(260, 0.01); }
+        else if (e.tech) this.impacts.push({ kind: 'boom', x: e.x * PX, y: e.y * PX, elem: e.tech, t: 0, life: 0.9 });
         this.flight = null;
         break;
       case 'blockOk': {
@@ -289,9 +292,73 @@ class TechFX {
       }
     }
 
-    // 5) Impactos con duración
+    // 5) Compañeros que aparecen para las técnicas de varios jugadores
+    if (this.crew) this.crewFX(s, dt, time, clone);
+
+    // 6) Impactos con duración
     this.impacts = this.impacts.filter(m => (m.t += dt) < m.life);
     for (const m of this.impacts) this.impact(m, time);
+  }
+
+  /* ---------- Técnicas de varios jugadores ----------
+     Solo se ve: los compañeros más cercanos «aparecen» junto al que tira, hacen la técnica con él y
+     vuelven corriendo a su sitio. En la lógica no se mueven (el partido sigue igual). */
+  crewStart(s, p, e) {
+    this.crew = null;
+    const n = e.kind === 'tiro' && p ? crewSize({ type: 'tiro', name: e.name }) : 0;
+    if (!n) return;
+    const mates = s.players.filter(q => q.team === p.team && q !== p && q.role !== 'POR')
+      .sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y)).slice(0, n);
+    if (!mates.length) return;
+    const back = p.team === 'A' ? 1 : -1;   // hacia su propia portería
+    let slots;
+    if (mates.length === 2) { mates.sort((a, b) => a.x - b.x); slots = [[-2.4, 1.5], [2.4, 1.5]]; }
+    else slots = [[(mates[0].x >= p.x ? 1 : -1) * 2.2, 0.8]];
+    this.crew = { pid: p.id, t: 0, out: -1, elem: e.elem, combo: !!e.combo, pal: /tri[áa]ngulo/i.test(e.name) ? PAL.mal : null,
+      list: mates.map((q, i) => ({ id: q.id, ox: slots[i][0], oy: slots[i][1] * back })) };
+    for (const m of this.crew.list) this.impacts.push({ kind: 'puff', x: p.x * PX + m.ox * PX, y: p.y * PX + m.oy * PX, elem: e.elem, t: 0, life: 0.45 });
+  }
+  crewFX(s, dt, time, clone) {
+    const C = this.crew, p = s.players.find(q => q.id === C.pid);
+    if (!p) { this.crew = null; return; }
+    if (C.out < 0 && !(s.tech && s.tech.p === p)) C.out = 0;   // ya ha tirado (o perdió el balón): vuelven
+    C.t += dt;
+    const E = C.pal || EL(C.elem), gA = this.gA, px = p.x * PX, py = p.y * PX, top = py - p.z * PX - 34, RET = 0.55;
+    const [di, flip] = dirOf(p.facing), pts = [];
+    for (const m of C.list) {
+      const q = s.players.find(o => o.id === m.id), v = q && this.sc.views.get(q.id); if (!v) continue;
+      const sx = px + m.ox * PX, sy = py + m.oy * PX;
+      if (C.out < 0) {   // en la técnica: postura de tiro y saltan a la vez que el que tira
+        const lift = p.z * PX * 0.85;
+        v.root.setPosition(sx, sy).setDepth(sy); v.fig.y = -lift;
+        v.spr.setFrame(q.row * NF + FR[ANIM.kick[di][0]]).setFlipX(flip).setAlpha(Math.min(1, C.t / 0.08));
+        pts.push({ x: sx, y: sy - lift - 34 });
+      } else {           // vuelta: carrera rápida a su sitio de verdad, con estela
+        const k = Math.min(1, C.out / RET), e = 1 - Math.pow(1 - k, 3), tx = q.x * PX, ty = q.y * PX;
+        const x = sx + (tx - sx) * e, y = sy + (ty - sy) * e, [d2, f2] = dirOf(Math.atan2(ty - sy, tx - sx));
+        v.root.setPosition(x, y).setDepth(y); v.fig.y = 0; v.spr.setAlpha(1);
+        if (k < 1) {
+          v.spr.setFrame(q.row * NF + FR[ANIM.run[d2][Math.floor(time / 45) % 8]]).setFlipX(f2);
+          [0.12, 0.24].forEach((o, i) => { const e2 = 1 - Math.pow(1 - Math.max(0, k - o), 3); clone(v, sx + (tx - sx) * e2, sy + (ty - sy) * e2, 0.4 - i * 0.15, E.tints[1]); });
+        }
+      }
+    }
+    if (C.out < 0 && pts.length) {
+      // energía: cada compañero carga el balón del que tira y, si son tres, se dibuja el triángulo
+      const a = Math.min(1, C.t / 0.2), wob = Math.sin(time / 50) * 2;
+      if (pts.length === 2) {
+        const tri = [{ x: px, y: top }, pts[0], pts[1]];
+        gA.fillStyle(E.main, 0.18 * a).fillPoints(tri, true);
+        gA.lineStyle(6 + wob, E.main, 0.45 * a).strokePoints(tri, true); gA.lineStyle(2, E.tints[0], 0.9 * a).strokePoints(tri, true);
+      } else for (const q of pts) { gA.lineStyle(6 + wob, E.main, 0.45 * a).lineBetween(q.x, q.y, px, top); gA.lineStyle(2, E.tints[0], 0.9 * a).lineBetween(q.x, q.y, px, top); }
+      for (const q of pts) { gA.fillStyle(E.main, 0.3 * a).fillCircle(q.x, q.y, 8 + wob); gA.fillStyle(E.tints[0], 0.8 * a).fillCircle(q.x, q.y, 3.5); }
+      if (C.t < 0.25) for (const q of pts) gA.lineStyle(3, E.tints[0], 1 - C.t / 0.25).strokeCircle(q.x, q.y + 30, 10 + C.t * 160);   // destello al aparecer
+      if (C.combo) { gA.lineStyle(3, 0xffd23a, 0.7 + 0.3 * Math.sin(time / 60)).strokeCircle(px, top, 26 + wob); }
+    }
+    if (C.out >= 0 && (C.out += dt) > RET) {
+      for (const m of C.list) { const v = this.sc.views.get(m.id); if (v) { v.fig.y = 0; v.spr.setAlpha(1); } }
+      this.crew = null;
+    }
   }
 
   /* ---------- Piezas de dibujo ---------- */
@@ -396,7 +463,7 @@ class TechFX {
       gA.fillStyle(c2, 0.4).fillCircle(x, oy, r * 1.8); gA.fillStyle(c1, 0.8).fillCircle(x, oy, r); gA.fillStyle(0xffffff, 0.9).fillCircle(x, oy, r * 0.45);
       gA.lineStyle(2, c0, 0.8).strokeCircle(x, oy, r * 2.4 + Math.sin(time / 60) * 4);
     } else if (fam === 'multi') {
-      if (v) { clone(v, x - 26, y + 6, 0.5, c1); clone(v, x + 26, y + 6, 0.5, c1); }
+      if (v && !this.crew) { clone(v, x - 26, y + 6, 0.5, c1); clone(v, x + 26, y + 6, 0.5, c1); }
       gA.lineStyle(3, c1, 0.8).strokeTriangle(x, y - 70, x - 40, y + 10, x + 40, y + 10);
     } else {   // beam: energía que se concentra
       this.gather(E, x, y - 18, k, time);
@@ -564,6 +631,7 @@ class TechFX {
       [-34, 0, 34].forEach((ox, i) => { const yy = y - 40 - (i === 1 ? 18 : 0); this.wing(gN, x + ox, yy, -1, 30 + k * 16, flap, PAL.luz); this.wing(gN, x + ox, yy, 1, 30 + k * 16, flap, PAL.luz); });
       return true;
     }
+    if (key === 'triangulo' && this.crew && this.crew.list.length === 2) return true;   // el triángulo lo forman los tres jugadores
     if (key === 'triangulo') {
       const c = PAL.mal, R = 70 - k * 40, a0 = time / 200;
       const pts = [0, 1, 2].map(i => ({ x: x + Math.cos(a0 + i * 2.094) * R, y: y - 40 + Math.sin(a0 + i * 2.094) * R * 0.6 }));
@@ -783,6 +851,29 @@ class TechFX {
     for (let i = 0; i < 8; i++) { const t = a + i / 8 * Math.PI * 2; g.lineStyle(1.5, col, 0.9).lineBetween(x, y, x + Math.cos(t) * r, y + Math.sin(t) * r * 0.6); }
     for (let k = 1; k <= 3; k++) { const pts = []; for (let i = 0; i <= 8; i++) { const t = a + i / 8 * Math.PI * 2; pts.push({ x: x + Math.cos(t) * r * k / 3, y: y + Math.sin(t) * r * 0.6 * k / 3 }); } g.lineStyle(1.5, col, 0.85).strokePoints(pts); }
   }
+  // Gafas Royale: gafas doradas de Willy (montura de oro, cristales con brillo) y una corona
+  royalGlasses(gN, gA, x, y, s, a, time) {
+    const ca = Math.cos(a), sa = Math.sin(a), P = (dx, dy) => ({ x: x + dx * s * ca - dy * s * sa, y: y + dx * s * sa + dy * s * ca });
+    const lens = cxl => { const pts = []; for (let i = 0; i < 16; i++) { const t = i / 16 * Math.PI * 2; pts.push(P(cxl + Math.cos(t) * 10, Math.sin(t) * 7.5)); } return pts; };
+    const L = lens(-12), R = lens(12);
+    gN.lineStyle(5 * s, 0x6a4a08, 1).strokePoints(L, true).strokePoints(R, true);
+    gN.fillStyle(0xbfeaff, 0.35).fillPoints(L, true).fillPoints(R, true); gA.fillStyle(0xffffff, 0.18).fillPoints(L, true).fillPoints(R, true);
+    gN.lineStyle(3 * s, 0xffd23a, 1).strokePoints(L, true).strokePoints(R, true);
+    const b0 = P(-2.5, -2), b1 = P(2.5, -2); gN.lineStyle(3 * s, 0xffd23a, 1).lineBetween(b0.x, b0.y, b1.x, b1.y);   // puente
+    const t0 = P(-22, -2), t1 = P(-27, -5), t2 = P(22, -2), t3 = P(27, -5); gN.lineBetween(t0.x, t0.y, t1.x, t1.y); gN.lineBetween(t2.x, t2.y, t3.x, t3.y);
+    const sw = ((time / 500) % 1.6) - 0.3;   // destello que cruza los cristales
+    if (sw > 0 && sw < 1) [-12, 12].forEach(c => { const q0 = P(c - 9 + sw * 18 - 3, -6), q1 = P(c - 9 + sw * 18 + 3, 6); gA.lineStyle(3 * s, 0xffffff, 0.9).lineBetween(q0.x, q0.y, q1.x, q1.y); });
+    [-12, 12].forEach((c, i) => { const q = P(c - 4, -3); gA.fillStyle(0xffffff, 0.8 + 0.2 * Math.sin(time / 90 + i)).fillCircle(q.x, q.y, 2 * s); });
+  }
+  crown(gN, gA, x, y, s, time) {
+    const w = 16 * s, h = 11 * s;
+    gA.fillStyle(0xfff1a0, 0.25).fillCircle(x, y - h * 0.4, w * 1.1);
+    gN.fillStyle(0xb07a10, 1).fillRect(x - w, y - h * 0.35, w * 2, h * 0.45);
+    gN.fillStyle(0xffd23a, 1).fillPoints([{ x: x - w, y: y - h * 0.3 }, { x: x - w, y: y - h * 1.1 }, { x: x - w * 0.5, y: y - h * 0.55 }, { x: x, y: y - h * 1.35 }, { x: x + w * 0.5, y: y - h * 0.55 }, { x: x + w, y: y - h * 1.1 }, { x: x + w, y: y - h * 0.3 }], true);
+    gN.fillStyle(0xffffff, 1).fillRect(x - w, y - h * 0.05, w * 2, h * 0.18);
+    [[-1, 0xff3a5a], [0, 0x3fb6ff], [1, 0x6ae04a]].forEach(([d, c]) => gN.fillStyle(c, 1).fillCircle(x + d * w * 0.6, y - h * 0.12, 2.2 * s));
+    [-1, 0, 1].forEach(d => gA.fillStyle(0xffffff, 0.9).fillCircle(x + d * w, y - h * (d ? 1.1 : 1.35), (1.6 + Math.sin(time / 80 + d) * 0.6) * s));
+  }
   star5(g, x, y, r, col, a = -Math.PI / 2) {
     const pts = []; for (let i = 0; i < 10; i++) { const rr = i % 2 ? r * 0.42 : r, t = a + i * Math.PI / 5; pts.push({ x: x + Math.cos(t) * rr, y: y + Math.sin(t) * rr }); }
     g.fillStyle(col, 0.95).fillPoints(pts, true);
@@ -792,6 +883,25 @@ class TechFX {
   sigWindup2(key, E, x, y, k, time, v, clone) {
     const gN = this.gN, gA = this.gA;
     switch (key) {
+      case 'royale': {
+        // Pilar de luz dorada, anillo de estrellas, las gafas gigantes suben con la corona encima y, al final, dos rayos de los cristales al balón
+        gA.fillStyle(0xfff1a0, 0.18 + k * 0.12).fillRect(x - 30, y - 460, 60, 470); gA.fillStyle(0xffffff, 0.22).fillRect(x - 10, y - 460, 20, 470);
+        for (let i = 0; i < 10; i++) { const a = time / 260 + i * 0.628, r = 46 + Math.sin(time / 300 + i) * 6; this.star5(gA, x + Math.cos(a) * r, y - 20 + Math.sin(a) * r * 0.38, 4 + (i % 3), i % 2 ? 0xffd23a : 0xffffff, time / 200 + i); }
+        gA.lineStyle(3, 0xffd23a, 0.8).strokeEllipse(x, y + 2, 70 + k * 30, 22 + k * 8); gA.lineStyle(2, 0xffffff, 0.6).strokeEllipse(x, y + 2, 50 + k * 20, 14 + k * 6);
+        const gs = 0.8 + k * 1.5, gy = y - 40 - k * 46 + Math.sin(time / 160) * 3;
+        if (k > 0.25) for (let i = 0; i < 12; i++) {   // rayos de luz que giran detrás de las gafas
+          const a = time / 900 + i * 0.5236, f = Math.min(1, (k - 0.25) * 2), r0 = 20 * gs, r1 = (60 + 40 * k) * gs * 0.8;
+          gA.fillStyle(i % 2 ? 0xffd23a : 0xfff6c0, 0.22 * f).fillTriangle(x + Math.cos(a - 0.08) * r0, gy + Math.sin(a - 0.08) * r0, x + Math.cos(a + 0.08) * r0, gy + Math.sin(a + 0.08) * r0, x + Math.cos(a) * r1, gy + Math.sin(a) * r1);
+        }
+        this.royalGlasses(gN, gA, x, gy, gs, Math.sin(time / 260) * 0.08, time);
+        this.crown(gN, gA, x, gy - 12 * gs - 6, 0.6 + k * 0.9, time);
+        if (k > 0.55) {
+          const f = (k - 0.55) / 0.45;
+          [-12, 12].forEach(c => { const lx = x + c * gs, ly = gy; gA.lineStyle(10 * f, 0xffd23a, 0.45).lineBetween(lx, ly, x, y - 4); gA.lineStyle(3 * f, 0xffffff, 0.95).lineBetween(lx, ly, x, y - 4); });
+          gA.fillStyle(0xffffff, 0.5 + 0.4 * f).fillCircle(x, y - 4, 6 + f * 10);
+        }
+        return true;
+      }
       case 'fantasma':
         gN.fillStyle(0x10102a, 0.35).fillEllipse(x, y + 4, 90, 26);
         [-1, 1].forEach((sg, i) => this.ghost(gA, x + sg * (24 + Math.sin(time / 200 + i) * 8), y - 40 - k * 20 + Math.sin(time / 120 + i * 2) * 6, 0.9 + k * 0.3, 0.55, time));
@@ -866,6 +976,21 @@ class TechFX {
     const gN = this.gN, gA = this.gA, T = this.trail, n = T.length, a = this.heading(T, bx, by);
     const tail = (w0, col, al) => { for (let j = 1; j < n; j++) gA.lineStyle(w0 * (1 - j / n) + 2, col, al).lineBetween(T[j - 1].x, T[j - 1].y, T[j].x, T[j].y); };
     switch (key) {
+      case 'royale': {
+        // Dos rayos (uno por cristal) que se enroscan, estrellas que caen de la estela y las gafas con la corona girando alrededor del balón
+        const nx = -Math.sin(a), ny = Math.cos(a);
+        tail(20, 0xffd23a, 0.3);
+        for (const sg of [1, -1]) for (let j = 1; j < n; j++) {
+          const o0 = Math.sin((j - 1) * 0.55 - time / 70) * 9 * sg, o1 = Math.sin(j * 0.55 - time / 70) * 9 * sg, w = 7 * (1 - j / n) + 1.5;
+          gA.lineStyle(w, sg > 0 ? 0xffffff : 0xffe066, 0.85).lineBetween(T[j - 1].x + nx * o0, T[j - 1].y + ny * o0, T[j].x + nx * o1, T[j].y + ny * o1);
+        }
+        for (let j = 3; j < n; j += 4) this.star5(gA, T[j].x + Math.sin(time / 90 + j) * 10, T[j].y + Math.cos(time / 110 + j) * 6, 5 * (1 - j / n) + 2, j % 8 ? 0xffd23a : 0xffffff, time / 150 + j);
+        gA.fillStyle(0xfff6c0, 0.55).fillCircle(bx, by, 16); gA.fillStyle(0xffffff, 0.9).fillCircle(bx, by, 8);
+        const oa = time / 120;
+        this.royalGlasses(gN, gA, bx + Math.cos(oa) * 4, by - 28 + Math.sin(oa) * 2, 1, Math.sin(oa) * 0.25, time);
+        this.crown(gN, gA, bx, by - 44, 0.75, time);
+        return true;
+      }
       case 'fantasma':
         for (let j = 4; j < n; j += 6) this.ghost(gA, T[j].x + Math.sin(time / 90 + j) * 10, T[j].y, 0.6, 0.35 * (1 - j / n), time);
         this.ghost(gN, bx, by - 4, 0.8, 0.85, time);
@@ -1059,6 +1184,13 @@ class TechFX {
         const a = i / 12 * Math.PI * 2, d = 10 + k * 70;
         gN.fillStyle(E.tints[i % E.tints.length], 1 - k).fillTriangle(m.x + Math.cos(a) * d, m.y + Math.sin(a) * d, m.x + Math.cos(a + 0.2) * (d + 10), m.y + Math.sin(a + 0.2) * (d + 10), m.x + Math.cos(a - 0.15) * (d + 6), m.y + Math.sin(a - 0.15) * (d + 6));
       }
+    } else if (m.kind === 'royale') {   // gol con Gafas Royale: ondas de oro, lluvia de estrellas y la corona gigante que sube
+      gA.fillStyle(0xffd23a, 0.55 * (1 - k)).fillCircle(m.x, m.y, 24 + k * 150);
+      [0, 0.15, 0.3].forEach(d => { const q = Math.max(0, k - d); if (q > 0 && q < 1) gA.lineStyle(9 * (1 - q), d ? 0xffffff : 0xffd23a, 1 - q).strokeCircle(m.x, m.y, 30 + q * 190); });
+      for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2, d = 20 + k * 130; this.star5(gA, m.x + Math.cos(a) * d, m.y + Math.sin(a) * d * 0.7 + k * k * 40, 7 * (1 - k) + 2, i % 2 ? 0xffd23a : 0xffffff, a + k * 6); }
+      for (let i = 0; i < 14; i++) { const a = i * 0.449 + k, r1 = 60 + k * 220; gA.fillStyle(i % 2 ? 0xffd23a : 0xffffff, 0.3 * (1 - k)).fillTriangle(m.x - Math.sin(a) * 6, m.y + Math.cos(a) * 6, m.x + Math.sin(a) * 6, m.y - Math.cos(a) * 6, m.x + Math.cos(a) * r1, m.y + Math.sin(a) * r1); }
+      const cs = 1.4 + Math.min(1, k * 3) * 2; this.crown(gN, gA, m.x, m.y - 40 - k * 80, cs * (k > 0.8 ? (1 - k) * 5 : 1), time);
+      this.royalGlasses(gN, gA, m.x, m.y - 10 - k * 60, 1.2 + Math.min(1, k * 3) * 1.4, Math.sin(time / 200) * 0.1, time);
     } else if (m.kind === 'boom') {
       gA.fillStyle(E.main, 0.6 * (1 - k)).fillCircle(m.x, m.y, 20 + k * 120);
       gA.lineStyle(8 * (1 - k), E.tints[0], 1 - k).strokeCircle(m.x, m.y, 30 + k * 160);

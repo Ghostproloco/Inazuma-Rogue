@@ -13,10 +13,11 @@
      ya tiene partida) → se pregunta al jugador. Nunca se borra nada
      sin preguntar.
    ===================================================================== */
-const SAVE_KEYS = ['inazuma-perfil', 'inazuma-carrera', 'inazuma-ajustes', 'inazuma-run3', 'inazuma-sonido', 'inazuma-jugador'];
+const SAVE_KEYS = ['inazuma-perfil', 'inazuma-carrera', 'inazuma-ajustes', 'inazuma-run3', 'inazuma-sonido', 'inazuma-jugador',
+  'inazuma-carrera-2', 'inazuma-carrera-3', 'inazuma-jugador-2', 'inazuma-jugador-3', 'inazuma-ranuras'];   // con las ranuras 2 y 3 de cada carrera
 // Progreso de verdad (lo que se compara para decidir si hay dos partidas distintas); ajustes y sonido son de cada dispositivo
-const PROGRESS_KEYS = ['inazuma-perfil', 'inazuma-carrera', 'inazuma-run3', 'inazuma-jugador'];
-const DEVICE_KEYS = ['inazuma-ajustes', 'inazuma-sonido'];
+const PROGRESS_KEYS = ['inazuma-perfil', 'inazuma-carrera', 'inazuma-run3', 'inazuma-jugador', 'inazuma-carrera-2', 'inazuma-carrera-3', 'inazuma-jugador-2', 'inazuma-jugador-3'];
+const DEVICE_KEYS = ['inazuma-ajustes', 'inazuma-sonido', 'inazuma-ranuras'];   // la ranura que tenías abierta es de cada dispositivo
 
 const Cloud = (() => {
   const META_KEY = 'inazuma-cuenta';
@@ -25,7 +26,7 @@ const Cloud = (() => {
   const CFG = (typeof CLOUD_CONFIG !== 'undefined' && CLOUD_CONFIG) || {};
   // Cada subida gasta cuota de Firebase (plan gratis: ~20.000 escrituras al día para todos los jugadores).
   // Antes se subía 3 s después de cada cambio; ahora como mucho una vez cada 5 minutos mientras juegas, al acabar cada partido y al salir de la app.
-  const PUSH_DELAY = (typeof CLOUD_PUSH_DELAY !== 'undefined' && CLOUD_PUSH_DELAY) || 300000;   // como mucho una subida cada 5 min (y siempre al acabar un partido y al salir)
+  const PUSH_DELAY = (typeof CLOUD_PUSH_DELAY !== 'undefined' && CLOUD_PUSH_DELAY) || 600000;   // como mucho una subida cada 10 min mientras juegas (y siempre al salir o cambiar de app)
   const TIMEOUT = 15000;
   const MAX_RAW = 20000;        // por encima (casi siempre), la partida se guarda comprimida: ocupa y descarga ~8 veces menos de la cuota de Firebase
   const RETRY = (typeof CLOUD_RETRY !== 'undefined' && CLOUD_RETRY) || [20000, 45000, 90000, 180000, 300000];   // reintentos tras un error (cada vez más espaciados)
@@ -56,12 +57,13 @@ const Cloud = (() => {
   // ¿Hay progreso de verdad? (ya hizo la tirada de bienvenida o tiene Carrera o Carrera Jugador)
   function hasProgress(o) {
     try { const p = JSON.parse((o || {})['inazuma-perfil'] || 'null'); if (p && (p.firstDone || Object.keys(p.coll || {}).length)) return true; } catch (_) {}
-    return !!(o && (o['inazuma-carrera'] || o['inazuma-jugador']));
+    return !!(o && ['inazuma-carrera', 'inazuma-jugador', 'inazuma-carrera-2', 'inazuma-carrera-3', 'inazuma-jugador-2', 'inazuma-jugador-3'].some(k => o[k]));
   }
   function describe(o) {
     try {
-      const p = JSON.parse(o['inazuma-perfil'] || '{}'), cr = o['inazuma-carrera'] ? JSON.parse(o['inazuma-carrera']) : null;
-      const pc = o['inazuma-jugador'] ? JSON.parse(o['inazuma-jugador']) : null;
+      const first = base => ['', '-2', '-3'].map(x => o[base + x]).find(Boolean);   // la primera ranura con partida
+      const p = JSON.parse(o['inazuma-perfil'] || '{}'), crs = first('inazuma-carrera'), cr = crs ? JSON.parse(crs) : null;
+      const pcs = first('inazuma-jugador'), pc = pcs ? JSON.parse(pcs) : null;
       const st = p.story || {}, etapas = ['s1', 's2', 's3', 's4'].filter(k => st[k] && st[k].done).length;
       const pcName = pc && pc.me ? ((typeof PLAYER === 'function' && PLAYER(pc.me.id)) || pc.me.pd || {}).name : '';
       return { players: Object.keys(p.coll || {}).length, tickets: p.tickets || 0, coins: p.coins || 0, wins: p.wins || 0, etapas,
@@ -233,7 +235,7 @@ const Cloud = (() => {
     let data = x.data || {};
     if (x.z) { try { data = JSON.parse(await ungz(x.z)); } catch (_) { data = {}; } }
     const t = x.updatedAt && x.updatedAt.toDate ? x.updatedAt.toDate() : null;
-    return { rev: x.rev || 0, data, updated_at: t ? t.toISOString() : null };
+    return { rev: x.rev || 0, dev: x.dev || null, data, updated_at: t ? t.toISOString() : null };
   }
 
   /* ---------- Subir y bajar ---------- */
@@ -276,16 +278,32 @@ const Cloud = (() => {
       setStatus('saving');
       const base = overRev != null ? overRev : meta.owner === meta.uid ? (meta.rev || 0) : 0;
       const packed = await packData(data);
+      // Una sola escritura, sin leer antes (antes era una transacción: lectura + escritura). Las reglas de Firebase solo aceptan
+      // la versión siguiente (rev + 1); si la nube va por otra, la escritura se rechaza y entonces sí se lee para comparar.
+      if (!meta.dev) { meta.dev = Math.random().toString(36).slice(2, 10); saveMeta(); }   // marca de este dispositivo (para reconocer sus propias subidas)
+      const docOf = rev => ({ username: meta.user || '', rev, dev: meta.dev, data: packed.data, z: packed.z, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
       let res;
       try {
-        res = await withTimeout(db.runTransaction(async tx => {
-          const d = await tx.get(ref()), cur = d.exists ? (d.data().rev || 0) : 0;
-          if (cur !== base) return { conflict: true };
-          tx.set(ref(), { username: meta.user || '', rev: base + 1, data: packed.data, z: packed.z, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-          return { rev: base + 1 };
-        }));
-      } catch (e) { failStatus(errOf(e)); return 'error'; }
-      if (res.conflict) { const c = await fetchCloud(); if (c.row) return conflict(c.row); failStatus(c.error); return 'error'; }
+        await withTimeout(ref().set(docOf(base + 1)));
+        res = { rev: base + 1 };
+      } catch (e) {
+        const er = errOf(e);
+        if (er.code === 'permission-denied' && auth.currentUser && auth.currentUser.uid === meta.uid) res = { conflict: true };
+        else { failStatus(er); return 'error'; }
+      }
+      if (res.conflict) {
+        const c = await fetchCloud();
+        if (c.row) {
+          if (hashP(c.row.data || {}) === hashP(data)) { synced(c.row.rev, data); setStatus('ok'); return 'same'; }   // la nube ya tenía esto mismo
+          // La subida que «falló» sin conexión llegó más tarde (la última versión de la nube es de este mismo dispositivo): se sube encima
+          if (c.row.dev && c.row.dev === meta.dev && c.row.rev === base + 1 && overRev == null) {
+            try { await withTimeout(ref().set(docOf(c.row.rev + 1))); synced(c.row.rev + 1, data); setStatus('ok'); return 'uploaded'; }
+            catch (e2) { failStatus(errOf(e2)); return 'error'; }
+          }
+          return conflict(c.row);
+        }
+        failStatus(c.error); return 'error';
+      }
       synced(res.rev, data); setStatus('ok');
       return 'uploaded';
     })();
@@ -352,6 +370,8 @@ const Cloud = (() => {
 
   // Al salir del juego, cambiar de app o acabar un partido: subir ya lo pendiente
   const flush = () => { if (timer) { clearTimeout(timer); timer = 0; push(true); } };
+  // Al acabar un partido: solo si la última subida fue hace más de 10 minutos (si no, ya subirá el temporizador o al salir)
+  const flushOld = () => { if (timer && Date.now() - (state.lastOk || meta.lastOk || 0) > PUSH_DELAY) flush(); };
   if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
   if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('pagehide', flush);
   if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('online', () => { if (loggedIn() && (state.status === 'offline' || state.status === 'error')) { clearTimeout(retryT); retryT = 0; push(true); } });
@@ -362,6 +382,6 @@ const Cloud = (() => {
 
   return { SAVE_KEYS, enabled, ready, loggedIn, user, via: () => meta.via || '', expired: () => !!meta.expired, pendingRedirect: () => !!meta.redirect,
     state, onChange: f => (listeners.add(f), () => listeners.delete(f)),
-    signUp, signIn, signInGoogle, signOut, sync, push, flush, resolve, snapshot, restore, describe, hasProgress, guestChosen, chooseGuest, checkUser, cleanUser, PROGRESS_KEYS,
+    signUp, signIn, signInGoogle, signOut, sync, push, flush, flushOld, resolve, snapshot, restore, describe, hasProgress, guestChosen, chooseGuest, checkUser, cleanUser, PROGRESS_KEYS,
     _meta: () => meta };
 })();

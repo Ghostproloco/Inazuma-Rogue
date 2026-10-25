@@ -63,6 +63,12 @@ const Limitado = {
     return (this._pool = P);
   },
   ids() { const P = this.pool(); return ['limitada', 'legendaria', 'epica', 'rara', 'comun'].reduce((a, t) => a.concat(P[t]), []); },
+  // % de que un jugador concreto salga en una tirada: la probabilidad de su rareza repartida entre los jugadores de esa rareza
+  chanceOf(id) {
+    const P = this.pool();
+    for (const [t, w] of LM_RATES) if (P[t].includes(id)) return w / P[t].length;
+    return 0;
+  },
   avgOf(pd) { return ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + pd.ie[k], 0) / 5; },
   // Un sobre: 10 jugadores por 100 tickets (null si no te llegan)
   pull() {

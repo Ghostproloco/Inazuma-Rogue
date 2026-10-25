@@ -6,6 +6,8 @@ const TECH = id => GAME.techniques[String(id)];
 // Se muestra el mote oficial del juego (Gazelle, Torch, Sharp…); el nombre completo queda en p.full para el perfil
 const PBY = {}; GAME.players.forEach(p => { PBY[p.id] = p; p.full = p.name; if (p.nick) p.name = p.nick + ((p.full.match(/ \((IE2|IE3|Oscuro)\)$/) || [''])[0]); });
 const PLAYER = id => PBY[id];
+// Jugadores creados en el Modo Carrera Jugador: se añaden a los datos del juego (fuera del gacha)
+function registerCustom(p) { if (!p || PBY[p.id]) return; p.full = p.full || p.name; p.gacha = false; p.custom = true; GAME.players.push(p); PBY[p.id] = p; }
 const playsAs = (pd, r) => !!pd && (pd.role === r || !!pd.anyRole);   // anyRole: jugadores especiales que valen para cualquier puesto
 const TEAM = key => GAME.teams.find(t => t.key === key);
 const EVO = id => GAME.evo[String(id)];
@@ -68,6 +70,7 @@ const CHAINS = [   // cadenas: desafíos cortos, sin recuperar vidas
   { key: 'royal', name: TX('El regreso del Royal'), desc: TX('Royal Academy, su versión Redux y los Emperadores Oscuros.'), teams: ['Royal Academy', 'Royal Academy Redux', 'Emperadores Oscuros'], lives: 1, factor: 1.08 },
   { key: 'fuego', name: TX('Fuego y hielo'), desc: TX('Prominence, Polvo de Diamantes y su fusión, Caos.'), teams: ['Prominence', 'Polvo de Diamantes', 'Caos'], lives: 1, factor: 1.12, needs: 's2' },
   { key: 'oscuro', name: TX('El lado oscuro'), desc: TX('Team D, Dark Angel, Demons Z y el Ogro: los villanos del 3.'), teams: ['Team D', 'Dark Angel', 'Demons Z', 'The Ogre'], lives: 1, factor: 1.12, needs: 's4' },
+  { key: 'olvidados', name: TX('Los olvidados del 2'), desc: TX('Servicio Secreto, Mary Times, Triple C y Mar de Árboles: los rivales del 2 que faltaban.'), teams: ['Servicio Secreto', 'Mary Times', 'Triple C', 'Mar de Árboles'], lives: 2, factor: 1.04, needs: 's2' },
   { key: 'dioses', name: TX('Dioses y alienígenas'), desc: TX('Zeus, Ultra Zeus y Génesis: lo más duro del 1 y del 2.'), teams: ['Zeus', 'Ultra Zeus', 'Génesis'], lives: 1, factor: 1.15, needs: 's2' },
 ];
 const STAGES = [
@@ -174,9 +177,9 @@ function buildMatchPlayer(id, role, stat, techs, passives, row, pos) {
 }
 
 // Equipo rival: factor = fuerza (1 = sus estadísticas máximas del juego; también puede ser una función por jugador); progress decide cuántas técnicas trae
-function rivalTeam(teamKey, factor, progress) {
+function rivalTeam(teamKey, factor, progress, best) {   // best: sus 2 mejores técnicas (Cadena Leyenda), como harías tú
   const t = TEAM(teamKey);
-  const nTech = 1 + Math.floor(Math.min(1, progress) * 2.99);
+  const nTech = progress < 0.5 ? 1 : TECH_SLOTS;   // como mucho las mismas técnicas que tú (antes, al final, hasta 3 + la del portero)
   const order = { POR: 0, DEF: 1, MED: 2, DEL: 3 };
   const mem = t.players.slice().sort((a, b) => order[a.role] - order[b.role]);
   const pos = layout(mem.map(m => m.role));
@@ -184,9 +187,15 @@ function rivalTeam(teamKey, factor, progress) {
     const pd = PLAYER(m.id);
     let techs = pd.moves.slice().sort((a, b) => a[1] - b[1]).map(x => x[0]).filter(id => TECH(id)).slice(0, nTech);
     const sig = signatureTech(pd); if (sig != null && !techs.includes(sig)) techs[0] = sig;
+    if (best) {   // la mejor de su puesto + la siguiente más potente
+      const all = pd.moves.map(x => x[0]).filter(id => TECH(id)).sort((a, b) => TECH(b).power - TECH(a).power);
+      const main = all.find(id => TECH(id).type === ROLE_TYPE[m.role]) ?? all[0];
+      techs = main != null ? [main, ...all.filter(id => id !== main)] : [];
+    }
     const gkt = keeperTech(pd, techs); if (gkt != null) techs.unshift(gkt);
+    techs = techs.slice(0, TECH_SLOTS);
     return Object.assign(buildMatchPlayer(m.id, m.role, k => Math.round(pd.ie[k] * (typeof factor === 'function' ? factor(pd) : factor)), techs, [], 5 + i, pos[i]),
-      { sprite: Object.assign({ file: m.file, row: m.row }, t.kit && m.role !== 'POR' ? { kit: t.kit } : {}) });
+      { sprite: Object.assign(m.file ? { file: m.file, row: m.row } : pd.cs ? { file: 'c' + String(pd.cs[0]).padStart(2, '0') + '.png', row: pd.cs[1] } : { file: 'c00.png', row: 0 }, t.kit && m.role !== 'POR' ? { kit: t.kit } : {}) });
   }) };
 }
 // Equipación de tu equipo (Plantilla → Mi equipo), como el creador del Modo Carrera: Profile.data.kit = { a: camiseta, b: mangas y pantalón, d: diseño } o null (la del Raimon)
@@ -197,7 +206,7 @@ function mySprite(pd, role) {
   let k = role !== 'POR' && myKit();
   // Un portero que juega de campo deja su equipación de portero y lleva la del equipo (la del Raimon si no has elegido otra)
   if (role !== 'POR' && pd.role === 'POR') k = Object.assign({}, k || { a: '#d5b410', b: '#4a83ac' }, { gk: true });
-  return Object.assign({ file: Sprites.collFile(pd), row: pd.cs[1] }, k ? { kit: k } : {});
+  return Object.assign(pd.cs ? { file: Sprites.collFile(pd), row: pd.cs[1] } : Sprites.refOf(pd), k ? { kit: k } : {}, pd.look ? { look: pd.look } : {});
 }
 const DIFF_MUL = { facil: 1.08, medio: 1.13, dificil: 1.2 };   // fácil = el antiguo difícil
 
@@ -233,6 +242,8 @@ const GIFT_CODES = {
   MERCURYINFINITO:   { player: 1415, desc: TX('Mercury (versión del Infinito)') },
   AGENTEMINFINITO:   { player: 21487, desc: TX('Agente M (versión del Infinito)') },
   NAKATAINFINITO:    { player: 31278, desc: TX('Hidetoshi Nakata (versión del Infinito)') },
+  INAZUMA035:        { tickets: 20, pick: { min: 80, mix: { evt: 1, leg: 2 } }, picks: 2, desc: TX('20 tickets y 2 «elige 1 de 3» de jugadores de +80 (con suerte, legendarios)') },
+  SELVALEYENDA:      { pick: { selva: true }, desc: TX('Elige 1 de 3 legendarios del evento Selva') },
   INFINITO10:        { pick: { inf: true, n: 10 }, uses: 2, desc: TX('Elige 1 de 10 versiones del Infinito (con las probabilidades del gacha)') },
   FUEGOSAGRADO:      { pick: { rarity: 'epica', elem: 'fuego' }, tickets: 5, desc: TX('Elige 1 de 3 jugadores de fuego épicos o mejores') },
   DISCORDINAZUMA:    { tickets: 15, rayos: 2, desc: TX('Regalo de la comunidad') },
@@ -244,8 +255,21 @@ const PICK_TIERS = { comun: 0, rara: 1, epica: 2, legendaria: 3, limitada: 4 };
 // Las 3 opciones de un "elige 1 de 3": jugadores del gacha (sin versiones de evento ni originales)
 function giftPickOptions(f, n = 3) {
   if (f.inf) return infPickOptions(f.n || n);
+  if (f.mix) {   // cada opción: f.mix.evt % legendario de evento (Halloween/Selva), f.mix.leg % legendario normal, el resto de media >= f.min sin ser legendario
+    const av = pd => ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + pd.ie[k], 0) / 5;
+    const evt = GAME.players.filter(p => (p.halloween || p.selva) && p.rarity === 'legendaria' && p.ie && av(p) > 70).map(p => p.id);
+    const leg = GAME.players.filter(p => p.cs && p.gacha !== false && !p.halloween && !p.xmas && !p.selva && !p.original && !p.special && p.rarity === 'legendaria').map(p => p.id);
+    const rest = GAME.players.filter(p => p.cs && p.gacha !== false && !p.halloween && !p.xmas && !p.selva && !p.original && !p.special && p.rarity !== 'legendaria' && av(p) >= (f.min || 0)).map(p => p.id);
+    const out = [];
+    for (let k = 0; k < n * 20 && out.length < n; k++) {
+      const r = Math.random() * 100, pool = r < f.mix.evt ? evt : r < f.mix.evt + f.mix.leg ? leg : rest;
+      const c = pool.filter(id => !out.includes(id)); if (c.length) out.push(c[Math.floor(Math.random() * c.length)]);
+    }
+    return out;
+  }
+  if (f.selva) { const pool = GAME.players.filter(p => p.selva && p.rarity === 'legendaria').map(p => p.id), out = []; while (out.length < n && pool.length) out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]); return out; }   // legendarios del evento Selva
   const avg = pd => ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + pd.ie[k], 0) / 5;
-  const pool = GAME.players.filter(p => p.cs && p.gacha !== false && !p.halloween && !p.xmas && !p.original && !p.special
+  const pool = GAME.players.filter(p => p.cs && p.gacha !== false && !p.halloween && !p.xmas && !p.selva && !p.original && !p.special
     && PICK_TIERS[p.rarity] >= PICK_TIERS[f.rarity || 'comun'] && (!f.role || p.role === f.role) && (!f.elem || p.elem === f.elem) && (!f.min || avg(p) >= f.min)).map(p => p.id);
   const out = []; while (out.length < n && pool.length) out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
   return out;
@@ -265,7 +289,7 @@ function infPickOptions(n) {
 // Se ganan al vencer a cada jefe del Infinito (elige 1 de 3) y llevan un marco propio con el símbolo ∞.
 (function markVersions() {
   if (typeof GAME === 'undefined') return;
-  for (const p of GAME.players) if (p.cs && p.gacha === false && !p.halloween && !p.xmas && !p.special && !p.original && p.id !== 39001) p.inf = true;
+  for (const p of GAME.players) if (p.cs && p.gacha === false && !p.halloween && !p.xmas && !p.selva && !p.special && !p.original && p.id !== 39001) p.inf = true;
 })();
 const INF_TIERS = w => w >= 30 ? ['comun', 'rara', 'epica', 'legendaria'] : w >= 15 ? ['comun', 'rara', 'epica'] : ['comun', 'rara'];
 function versionPickOptions(wave, n = 3) {
@@ -284,6 +308,7 @@ const Profile = {
     this.data = Object.assign({ coll: {}, coins: 99999, tickets: 99999, pity: 0, firstDone: false, pulls: 0,
       rayos: 0, wins: 0, story: { s1: { best: 0, done: false } }, specials: {}, chains: {}, infBest: 0, techs: {}, banner: 1 }, d || {});
     this.data.techs = this.data.techs || {};
+    (this.data.custom || []).forEach(registerCustom);   // tus jugadores creados (Modo Carrera Jugador)
     this.data.codes = this.data.codes || {};
     this.data.story.s2 = this.data.story.s2 || { best: 0, done: false };
     for (const k of ['s3', 's4']) this.data.story[k] = this.data.story[k] || { best: 0, done: false };
@@ -317,7 +342,7 @@ const Profile = {
       const pd = typeof G.player === 'number' ? PLAYER(G.player) : GAME.players.find(p => (p.gacha !== false || p.special) && p.cs && (p.full === G.player || p.name === G.player));   // número = id exacto (p. ej. una versión del Infinito)
       if (pd) { const o = P.coll[pd.id]; if (!o) P.coll[pd.id] = { stars: 1, up: {} }; else if (o.stars < MAX_STARS) o.stars++; else P.coins += 200; who = pd; }
     }
-    if (G.pick) { const opts = giftPickOptions(G.pick, G.pick.n || 3); if (opts.length) (P.giftPicks = P.giftPicks || []).push({ code: k, opts, desc: G.desc }); }
+    if (G.pick) for (let i = 0; i < (G.picks || 1); i++) { const opts = giftPickOptions(G.pick, G.pick.n || 3); if (opts.length) (P.giftPicks = P.giftPicks || []).push({ code: k, opts, desc: G.desc }); }
     P.codes[k] = Date.now(); P.codeUses = P.codeUses || {}; P.codeUses[k] = used + 1; this.save();
     const parts = [who && '⭐ ' + who.name, G.leg && TXn(G.leg, '{0} tirada legendaria', '{0} tiradas legendarias'), G.epica && G.epica + TX(' tiradas épicas o mejores'),
       G.pick && TX('elige 1 de {0} jugadores', G.pick.n || 3), G.tickets && G.tickets + TX(' 🎟️ tickets'), G.coins && G.coins + TX(' 🪙 monedas'), G.rayos && G.rayos + TX(' ⚡ Rayos')].filter(Boolean);
@@ -343,7 +368,7 @@ const Profile = {
   },
   useRayo(id) {
     const o = this.owned(id), P = this.data;
-    if (!o || P.rayos < 1 || o.stars >= MAX_STARS) return false;
+    if (!o || P.rayos < 1 || o.stars >= MAX_STARS || PLAYER(id).leyenda) return false;   // Willy LEYENDA solo sube repitiendo la Cadena Leyenda
     P.rayos--; o.stars++; this.save(); return true;
   },
   unlocked(what) {
@@ -484,17 +509,28 @@ const Run = {
     } else if (kind === 'special') { schedule = [opts.team]; lives = 1; name = opts.team; }
     else if (kind === 'chain') { const C = CHAINS.find(c => c.key === opts.chain); schedule = C.teams.slice(); lives = C.lives; name = C.name; }
     else if (kind === 'infinite') { schedule = [Run.infiniteTeam(0)]; lives = 2; name = TX('Infinito'); }
+    else if (kind === 'leyenda') { schedule = LY_TEAMS.slice(); lives = 1; name = TX('Cadena Leyenda'); diff = 'leyenda'; Leyenda.data().tries++; Profile.save(); }   // evento: una derrota y fuera
     const roster = lineupIds.map(id => runMember(id));
     return { kind, diff, name, stage: opts.stage || 's1', chain: opts.chain || null, schedule, index: 0, lives, maxLives: lives, wins: 0, coinsEarned: 0, ticketsEarned: 0,
       roster, lineup: roster.map((_, i) => i), formation: opts.formation || '1-2-1-1', state: 'map', rewards: null, last: null };
   },
   infiniteTeam(n) {
-    const all = GAME.teams.filter(t => t.key !== 'Ultra Zeus');
+    const all = GAME.teams.filter(t => t.key !== 'Ultra Zeus' && Run.playable(t.key));
     if ((n + 1) % 5 === 0) {   // oleada especial: los más duros
       const hard = all.slice().sort((a, b) => b.avg - a.avg).slice(0, 6);
       return (n + 1) % 10 === 0 ? 'Ultra Zeus' : hard[Math.floor(Math.random() * hard.length)].key;
     }
     return all[Math.floor(Math.random() * all.length)].key;
+  },
+  // Equipo con el que se puede jugar un partido suelto (los de la Liga Pro y el Raimon de la Carrera solo existen en las Carreras)
+  playable(key) { const t = TEAM(key); return !!t && t.kind !== 'pro' && t.kind !== 'career' && !t.pro && t.players.length >= 5 && t.players.every(m => m.file); },
+  // Partidas guardadas con un rival que no vale (p. ej. «Los Angeles Stars» en el Infinito): se cambia por otro
+  repair(run) {
+    if (!run || !Array.isArray(run.schedule)) return run;
+    if (run.kind === 'leyenda' && typeof LY_TEAMS !== 'undefined' && run.schedule.join() !== LY_TEAMS.join()) run.schedule = LY_TEAMS.slice();   // cadena empezada antes de la 0.35.3: rivales nuevos (con el jefe final)
+    if (run.kind === 'leyenda') return run;   // el jefe final (Leyendas) no es «jugable» suelto, pero aquí sí
+    run.schedule = run.schedule.map((k, i) => Run.playable(k) ? k : run.kind === 'infinite' ? Run.infiniteTeam(i) : (GAME.teams.find(t => Run.playable(t.key)) || {}).key);
+    return run;
   },
   isBoss(run) { return run.kind === 'infinite' && (run.index + 1) % 5 === 0; },
   progress(run) {
@@ -505,11 +541,14 @@ const Run = {
   // Fuerza del rival según el modo
   rivalFactor(run) {
     const dm = DIFF_MUL[run.diff] || 1;
-    if (run.kind === 'story') return (0.78 + 0.24 * Run.progress(run)) * dm;
+    if (run.kind === 'story') return (0.8 + 0.32 * Run.progress(run)) * dm;   // 0.35.4: suben más al final
     if (run.kind === 'special') return (SPECIALS.find(x => x.key === run.schedule[0]) || { boost: 1 }).boost;
-    if (run.kind === 'chain') return CHAINS.find(c => c.key === run.chain).factor * (0.96 + 0.04 * Run.progress(run));
-    return Math.min(1.35, 0.82 + 0.035 * run.index) * (Run.isBoss(run) ? 1.08 : 1);
+    if (run.kind === 'chain') return CHAINS.find(c => c.key === run.chain).factor * (0.97 + 0.1 * Run.progress(run));
+    if (run.kind === 'leyenda') return Leyenda.factor(run.index);
+    return Math.min(1.5, 0.84 + 0.04 * run.index) * (Run.isBoss(run) ? 1.1 : 1);   // 0.35.4: el Infinito sube más y hasta más arriba
   },
+  // Dificultad de la IA: en el Infinito se endurece por oleadas (Difícil desde la 10, «Leyenda» desde la 25)
+  diffOf(run) { if (run.kind === 'infinite') return run.index >= 24 ? 'leyenda' : run.index >= 9 ? 'dificil' : run.diff; return run.diff; },
   // Música: alegre al principio, oscura y épica al final
   musicRole(run) {
     if (run.kind === 'special') return 'match_special';
@@ -518,7 +557,9 @@ const Run = {
     const p = Run.progress(run);
     return (s2 ? 's2_' : 'match_') + (p < 0.34 ? 'easy' : p < 0.67 ? 'mid' : 'hard');
   },
-  field(run) { return TEAM_FIELD[Run.rivalName(run)] || 'normal'; },
+  // En casa (partidos pares, menos el último de la Historia o de una cadena) se juega en tu campo si compraste uno en la tienda
+  home(run) { return typeof Shop !== 'undefined' && !!Shop.myField() && run.kind !== 'special' && run.index % 2 === 0 && (run.kind === 'infinite' || run.index < run.schedule.length - 1); },
+  field(run) { return Run.home(run) ? Shop.myField() : TEAM_FIELD[Run.rivalName(run)] || 'normal'; },
   memberStat(m) {
     const o = m.temp ? null : Profile.owned(m.id);
     return k => m.temp ? Math.round(PLAYER(m.id).ie[k] * startMul(PLAYER(m.id))) : statOf(m.id, o, k);
@@ -531,7 +572,8 @@ const Run = {
       return Object.assign(buildMatchPlayer(m.id, F.roles[i], Run.memberStat(m), m.techs, m.passives, i, pos[i]),
         { sprite: mySprite(pd, F.roles[i]) });
     }) };
-    const B = rivalTeam(Run.rivalName(run), Run.rivalFactor(run), Run.progress(run));
+    const B = rivalTeam(Run.rivalName(run), Run.rivalFactor(run), Run.progress(run), run.kind === 'leyenda');
+    if (typeof Shop !== 'undefined' && run.kind !== 'leyenda') Shop.boostTeam(A);   // en la Cadena Leyenda, sin mejoras de la tienda   // niveles de supertécnica comprados en la tienda
     return { A, B };
   },
   applyResult(run, result, goals) {
@@ -564,6 +606,9 @@ const Run = {
           if (run.lives === run.maxLives) { out.tickets += 5; out.perfect = true; P.chainPerfect = P.chainPerfect || {}; P.chainPerfect[run.chain] = 1; }
           if (n === 3 || n === 5) { out.tickets += 15; P.rayos++; out.medal = n === 3 ? 'plata' : 'oro'; }
         }
+      } else if (run.kind === 'leyenda') {
+        out.coins = 40 + run.index * 10 + goals * 5;
+        Leyenda.prize(run.index + 1, out);
       } else if (run.kind === 'infinite') {
         out.coins = 20 + run.index * 3 + goals * 5;
         if (Run.isBoss(run)) {
@@ -613,7 +658,7 @@ const Run = {
     // Fichaje temporal o habilidad
     const beaten = TEAM(run.schedule[run.index]);
     const have = new Set(run.roster.map(m => m.id));
-    const cands = beaten.players.map(m => m.id).filter(id => !have.has(id) && PLAYER(id).cs);
+    const cands = beaten.players.map(m => m.id).filter(id => !have.has(id) && PLAYER(id).cs && !(run.kind === 'leyenda' && lyRepeat() && lyBanned(id)));
     if (opts.length < 3 && cands.length && run.roster.length < 7 && Math.random() < 0.6) opts.push({ kind: 'recruit', id: rnd(cands) });
     const names = Object.keys(PASSIVES);
     for (let tries = 0; tries < 10 && opts.length < 3; tries++) {
@@ -658,11 +703,11 @@ const Run = {
     let o = null; try { o = JSON.parse(localStorage.getItem('inazuma-run3') || 'null'); } catch (_) {}
     if (!o || typeof o !== 'object') return {};
     if (o.kind) return o.roster ? { [o.kind]: o } : {};
-    for (const k in o) if (!o[k] || !o[k].roster || !o[k].kind || o[k].state === 'over') delete o[k];
+    for (const k in o) if (!o[k] || !o[k].roster || !o[k].kind || o[k].state === 'over') delete o[k]; else Run.repair(o[k]);
     return o;
   },
   write(all) { try { if (Object.keys(all).length) localStorage.setItem('inazuma-run3', JSON.stringify(all)); else localStorage.removeItem('inazuma-run3'); } catch (_) {} },
   save(run) { const all = Run.all(); all[run.kind] = run; Run.write(all); },
-  load(kind) { return Run.all()[kind] || null; },
+  load(kind) { return Run.repair(Run.all()[kind] || null); },
   clear(kind) { if (kind == null) return Run.write({}); const all = Run.all(); delete all[kind]; Run.write(all); },
 };

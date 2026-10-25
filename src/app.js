@@ -9,17 +9,22 @@ const ROLES4 = ['POR', 'DEF', 'MED', 'DEL'];
 const RAB = r => (I18N.en() ? { POR: 'GK', DEF: 'DF', MED: 'MF', DEL: 'FW' }[r] : null) || r;
 const yearTx = n => TX('{0}º curso', n);
 const ordTx = n => I18N.en() ? n + ([, 'st', 'nd', 'rd'][n % 100 > 10 && n % 100 < 14 ? 0 : n % 10] || 'th') : n + 'º';
-const FIELD_LABEL = { normal: TX('Campo clásico'), noche: TX('Campo nocturno'), niebla: TX('Campo nocturno con niebla'), jungla: TX('Campo de la jungla'), atardecer: TX('Campo al atardecer'), nieve: TX('Campo nevado'), acero: TX('Estadio de acero'), cielo: TX('Campo celestial'), volcan: TX('Campo volcánico') };
+const FIELD_LABEL = { normal: TX('Campo clásico'), noche: TX('Campo nocturno'), niebla: TX('Campo nocturno con niebla'), jungla: TX('Campo de la jungla'), atardecer: TX('Campo al atardecer'), nieve: TX('Campo nevado'), acero: TX('Estadio de acero'), cielo: TX('Campo celestial'), volcan: TX('Campo volcánico'), playa: TX('Campo de la playa'), galaxia: TX('Campo galáctico'), dorado: TX('Campo dorado') };
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const chip = e => `<span class="chip ${EL(e).css}">${ELEM_LABEL[e] || e}</span>`;
 const rchip = r => `<span class="rar ${r}">${RARITY[r].label}</span>`;
 const stars = n => `<span class="stars">${'★'.repeat(n)}<s>${'★'.repeat(MAX_STARS - n)}</s></span>`;
 const TYPE_ICON = { tiro: '⚽', regate: '💨', bloqueo: '🛡️', parada: '✋' };
 const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><i>${TYPE_LABEL[t.type] || ''} · ${t.power}</i></span>`;
+// Igual, con el nivel comprado en la tienda (solo para las técnicas de tu colección)
+const techLineMy = t => { const lv = Shop.techLevel(t.id); return lv > 1 ? techLine(Object.assign({}, t, { power: t.power + SHOP.LV_POWER * (lv - 1), name: t.name + ' · ' + TX('Nv.') + lv })) : techLine(t); };
 
-const VERSION = '0.31.14';
+const VERSION = '0.36.0';
 const DISCORD_URL = 'https://discord.gg/G6SyT2rZW', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
+// Jugadores originales de Fran (Goggle Jr., Rosfire, Knack…: «original» en gamedata): ocultos en las versiones públicas,
+// solo salen en la beta. Fran decide cuándo (y cómo) se publican: NO meterlos directamente al sacar versiones.
+if (!BETA && typeof GAME !== 'undefined') GAME.players.forEach(p => { if (p.original) p.gacha = false; });
 const App = (() => {
   const $ = id => document.getElementById(id);
   const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1, fouls: 1, pickStop: 0 };
@@ -30,8 +35,8 @@ const App = (() => {
     settings.dev = false; settings.debug = 0; settings.hwForce = false; settings.xmForce = false; settings.devWin = 0; settings.speed = 0; saveSettings();
   }
   Profile.load();
-  Halloween.forced = Halloween.forced || !!settings.hwForce;   // la beta lo trae encendido de serie
   Navidad.forced = Navidad.forced || !!settings.xmForce;
+  Halloween.forced = Halloween.forced || !!settings.hwForce;   // la beta lo trae encendido de serie
 
   const api = { match: null, matchSheet: null, running: false, scene: null, mode: null, run: null, settings, pick: null, draft: null };
   const body = $('screenBody');
@@ -51,7 +56,9 @@ const App = (() => {
     sc.style.backgroundImage = bg ? `url("ui/${bg}.png")` : '';
     body.classList.toggle('cardbg-clear', !!bg);
     body.innerHTML = html; sc.scrollTop = 0; show('screen');
+    const fab = $('devFab'); if (fab) fab.hidden = !settings.dev || html.includes('id="dOff"');   // botón rápido del modo desarrollador
   }
+  let hub = () => renderMenu();   // pantalla principal a la que vuelve el modo desarrollador
   const crestOf = key => (TEAM(key) || {}).crest || 1;
   // Barra fija arriba con «Volver» y el título; barra fija abajo para el botón principal
   const top = (title, id = 'back', label = TX('Volver')) => `<div class="top"><button class="ghost back" id="${id}">◀ ${label}</button><h2>${title}</h2></div>`;
@@ -80,13 +87,37 @@ const App = (() => {
   document.addEventListener('pointerdown', () => Sound.unlock(), { capture: true });
 
   /* ---------- Menú principal: modos ---------- */
+  // Botón «en directo»: DecAPI (servicio público, sin claves) dice si el canal de Twitch de Fran está emitiendo.
+  // Se mira al abrir el menú (como mucho cada ~3 min) y cada 3 min con la página a la vista. Si falla, simplemente no sale.
+  const TWITCH = 'franmen_';
+  const Live = { on: false, at: 0, busy: false,
+    async check(force) {
+      if (this.busy || typeof fetch === 'undefined' || (!force && Date.now() - this.at < 170000)) return;
+      this.busy = true; this.at = Date.now();
+      let tm = null;
+      try {
+        const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        if (ctl) tm = setTimeout(() => ctl.abort(), 6000);
+        const r = await fetch('https://decapi.me/twitch/uptime/' + TWITCH + '?t=' + Date.now(), { cache: 'no-store', signal: ctl ? ctl.signal : undefined });
+        const t = r.ok ? (await r.text()).trim() : '';
+        const on = !!t && t.length < 120 && /\d/.test(t) && !/offline|error|not found|no user|invalid/i.test(t);   // en directo: «1 hour, 5 minutes»
+        if (on !== this.on) { this.on = on; this.paint(); }
+      } catch (_) {} finally { clearTimeout(tm); this.busy = false; }
+    },
+    paint() {
+      const el = $('liveSlot'); if (!el) return;
+      el.innerHTML = this.on ? `<a class="livebtn" href="https://www.twitch.tv/${TWITCH}" target="_blank" rel="noopener"><i class="livedot"></i><span class="mt"><b>${TX('Franmen está en directo')}</b><small>${TX('Toca para verlo en Twitch')}</small></span><span class="livego">▶</span></a>` : '';
+    },
+  };
+  setInterval(() => { if (!document.hidden && $('liveSlot')) Live.check(); }, 180000);
   function renderMenu() {
     if (!Profile.data.firstDone) return renderWelcome();
     if (Cloud.state.conflict) return renderConflict(renderMenu);
     let traida = false; try { traida = !!localStorage.getItem('inazuma-traida'); if (traida) localStorage.removeItem('inazuma-traida'); } catch (_) {}
     if (traida) { setTimeout(() => UI.toast(Cloud.enabled() && !Cloud.loggedIn() ? TX('¡Partida traída! Crea una cuenta en 👤 Cuenta para tenerla siempre a salvo') : TX('¡Partida traída!'), 3500), 300); }
-    const P = Profile.data, runs = Run.all(), RUN_ORDER = ['story', 'special', 'chain', 'infinite'], open = RUN_ORDER.filter(k => runs[k]).map(k => runs[k]);
-    const done = P.story.s1.done;
+    const P = Profile.data, runs = Run.all(), RUN_ORDER = ['leyenda', 'story', 'special', 'chain', 'infinite'], open = RUN_ORDER.filter(k => runs[k]).map(k => runs[k]);
+    const done = P.story.s1.done; hub = renderMenu;
+    achToast(); const achN = Ach.pending();
     screen(`<div class="nm"><div class="nm-tools">
         <button class="nm-ico" id="mGift" title="${TX('🎁 Código de regalo')}" aria-label="${TX('🎁 Código de regalo')}">🎁</button>
         <button class="nm-ico" id="mSaves" title="${TX('👤 Cuenta')}${Cloud.loggedIn() ? ' · ' + esc(Cloud.user()) : ''}" aria-label="${TX('👤 Cuenta')}">👤${Cloud.loggedIn() ? '<span class="nm-on"></span>' : ''}</button>
@@ -94,17 +125,21 @@ const App = (() => {
         <button class="nm-ico discord" id="mDiscord" title="${P.discordGift ? TX('💬 Únete al Discord de la comunidad') : TX('💬 Únete al Discord · +10 tickets 🎟️')}" aria-label="Discord">💬${P.discordGift ? '' : '<span class="nm-badge">+10 🎟️</span>'}</button>
       </div>
       <div class="title nm-title"><img class="logo" id="logo" src="ui/logo_gold.png" alt="Inazuma Gold"><span>${TX('5 contra 5 · roguelite')}</span></div>${wallet()}
+      ${Leyenda.active() ? lyMenuBtn() : ''}
       ${Halloween.active() ? hwMenuBtn() : ''}
       ${Navidad.active() ? xmMenuBtn() : ''}
       ${Limitado.active() ? lmMenuBtn() : ''}
       ${open.map(r => `<button class="cta" data-cont="${r.kind}">${TX('Continuar:')} ${esc(r.name)}<small>${TX('Partido')} ${r.index + 1}${r.kind === 'infinite' ? '' : TX(' de ') + r.schedule.length} · ${'♥'.repeat(r.lives)}</small></button>`).join('')}
       <div class="modes">
         <button class="mode nm-hero" id="mCareer"><span class="cicon">🏆</span><span class="mt"><b>${TX('Modo Carrera')}</b><small>${Career.data && !Career.data.over ? TX('Temporada ') + Career.data.season + ' · ' + DIV_NAME[Career.myDiv()] + TX(' · semana ') + Career.data.week : TX('Eres el mánager: 3 divisiones y ascensos')}</small></span></button>
+        <button class="mode nm-hero" id="mPlayer"><span class="cicon">⭐</span><span class="mt"><b>${TX('Carrera Jugador')}</b><small>${pcSummary()}</small></span></button>
         <div class="nm-tiles">
         <button class="mode nm-tile" id="mStory">${Sprites.crest(1)}<span class="mt"><b>${TX('Historia')}</b><small>${P.story.s4.done ? TX('Etapas 1, 2 y 3 completadas ✓') : P.story.s3.done ? TX('Etapa 3 · Fase 2 abierta (mejor: ') + P.story.s4.best + ')' : P.story.s2.done ? TX('Etapa 3 abierta: el Inazuma 3') : done ? TX('Etapa 1 ✓ · Etapa 2 abierta (mejor: ') + P.story.s2.best + ')' : TX('Etapa 1 · mejor: ') + P.story.s1.best + TX(' victorias')}</small></span></button>
         <button class="mode nm-tile" id="mSpecial">${Sprites.crest(588)}<span class="mt"><b>${TX('Equipos especiales')}</b><small>${SPECIALS.filter(x => Profile.unlocked({ special: x })).length} ${TX('de')} ${SPECIALS.length} ${TX('abiertos')}</small></span></button>
         <button class="mode nm-tile ${done ? '' : 'locked'}" id="mChain">${Sprites.crest(599)}<span class="mt"><b>${TX('Cadenas')}</b><small>${done ? TX('Desafíos cortos · premio: Rayo Raimon') : TX('🔒 Completa la Etapa 1')}</small></span></button>
         <button class="mode nm-tile ${done ? '' : 'locked'}" id="mInf">${Sprites.crest(15)}<span class="mt"><b>${TX('Infinito')}</b><small>${done ? TX('Por oleadas · récord: ') + P.infBest : TX('🔒 Completa la Etapa 1')}</small></span></button>
+        <button class="mode nm-tile${Shop.albumPending() ? ' glow' : ''}" id="mAlbum"><span class="cicon">📖</span><span class="mt"><b>${TX('📖 Álbum')}</b><small>${Shop.albumPending() ? TXn(Shop.albumPending(), '¡{0} premio por recoger!', '¡{0} premios por recoger!') : TX('Completa equipos')}</small></span></button>
+        <button class="mode nm-tile${achN ? ' glow' : ''}" id="mAch"><span class="cicon">🏅</span><span class="mt"><b>${TX('🏅 Logros')}</b><small>${achN ? TXn(achN, '¡{0} por recoger!', '¡{0} por recoger!') : TX('{0} de {1}', Ach.LIST.filter(a => Ach.state(a) !== 'locked').length, Ach.LIST.length)}</small></span></button>
         </div>
       </div>
       <div data-cloudline>${cloudLine()}</div>
@@ -113,6 +148,7 @@ const App = (() => {
       <button class="ver" id="ver">v${VERSION}${settings.dev ? TX(' · dev') : ''}</button>
       <nav class="nm-dock">
         <button class="nm-dk main" id="mGacha"><i>🎰</i><span>${TX('Gacha')}</span><em class="nm-badge">${P.tickets} 🎟️</em></button>
+        <button class="nm-dk${Shop.albumPending() ? ' glow' : ''}" id="mShop"><i>🛒</i><span>${TX('Tienda')}</span></button>
         <button class="nm-dk" id="mTeam"><i>👥</i><span>${TX('Plantilla')}</span></button>
         <button class="nm-dk" id="mQuick"><i>⚽</i><span>${TX('Partido rápido')}</span></button>
         <button class="nm-dk" id="mSound"><i>⚙️</i><span>${TX('Ajustes')}</span></button>
@@ -132,13 +168,16 @@ const App = (() => {
       Run.clear(b.dataset.aband); if (api.run && api.run.kind === b.dataset.aband) api.run = null; renderMenu();
     });
     $('mStory').onclick = () => { if (!resume('story')) renderStory(); };
-    $('mCareer').onclick = () => renderCareer();
+    $('mCareer').onclick = () => renderSlots('car');
+    $('mPlayer').onclick = () => renderSlots('pc');
+    $('mShop').onclick = () => renderShop('sobres'); $('mAlbum').onclick = () => renderShop('album');
+    $('mAch').onclick = () => renderAch(renderMenu);
     $('mSpecial').onclick = () => { if (!resume('special')) renderSpecials(); };
     $('mChain').onclick = () => { if (!done) return UI.toast(TX('Completa la Etapa 1 de la Historia')); if (!resume('chain')) renderChains(); };
     $('mInf').onclick = () => { if (!done) return UI.toast(TX('Completa la Etapa 1 de la Historia')); if (!resume('infinite')) { newDraft('infinite', {}); tutorial('infinite'); } };
     $('mGacha').onclick = renderGacha; $('mTeam').onclick = () => renderTeam();
     $('mGift').onclick = renderGift;
-    $('mNews').onclick = () => renderNews(renderMenu);
+    $('mNews').onclick = () => renderPatchNotes(renderMenu);
     $('mDiscord').onclick = () => {
       Sound.sfx('click');
       // Regalo de bienvenida: 10 tickets la primera vez que se pulsa (una sola vez por perfil)
@@ -147,11 +186,12 @@ const App = (() => {
     };
     const newPl = Limitado.pendingNew(settings.seenPlayers);   // jugadores nuevos: sale su pantalla al abrir el juego (y luego las Novedades)
     if (newPl.length) setTimeout(() => { if ($('mNews')) showNewPlayers(newPl, 0, renderMenu); }, 450);
-    else if (settings.seenNews !== VERSION && settings.newsShown !== VERSION) { settings.newsShown = VERSION; saveSettings(); setTimeout(() => { if ($('mNews')) renderNews(renderMenu); }, 400); }   // la primera vez tras actualizar
+    else if (settings.seenNews !== VERSION && settings.newsShown !== VERSION) { settings.newsShown = VERSION; saveSettings(); setTimeout(() => { if ($('mNews')) renderPatchNotes(renderMenu); }, 400); }   // la primera vez tras actualizar
     $('mSaves').onclick = () => renderAccount(renderMenu);
     body.querySelector('[data-cloudline]').onclick = () => renderAccount(renderMenu);
     $('mQuick').onclick = startQuick; $('mSound').onclick = renderSettings;
     if ($('mHw')) $('mHw').onclick = renderHalloween;
+    if ($('mLy')) $('mLy').onclick = () => { if (!resume('leyenda')) renderLeyenda(); };
     if ($('mXm')) $('mXm').onclick = renderNavidad;
     if ($('mLm')) $('mLm').onclick = renderLimitado;
     if (Navidad.active()) xmDecor(); else if (Halloween.active()) hwDecor();   // el menú lleva el tema del evento activo (niebla y calabazas, o nieve)
@@ -159,6 +199,84 @@ const App = (() => {
     Sound.music('menu');
   }
 
+  /* ---------- Logros ---------- */
+  // Avisa de los logros recién conseguidos
+  function achToast() {
+    const f = Ach.scan(); if (!f.length) return;
+    setTimeout(() => { UI.toast('🏅 ' + (f.length === 1 ? TX('Logro conseguido: {0}', f[0].name) : TX('¡{0} logros conseguidos!', f.length)), 3000); Sound.sfx('reveal'); }, 400);
+  }
+  function renderAch(back) {
+    Ach.scan();
+    const L = Ach.LIST, got = L.filter(a => Ach.state(a) !== 'locked').length, ready = L.filter(a => Ach.state(a) === 'ready').length;
+    const row = a => {
+      const st = Ach.state(a), T = ACH_TIERS[a.tier], pr = Ach.progress(a);
+      return `<div class="cpl ach ${st}"><span class="achi">${st === 'locked' ? '🔒' : T.icon}</span><div class="cplb"><b>${esc(a.name)}</b><span class="cst">${esc(a.desc)}${pr.goal && st === 'locked' ? ` · ${pr.cur}/${pr.goal}` : ''}</span>
+        ${pr.goal && st === 'locked' ? bar(Math.round(pr.cur / pr.goal * 100), '') : ''}<span class="cst">${T.name} · ${Ach.rewardTx(T.reward)}</span></div>
+        ${st === 'ready' ? `<button class="cta mini" data-ach="${a.id}">${TX('Recoger')}</button>` : st === 'got' ? '<b class="achok">✓</b>' : ''}</div>`;
+    };
+    screen(`${top(TX('Logros'))}
+      <p class="cweek">${TX('{0} de {1} conseguidos', got, L.length)}</p>
+      ${ready ? `<button class="cta" id="achAll">${TX('🎁 Recoger todo')}<small>${TXn(ready, '{0} logro', '{0} logros')}</small></button>` : `<p class="note">${TX('Los logros que ya tenías conseguidos con tu partida aparecen listos para recoger.')}</p>`}
+      ${Object.entries(ACH_CATS).map(([k, name]) => `<h3>${name}</h3><div class="csquad">${L.filter(a => a.cat === k).sort((a, b) => ({ ready: 0, locked: 1, got: 2 }[Ach.state(a)] - { ready: 0, locked: 1, got: 2 }[Ach.state(b)])).map(row).join('')}</div>`).join('')}`, 'bg_title');
+    body.querySelectorAll('[data-ach]').forEach(b => b.onclick = () => { const R = Ach.claim(b.dataset.ach); if (R) { Sound.sfx('reveal'); UI.toast(TX('¡Premio recogido!') + ' ' + Ach.rewardTx(R), 2200); } renderAch(back); });
+    if ($('achAll')) $('achAll').onclick = () => { const t = Ach.claimAll(); Sound.jingle('win'); UI.toast(TX('¡Premios recogidos!') + ' ' + Ach.rewardTx(t), 3000); renderAch(back); };
+    $('back').onclick = back;
+  }
+  /* ---------- Ranuras de guardado: 3 para cada carrera ---------- */
+  function slotInfo(kind, n) {
+    const d = Slots.read(kind === 'car' ? CAREER_KEY : PC_KEY, n);
+    if (!d) return null;
+    if (kind === 'car') {
+      const dv = [1, 2, 3].find(k => (d.divs && d.divs[k] || []).includes(YOU));
+      const crest = d.crestImg ? `ui/crest${d.crestImg}.png` : ClubCrest.url(d.crest || { shape: 'escudo', c1: '#1f4fc0', c2: '#e8c21a', sym: 'rayo' }, d.school);
+      return { img: `<img class="ccrest big" src="${crest}" alt="">`, title: esc(d.school || ''),
+        sub: d.over ? TX('Carrera terminada') : `${TX('Temporada')} ${d.season} · ${dv ? DIV_NAME[dv] : ''} · ${TX('semana')} ${d.week} · ${TX('mánager')} ${esc((PLAYER(d.manager) || {}).name || '?')}` };
+    }
+    if (!d.me) return null;
+    if (d.me.pd && !PLAYER(d.me.id)) registerCustom(d.me.pd);
+    const p = PLAYER(d.me.id) || d.me.pd || {};
+    return { face: p.cs ? Sprites.refOf(p) : null, title: esc(p.name || '?'),
+      sub: `${esc(d.school || '')}${d.pro ? ' · ' + TX('Liga Pro') : ''} · ${TX('Temporada')} ${d.season} · ${TX('Nivel')} ${d.me.lv}` };
+  }
+  function renderSlots(kind) {
+    const base = kind === 'car' ? CAREER_KEY : PC_KEY, cur = Slots.get(kind);
+    screen(`${top(kind === 'car' ? TX('Modo Carrera') : TX('Carrera Jugador'))}
+      <p class="note">${TX('Tienes 3 ranuras de guardado: cada una es una carrera distinta. Todas se guardan en la nube con tu cuenta.')}</p>
+      <div class="modes" id="slots"></div>`, 'bg_title');
+    const box = $('slots');
+    for (let n = 1; n <= SLOT_COUNT; n++) {
+      const I = slotInfo(kind, n), row = document.createElement('div'); row.className = 'slotrow';
+      const b = document.createElement('button'); b.className = 'mode slot' + (n === cur && I ? ' cur' : '');
+      b.innerHTML = I ? `<span class="slotn">${n}</span><span class="slotimg"></span><span class="mt"><b>${I.title}</b><small>${I.sub}</small></span>`
+        : `<span class="slotn">${n}</span><span class="cicon">➕</span><span class="mt"><b>${TX('Ranura vacía')}</b><small>${kind === 'car' ? TX('Empieza una carrera de mánager') : TX('Crea o elige a tu jugador')}</small></span>`;
+      if (I && I.img) b.querySelector('.slotimg').innerHTML = I.img; else if (I && I.face) b.querySelector('.slotimg').appendChild(face(I.face, 44));
+      b.onclick = () => {
+        Slots.set(kind, n); Sound.sfx('click');
+        if (kind === 'car') { Career.load(); renderCareer(); } else renderPC();
+      };
+      row.appendChild(b);
+      if (I) {
+        const del = document.createElement('button'); del.className = 'ghost slotdel'; del.textContent = '🗑'; del.title = TX('Borrar');
+        del.onclick = () => {
+          if (!del.dataset.sure) { del.dataset.sure = 1; del.textContent = TX('¿Borrar?'); return; }
+          const keep = Slots.get(kind); Slots.set(kind, n);
+          if (kind === 'car') { Career.load(); Career.clear(); } else { PC.load(); PC.clear(); }   // la de mánager pasa al salón de la fama
+          Slots.set(kind, keep); if (kind === 'car') Career.load(); else PC.load();
+          UI.toast(TX('Ranura {0} borrada', n)); renderSlots(kind);
+        };
+        row.appendChild(del);
+      }
+      box.appendChild(row);
+    }
+    $('back').onclick = renderMenu;
+  }
+  // Resumen del Modo Carrera Jugador para el menú
+  function pcSummary() {
+    const d = Slots.read(PC_KEY, Slots.get('pc'));
+    if (!d || !d.me) return TX('Vive la carrera de un solo jugador · 3 ranuras');
+    const p = PLAYER(d.me.id) || d.me.pd || {};
+    return `${esc(p.name || '')} · ${esc(d.school)}${d.pro ? ' · ' + TX('Liga Pro') : ''} · ${TX('Temporada')} ${d.season} · ${TX('Nivel')} ${d.me.lv}`;
+  }
   const mini = keys => `<span class="mini">${keys.map(k => Sprites.crest(crestOf(k))).join('')}</span>`;
   /* ---------- Tutoriales: se enseñan la primera vez que entras en cada modo (y con el botón ❓) ---------- */
   const TUTS = {
@@ -169,6 +287,7 @@ const App = (() => {
     gacha: [TX('Gacha'), TX('Gasta tickets para tirar: gira la manivela de la máquina y abre las cápsulas. Probabilidades: común 60 %, rara 28 %, épica 10 %, legendaria 2 % (cada 10 tiradas sin épica, la siguiente lo es seguro). Los repetidos suben estrellas a tu jugador.')],
     team: [TX('Plantilla'), '<b>' + TX('Mi equipo') + '</b>' + TX(': elige formación y quién juega (a portería solo porteros).') + ' <b>' + TX('Jugadores') + '</b>' + TX(': busca y entrena (monedas) o usa Rayos Raimon para subir estrellas.') + ' <b>' + TX('Técnicas') + '</b>' + TX(': equipa las supertécnicas.')],
     career: [TX('Modo Carrera'), TX('Eres el mánager de un instituto: 3 divisiones, Copa y playoffs. Cada semana haz una actividad (entrenar, ojear…), juega o simula el partido y ficha (también a jugadores del extranjero). Tus titulares') + ' <b>' + TX('suben o bajan') + '</b> ' + TX('según su rendimiento. Los jugadores se') + ' <b>' + TX('gradúan al acabar 6º curso') + '</b> ' + TX('y la cantera trae chavales nuevos. Cuida la fama: si llega a 0, cierran el club. Cada 3 temporadas,') + ' <b>' + TX('el Mundial') + '</b>.'],
+    pcareer: [TX('Carrera Jugador'), TX('Vives la carrera de un solo jugador. Cada semana eliges una actividad (entrenar, practicar una técnica o descansar) y luego llega el partido: <b>solo controlas a tu jugador</b>; pide el balón con <b>«¡Pásamela!»</b>. Tu <b>nota</b> da experiencia: al subir de nivel ganas puntos para tus stats y técnicas nuevas. El entrenador pone a los 5 mejores: si eres suplente, a veces sales en la 2.ª parte. Si destacas, te fichan otros clubes (y en las semanas 1-2 y 8-9 puedes pedir el traspaso) y te convoca tu selección para el Mundial (de titular, suplente o reserva, según tu nivel). Tras 3 temporadas te graduas y saltas a la Liga Pro, donde la carrera sigue sin fin.')],
     wc: [TX('El Mundial'), TX('Eres el seleccionador de Inazuma Japón. Convoca a') + ' <b>' + TX('10 jugadores') + '</b> ' + TX('(dos equipos de 5) y elige qué 5 juegan cada partido. Grupo de 4 (pasan 2), semifinal y final, con penaltis si hay empate.')],
   };
   function tutorial(key, force) {
@@ -265,13 +384,22 @@ const App = (() => {
 
   /* ---------- Gacha ---------- */
   function renderGacha() {
-    const P = Profile.data, B = BANNERS.find(b => b.id === P.banner) || BANNERS[0];
+    const P = Profile.data;
+    if (P.banner === SV_BANNER && Selva.active()) return renderSelvaGacha();
+    const B = BANNERS.find(b => b.id === P.banner) || BANNERS[0];
     screen(`${top(TX('Gacha'))}${wallet()}
       <div class="banners" id="bn"></div>
       <p class="note">${TX('Común 60 % · Rara 28 % · Épica 10 % · Legendaria 2 %. En el tramo legendario, la mitad de las veces sale una')} <b>${TX('técnica legendaria')}</b> ${TX('(de las más fuertes del juego).')}<br>
       ${TX('Épica o mejor asegurada cada 10 tiradas (llevas')} ${P.pity} ${TX('de 10). Los repetidos suben una estrella (máx.')} ${MAX_STARS}${TX('); con 5 estrellas, o una técnica repetida, dan monedas.')}</p>
       <p class="note">${TX('Tickets: Historia (1 por victoria y 3 al completarla), Especiales (2), Cadenas (2 al completarlas) e Infinito (2 por oleada especial).')}</p>
       ${bottom(`<div class="grid2"><button class="cta" id="g1" ${P.tickets < 1 ? 'disabled' : ''}>${TX('Tirar ×1')}<small>${TX('1 ticket')}</small></button><button class="cta" id="g10" ${P.tickets < 10 ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${TX('10 tickets')}</small></button></div>`)}`, 'bg_green');
+    if (Selva.active()) {   // Sobre Selva (evento): tarjeta destacada arriba
+      const el = document.createElement('button'); el.className = 'banner-card svcard';
+      el.innerHTML = `${Sprites.crest(4104)}<span class="mt"><b>🍃 ${TX('Sobre Selva')}</b><small>${TX('Diseños raros y 6 legendarios de evento · hasta el miércoles')}</small><span class="legs"></span></span>`;
+      Selva.legends().forEach(p => el.querySelector('.legs').appendChild(face(Sprites.refOf(p), 32)));
+      el.onclick = () => { P.banner = SV_BANNER; Profile.save(); Sound.sfx('click'); renderGacha(); };
+      $('bn').appendChild(el);
+    }
     if (Limitado.active()) {
       const lim = document.createElement('button'); lim.className = 'banner-card lim';
       lim.innerHTML = `<span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Gacha de Bai Long')}</b><small>${TX('LIMITADO · 100 🎟️ = 10 jugadores · nota 100')}</small></span>`;
@@ -292,8 +420,23 @@ const App = (() => {
     $('g1').onclick = () => go(1); $('g10').onclick = () => go(10); $('back').onclick = renderMenu;
     tutorial('gacha'); if (!$('tutq-gacha')) body.insertAdjacentHTML('beforeend', `<p class="note" id="tutq-gacha">${tutBtn('gacha')}</p>`);
   }
+  function renderSelvaGacha() {
+    const P = Profile.data, S = Selva.data(), legs = Selva.legends();
+    screen(`${top(TX('Gacha'))}${wallet()}
+      <div class="banners" id="bn"></div>
+      <h3>🍃 ${TX('Sobre Selva')} <small>${TXn(Selva.daysLeft(), 'Queda {0} día', 'Quedan {0} días')}</small></h3>
+      <div class="hwlegs svlegs" id="svLegs"></div>
+      <p class="note">${TX('Jugadores de diseños raros (Mar de Árboles, Occult, aliens, demonios…) y 6 legendarios de evento con diseño «selva y oro». Los que consigas son tuyos para siempre.')}<br>
+        ${TX('Legendario 3 % · Épica 15 % · Rara 32 % · Común 50 %. Legendario asegurado a las {0} tiradas (llevas {1}).', SV_PITY, S.pity)}</p>
+      ${bottom(`<div class="grid2"><button class="cta" id="g1" ${P.tickets < SV_PRICE ? 'disabled' : ''}>${TX('Tirar ×1')}<small>${TX('1 ticket')}</small></button><button class="cta" id="g10" ${P.tickets < SV_PRICE * 10 ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${TX('10 tickets')}</small></button></div>`)}`, 'bg_green');
+    const back = document.createElement('button'); back.className = 'banner-card'; back.innerHTML = `${Sprites.crest(1)}<span class="mt"><b>${TX('Volver a los sobres normales')}</b></span>`;
+    back.onclick = () => { P.banner = 1; Profile.save(); Sound.sfx('click'); renderGacha(); }; $('bn').appendChild(back);
+    legs.forEach(p => { const w = document.createElement('div'); w.className = 'hwleg svleg' + (P.coll[p.id] ? ' own' : ''); w.appendChild(face(Sprites.refOf(p), 48)); w.insertAdjacentHTML('beforeend', `<small>${esc(p.name)}</small><small>${RAB(p.role)}</small>`); $('svLegs').appendChild(w); });
+    const go = n => { const res = Selva.pull(n); if (!res) return UI.toast(TX('No tienes tickets suficientes')); renderMachine(res, SV_BANNER, renderGacha, TX('Sobre Selva')); };
+    $('g1').onclick = () => go(1); $('g10').onclick = () => go(10); $('back').onclick = renderMenu;
+  }
   // Legendarios de Halloween: marco naranja apagado, estilo miedo (clase .hw)
-  const hwc = pd => pd && pd.halloween ? ' hw' : pd && pd.xmas ? ' xm' : pd && pd.lim ? ' lim' : pd && pd.inf ? ' inf' : '';   // marcos especiales: Halloween y versiones del Infinito
+  const hwc = pd => pd && pd.leyenda ? ' ly' : pd && pd.halloween ? ' hw' : pd && pd.xmas ? ' xm' : pd && pd.lim ? ' lim' : pd && pd.selva ? ' sv' : pd && pd.inf ? ' inf' : '';   // + Sobre Selva   // marcos especiales: Halloween y versiones del Infinito
   // Carta de un resultado del gacha (jugador o técnica legendaria)
   function makeCard(r) {
     const c = document.createElement('div');
@@ -308,7 +451,7 @@ const App = (() => {
     }
     const pd = PLAYER(r.id);
     c.appendChild(face(Sprites.refOf(pd), 80));
-    c.insertAdjacentHTML('beforeend', `<div class="gname">${pd.halloween ? '🎃' : pd.xmas ? '🎄' : pd.lim ? '⚡' : ''}${esc(pd.name)}</div><div class="gmeta">${rchip(r.tier)}<span>${RAB(pd.role)}</span>${chip(pd.elem)}</div>
+    c.insertAdjacentHTML('beforeend', `<div class="gname">${pd.leyenda ? '👑' : pd.halloween ? '🎃' : pd.xmas ? '🎄' : pd.lim ? '⚡' : pd.selva ? '🍃' : ''}${esc(pd.name)}</div><div class="gmeta">${rchip(r.tier)}<span>${RAB(pd.role)}</span>${chip(pd.elem)}</div>
       <div class="gtag">${r.isNew ? 'NUEVO' : r.coins ? '+' + r.coins + ' 🪙' : '★ ' + r.star}</div>`);
     return c;
   }
@@ -324,7 +467,7 @@ const App = (() => {
   }
 
   /* ---------- Máquina de gachapón ---------- */
-  const MACHINE_COLORS = { 1: ['#e8c21a', '#1f4fc0'], 2: ['#2a5fd0', '#e8e8f0'], 3: ['#5a1a8a', '#e01a4a'], 4: ['#b8742a', '#f2e6c0'], [HW_BANNER]: ['#ff7a1a', '#6a2aa8'], [XM_BANNER]: ['#d8283a', '#1f7a3a'], [LM_BANNER]: ['#1f3fb0', '#ffd23a'] };
+  const MACHINE_COLORS = { 1: ['#e8c21a', '#1f4fc0'], 2: ['#2a5fd0', '#e8e8f0'], 3: ['#5a1a8a', '#e01a4a'], 4: ['#b8742a', '#f2e6c0'], [HW_BANNER]: ['#ff7a1a', '#6a2aa8'], [SV_BANNER]: ['#2f7a3a', '#e0b030'], [XM_BANNER]: ['#d8283a', '#1f7a3a'], [LM_BANNER]: ['#1f3fb0', '#ffd23a'] };
   const CAP_COLORS = { comun: '#b8bcc8', rara: '#3f8fff', epica: '#a24cff', legendaria: '#ffcc22', limitada: '#35d6ff' };
   function drawMachine(cv, st) {
     const g = cv.getContext('2d'), [c1, c2] = st.colors;
@@ -362,7 +505,7 @@ const App = (() => {
     g.fillStyle = '#10183a'; g.fillRect(16, 122, 64, 6);
   }
   function renderMachine(res, bannerId, done, title) {
-    const B = BANNERS.find(b => b.id === bannerId) || (bannerId === HW_BANNER ? { name: TX('Sobre Calabaza'), crest: 3 } : bannerId === XM_BANNER ? { name: TX('Sobre Navideño'), crest: 36 } : bannerId === LM_BANNER ? { name: TX('Gacha de Bai Long'), crest: 3021 } : BANNERS[0]);
+    const B = BANNERS.find(b => b.id === bannerId) || (bannerId === HW_BANNER ? { name: TX('Sobre Calabaza'), crest: 3 } : bannerId === SV_BANNER ? { name: TX('Sobre Selva'), crest: 4104 } : bannerId === XM_BANNER ? { name: TX('Sobre Navideño'), crest: 36 } : bannerId === LM_BANNER ? { name: TX('Gacha de Bai Long'), crest: 3021 } : BANNERS[0]);
     screen(`<h2>${esc(title || B.name)}</h2>
       <div class="gmach"><canvas id="mc" width="96" height="128"></canvas><div class="gm-hint" id="mHint">${Controls.pc() ? TX('Arrastra la manivela en círculo (o pulsa Espacio)') : TX('Gira la manivela con el dedo ↻')}</div></div>
       <div class="caps" id="caps"></div>
@@ -435,6 +578,36 @@ const App = (() => {
   /* =====================================================================
      EVENTO DE HALLOWEEN (pantalla propia, fuera de los modos)
      ===================================================================== */
+  /* ---------- Evento «Cadena Leyenda» ---------- */
+  function lyMenuBtn() {
+    const L = Leyenda.data(), run = Run.load('leyenda');
+    return `<button class="mode lymode" id="mLy"><span class="cicon">👑</span><span class="mt"><b>${TX('Cadena Leyenda')}</b><small>${run ? TX('Partido {0} de {1}', run.index + 1, run.schedule.length) : L.done ? TX('¡Completada! · Willy Glass LEYENDA ✓') : TX('15 partidos, una derrota y fuera · récord: {0}', L.best)} · ${Leyenda.left()}</small></span></button>`;
+  }
+  function renderLeyenda() {
+    const L = Leyenda.data(), pd = Leyenda.legend(), T = TECH(LY_TECH);
+    const prize = (n, txt) => `<li class="${L.got[n] || (n === 15 && L.done) ? 'got' : ''}"><b>${TX('Partido {0}', n)}</b> · ${txt}${L.got[n] || (n === 15 && L.done) ? ' ✓' : ''}</li>`;
+    screen(`${top(TX('Cadena Leyenda'))}
+      <div class="lyhead"><div id="lyFace"></div><div><span><b>${esc(pd.name)}</b> <span class="lytag">${TX('LEYENDA')}</span></span><small>${rchip(pd.rarity)} ${RAB(pd.role)} ${chip(pd.elem)} · ${TX('Tiro')} ${pd.ie.tiro} · ${TX('Rapidez')} ${pd.ie.rapidez}</small><small>${TX('Técnica propia:')} <b>${esc(T.name)}</b> (${TX('tiro')} ${T.power})</small></div></div>
+      <p class="note"><b>${Leyenda.left()}</b> · ${TX('Ganas a los 15 mejores equipos del juego seguidos y Willy Glass LEYENDA es tuyo para siempre.')}</p>
+      <ul class="lyrules">
+        <li>${TX('⚔️ 15 partidos, del más flojo al más fuerte.')}</li>
+        <li>${TX('💀 Una derrota y vuelves a empezar desde el partido 1.')}</li>
+        <li>${TX('📈 Los rivales se hacen más fuertes en cada partido: del partido 1 al 14 suben del 100 % al 125 % de sus estadísticas.')}</li>
+        <li>${TX('🔥 Presionan entre dos, roban más, tiran antes y te castigan las contras.')}</li>
+        <li>${TX('👑 Jefe final: el equipo Leyendas, con los mejores jugadores del juego.')}</li>
+        <li>${TX('🛒 Sin las mejoras de supertécnicas de la tienda.')}</li>
+        <li>${TX('🚫 Al repetirla (cuando ya tienes a Willy): sin legendarios en tu equipo.')}</li>
+      </ul>
+      <h3>${TX('Premios (una vez cada uno)')}</h3>
+      <ul class="lyprizes">${Object.entries(LY_PRIZES).map(([n, P]) => prize(+n, esc(P.txt))).join('')}${prize(15, '👑 ' + TX('Willy Glass LEYENDA + 10 tickets'))}</ul>
+      <ol class="path">${LY_TEAMS.map((t, i) => `<li class="${i < L.best ? 'done' : ''}">${Sprites.crest(crestOf(t))}<span>${esc(t)}</span></li>`).join('')}</ol>
+      <p class="note">${TX('Récord: {0} de 15 · intentos: {1}', L.best, L.tries)}${L.done ? ' · ' + TXn(L.done, 'completada {0} vez', 'completada {0} veces') : ''}</p>
+      ${bottom(`<button class="cta" id="lyGo">${TX('Empezar la cadena')}</button>`)}`, 'bg_vs');
+    $('lyFace').appendChild(face(Sprites.refOf(pd), 80)); $('lyFace').className = 'pcard legendaria ly lyface';
+    $('lyGo').onclick = () => { if (!Leyenda.active()) { UI.toast(TX('El evento ha terminado')); return renderMenu(); } newDraft('leyenda', {}); };
+    $('back').onclick = renderMenu;
+    Sound.music('menu');
+  }
   function hwMenuBtn() {
     const H = Halloween.data(), gift = H.daily !== Halloween.today() || Halloween.loginReady(), n = Halloween.pending();
     return `<button class="mode hwmode" id="mHw"><span class="cicon">🎃</span><span class="mt"><b>${TX('Halloween')}${gift || n ? ' <i class="hwdot"></i>' : ''}</b><small>${TX('Sobre Calabaza, partido jefe y retos')} · 🍬 ${H.candy}${gift ? ' · ' + TX('🎁 regalo') : ''}</small></span></button>`;
@@ -526,7 +699,7 @@ const App = (() => {
     api.mode = 'hwboss';
     const A = { name: TX('Tu equipo'), players: L.map((id, i) => {
       const pd = PLAYER(id);
-      return Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: mySprite(pd, F.roles[i]) });
+      return Shop.boost(Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: mySprite(pd, F.roles[i]) }));
     }) };
     startMatch({ A, B: Halloween.bossTeam() }, false, 'niebla', 'match', 'Occult');
   }
@@ -824,14 +997,14 @@ const App = (() => {
       <div class="pgrid" id="edList"></div>`;
     const redraw = () => { onChange && onChange(); teamEditor(box, t, onChange); };
     box.querySelector('#edPitch').appendChild(pitch(roles, t.ids.map((id, i) => id == null ? null :
-      { ref: Sprites.refOf(PLAYER(id)), name: PLAYER(id).name, rarity: PLAYER(id).rarity, halloween: PLAYER(id).halloween, xmas: PLAYER(id).xmas, inf: PLAYER(id).inf, elem: PLAYER(id).elem, badge: rate(id, roles[i]) }), t.sel, i => { t.sel = i; Sound.sfx('click'); teamEditor(box, t, onChange); }));
+      { ref: Sprites.refOf(PLAYER(id)), name: PLAYER(id).name, rarity: PLAYER(id).rarity, halloween: PLAYER(id).halloween, xmas: PLAYER(id).xmas, selva: PLAYER(id).selva, leyenda: PLAYER(id).leyenda, inf: PLAYER(id).inf, elem: PLAYER(id).elem, badge: rate(id, roles[i]) }), t.sel, i => { t.sel = i; Sound.sfx('click'); teamEditor(box, t, onChange); }));
     box.querySelector('#formSel').onchange = e => {   // al cambiar de formación se recolocan los mismos 5
       t.formation = e.target.value; const keep = t.ids.filter(x => x != null);
-      t.ids = bestFor(FORMATIONS[t.formation].roles, keep.length === 5 ? keep : Profile.ids()); t.sel = 0; redraw();
+      t.ids = bestFor(FORMATIONS[t.formation].roles, keep.length === 5 ? keep : Profile.ids().filter(id => !t.ban || !t.ban(id))); t.sel = 0; redraw();
     };
-    box.querySelector('#edAuto').onclick = () => { t.ids = autoLineup(t.formation); Sound.sfx('reveal'); redraw(); };
+    box.querySelector('#edAuto').onclick = () => { t.ids = t.ban ? bestFor(roles, Profile.ids().filter(id => !t.ban(id))) : autoLineup(t.formation); Sound.sfx('reveal'); redraw(); };
     box.querySelectorAll('#edShow button').forEach(b => b.onclick = () => { t.show = b.dataset.v; teamEditor(box, t, onChange); });
-    let pool = Profile.ids();
+    let pool = Profile.ids().filter(id => !t.ban || !t.ban(id));
     if (t.show === 'pos' || role === 'POR') pool = pool.filter(id => playsAs(PLAYER(id), role));   // a portería solo van porteros
     pool.sort((a, b) => rate(b, role) - rate(a, role));
     const list = box.querySelector('#edList');
@@ -865,7 +1038,7 @@ const App = (() => {
       myTechs.forEach(tid => {
         const t = TECH(tid), who = Profile.ids().filter(id => Profile.learnable(id).gacha.includes(tid));
         const c = document.createElement('div'); c.className = 'pcard techrow ' + EL(t.elem).css;
-        c.innerHTML = `<div class="scroll small">${TYPE_ICON[t.type] || '★'}</div><div class="pinfo">${techLine(t)}<div class="pmeta">${who.length ? who.length + TX(' de tus jugadores pueden equiparla') : TX('Ninguno de tus jugadores es de ') + (ELEM_LABEL[t.elem] || t.elem)}</div></div>`;
+        c.innerHTML = `<div class="scroll small">${TYPE_ICON[t.type] || '★'}</div><div class="pinfo">${techLineMy(t)}<div class="pmeta">${who.length ? who.length + TX(' de tus jugadores pueden equiparla') : TX('Ninguno de tus jugadores es de ') + (ELEM_LABEL[t.elem] || t.elem)}</div></div>`;
         $('tk').appendChild(c);
       });
     } else if (teamTab === 'equipo') {
@@ -873,11 +1046,11 @@ const App = (() => {
         <h3>${TX('Equipación')} <small>${TX('la llevan tus jugadores de campo en todos los modos (menos en la Carrera)')}</small></h3><div id="kitEd"></div><div id="ed"></div>`);
       if (!api.myTeam) api.myTeam = savedTeam();
       const drawKits = () => {
-        const k = myKit(), sw = (key, v) => `<div class="swatches">${KIT_COLORS.map(col => `<button class="sw" data-k="${key}" data-c="${col}" style="background:${col}" aria-pressed="${v === col}"></button>`).join('')}</div>`;
+        const k = myKit(), sw = (key, v) => `<div class="swatches">${Shop.kitColors().map(col => `<button class="sw" data-k="${key}" data-c="${col}" style="background:${col}" aria-pressed="${v === col}"></button>`).join('')}</div>`;
         const who = PLAYER((api.myTeam.ids || []).find(id => id != null && PLAYER(id).role !== 'POR') || 10);
         $('kitEd').innerHTML = `<div class="clubpv"><span id="kitPv"></span><div><b>${k ? TX('Tu equipación') : TX('Equipación del Raimon')}</b><small>${k ? '' : TX('Elige colores para crear la tuya')}</small></div></div>
           <p class="note">${TX('Camiseta')}</p>${sw('a', k && k.a)}<p class="note">${TX('Mangas y pantalón')}</p>${sw('b', k && k.b)}
-          <p class="note">${TX('Diseño')}</p><div class="opts kitdz">${KIT_DESIGNS.map(([d, n]) => `<button data-dz="${d}" aria-pressed="${!!k && (k.d || '') === d}">${n}</button>`).join('')}</div>
+          <p class="note">${TX('Diseño')}</p><div class="opts kitdz">${Shop.kitDesigns().map(([d, n]) => `<button data-dz="${d}" aria-pressed="${!!k && (k.d || '') === d}">${n}</button>`).join('')}</div>
           ${k ? `<button class="ghost mini" id="kitReset">${TX('Volver a la del Raimon')}</button>` : ''}`;
         $('kitPv').appendChild(k ? Sprites.kitPreview(Sprites.refOf(who), k, 2) : Sprites.portrait(Sprites.refOf(who), 2));
         const set = ch => { Profile.data.kit = Object.assign({ a: '#e8c21a', b: '#1f4fc0', d: '' }, myKit() || {}, ch); Profile.save(); Sound.sfx('click'); drawKits(); };
@@ -910,7 +1083,7 @@ const App = (() => {
   function renderPlayer(id) {
     const pd = PLAYER(id), o = Profile.owned(id), P = Profile.data;
     screen(`${top(esc(pd.name))}<div class="phead" id="ph"></div>${wallet()}
-      <button class="cta" id="rayo" ${P.rayos < 1 || o.stars >= MAX_STARS ? 'disabled' : ''}>${TX('⚡ Usar Rayo Raimon')}<small>${o.stars >= MAX_STARS ? TX('Ya tiene 5 estrellas') : TX('+1 estrella sin necesitar repetidos (tienes ') + P.rayos + ')'}</small></button>
+      <button class="cta" id="rayo" ${P.rayos < 1 || o.stars >= MAX_STARS || pd.leyenda ? 'disabled' : ''}>${TX('⚡ Usar Rayo Raimon')}<small>${pd.leyenda ? TX('Solo sube repitiendo la Cadena Leyenda') : o.stars >= MAX_STARS ? TX('Ya tiene 5 estrellas') : TX('+1 estrella sin necesitar repetidos (tienes ') + P.rayos + ')'}</small></button>
       <h3>${TX('Entrenar')} <small>${TX('+3 por mejora; el límite sube con las estrellas')}</small></h3><div class="ups" id="ups"></div>
       <h3>${TX('Técnicas equipadas')} <small>${TX('las')} ${TECH_SLOTS} ${TX('con las que empieza cada partida · toca un hueco y elige')}</small></h3>
       <div class="eqslots" id="eqs"></div>
@@ -921,14 +1094,14 @@ const App = (() => {
     for (let k = 0; k < TECH_SLOTS; k++) {
       const t = eq[k] != null ? TECH(eq[k]) : null, b = document.createElement('button');
       b.className = 'eqslot' + (k === api.eqSlot ? ' sel' : '');
-      b.innerHTML = `<i>${TX('Hueco')} ${k + 1}</i>${t ? techLine(t) : '<span class="tline">' + TX('Vacío') + '</span>'}`;
+      b.innerHTML = `<i>${TX('Hueco')} ${k + 1}</i>${t ? techLineMy(t) : '<span class="tline">' + TX('Vacío') + '</span>'}`;
       b.onclick = () => { api.eqSlot = k; renderPlayer(id); };
       $('eqs').appendChild(b);
     }
     const addOpt = (tid, src) => {
       const t = TECH(tid), on = eq.includes(tid), b = document.createElement('button');
       b.className = 'eqopt' + (on ? ' on' : '') + (src === 'gacha' ? ' leg' : '');
-      b.innerHTML = `${techLine(t)}<i>${on ? TX('Equipada') : src === 'gacha' ? TX('Del gacha') : TX('Suya')}${EVO(tid) != null ? TX(' · evoluciona a ') + esc(TECH(EVO(tid)).name) : ''}</i>`;
+      b.innerHTML = `${techLineMy(t)}<i>${on ? TX('Equipada') : src === 'gacha' ? TX('Del gacha') : TX('Suya')}${EVO(tid) != null ? TX(' · evoluciona a ') + esc(TECH(EVO(tid)).name) : ''}</i>`;
       b.onclick = () => { Profile.setEquip(id, api.eqSlot, tid); Sound.sfx('click'); api.eqSlot = (api.eqSlot + 1) % TECH_SLOTS; renderPlayer(id); };
       $('eql').appendChild(b);
     };
@@ -951,9 +1124,10 @@ const App = (() => {
   function newDraft(kind, o) {
     const t = savedTeam();
     api.draft = { kind, o, formation: t.formation, diff: o.diff || 'medio', ids: t.ids };
+    if (kind === 'leyenda' && lyRepeat()) { api.draft.ban = lyBanned; api.draft.ids = t.ids.map(id => id != null && lyBanned(id) ? null : id); }   // sin legendarios
     renderDraft();
   }
-  const KIND_TITLE = { story: TX('Historia'), special: TX('Equipo especial'), chain: TX('Cadena'), infinite: TX('Infinito') };
+  const KIND_TITLE = { story: TX('Historia'), special: TX('Equipo especial'), chain: TX('Cadena'), infinite: TX('Infinito'), leyenda: TX('Cadena Leyenda') };
   function renderDraft() {
     const d = api.draft;
     const sub = d.kind === 'special' ? esc(d.o.team) : d.kind === 'chain' ? esc(CHAINS.find(c => c.key === d.o.chain).name) : '';
@@ -961,18 +1135,19 @@ const App = (() => {
       ${d.kind === 'story' ? opts(TX('Dificultad'), 'diff', [['facil', TX('Fácil')], ['medio', TX('Medio')], ['dificil', TX('Difícil')]], d) +
         '<p class="note">' + TX('Fácil: 5 partidos y 3 vidas · Medio: 6 y 2 · Difícil: 7 y 1.') + '</p>' : ''}
       ${d.kind === 'infinite' ? '<p class="note">' + TX('Rivales cada vez más fuertes y 2 vidas. Cada 5 partidos, una oleada especial con premio extra.') + '</p>' : ''}
+      ${d.kind === 'leyenda' ? '<p class="note">' + (lyRepeat() ? TX('15 partidos contra los mejores equipos. Una derrota y vuelves a empezar. Al repetirla: sin legendarios y sin las mejoras de la tienda.') : TX('15 partidos contra los mejores equipos. Una derrota y vuelves a empezar. Sin las mejoras de la tienda.')) + '</p>' : ''}
       <div id="ed"></div>
       <p class="note">${TX('Las técnicas, habilidades y fichajes se pierden al acabar; monedas, tickets y Rayos se quedan.')}</p>
       ${bottom(`<button class="cta" id="go">${TX('Empezar')}</button>`)}`);
     bindOpts(d);
-    const go = $('go'), sync = () => { go.disabled = d.ids.some(x => x == null); saveTeam(d); api.myTeam = null; };
+    const go = $('go'), sync = () => { go.disabled = d.ids.some(x => x == null || (d.ban && d.ban(x))); if (!d.ban) saveTeam(d); api.myTeam = null; };
     teamEditor($('ed'), d, sync); sync();
     go.onclick = () => {
-      if (d.ids.some(x => x == null)) return;
+      if (d.ids.some(x => x == null || (d.ban && d.ban(x)))) return;
       api.run = Run.create(d.kind, d.ids, Object.assign({}, d.o, { diff: d.diff, formation: d.formation }));
       Run.save(api.run); api.pick = null; openRun();
     };
-    $('back').onclick = renderMenu;
+    $('back').onclick = d.kind === 'leyenda' ? renderLeyenda : renderMenu;
   }
 
   /* ---------- Partidos ---------- */
@@ -980,18 +1155,22 @@ const App = (() => {
     GAME_SPEED = settings.dev && settings.speed ? +settings.speed : 0.75;
     const hasPad = [...(navigator.getGamepads ? navigator.getGamepads() : [])].some(Boolean);
     if (Controls.pc() && !hasPad && (settings.padTip || 0) < 3) { settings.padTip = (settings.padTip || 0) + 1; saveSettings(); setTimeout(() => UI.toast(TX('🎮 También puedes jugar con mando'), 2600), 1800); }
-    const s = Object.assign({}, settings, { golden, field, difficulty: api.mode === 'run' ? api.run.diff : api.mode === 'career' || api.mode === 'wc' ? Career.matchDiff() : 'facil' });
+    const s = Object.assign({}, settings, { golden, field, difficulty: api.mode === 'run' ? Run.diffOf(api.run) : api.mode === 'career' || api.mode === 'wc' ? Career.matchDiff() : api.mode === 'pcareer' || api.mode === 'pduel' ? PC.matchDiff() : api.mode === 'pwc' ? 'dificil' : 'facil' });
+    const MO = api.matchOpts; api.matchOpts = null;
+    if (MO && MO.lockId) Object.assign(s, { lockId: MO.lockId, autoSwitch: 0 });
+    if (MO && MO.extra) Object.assign(s, MO.extra);   // minicampo, límite de goles, amigos que te pasan…
     s.mercy = api.mode === 'run' ? 5 : 0;   // roguelite: con 5 goles de diferencia se acaba el partido
     screen('<h2>' + TX('Cargando…') + '</h2>');
     try {
       api.matchSheet = await Sprites.matchSheet([...teams.A.players, ...teams.B.players].map(p => p.sprite));
     } catch (e) { screen(`<h2>${TX('No se pudieron cargar los jugadores')}</h2><p class="note">${esc(e.message)}</p><button class="cta" id="back">${TX('Volver')}</button>`); $('back').onclick = renderMenu; return; }
     api.match = Logic.createMatch(s, teams);
-    $('cA').src = api.mode === 'wc' ? 'ui/crest3016.png' : api.mode === 'career' && Career.data ? ClubCrest.url(Career.data.crest, Career.data.school) : 'ui/crest1.png';
-    $('nA').textContent = api.mode === 'wc' ? TX('Japón') : api.mode === 'career' && Career.data ? Career.data.school.replace(/^Instituto\s+/i, '') : TX('Tú');
+    if (MO && MO.preset) { api.match.score.A = MO.preset.A; api.match.score.B = MO.preset.B; api.match.time *= MO.preset.timeMul; }   // sales en la 2.ª parte
+    $('cA').src = api.mode === 'wc' ? 'ui/crest3016.png' : api.mode === 'pwc' ? `ui/crest${PC.natCrest(PC.data.pwc.nat || PC.myNat())}.png` : api.mode === 'career' && Career.data ? (Career.data.crestImg ? `ui/crest${Career.data.crestImg}.png` : ClubCrest.url(Career.data.crest, Career.data.school)) : api.mode === 'pcareer' || api.mode === 'pduel' ? `ui/crest${PC.data.crestId}.png` : Shop.myCrest() ? ClubCrest.url(Shop.myCrest(), '') : 'ui/crest1.png';
+    $('nA').textContent = api.mode === 'wc' ? TX('Japón') : api.mode === 'pwc' ? PC.natName(PC.data.pwc.nat || PC.myNat()) : api.mode === 'career' && Career.data ? Career.data.school.replace(/^Instituto\s+/i, '') : api.mode === 'pcareer' ? PC.data.school : api.mode === 'pduel' ? PLAYER(PC.data.me.id).name : TX('Tú');
     UI.reset();
     api.scene && api.scene.bind(api.match, api.matchSheet);
-    show(null);
+    show(null); if ($('devFab')) $('devFab').hidden = true;
     api.running = true;
     Sound.music(musicRole || 'match', rival);
     if (field && field !== 'normal') UI.toast(FIELD_LABEL[field] || '', 1600);
@@ -1002,7 +1181,7 @@ const App = (() => {
     if (L.some(x => x == null)) return UI.toast(TX('Completa tu equipo en Plantilla'));
     const A = { name: TX('Tu equipo'), players: L.map((id, i) => {
       const pd = PLAYER(id);
-      return Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: mySprite(pd, F.roles[i]) });
+      return Shop.boost(Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: mySprite(pd, F.roles[i]) }));
     }) };
     const key = RIVAL_ORDER[Math.floor(Math.random() * RIVAL_ORDER.length)];
     startMatch({ A, B: rivalTeam(key, 0.9, 0.5) }, false, TEAM_FIELD[key], 'match', key);
@@ -1015,7 +1194,7 @@ const App = (() => {
         <div class="group"><label>${TX('Supertécnicas')}</label><div class="opts">${[['boton', TX('Con botón')], ['auto', TX('Automáticas')]].map(([v, t]) => `<button data-v="${v}" aria-pressed="${settings.techMode === v}">${t}</button>`).join('')}</div></div>
         ${settings.dev && settings.devWin ? '<button class="ghost" id="pWin">' + TX('🛠 Ganar ahora (desarrollador)') + '</button>' : ''}
         <button class="ghost" id="pGuide">${TX('🎮 Guía de controles')}</button>
-        <button class="ghost" id="pQuit">${api.mode === 'run' || api.mode === 'career' || api.mode === 'wc' ? TX('Rendirse (cuenta como derrota)') : TX('Salir al menú')}</button>`;
+        <button class="ghost" id="pQuit">${['run', 'career', 'wc', 'pcareer', 'pwc', 'pduel'].includes(api.mode) ? TX('Rendirse (cuenta como derrota)') : TX('Salir al menú')}</button>`;
       $('pauseBody').querySelectorAll('.opts button').forEach(b => b.addEventListener('click', () => {
         settings.techMode = b.dataset.v; saveSettings(); api.match.settings.techMode = b.dataset.v;
         b.parentNode.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
@@ -1026,7 +1205,9 @@ const App = (() => {
       $('pQuit').onclick = () => {
         api.match.quit = true;   // rendirse no da caramelos
         if (api.mode === 'run') { api.match.over = true; api.match.result = 'loss'; api.matchEnded(api.match); }
-        else if (api.mode === 'career' || api.mode === 'wc') { const m = api.match; m.over = true; m.score.A = 0; m.score.B = Math.max(3, m.score.B); m.result = 'loss'; api.matchEnded(m); }
+        else if (['career', 'wc', 'pcareer', 'pwc', 'pduel'].includes(api.mode)) { const m = api.match; m.over = true; m.score.A = 0; m.score.B = Math.max(3, m.score.B); m.result = 'loss'; api.matchEnded(m); }
+        else if (api.mode === 'techview') { api.match.over = true; api.techDemo = null; renderDevTechs(); }
+        else if (api.mode === 'blockview') { api.match.over = true; api.blockDemo = null; renderDevBlocks(); }
         else { api.match.over = true; Sound.stop(0.3); api.mode === 'hwboss' ? renderHalloween() : api.mode === 'xmboss' ? renderNavidad() : renderMenu(); }
       };
       show('pause');
@@ -1043,9 +1224,17 @@ const App = (() => {
       // Navidad: copos por jugar en cualquier modo (+5, +10 más si ganas)
       const snow = s.quit ? 0 : Navidad.matchPlayed(s.score.A > s.score.B);
       if (snow && api.mode !== 'xmboss') setTimeout(() => UI.toast('+' + snow + ' ❄️ ' + TX('copos de Navidad'), 2200), candy ? 2900 : 500);
-      if (api.mode === 'xmboss') { const won = s.score.A > s.score.B, bonus = Navidad.bossResult(won); Sound.jingle(won ? 'win' : s.score.A < s.score.B ? 'lose' : null); renderXmBossEnd(s, snow, bonus); }
-      else if (api.mode === 'hwboss') { const won = s.score.A > s.score.B, bonus = Halloween.bossResult(won); Sound.jingle(won ? 'win' : s.score.A < s.score.B ? 'lose' : null); renderBossEnd(s, candy, bonus); }
-      else if (api.mode === 'wc') { const r = Career.wcResult(s.score.A, s.score.B); Sound.jingle(r.gA > r.gB || (r.pens && r.pens[0] > r.pens[1]) ? 'win' : r.gA === r.gB && !r.pens ? null : 'lose'); renderWC(r); }
+      if (api.mode === 'xmboss') { const won = s.score.A > s.score.B, bonus = Navidad.bossResult(won); Sound.jingle(won ? 'win' : s.score.A < s.score.B ? 'lose' : null); renderXmBossEnd(s, snow, bonus); return; }
+      if (api.mode === 'hwboss') { const won = s.score.A > s.score.B, bonus = Halloween.bossResult(won); Sound.jingle(won ? 'win' : s.score.A < s.score.B ? 'lose' : null); renderBossEnd(s, candy, bonus); return; }
+      if (api.mode === 'pduel') { const r = PC.duelResult(s.score.A, s.score.B); Sound.jingle(r.win ? 'win' : r.draw ? null : 'lose'); renderPCDuelEnd(r); return; }
+      if (api.mode === 'pcareer') { const M = api.pcMatch; const out = PC.playedResult(s, M.lockId, M.part, M.base); jingleFor(out); renderPCResult(out); return; }
+      if (api.mode === 'pwc') {
+        const M = api.pcMatch, st = (s.pstats || {})[M.lockId] || {}, role = PLAYER(PC.data.me.id).role;
+        const note = PC.rateMatch(st, M.part, s.score.A > s.score.B, s.score.A === s.score.B, s.score.B, role);
+        const r = PC.wcFinish(s.score.A, s.score.B, note, st);
+        Sound.jingle(r.won ? 'win' : r.gA === r.gB && !r.pens ? null : 'lose'); renderPCWC(r); return;
+      }
+      if (api.mode === 'wc') { const r = Career.wcResult(s.score.A, s.score.B); Sound.jingle(r.gA > r.gB || (r.pens && r.pens[0] > r.pens[1]) ? 'win' : r.gA === r.gB && !r.pens ? null : 'lose'); renderWC(r); }
       else if (api.mode === 'career') {
         const nm = Career.nextMatch();
         const pens = nm && nm.ko && s.score.A === s.score.B ? Career.penalties(Career.myRating(), Career.rating(nm.rival)) : null;
@@ -1111,17 +1300,17 @@ const App = (() => {
       ${path}<div class="vsrow">${Sprites.crest(crestOf(rival))}<div><b>${esc(rival)}</b><span class="note">${FIELD_LABEL[Run.field(r)] || ''}</span><div class="faces" id="rfaces"></div></div></div>
       <div class="talk" id="talk"></div>
       ${formSelect(r)}
-      <h3>${TX('Alineación')} <small>${TX('toca un puesto y luego un suplente (u otro puesto) para cambiarlos')}</small></h3>
+<h3>${TX('Alineación')} <small>${TX('toca un puesto y luego un suplente (u otro puesto) para cambiarlos')}</small></h3>
       <div id="lineup"></div>
       <h3>${TX('Banquillo')}</h3><div class="pgrid" id="bench"></div>
       <details class="techs"><summary>${TX('Ver técnicas del equipo')}</summary><div class="cards" id="tdet"></div></details>
       ${bottom(`<button class="cta" id="goMatch">${TX('Jugar contra')} ${esc(rival)}</button>`)}`, 'bg_vs');
     const rt = TEAM(rival);
-    if (rt) rt.players.forEach(m => $('rfaces').appendChild(face({ file: m.file, row: m.row }, 40)));
+    if (rt) rt.players.forEach(m => $('rfaces').appendChild(face(m.file ? { file: m.file, row: m.row } : Sprites.refOf(PLAYER(m.id)), 40)));
     fillTalk(r, rival);
     $('formSel').onchange = e => { r.formation = e.target.value; Run.save(r); renderMap(); };
     const sel = api.mapSel;
-    const items = r.lineup.slice(0, 5).map(mi => { const pd = PLAYER(r.roster[mi].id); return { ref: Sprites.refOf(pd), name: pd.name, rarity: pd.rarity, halloween: pd.halloween, xmas: pd.xmas }; });
+    const items = r.lineup.slice(0, 5).map(mi => { const pd = PLAYER(r.roster[mi].id); return { ref: Sprites.refOf(pd), name: pd.name, rarity: pd.rarity, halloween: pd.halloween, xmas: pd.xmas, selva: pd.selva, leyenda: pd.leyenda }; });
     $('lineup').appendChild(pitch(F.roles, items, sel, i => {
       if (sel != null && sel !== i) { Run.swapLineup(r, sel, r.lineup[i]); api.mapSel = null; Run.save(r); }
       else api.mapSel = sel === i ? null : i;
@@ -1153,7 +1342,9 @@ const App = (() => {
     if (L.chainTech != null) gains.push(`<li>${TX('📜 Primera vez: técnica legendaria')} <b>${esc(TECH(L.chainTech).name)}</b></li>`);
     if (L.perfect) gains.push('<li>' + TX('💎 ¡Cadena perfecta sin perder vidas! +5 🎟️') + '</li>');
     if (L.medal) gains.push(`<li>${L.medal === 'oro' ? '🥇' : '🥈'} ${TX('Medalla de')} ${L.medal}${TX(': +15 🎟️ y otro ⚡ Rayo')}</li>`);
-    if (L.lifeLost) gains.push(`<li>${TX('♥ −1 vida')}${r.lives > 0 ? TX(' · repites contra el mismo rival') : ''}</li>`);
+    if (L.lyPrize) gains.push(`<li>👑 ${TX('Premio de la Cadena Leyenda:')} <b>${esc(L.lyPrize)}</b></li>`);
+    if (L.legend) gains.push(`<li>👑 <b>${TX('¡Cadena Leyenda completada! Willy Glass LEYENDA es tuyo')}</b> · +10 🎟️</li>`);
+    if (L.lifeLost) gains.push(r.kind === 'leyenda' ? `<li>${TX('💀 Una derrota y fuera: la Cadena Leyenda vuelve a empezar desde el partido 1')}</li>` : `<li>${TX('♥ −1 vida')}${r.lives > 0 ? TX(' · repites contra el mismo rival') : ''}</li>`);
     screen(`<img class="finimg" src="ui/fin.png" alt="${TX('Fin del partido')}">${runHeader()}<h2>${L.result === 'win' ? TX('¡Victoria!') : TX('Derrota')}</h2>
       ${scoreLine(s)}
       <ul class="gains">${gains.join('')}</ul><div id="excl"></div>
@@ -1163,18 +1354,18 @@ const App = (() => {
       $('excl').insertAdjacentHTML('beforeend', '<h3>' + TX('Premio del equipo especial') + '</h3>'); $('excl').appendChild(c);
     }
     // Jefe del Infinito: elige 1 de 3 versiones (si no eliges ahora, queda guardado en 🎁 Código de regalo)
-    const vi = L.versionPick != null ? (Profile.data.giftPicks || []).findIndex(g => g.uid === L.versionPick) : -1;
+    const puid = L.versionPick != null ? L.versionPick : L.lyPick, vi = puid != null ? (Profile.data.giftPicks || []).findIndex(g => g.uid === puid) : -1;
     if (vi >= 0) {
-      $('excl').insertAdjacentHTML('beforeend', `<h3>∞ ${TX('Premio del jefe: elige una versión')}</h3><p class="note">${TX('Si no eliges ahora, la tienes en 🎁 Código de regalo.')}</p><div class="hwpick" id="vpick"></div>`);
+      $('excl').insertAdjacentHTML('beforeend', `<h3>${L.lyPick != null ? '👑 ' + TX('Premio de la Cadena Leyenda: elige un jugador') : '∞ ' + TX('Premio del jefe: elige una versión')}</h3><p class="note">${TX('Si no eliges ahora, la tienes en 🎁 Código de regalo.')}</p><div class="hwpick" id="vpick"></div>`);
       Profile.data.giftPicks[vi].opts.forEach(id => {
-        const pd = PLAYER(id), b = document.createElement('button'); b.className = 'hwpk infpk';
+        const pd = PLAYER(id), b = document.createElement('button'); b.className = 'hwpk' + (L.lyPick != null ? '' : ' infpk');
         b.appendChild(face(Sprites.refOf(pd), 72));
         b.insertAdjacentHTML('beforeend', `<b>${esc(pd.full || pd.name)}</b><small>${rchip(pd.rarity)} ${RAB(pd.role)} ${chip(pd.elem)}</small>${Profile.data.coll[id] ? `<small>${TX('ya lo tienes (+1 ★)')}</small>` : ''}`);
-        b.onclick = () => { const i = Profile.data.giftPicks.findIndex(g => g.uid === L.versionPick); const x = i >= 0 && Profile.takePick(i, id); if (!x) return; Sound.sfx('reveal'); renderReveal([x], openRun, TX('¡Nueva versión!')); };
+        b.onclick = () => { const i = Profile.data.giftPicks.findIndex(g => g.uid === puid); const x = i >= 0 && Profile.takePick(i, id); if (!x) return; Sound.sfx('reveal'); renderReveal([x], openRun, L.lyPick != null ? TX('¡Nuevo fichaje!') : TX('¡Nueva versión!')); };
         $('vpick').appendChild(b);
       });
     }
-    $('next').onclick = openRun;
+    $('next').onclick = L.legend ? () => { Sound.sfx('reveal'); renderReveal([L.legend], openRun, TX('👑 ¡Willy Glass LEYENDA!')); } : openRun;
   }
   const scoreLine = s => `<div class="result">${Sprites.crest(1)}<span class="sc">${s.score.A}–${s.score.B}<small>${TX('Tu equipo ·')} ${esc(s.teams.B.name)}</small></span>${Sprites.crest(crestOf(s.teams.B.name))}</div>`;
   function renderReward() {
@@ -1201,7 +1392,7 @@ const App = (() => {
     const r = api.run, win = r.last && r.last.victory;
     const what = r.kind === 'infinite' ? `${TX('Has llegado a la oleada')} ${r.index + 1} ${TX('(récord:')} ${Profile.data.infBest}).`
       : `${TX('Victorias:')} ${r.wins}${r.kind !== 'special' ? TX(' de ') + r.schedule.length : ''}.`;
-    screen(`${runHeader()}<h2>${win ? (r.kind === 'story' ? TX('¡Etapa completada!') : r.kind === 'chain' ? TX('¡Cadena completada!') : TX('¡Victoria!')) : TX('Fin de la partida')}</h2>
+    screen(`${runHeader()}<h2>${win ? (r.kind === 'story' ? TX('¡Etapa completada!') : r.kind === 'chain' ? TX('¡Cadena completada!') : r.kind === 'leyenda' ? TX('👑 ¡Cadena Leyenda completada!') : TX('¡Victoria!')) : TX('Fin de la partida')}</h2>
       <p class="note">${what} ${TX('Has ganado')} <b>${r.coinsEarned} ${TX('monedas')}</b> ${TX('y')} <b>${r.ticketsEarned} ${TX('tickets')}</b>${TX(', que se quedan en tu perfil.')}<br>
       ${TX('Las técnicas, habilidades y fichajes temporales se pierden.')}</p>
       ${win && r.kind === 'story' ? (r.stage === 's4' ? '<p class="note"><b>' + TX('Desbloqueado:') + '</b> ' + TX('la cadena «El lado oscuro».') + '</p>' : r.stage === 's3' ? '<p class="note"><b>' + TX('Desbloqueado:') + '</b> ' + TX('la Fase 2 de la Etapa 3: el Mundial.') + '</p>' : r.stage === 's2' ? '<p class="note"><b>' + TX('Desbloqueado:') + '</b> ' + TX('el equipo especial Caos y la Etapa 3.') + '</p>' : '<p class="note"><b>' + TX('Desbloqueado:') + '</b> ' + TX('la Etapa 2, Cadenas, Infinito y nuevos equipos especiales.') + '</p>') : ''}
@@ -1222,7 +1413,7 @@ const App = (() => {
   /* =====================================================================
      MODO CARRERA (pantallas)
      ===================================================================== */
-  const myCrestUrl = () => ClubCrest.url(Career.data.crest, Career.data.school);
+  const myCrestUrl = () => Career.data.crestImg ? `ui/crest${Career.data.crestImg}.png` : ClubCrest.url(Career.data.crest, Career.data.school);
   const cCrest = key => key === YOU ? `<img class="ccrest" src="${myCrestUrl()}" alt="">` : `<img class="ccrest" src="ui/crest${crestOf(key)}.png" alt="">`;
   const bar = (v, cls) => `<span class="cbar ${cls || ''}"><i style="width:${Math.max(0, Math.min(100, v))}%"></i></span>`;
   const money = n => '💰 ' + (Career.data && Career.data.devMoney && n >= 9999999 ? '∞' : n);
@@ -1233,10 +1424,11 @@ const App = (() => {
     if (c.over) return renderCareerOver();
     if ((c.pendingYouth || []).length) return renderYouthChoice(renderCareer);
     if (c.wc) return renderWC();
-    tutorial('career');
+    hub = renderCareer;
+    tutorial('career'); achToast();
     const nm = Career.nextMatch(), d = Career.myDiv(), mgr = PLAYER(c.manager), wt = Career.weekType();
     const act = (k, A) => `<button class="ghost big act-${k}" data-act="${k}">${A.name}<small>${A.desc}</small></button>`;
-    const kindTxt = !nm ? '' : nm.type === 'liga' ? `${TX('Jornada')} ${nm.j + 1}` : nm.type === 'copa' ? `${TX('Copa ·')} ${CUP_ROUND[nm.round]}` : nm.type === 'semi' ? TX('Playoff · semifinal') : TX('Playoff · ¡FINAL!');
+    const kindTxt = !nm ? '' : nm.type === 'liga' ? `${TX('Jornada')} ${c.fix[d] ? c.fix[d].slice(0, nm.j + 1).filter(r => r.length).length : nm.j + 1}` : nm.type === 'copa' ? `${TX('Copa ·')} ${CUP_ROUND[nm.round]}` : nm.type === 'semi' ? TX('Playoff · semifinal') : TX('Playoff · ¡FINAL!');
     const cupTxt = !c.cup ? TX('La Copa empieza la temporada que viene') : c.cup.winner ? (c.cup.winner === YOU ? TX('¡Campeones de Copa!') : TX('Campeón de Copa: ') + Career.teamName(c.cup.winner)) : c.cup.out ? TX('Eliminados de la Copa: se juega sin ti') : TX('Siguiente ronda: ') + CUP_ROUND[c.cup.round];
     const sponsor = Math.round((8 + c.fame * 0.5) * DIV_SPONSOR[d] * Career.incomeMul());
     screen(`${top(TX('Modo Carrera'))}
@@ -1250,13 +1442,16 @@ const App = (() => {
       <p class="cweek">${TX('Semana')} <b>${c.week}</b>/${WEEKS} · ${DIV_NAME[d]} ${TX('División ·')} ${ordTx(Career.myPos())} · 🏆 ${esc(cupTxt)}</p>
       ${nm ? `<div class="cnext">${cCrest(nm.rival)}<div><b>${kindTxt}: ${esc(Career.teamName(nm.rival))}</b><small>${nm.home ? TX('En casa') : TX('Fuera')} ${TX('· tu media')} ${Career.myRating()} ${TX('· rival')} ${Career.rating(nm.rival)}${nm.ko ? TX(' · si hay empate, penaltis') : ''}</small></div></div>`
         : `<div class="cnext free"><span class="cicon">${wt === 'C' ? '🏆' : '📣'}</span><div><b>${WEEK_LABEL[wt] || TX('Semana libre')}</b><small>${wt === 'C' ? esc(cupTxt) : d === 1 ? TX('En Primera no hay playoff: aprovecha para entrenar.') : TX('No juegas el playoff esta temporada: se juega sin ti.')}</small></div></div>`}
+      ${c.bid && Career.m(c.bid.id) ? `<div class="cnext bid">${cCrest(c.bid.key)}<div><b>📨 ${TX('{0} quiere a {1}', esc(Career.teamName(c.bid.key)), esc(PLAYER(c.bid.id).name))}</b><small>${TX('Ofrece')} ${money(c.bid.price)} · ${TX('media')} ${Career.ovr(Career.m(c.bid.id))} · ${TX('la oferta caduca al pasar la semana')}</small>
+        <div class="grid2"><button class="cta mini" id="bidYes">${TX('Vender')}</button><button class="ghost mini" id="bidNo">${TX('Rechazar')}</button></div></div></div>` : ''}
       <h3>${TX('Actividad de la semana')} <small>${nm ? TX('después juegas el partido') : TX('y pasa la semana')}</small></h3>
       <div class="grid2">${Object.entries(ACTIVITIES).map(([k, A]) => act(k, A)).join('')}</div>
-      <div id="cTrain" hidden><p class="note">${TX('¿Qué entrenáis esta semana? (+')}${2 + c.fac.campo} ${TX('a todo el equipo)')}</p><div class="opts">${STAT_KEYS.map(k => `<button data-st="${k}">${STAT_LABEL[k]}</button>`).join('')}</div></div>
+      <div id="cTrain" hidden><p class="note">${TX('¿Qué entrenáis esta semana? Cada jugador tiene un {0} % de probabilidad de subir +1.', Math.round((TRAIN_CHANCE + TRAIN_CHANCE_CAMPO * c.fac.campo) * 100))}</p><div class="opts">${STAT_KEYS.map(k => `<button data-st="${k}">${STAT_LABEL[k]}</button>`).join('')}</div></div>
       <div class="grid2 cnav"><button class="ghost" id="cSquad">${TX('👥 Plantilla')}</button><button class="ghost" id="cMarket">${TX('💸 Fichajes')}${(c.scout || []).length ? ' (' + c.scout.length + TX(' ojeados)') : ''}</button>
         <button class="ghost" id="cClub">${TX('🏟️ Club')}</button><button class="ghost" id="cTable">${TX('📊 Clasificación')}</button>
         <button class="ghost" id="cCal">${TX('📅 Calendario')}</button><button class="ghost" id="cCup">${TX('🏆 Copa')}</button>
-        <button class="ghost" id="cHall">${TX('🏛️ Salón de la fama')}</button><button class="ghost" id="cSave">${TX('💾 Guardar')}</button></div>
+        <button class="ghost" id="cNews">${TX('📰 Noticias')}</button><button class="ghost" id="cHall">${TX('🏛️ Salón de la fama')}</button>
+        <button class="ghost" id="cSave">${TX('💾 Guardar')}</button></div>
       <button class="ghost" id="cQuit">${TX('Abandonar carrera')}</button>`, 'bg_green');
     c.migrated = false;
     $('cMgr').appendChild(mgrFace(c.manager, 40));
@@ -1281,18 +1476,29 @@ const App = (() => {
     $('cSave').onclick = () => renderSaves(renderCareer);
     $('cCup').onclick = renderCareerCup;
     $('cHall').onclick = () => renderHall(renderCareer);
+    $('cNews').onclick = () => renderNews(c, renderCareer);
+    if ($('bidYes')) $('bidYes').onclick = () => { const r = Career.acceptBid(); if (r.msg) UI.toast(r.msg, 2600); if (r.ok) Sound.sfx('reveal'); renderCareer(); };
+    if ($('bidNo')) $('bidNo').onclick = () => { Career.rejectBid(); renderCareer(); };
     $('cQuit').onclick = () => {
       if ($('cQuit').dataset.sure) { Career.clear(); renderMenu(); return; }
       $('cQuit').dataset.sure = 1; $('cQuit').textContent = TX('¿Seguro? Toca otra vez para borrarla');
     };
     $('back').onclick = renderMenu;
   }
+  // Noticias de fichajes (Carrera y Carrera Jugador)
+  function renderNews(c, back) {
+    const N = c.news || [];
+    screen(`${top(TX('Noticias de fichajes'))}
+      <p class="note">${TX('Los clubes fichan entre ellos en verano (al acabar la temporada) y en invierno (semana {0}).', WINTER_WEEK)}</p>
+      <div class="cres">${N.length ? N.map(t => `<p>${esc(t)}</p>`).join('') : `<p>${TX('Todavía no hay noticias.')}</p>`}</div>`, 'bg_green');
+    $('back').onclick = back;
+  }
   function renderCareerCup() {
     const c = Career.data, C = c.cup;
     const rounds = C ? C.rounds.map((res, i) => `<h3>${CUP_ROUND[i]}</h3><div class="cres">${res.map(poLine).join('')}</div>`).reverse().join('') : '';
-    const next = C && !C.winner ? `<h3>${CUP_ROUND[C.round]} <small>${TX('semana')} ${CUP_WEEKS[C.round]}</small></h3><div class="cres">${C.ties.map(([a, b]) => `<p class="${a === YOU || b === YOU ? 'you' : ''}">${esc(Career.teamName(a))} – ${esc(Career.teamName(b))}</p>`).join('')}${C.round === 0 ? `<p><small>${TX('Esperan en octavos:')} ${C.byes.map(k => esc(Career.teamName(k))).join(', ')}</small></p>` : ''}</div>` : '';
+    const next = C && !C.winner ? `<h3>${CUP_ROUND[C.round]} <small>${TX('semana')} ${CUP_WEEKS[C.round]}</small></h3><div class="cres">${C.ties.map(([a, b]) => `<p class="${a === YOU || b === YOU ? 'you' : ''}">${esc(Career.teamName(a))} – ${esc(Career.teamName(b))}</p>`).join('')}${C.round === 0 && C.byes.length ? `<p><small>${TX('Esperan en octavos:')} ${C.byes.map(k => esc(Career.teamName(k))).join(', ')}</small></p>` : ''}</div>` : '';
     screen(`${top(TX('Copa Inazuma'))}
-      <p class="note">${TX('Los 30 equipos de las 3 divisiones, a partido único (con penaltis si hay empate). Ganarla da dinero, fama y')} <b>${TX('10 tickets')}</b> ${TX('para el gacha.')}</p>
+      <p class="note">${TX('Hasta 32 equipos de las 3 divisiones, a partido único (con penaltis si hay empate). Ganarla da dinero, fama y')} <b>${TX('10 tickets')}</b> ${TX('para el gacha.')}</p>
       ${!C ? '<p class="note">' + TX('La Copa empieza la temporada que viene.') + '</p>' : C.winner ? `<p class="note cmsg gold">${TX('🏆 Campeón:')} <b>${esc(Career.teamName(C.winner))}</b></p>` : C.out ? '<p class="note cmsg bad">' + TX('Tu club está eliminado.') + '</p>' : ''}
       ${next}${rounds}`, 'bg_green');
     $('back').onclick = renderCareer;
@@ -1305,7 +1511,7 @@ const App = (() => {
   }
   function renderHall(back) {
     const list = Career.hall(), c = Career.data;
-    const row = (r, now) => `<div class="cpl fac"><img class="ccrest big" src="${ClubCrest.url(r.crest || { shape: 'escudo', c1: '#1f4fc0', c2: '#e8c21a', sym: 'rayo' }, r.school)}" alt=""><div class="cplb"><b>${esc(r.school)}</b>
+    const row = (r, now) => `<div class="cpl fac"><img class="ccrest big" src="${r.crestImg ? `ui/crest${r.crestImg}.png` : ClubCrest.url(r.crest || { shape: 'escudo', c1: '#1f4fc0', c2: '#e8c21a', sym: 'rayo' }, r.school)}" alt=""><div class="cplb"><b>${esc(r.school)}</b>
       <small>${now ? TX('En curso') : new Date(r.date).toLocaleDateString('es-ES')} ${TX('· mánager')} ${esc((PLAYER(r.manager) || {}).name || '?')} · ${(CAREER_DIFF[r.diff] || CAREER_DIFF.normal).name}</small>
       <span class="cst">${r.seasons} ${TX('temporadas · mejor división:')} ${DIV_NAME[r.best]}${r.goal ? TX(' · ★ campeón de Primera') : ''}${r.closed ? TX(' · club cerrado') : ''}</span>
       <span class="cst">${TX('Títulos:')} ${r.titles.length ? r.titles.map(esc).join(', ') : 'ninguno'}${r.scorer ? TX(' · máximo goleador: ') + esc(PLAYER(r.scorer[0]).name) + ' (' + r.scorer[1] + ')' : ''}</span></div></div>`;
@@ -1324,29 +1530,50 @@ const App = (() => {
     $('cNext').onclick = renderCareer;
   }
   const poLine = ([a, b, ga, gb, pens, w]) => `<p class="${a === YOU || b === YOU ? 'you' : ''}">${esc(Career.teamName(a))} <b>${ga} - ${gb}</b> ${esc(Career.teamName(b))}${pens ? ` <small>${TX('(pen.')} ${pens[0]}-${pens[1]})</small>` : ''} → <b>${esc(Career.teamName(w))}</b></p>`;
+  // Nueva carrera: creas tu club (empiezas en Tercera) o coges uno que ya existe (su división, su nombre y sus jugadores)
+  let cNew = { mode: 'crear', club: null, pick: MANAGERS[0], diff: 'normal', school: 'Instituto Inazuma' };
+  const teamAvg = key => { const T = TEAM(key); return Math.round(T.players.reduce((t, p) => { const pd = PLAYER((GAME.idmap || {})[p.id] || p.id) || PLAYER(p.id); return t + STAT_KEYS.reduce((a, k) => a + pd.ie[k], 0) / STAT_KEYS.length; }, 0) / T.players.length); };
   function renderCareerNew() {
-    let pick = MANAGERS[0];
+    const N = cNew, own = N.mode === 'elegir';
+    if (!MANAGERS.includes(N.pick)) N.pick = MANAGERS[0];
+    const clubs = own ? [1, 2, 3].map(d => `<h3>${DIV_NAME[d]} ${TX('División')} <small>${CAREER_START[d].length + (d === 3 ? 1 : 0)} ${TX('equipos')}</small></h3><div class="cclubs">${CAREER_START[d].filter(k => TEAM(k)).map(k =>
+      `<button class="cclub ${N.club === k ? 'sel' : ''}" data-cclub="${k}"><img class="ccrest" src="ui/crest${crestOf(k)}.png" alt=""><span><b>${esc(TEAM(k).name)}</b><small>${TX('media')} ${teamAvg(k)} · ${Shop.ownsClub(k) ? '✓' : '🔒 ' + Shop.clubPrice(teamAvg(k)) + ' 🪙'}</small></span></button>`).join('')}</div>`).join('') : '';
     screen(`${top(TX('Nueva carrera'))}
-      <p class="note">${TX('Eres el')} <b>${TX('mánager')}</b> ${TX('de un club de instituto a punto de desaparecer. Empiezas en')} <b>${TX('Tercera División')}</b> ${TX('con 7 chavales normales.')}<br>
-      ${TX('3 divisiones de 10 equipos. Los 2 primeros suben y del 3º al 6º juegan un')} <b>${TX('playoff')}</b> ${TX('por la tercera plaza; los 3 últimos bajan. Ficha jugadores, mejora el club y gana la')} <b>${TX('Primera')}</b>${TX('… pero si la fama llega a 0, cierran el club.')}</p>
+      <div class="opts" id="cMode"><button data-cmode="crear" aria-pressed="${!own}">${TX('✨ Crear tu club')}</button><button data-cmode="elegir" aria-pressed="${own}">${TX('🏟️ Elegir un club')}</button></div>
+      ${own ? `<p class="note">${TX('Coges un club que ya existe: juegas en su división, con su nombre, su escudo, su equipación y sus jugadores. Cuanto más arriba, más difícil.')} ${TX('Cada club se compra una vez con monedas y es tuyo para siempre: cuanto mejor es su plantilla, más caro.')} <b>🪙 ${Profile.data.coins}</b></p>`
+        : `<p class="note">${TX('Eres el')} <b>${TX('mánager')}</b> ${TX('de un club de instituto a punto de desaparecer. Empiezas en')} <b>${TX('Tercera División')}</b> ${TX('con 7 chavales normales.')}</p>`}
+      <p class="note">${TX('Las 3 divisiones tienen 12 equipos. Los 2 primeros suben y del 3º al 6º juegan un')} <b>${TX('playoff')}</b> ${TX('por la tercera plaza; los 3 últimos bajan. Ficha jugadores, mejora el club y gana la')} <b>${TX('Primera')}</b>${TX('… pero si la fama llega a 0, cierran el club.')}</p>
       <h3>${TX('Elige a tu mánager')}</h3><div class="cmgrs" id="cMgrs"></div>
-      <h3>${TX('Nombre del instituto')}</h3><div class="giftin"><input id="cSchool" type="text" maxlength="24" value="Instituto Inazuma" autocomplete="off" spellcheck="false" style="text-transform:none"></div>
-      <h3>${TX('Dificultad')}</h3><div class="opts" id="cDiff">${Object.entries(CAREER_DIFF).map(([k, D]) => `<button data-diff="${k}" aria-pressed="${k === 'normal'}">${D.name}</button>`).join('')}</div>
-      <p class="note">${TX('La equipación y el escudo se eligen después en «Club». Ganar ligas, la Copa o ascender da tickets para el gacha.')}</p>
+      ${own ? clubs : `<h3>${TX('Nombre del instituto')}</h3><div class="giftin"><input id="cSchool" type="text" maxlength="24" value="${esc(N.school)}" autocomplete="off" spellcheck="false" style="text-transform:none"></div>`}
+      <h3>${TX('Dificultad')}</h3><div class="opts" id="cDiff">${Object.entries(CAREER_DIFF).map(([k, D]) => `<button data-diff="${k}" aria-pressed="${k === N.diff}">${D.name}</button>`).join('')}</div>
+      <p class="note">${own ? TX('Luego puedes cambiar la equipación y el escudo en «Club».') : TX('La equipación y el escudo se eligen después en «Club».')} ${TX('Ganar ligas, la Copa o ascender da tickets para el gacha.')}</p>
       ${Career.hall().length ? '<button class="ghost" id="cHall">' + TX('🏛️ Salón de la fama') + '</button>' : ''}
-      ${bottom('<button class="cta" id="cGo">' + TX('Empezar carrera') + '</button>')}`, 'bg_title');
-    let diff = 'normal';
-    body.querySelectorAll('[data-diff]').forEach(b => b.onclick = () => { diff = b.dataset.diff; body.querySelectorAll('[data-diff]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+      ${bottom('<button class="cta" id="cGo">' + (own && N.club && !Shop.ownsClub(N.club) ? TX('🔓 Comprar {0} · {1} 🪙', esc(TEAM(N.club).name), Shop.clubPrice(teamAvg(N.club))) : own && N.club ? TX('Empezar con {0}', esc(TEAM(N.club).name)) : TX('Empezar carrera')) + '</button>')}`, 'bg_title');
+    const keepName = () => { if ($('cSchool')) N.school = $('cSchool').value; };
+    body.querySelectorAll('[data-cmode]').forEach(b => b.onclick = () => { keepName(); N.mode = b.dataset.cmode; Sound.sfx('click'); renderCareerNew(); });
+    body.querySelectorAll('[data-diff]').forEach(b => b.onclick = () => { N.diff = b.dataset.diff; body.querySelectorAll('[data-diff]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+    body.querySelectorAll('[data-cclub]').forEach(b => b.onclick = () => { const y = $('screen').scrollTop; N.club = b.dataset.cclub; Sound.sfx('click'); renderCareerNew(); $('screen').scrollTop = y; });
     if ($('cHall')) $('cHall').onclick = () => renderHall(renderCareerNew);
     const box = $('cMgrs');
     [...MANAGERS, ...(Halloween.rayUnlocked() ? [RAY_DARK] : [])].filter(id => PLAYER(id)).forEach(id => {
-      const b = document.createElement('button'); b.className = 'cmgr' + (id === pick ? ' sel' : '') + (id === RAY_DARK ? ' ray' : '');
+      const b = document.createElement('button'); b.className = 'cmgr' + (id === N.pick ? ' sel' : '') + (id === RAY_DARK ? ' ray' : '');
       b.appendChild(mgrFace(id, 64)); b.insertAdjacentHTML('beforeend', `<span>${esc(PLAYER(id).name)}</span>${id === RAY_DARK ? `<small>${TX('+10 % de ingresos')}</small>` : ''}`);
-      b.onclick = () => { pick = id; box.querySelectorAll('.cmgr').forEach(x => x.classList.toggle('sel', x === b)); Sound.sfx('click'); };
+      b.onclick = () => { N.pick = id; box.querySelectorAll('.cmgr').forEach(x => x.classList.toggle('sel', x === b)); Sound.sfx('click'); };
       box.appendChild(b);
     });
-    $('cSchool').addEventListener('keydown', e => e.stopPropagation());
-    $('cGo').onclick = () => { Career.create(pick, $('cSchool').value.trim() || TX('Instituto Inazuma'), diff); Sound.sfx('reveal'); renderCareerClub(true); };
+    if ($('cSchool')) { $('cSchool').addEventListener('keydown', e => e.stopPropagation()); $('cSchool').oninput = keepName; }
+    $('cGo').onclick = () => {
+      if (own && !N.club) return UI.toast(TX('Elige un club de la lista'));
+      if (own && !Shop.ownsClub(N.club)) {
+        const r = Shop.buyClub(N.club, teamAvg(N.club));
+        if (!r.ok) return UI.toast(r.msg);
+        Sound.sfx('reveal'); UI.toast(TX('¡{0} ya es tuyo!', TEAM(N.club).name));
+        const y = $('screen').scrollTop; renderCareerNew(); $('screen').scrollTop = y; return;
+      }
+      if (own) Career.create(N.pick, null, N.diff, N.club);
+      else Career.create(N.pick, ($('cSchool').value || '').trim() || TX('Instituto Inazuma'), N.diff);
+      Sound.sfx('reveal'); renderCareerClub(true);
+    };
     $('back').onclick = renderMenu;
   }
   /* ---------- Mundial de Carrera ---------- */
@@ -1417,7 +1644,7 @@ const App = (() => {
     screen(`${top(title, 'cBack', TX('Club'))}
       ${msg ? `<p class="note cmsg">${esc(msg)}</p>` : ''}
       <div class="cvs"><div>${cCrest(YOU)}<b>${esc(c.school)}</b><small>${TX('media')} ${Career.myRating()}</small></div><span>VS</span><div>${cCrest(nm.rival)}<b>${esc(Career.teamName(nm.rival))}</b><small>${TX('media')} ${Career.rating(nm.rival)}</small></div></div>
-      <p class="cweek">${nm.type === 'liga' ? `${TX('Jornada')} ${nm.j + 1} ${TX('de 9')}` : nm.type === 'copa' ? `${TX('Copa Inazuma ·')} ${CUP_ROUND[nm.round]} ${TX('· a partido único, con penaltis')}` : TX('Eliminatoria: si hay empate, penaltis')} · ${DIV_NAME[d]} · ${nm.home ? TX('en casa') : 'fuera'} ${TX('· forma')} ${c.forma} %</p>
+      <p class="cweek">${nm.type === 'liga' ? TX('Jornada {0} de {1}', Career.jornadaNum(nm.j), Career.leagueRounds(d)) : nm.type === 'copa' ? `${TX('Copa Inazuma ·')} ${CUP_ROUND[nm.round]} ${TX('· a partido único, con penaltis')}` : TX('Eliminatoria: si hay empate, penaltis')} · ${DIV_NAME[d]} · ${nm.home ? TX('en casa') : TX('fuera')} ${TX('· forma')} ${c.forma} %</p>
       <button class="ghost" id="cLine">${TX('👥 Alineación (')}${c.formation} · ${FORMATIONS[c.formation].name})</button>
       <h3>${TX('Táctica')} <small>${TX('cuenta sobre todo al simular')}</small></h3>
       <div class="opts">${Object.entries(TACTICS).map(([k, t]) => `<button data-tac="${k}" aria-pressed="${c.tactic === k}">${t.name}</button>`).join('')}</div>
@@ -1581,10 +1808,12 @@ const App = (() => {
         return `<p class="${w === c.week ? 'now' : ''}"><i>${TX('S{0}', w)}</i> ${TX('🏆 Copa ·')} ${CUP_ROUND[r]} ${txt}</p>`;
       }
       if (t !== 'L') return `<p class="${w === c.week ? 'now' : ''}"><i>${TX('S{0}', w)}</i> ${t === 'P1' ? TX('Playoff · semifinales') : TX('Playoff · final')} <small>${TX('(3º a 6º de Segunda y Tercera)')}</small></p>`;
-      const m = c.fix[d][j].find(p => p.includes(YOU)), rv = m[0] === YOU ? m[1] : m[0];
-      const res = c.results[d][j].find(r => r[0] === YOU || r[1] === YOU);
+      const m = (c.fix[d][j] || []).find(p => p.includes(YOU));
+      if (!m) return `<p class="${w === c.week ? 'now' : ''}"><i>${TX('S{0}', w)}</i> <small>${TX('Jornada de descanso')}</small></p>`;
+      const rv = m[0] === YOU ? m[1] : m[0], jn = c.fix[d].slice(0, j + 1).filter(r => r.length).length - 1;
+      const res = (c.results[d][j] || []).find(r => r[0] === YOU || r[1] === YOU);
       const sc = res ? (res[0] === YOU ? res[2] + ' - ' + res[3] : res[3] + ' - ' + res[2]) : '';
-      return `<p class="${w === c.week ? 'now' : ''}"><i>${TX('S{0}', w)}</i> ${TX('J{0}', j + 1)} ${m[0] === YOU ? 'vs' : TX('en')} ${cCrest(rv)} ${esc(Career.teamName(rv))} ${sc ? '<b>' + sc + '</b>' : ''}</p>`;
+      return `<p class="${w === c.week ? 'now' : ''}"><i>${TX('S{0}', w)}</i> ${TX('J{0}', jn + 1)} ${m[0] === YOU ? 'vs' : TX('en')} ${cCrest(rv)} ${esc(Career.teamName(rv))} ${sc ? '<b>' + sc + '</b>' : ''}</p>`;
     }).join('');
     screen(`${top(TX('Calendario'))}<p class="cweek">${TX('Temporada')} ${c.season} · ${DIV_NAME[d]} ${TX('División')}</p><div class="cres ccal">${rows}</div>`, 'bg_green');
     $('back').onclick = renderCareer;
@@ -1633,14 +1862,14 @@ const App = (() => {
   function renderCareerTechs(id, back) {
     const m = Career.m(id), pd = PLAYER(id), eq = Career.equipped(m), ls = Career.learnset(id);
     screen(`${top(TX('Técnicas · ') + esc(pd.name))}
-      <p class="note">${TX('Elige hasta')} <b>${TECH_SLOTS}</b> ${TX('técnicas para los partidos. Solo puedes usar las que')} <b>${esc(pd.name)}</b> ${TX('aprende en el juego (')}${ls.length}).</p>
+      <p class="note">${TX('Elige hasta')} <b>${TECH_SLOTS}</b> ${TX('técnicas para los partidos entre las que')} <b>${esc(pd.name)}</b> ${TX('ya ha aprendido')} (${m.known.length}/${ls.length}). ${TX('Las demás se desbloquean con la actividad «Técnicas» de la semana.')}</p>
       <div class="csquad" id="ctL"></div>`, 'bg_green');
     const L = $('ctL');
     ls.forEach(t => {
-      const T = TECH(t), on = eq.includes(t), el = document.createElement('button');
-      el.className = 'cpl btn' + (on ? ' sel' : '');
-      el.innerHTML = `<div class="cplb"><b>${TYPE_ICON[T.type] || '★'} ${esc(T.name)}</b> <small>${TYPE_LABEL[T.type]} ${TX('· potencia')} ${T.power} · ${chip(T.elem)}</small><span class="cst">${on ? TX('✅ Equipada') : m.known.includes(t) ? TX('Aprendida · toca para equipar') : TX('Toca para equipar')}</span></div>`;
-      el.onclick = () => { Career.toggleEquip(id, t); Sound.sfx('click'); renderCareerTechs(id, back); };
+      const T = TECH(t), on = eq.includes(t), learned = m.known.includes(t), el = document.createElement('button');
+      el.className = 'cpl btn' + (on ? ' sel' : '') + (learned ? '' : ' locked');
+      el.innerHTML = `<div class="cplb"><b>${TYPE_ICON[T.type] || '★'} ${esc(T.name)}</b> <small>${TYPE_LABEL[T.type]} ${TX('· potencia')} ${T.power} · ${chip(T.elem)}</small><span class="cst">${on ? TX('✅ Equipada') : learned ? TX('Aprendida · toca para equipar') : TX('🔒 Sin aprender')}</span></div>`;
+      el.onclick = () => { if (!learned) return UI.toast(TX('Aún no la ha aprendido: entrena «Técnicas» en la semana')); Career.toggleEquip(id, t); Sound.sfx('click'); renderCareerTechs(id, back); };
       L.appendChild(el);
     });
     if (!ls.length) L.innerHTML = '<p class="note">' + TX('Este jugador no aprende técnicas.') + '</p>';
@@ -1652,7 +1881,7 @@ const App = (() => {
       <div class="edbar"><button class="ghost" id="wlBest">${TX('⚡ Mejores 5')}</button><button class="ghost" id="wl2">${TX('🔄 Equipo 2 (los otros 5)')}</button></div>
       <p class="note">${TX('Media:')} <b>${Career.wcRating('JP')}</b> ${TX('· formación')} ${c.formation} ${TX('· toca un puesto del campo y luego a un convocado.')}</p>
       <div id="wlPitch"></div><h3>${TX('Puesto:')} ${ROLE_LABEL[roles[sel]]}</h3><div class="pgrid" id="wlL"></div>`, 'bg_green');
-    $('wlPitch').appendChild(pitch(roles, w.squad.map(id => ({ ref: Sprites.refOf(PLAYER(id)), name: PLAYER(id).name, rarity: PLAYER(id).rarity, halloween: PLAYER(id).halloween, xmas: PLAYER(id).xmas, badge: Career.wcScore(id) })), sel, i => renderWCLine(i)));
+    $('wlPitch').appendChild(pitch(roles, w.squad.map(id => ({ ref: Sprites.refOf(PLAYER(id)), name: PLAYER(id).name, rarity: PLAYER(id).rarity, halloween: PLAYER(id).halloween, xmas: PLAYER(id).xmas, selva: PLAYER(id).selva, leyenda: PLAYER(id).leyenda, badge: Career.wcScore(id) })), sel, i => renderWCLine(i)));
     (w.call || w.squad).forEach(id => {
       const at = w.squad.indexOf(id), el = tile(id, `<span class="slot">${at >= 0 ? TX('Juega · ') + RAB(roles[at]) : TX('Banquillo')} ${TX('· media')} ${Career.wcScore(id)}</span>`);
       if (at >= 0) el.classList.add('sel');
@@ -1756,13 +1985,13 @@ const App = (() => {
   /* ---------- Club: mejoras, equipación y escudo ---------- */
   function renderCareerClub(first) {
     const c = Career.data;
-    const sw = (k, v) => `<div class="swatches">${KIT_COLORS.map(col => `<button class="sw" data-k="${k}" data-c="${col}" style="background:${col}" aria-pressed="${v === col}"></button>`).join('')}</div>`;
+    const sw = (k, v) => `<div class="swatches">${Shop.kitColors().map(col => `<button class="sw" data-k="${k}" data-c="${col}" style="background:${col}" aria-pressed="${v === col}"></button>`).join('')}</div>`;
     screen(`${top(first ? TX('Tu club') : TX('Club'), 'back', first ? TX('Listo') : TX('Volver'))}
       <div class="clubpv"><img class="ccrest huge" id="crPv" src="${myCrestUrl()}" alt=""><span id="kitPv"></span><div><b>${esc(c.school)}</b><small>${money(c.money)}</small></div></div>
       <h3>${TX('Equipación')}</h3><p class="note">${TX('Camiseta')}</p>${sw('a', c.kit.a)}<p class="note">${TX('Mangas y pantalón')}</p>${sw('b', c.kit.b)}
-      <p class="note">${TX('Diseño')}</p><div class="opts kitdz">${KIT_DESIGNS.map(([d, n]) => `<button data-dz="${d}" aria-pressed="${(c.kit.d || '') === d}">${n}</button>`).join('')}</div>
-      <h3>${TX('Escudo')}</h3>
-      <div class="opts">${CREST_SHAPES.map(s => `<button data-shape="${s}" aria-pressed="${c.crest.shape === s}">${s[0].toUpperCase() + s.slice(1)}</button>`).join('')}</div>
+      <p class="note">${TX('Diseño')}</p><div class="opts kitdz">${Shop.kitDesigns().map(([d, n]) => `<button data-dz="${d}" aria-pressed="${(c.kit.d || '') === d}">${n}</button>`).join('')}</div>
+      <h3>${TX('Escudo')}</h3>${c.fromClub && TEAM(c.fromClub) ? `<button class="ghost" id="crOrig">${TX('Usar el escudo de siempre')}</button>` : ''}
+      <div class="opts">${Shop.crestShapes().map(s => `<button data-shape="${s}" aria-pressed="${c.crest.shape === s}">${SHAPE_NAME[s] || s}</button>`).join('')}</div>
       <p class="note">${TX('Color de fondo')}</p>${sw('c1', c.crest.c1)}<p class="note">${TX('Color del borde y símbolo')}</p>${sw('c2', c.crest.c2)}
       <div class="opts syms">${[['iniciales', TX('Iniciales')], ...Object.entries(CREST_SYMBOLS)].map(([k, s]) => `<button data-sym="${k}" aria-pressed="${c.crest.sym === k}">${s}</button>`).join('')}</div>
       ${first ? '' : `<h3>${TX('Mejoras del club')}</h3><div class="csquad">${Object.entries(FACILITIES).map(([k, F]) => { const lv = c.fac[k], cost = F.cost[lv];
@@ -1772,15 +2001,462 @@ const App = (() => {
     const drawPv = () => { const k = $('kitPv'); k.innerHTML = ''; k.appendChild(Sprites.kitPreview(ref, c.kit, 2)); $('crPv').src = myCrestUrl(); };
     drawPv();
     body.querySelectorAll('.sw').forEach(b => b.onclick = () => {
-      const k = b.dataset.k; if (k === 'a' || k === 'b') c.kit[k] = b.dataset.c; else c.crest[k] = b.dataset.c;
+      const k = b.dataset.k; if (k === 'a' || k === 'b') c.kit[k] = b.dataset.c; else { c.crest[k] = b.dataset.c; c.crestImg = null; }
       Career.save(); b.parentNode.querySelectorAll('.sw').forEach(x => x.setAttribute('aria-pressed', x === b)); drawPv();
     });
     body.querySelectorAll('[data-dz]').forEach(b => b.onclick = () => { c.kit.d = b.dataset.dz; Career.save(); body.querySelectorAll('[data-dz]').forEach(x => x.setAttribute('aria-pressed', x === b)); drawPv(); });
-    body.querySelectorAll('[data-shape]').forEach(b => b.onclick = () => { c.crest.shape = b.dataset.shape; Career.save(); body.querySelectorAll('[data-shape]').forEach(x => x.setAttribute('aria-pressed', x === b)); drawPv(); });
-    body.querySelectorAll('[data-sym]').forEach(b => b.onclick = () => { c.crest.sym = b.dataset.sym; Career.save(); body.querySelectorAll('[data-sym]').forEach(x => x.setAttribute('aria-pressed', x === b)); drawPv(); });
+    body.querySelectorAll('[data-shape]').forEach(b => b.onclick = () => { c.crest.shape = b.dataset.shape; c.crestImg = null; Career.save(); body.querySelectorAll('[data-shape]').forEach(x => x.setAttribute('aria-pressed', x === b)); drawPv(); });
+    body.querySelectorAll('[data-sym]').forEach(b => b.onclick = () => { c.crest.sym = b.dataset.sym; c.crestImg = null; Career.save(); body.querySelectorAll('[data-sym]').forEach(x => x.setAttribute('aria-pressed', x === b)); drawPv(); });
+    if ($('crOrig')) $('crOrig').onclick = () => { c.crestImg = TEAM(c.fromClub).crest; Career.save(); drawPv(); };
     body.querySelectorAll('[data-up]').forEach(b => b.onclick = () => { const r = Career.upgrade(b.dataset.up); UI.toast(r.msg, 2000); if (r.ok) { Sound.sfx('reveal'); renderCareerClub(); } });
     $('back').onclick = renderCareer;
     if ($('cDone')) $('cDone').onclick = renderCareer;
+  }
+
+  /* ---------- Modo Carrera Jugador ---------- */
+  const PC = PlayerCareer;
+  const pcCrest = (key, cls = 'ccrest') => `<img class="${cls}" src="ui/crest${key === YOU ? PC.data.crestId : crestOf(key)}.png" alt="">`;
+  const pcRef = m => m && m.spr ? { file: m.spr.file, row: m.spr.row } : Sprites.refOf(PLAYER(m.id));
+  const noteCls = n => n == null ? '' : n >= 8 ? 'n-top' : n >= 7 ? 'n-good' : n >= 6 ? 'n-ok' : 'n-bad';
+  const noteTx = n => n == null ? '—' : String(n).replace('.', I18N.en() ? '.' : ',');
+  let pcDraft = null;
+  function renderPC() {
+    PC.load();
+    const c = PC.data;
+    if (!c) return renderPCNew();
+    if (c.graduation && !c.graduation.seen) return renderPCEnd();
+    if (c.pwc) return renderPCWC();
+    if (c.me.techChoice) return renderPCTech(renderPC);
+    if (c.me.offers) return renderPCOffers();
+    if (c.me.duel) return renderPCDuel();
+    if (c.me.event) return renderPCEvent();
+    hub = renderPC;
+    tutorial('pcareer'); achToast();
+    const me = c.me, m = PC.mine(), pd = PLAYER(me.id), nm = PC.nextMatch(), d = PC.myDiv(), wt = PC.weekType(), starter = PC.starter();
+    const S = me.season, avg = PC.avg(S.notes), xpNeed = PC_XP(me.lv);
+    const kindTxt = !nm ? '' : nm.type === 'liga' ? `${TX('Jornada')} ${c.fix[d] ? c.fix[d].slice(0, nm.j + 1).filter(r => r.length).length : nm.j + 1}` : nm.type === 'copa' ? `${TX('Copa ·')} ${CUP_ROUND[nm.round]}` : nm.type === 'semi' ? TX('Playoff · semifinal') : TX('Playoff · ¡FINAL!');
+    const learning = me.learning && TECH(me.learning.id);
+    screen(`${top(TX('Carrera Jugador'))}
+      <div class="chead pchead"><span id="pcFace"></span><div><b>${esc(pd.name)}</b><small>${RAB(pd.role)} · ${chip(pd.elem)} · ${me.graduated ? TX('Profesional') : yearTx(Math.min(m.year, PC_GRAD_YEAR))} · ${TX('Temporada')} ${c.season}</small>
+        <small>${pcCrest(YOU, 'ccrest mini')} ${esc(c.school)} · ${PC.divLabel(d)} · ${ordTx(PC.myPos())}</small></div></div>
+      <div class="cstats">
+        <div><label>${TX('Media')}</label><b class="cmoney">${PC.ovrMe()}</b><small>${starter ? '✅ ' + TX('Titular') : '🪑 ' + TX('Suplente')}</small></div>
+        <div><label>${TX('Nivel')} ${me.lv}</label>${bar(Math.round(me.xp / xpNeed * 100), 'ok')}<small>${me.xp}/${xpNeed} XP</small></div>
+        <div><label>${TX('Forma')}</label>${bar(me.forma, me.forma < 50 ? 'warn' : 'ok')}<small>${Math.round(me.forma)} %</small></div>
+      </div>
+      <p class="cweek">${TX('Esta temporada:')} <b>${S.apps}</b> ${TX('PJ ·')} <b>${S.goals}</b> ${TX('goles')} · <b>${S.assists}</b> ${TX('asist.')} · ${TX('nota media')} <b class="${noteCls(avg)}">${noteTx(avg)}</b></p>
+      ${me.pts > 0 ? `<button class="cta" id="pcPts">${TX('📈 Mejorar a tu jugador')}<small>${TXn(me.pts, '{0} punto para repartir', '{0} puntos para repartir')}</small></button>` : ''}
+      <p class="cweek">${TX('Semana')} <b>${c.week}</b>/${WEEKS}</p>
+      ${nm ? `<div class="cnext">${pcCrest(nm.rival)}<div><b>${kindTxt}: ${esc(PC.teamName(nm.rival))}</b><small>${nm.home ? TX('En casa') : TX('Fuera')} · ${starter ? TX('juegas de titular') : TX('empiezas en el banquillo')}${nm.ko ? TX(' · si hay empate, penaltis') : ''}</small>
+        ${PC.rivalsIn(nm.rival).length ? `<small class="pcriv">🔥 ${TX('Juega tu rival {0}: sales con más ganas', esc(PLAYER(PC.rivalsIn(nm.rival)[0]).name))}</small>` : ''}</div></div>`
+        : `<div class="cnext free"><span class="cicon">${wt === 'C' ? '🏆' : '📣'}</span><div><b>${WEEK_LABEL[wt] || TX('Semana libre')}</b><small>${TX('Tu club no juega esta semana: aprovecha para entrenar.')}</small></div></div>`}
+      ${PC.activityDone() ? `<p class="note cmsg">✅ ${TX('Ya has hecho la actividad de esta semana.')}</p>` : `
+      <h3>${TX('Actividad de la semana')}</h3>
+      <div class="grid2 pcacts">${Object.entries(PC_ACTS).map(([k, A]) => `<button class="ghost big" data-pact="${k}">${A.name}<small>${k === 'tecnica' && learning ? TX('Sigues con {0} ({1}/{2})', esc(learning.name), me.learning.w, PC.techWeeks()) : k === 'tecnica' ? TXn(PC.techWeeks(), 'Aprende una supertécnica en {0} semana', 'Aprende una supertécnica en {0} semanas') : A.desc}</small></button>`).join('')}</div>
+      <div id="pcTrain" hidden><p class="note">${TX('¿Qué entrenas? (+2, a veces +3)')}</p><div class="opts">${STAT_KEYS.map(k => `<button data-pst="${k}">${STAT_LABEL[k]} ${PC.stat(m, k)}</button>`).join('')}</div></div>
+      <div id="pcTech" hidden></div>`}
+      ${bottom(nm ? `<div class="grid2"><button class="cta" id="pcPlay">${starter ? TX('⚽ Jugar') : TX('🪑 Al banquillo')}<small>${starter ? TX('controlas a tu jugador') : TX('a ver si sales')}</small></button><button class="cta" id="pcSim">${TX('📋 Simular')}<small>${TX('nota aproximada')}</small></button></div>`
+        : `<button class="cta" id="pcNext">${TX('Pasar la semana')}</button>`)}
+      <div class="grid2 cnav"><button class="ghost" id="pcTechs">${TX('✨ Técnicas')}</button><button class="ghost" id="pcTable">${TX('📊 Clasificación')}</button>
+        <button class="ghost" id="pcTeam">${TX('👥 Tu equipo')}</button><button class="ghost" id="pcHist">${TX('📜 Trayectoria')}</button>
+        ${me.pd ? `<button class="ghost" id="pcLook">${TX('✂️ Personalizar')}</button>` : ''}<button class="ghost" id="pcRel">${TX('🤝 Amigos y rivales')}</button><button class="ghost" id="pcNews">${TX('📰 Fichajes')}</button>${PC.canAsk() ? `<button class="ghost" id="pcAsk">${TX('📨 Pedir el traspaso')}</button>` : `<button class="ghost" id="pcAsk" disabled>${TX('📨 Pedir el traspaso')}<small>${TX('semanas 1-2 y 8-9')}</small></button>`}</div>
+      <button class="ghost" id="pcQuit">${TX('Abandonar carrera')}</button>`, 'bg_green');
+    $('pcFace').appendChild(face(pcRef(m), 56));
+    if ($('pcPts')) $('pcPts').onclick = () => renderPCPoints();
+    if ($('pcLook')) $('pcLook').onclick = () => renderPCLook(renderPC);
+    body.querySelectorAll('[data-pact]').forEach(b => b.onclick = () => {
+      const k = b.dataset.pact;
+      if (k === 'entrenar') { $('pcTrain').hidden = false; $('pcTech').hidden = true; return; }
+      if (k === 'tecnica' && !me.learning) {
+        const opts = PC.techOptions(3), box = $('pcTech'); $('pcTrain').hidden = true; box.hidden = false;
+        if (!opts.length) { box.innerHTML = `<p class="note">${TX('No hay técnicas nuevas a tu alcance ahora mismo: sube de nivel.')}</p>`; return; }
+        box.innerHTML = `<p class="note">${TXn(PC.techWeeks(), 'Elige qué técnica practicar ({0} semana):', 'Elige qué técnica practicar ({0} semanas):')}</p>` + opts.map(t => `<button class="ghost pctech" data-ptech="${t}">${techLine(TECH(t))}</button>`).join('');
+        box.querySelectorAll('[data-ptech]').forEach(x => x.onclick = () => pcAct('tecnica', +x.dataset.ptech));
+        return;
+      }
+      pcAct(k);
+    });
+    body.querySelectorAll('[data-pst]').forEach(b => b.onclick = () => pcAct('entrenar', b.dataset.pst));
+    const pcAct = (k, arg) => { const r = PC.doActivity(k, arg); Sound.sfx('reveal'); if (r && r.msg) UI.toast(r.msg, 2600); renderPC(); };
+    if ($('pcPlay')) $('pcPlay').onclick = () => { if (!PC.activityDone()) return UI.toast(TX('Elige primero la actividad de la semana')); starter ? pcStartMatch() : renderPCBench(); };
+    if ($('pcSim')) $('pcSim').onclick = () => {
+      if (!PC.activityDone()) return UI.toast(TX('Elige primero la actividad de la semana'));
+      const out = starter ? PC.simulateWeek() : PC.simulateWeek(PC.benchPlan()); jingleFor(out); renderPCResult(out);
+    };
+    if ($('pcNext')) $('pcNext').onclick = () => { if (!PC.activityDone()) return UI.toast(TX('Elige primero la actividad de la semana')); pcAdvance(); };
+    $('pcTechs').onclick = () => renderPCTechs();
+    $('pcTable').onclick = () => renderPCTable();
+    $('pcTeam').onclick = () => renderPCTeam();
+    $('pcHist').onclick = () => renderPCHistory(renderPC);
+    $('pcNews').onclick = () => renderNews(PC.data, renderPC);
+    $('pcRel').onclick = () => renderPCRel();
+    $('pcAsk').onclick = () => {
+      if (!PC.canAsk()) return UI.toast(TX('Solo puedes pedir el traspaso en las semanas 1-2 y 8-9 (una vez en cada ventana)'), 2600);
+      const offers = PC.askTransfer();
+      if (offers && offers.length) { Sound.sfx('reveal'); renderPCOffers(); }
+      else { UI.toast(TX('Ningún club se interesa por ti ahora mismo. Sigue jugando bien.'), 2800); renderPC(); }
+    };
+    $('pcQuit').onclick = () => {
+      const b = $('pcQuit'); if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = TX('¿Seguro? Toca otra vez'); return; }
+      PC.clear(); renderMenu();
+    };
+    $('back').onclick = renderMenu;
+    Sound.music('menu');
+  }
+  // Pasa la semana: resultados del resto y, al acabar la temporada, el resumen
+  function pcAdvance() {
+    const sum = PC.advance();
+    if (sum) renderPCSeason(sum); else renderPC();
+  }
+
+  /* --- Crear la carrera --- */
+  function renderPCNew() {
+    tutorial('pcareer');
+    screen(`${top(TX('Carrera Jugador'))}
+      <p class="note">${TX('Vive la carrera de un solo jugador: entrena cada semana, gánate el puesto, juega controlando solo a él y llega a tu selección. Tras 3 temporadas te graduas y das el salto a la Liga Pro, donde sigues jugando sin fin.')}</p>
+      <button class="mode" id="pcCreate"><span class="cicon">✨</span><span class="mt"><b>${TX('Crear un jugador')}</b><small>${TX('Nombre, puesto, elemento y aspecto · empieza desde abajo')}</small></span></button>
+      <button class="mode" id="pcColl"><span class="cicon">⭐</span><span class="mt"><b>${TX('Un jugador de tu colección')}</b><small>${TX('Vive la carrera de uno de tus jugadores')}</small></span></button>`, 'bg_title');
+    $('pcCreate').onclick = () => { pcDraft = { name: '', role: 'DEL', elem: 'fuego', nat: 'JP', looks: PC.lookChoices(12, 'DEL'), look: null }; renderPCCreate(); };
+    $('pcColl').onclick = () => renderPCPick();
+    $('back').onclick = renderMenu;
+  }
+  /* ---------- Personalización del jugador creado (v0.35) ---------- */
+  const keepScroll = fn => { const y = $('screen').scrollTop; fn(); $('screen').scrollTop = y; };
+  const lookRef = (cs, look) => ({ file: 'c' + String(cs[0]).padStart(2, '0') + '.png', row: cs[1], look: look || {} });
+  // Editor: vista previa (cara, de frente y de espaldas con el dorsal) + colores de pelo, piel y botas + dorsal
+  function lookEditor(box, st, kit, onChange) {
+    const L = st.look, sw = (key, list) => `<div class="swatches"><button class="sw orig" data-lk="${key}" data-c="" aria-pressed="${!L[key]}" title="${TX('Original')}">✕</button>${list.map(col => `<button class="sw" data-lk="${key}" data-c="${col}" style="background:${col}" aria-pressed="${L[key] === col}"></button>`).join('')}</div>`;
+    box.innerHTML = `<div class="lookpv"><span id="lkF"></span><span id="lkS"></span><span id="lkB"></span></div>
+      <p class="note">${TX('Pelo')}</p>${sw('hair', PC_HAIR)}<p class="note">${TX('Piel')}</p>${sw('skin', PC_SKIN)}<p class="note">${TX('Botas')}</p>${sw('boots', PC_BOOTS)}
+      <p class="note">${TX('Dorsal')} <small>${TX('(se ve en la espalda)')}</small></p><div class="lknum"><button class="ghost mini" id="lkM">−</button><b id="lkN">${L.num || '—'}</b><button class="ghost mini" id="lkP">+</button></div>`;
+    const ref = lookRef(st.cs, L);
+    box.querySelector('#lkF').appendChild(face(ref, 96));
+    box.querySelector('#lkS').appendChild(Sprites.kitPreview(ref, kit || { a: '#e8c21a', b: '#1f4fc0' }, 2));
+    box.querySelector('#lkB').appendChild(Sprites.backView(ref, kit, 2));
+    const set = (k, v) => { if (v) L[k] = v; else delete L[k]; Sound.sfx('click'); onChange(); };
+    box.querySelectorAll('[data-lk]').forEach(b => b.onclick = () => set(b.dataset.lk, b.dataset.c));
+    box.querySelector('#lkM').onclick = () => set('num', L.num > 1 ? L.num - 1 : L.num === 1 ? 0 : 99);
+    box.querySelector('#lkP').onclick = () => set('num', ((L.num || 0) % 99) + 1);
+  }
+  // Cambiar el aspecto después (Tienda o Carrera Jugador): cuesta monedas
+  function renderPCLook(back) {
+    PC.load();
+    const c = PC.data, me = c && c.me;
+    if (!me || !me.pd) { UI.toast(TX('Solo para jugadores creados en la Carrera Jugador')); return back(); }
+    const pd = PLAYER(me.id) || me.pd;
+    const st = pcLookDraft && pcLookDraft.id === me.id ? pcLookDraft : (pcLookDraft = { id: me.id, cs: pd.cs.slice(), look: Object.assign({}, pd.look || {}), looks: null });
+    const cost = PC.lookCost(Object.assign({ cs: pd.cs }, pd.look || {}), Object.assign({ cs: st.cs }, st.look));
+    screen(`${top(TX('✂️ Personalizar a tu jugador'))}${wallet()}
+      <p class="note">${TX('Cambiar cuesta: cara y peinado {0} 🪙 · pelo {1} · piel {2} · botas {3} · dorsal {4}.', PC_LOOK_COST.cara, PC_LOOK_COST.hair, PC_LOOK_COST.skin, PC_LOOK_COST.boots, PC_LOOK_COST.num)}</p>
+      <div id="lkEd"></div>
+      <h3>${TX('Cara y peinado')} <small>${TX('toca uno')}</small></h3><div class="pclooks" id="lkLooks"></div><button class="ghost" id="lkReroll">🎲 ${TX('Otros aspectos')}</button>
+      ${bottom(`<button class="cta" id="lkSave" ${cost && Profile.data.coins >= cost ? '' : 'disabled'}>${cost ? TX('Guardar · {0} 🪙', cost) : TX('Sin cambios')}</button>`)}`, 'bg_green');
+    lookEditor($('lkEd'), st, c.kit, () => keepScroll(() => renderPCLook(back)));
+    if (!st.looks) st.looks = [PLAYER(me.id)].concat(PC.lookChoices(11, pd.role)).map(p => ({ id: p.id, cs: p.cs.slice() }));
+    st.looks.forEach((p, k) => { const b = document.createElement('button'); b.className = 'pclook' + (p.cs + '' === st.cs + '' ? ' sel' : ''); b.appendChild(face(lookRef(p.cs, st.look), 56)); b.onclick = () => { st.cs = p.cs.slice(); Sound.sfx('click'); keepScroll(() => renderPCLook(back)); }; $('lkLooks').appendChild(b); });
+    $('lkReroll').onclick = () => { st.looks = [{ id: me.id, cs: pd.cs.slice() }].concat(PC.lookChoices(11, pd.role).map(p => ({ id: p.id, cs: p.cs.slice() }))); renderPCLook(back); };
+    $('lkSave').onclick = () => { const r = PC.setLook(st.look, st.cs + '' !== pd.cs + '' ? st.cs : null); if (!r.ok) return UI.toast(r.msg, 2000); pcLookDraft = null; Sound.sfx('reveal'); UI.toast(TX('¡Nuevo look! −{0} 🪙', r.cost), 2000); renderPCLook(back); };
+    $('back').onclick = () => { pcLookDraft = null; back(); };
+  }
+  let pcLookDraft = null;
+  function renderPCCreate() {
+    const D = pcDraft;
+    if (!D.look) D.look = D.looks[0].id;
+    screen(`${top(TX('Crear un jugador'))}
+      <div class="aform"><label>${TX('Nombre')}<input id="pcName" type="text" maxlength="16" autocomplete="off" spellcheck="false" placeholder="${TX('ej.: Rayo')}" value="${esc(D.name)}"></label></div>
+      <div class="group"><label>${TX('Puesto')}</label><div class="opts">${PC_ROLES.map(r => `<button data-prole="${r}" aria-pressed="${D.role === r}">${ROLE_LABEL[r]}</button>`).join('')}</div></div>
+      <div class="group"><label>${TX('Elemento')}</label><div class="opts">${['fuego', 'viento', 'bosque', 'montaña'].map(e => `<button data-pelem="${e}" aria-pressed="${D.elem === e}">${ELEM_LABEL[e]}</button>`).join('')}</div></div>
+      <div class="group"><label>${TX('Selección (para el Mundial)')}</label><select id="pcNat">${PC_NATS.map(k => `<option value="${k}" ${D.nat === k ? 'selected' : ''}>${esc(PC.natName(k))}</option>`).join('')}</select></div>
+      <h3>${TX('Aspecto')} <small>${TX('toca uno')}</small></h3>
+      <div class="pclooks" id="pcLooks"></div>
+      <button class="ghost" id="pcReroll">🎲 ${TX('Otros aspectos')}</button>
+      <h3>${TX('Personaliza')} <small>${TX('gratis ahora; luego, en la Tienda')}</small></h3><div id="pcLookEd"></div>
+      <p class="note">${TX('Tu jugador empieza como una promesa (media ~57) y en el banquillo: tendrás que ganarte el puesto.')}</p>
+      ${bottom(`<button class="cta" id="pcGo">${TX('Siguiente: elegir club')}</button>`)}`, 'bg_green');
+    const box = $('pcLooks');
+    D.style = D.style || {};
+    D.looks.forEach(p => { const b = document.createElement('button'); b.className = 'pclook' + (p.id === D.look ? ' sel' : ''); b.appendChild(face(lookRef(p.cs, D.style), 56)); b.onclick = () => { D.look = p.id; D.name = $('pcName').value; renderPCCreate(); }; box.appendChild(b); });
+    lookEditor($('pcLookEd'), { cs: PLAYER(D.look).cs, look: D.style }, null, () => { D.name = $('pcName').value; keepScroll(renderPCCreate); });
+    $('pcName').addEventListener('keydown', e => e.stopPropagation());
+    $('pcName').oninput = e => { D.name = e.target.value; };
+    $('pcNat').onchange = e => { D.nat = e.target.value; };
+    body.querySelectorAll('[data-prole]').forEach(b => b.onclick = () => { D.role = b.dataset.prole; D.name = $('pcName').value; D.looks = PC.lookChoices(12, D.role); D.look = null; renderPCCreate(); });
+    body.querySelectorAll('[data-pelem]').forEach(b => b.onclick = () => { D.elem = b.dataset.pelem; D.name = $('pcName').value; renderPCCreate(); });
+    $('pcReroll').onclick = () => { D.name = $('pcName').value; D.looks = PC.lookChoices(12, D.role); D.look = null; renderPCCreate(); };
+    $('pcGo').onclick = () => {
+      D.name = $('pcName').value.trim();
+      if (D.name.length < 2) return UI.toast(TX('Ponle un nombre (2 letras o más)'));
+      const pd = PC.newCustom({ name: D.name, role: D.role, elem: D.elem, look: D.look, nat: D.nat || 'JP', style: D.style });
+      renderPCClubs(pd.id, pd);
+    };
+    $('back').onclick = renderPCNew;
+  }
+  function renderPCPick() {
+    const ids = Profile.ids().filter(id => PLAYER(id) && PLAYER(id).role !== 'POR' && PLAYER(id).cs).sort((a, b) => PC.ovrOf(b) - PC.ovrOf(a));
+    screen(`${top(TX('Elige a tu jugador'))}
+      <p class="note">${TX('Los porteros no pueden jugar este modo. Cuanto mejor sea, más arriba empezará y antes será titular.')}</p>
+      <div class="csquad" id="pcList"></div>`, 'bg_green');
+    if (!ids.length) $('pcList').innerHTML = `<p class="note">${TX('No tienes jugadores de campo en tu colección: haz tiradas en el gacha.')}</p>`;
+    ids.slice(0, 60).forEach(id => {
+      const pd = PLAYER(id), el = document.createElement('button'); el.className = 'cpl btn';
+      el.appendChild(face(Sprites.refOf(pd), 48));
+      el.insertAdjacentHTML('beforeend', `<span class="cplb"><b>${esc(pd.name)}</b><span class="cst">${RAB(pd.role)} · ${rchip(pd.rarity)} ${chip(pd.elem)} · ${TX('media')} ${PC.ovrOf(id)}</span></span>`);
+      el.onclick = () => renderPCClubs(id, null);
+      $('pcList').appendChild(el);
+    });
+    $('back').onclick = renderPCNew;
+  }
+  function renderPCClubs(id, pd) {
+    const offers = PC.startOffers(id), P = PLAYER(id);
+    screen(`${top(TX('Ofertas de institutos'))}
+      <div class="chead pchead"><span id="pcFace"></span><div><b>${esc(P.name)}</b><small>${RAB(P.role)} · ${chip(P.elem)} · ${TX('media')} ${PC.ovrOf(id)}<br>🌍 ${esc(PC.natName(natOfPlayer(pd || P)))}</small></div></div>
+      <p class="note">${TX('Estos clubes te quieren. Elige dónde empiezas tu carrera (1º curso).')}</p>
+      <div class="modes">${offers.map(o => `<button class="mode" data-pclub="${o.key}">${Sprites.crest(crestOf(o.key))}<span class="mt"><b>${esc(TEAM(o.key).name)}</b><small>${DIV_NAME[o.div]} ${TX('División')}</small></span></button>`).join('')}</div>`, 'bg_team');
+    $('pcFace').appendChild(face(Sprites.refOf(P), 56));
+    body.querySelectorAll('[data-pclub]').forEach(b => b.onclick = () => {
+      PC.create(id, b.dataset.pclub, pd); Sound.sfx('reveal');
+      UI.toast(TX('¡Fichas por {0}!', TEAM(b.dataset.pclub).name), 2400); renderPC();
+    });
+    $('back').onclick = pd ? renderPCCreate : renderPCPick;
+  }
+
+  /* --- Puntos, técnicas, equipo --- */
+  function renderPCPoints() {
+    const c = PC.data, me = c.me, m = PC.mine();
+    screen(`${top(TX('Mejorar a tu jugador'), 'back', TX('Volver'))}
+      <p class="cweek">${TXn(me.pts, '{0} punto para repartir', '{0} puntos para repartir')} · ${TX('media')} <b>${PC.ovrMe()}</b></p>
+      <div class="csquad">${STAT_KEYS.map(k => `<div class="cpl fac"><div class="cplb"><b>${STAT_LABEL[k]}</b><span class="cst">${PC.stat(m, k)} / ${PC_STAT_MAX}</span></div>
+        <button class="cta mini" data-pup="${k}" ${me.pts <= 0 || PC.stat(m, k) >= PC_STAT_MAX ? 'disabled' : ''}>+1</button></div>`).join('')}</div>`, 'bg_green');
+    body.querySelectorAll('[data-pup]').forEach(b => b.onclick = () => { if (PC.spendPoint(b.dataset.pup)) { Sound.sfx('click'); renderPCPoints(); } });
+    $('back').onclick = renderPC;
+  }
+  function renderPCTech(next) {
+    const me = PC.data.me, opts = me.techChoice || [], T = me.techWhy && PC_TIERS[me.techWhy - 1];
+    screen(`${T ? `<h2>⭐ ${TX('¡Media {0}!', T.ovr)}</h2>
+      <p class="note">${TX('Tu nivel desbloquea supertécnicas {0}. Elige una:', T.name)}</p>`
+      : `<h2>${TX('¡Subes de nivel!')} ⬆️ ${TX('Nivel')} ${me.lv}</h2>
+      <p class="note">${TX('Has ganado puntos para mejorar a tu jugador. Además puedes aprender una de estas supertécnicas:')}</p>`}
+      <div class="csquad">${opts.map(t => `<button class="ghost pctech" data-pchoose="${t}">${techLine(TECH(t))}</button>`).join('')}</div>
+      ${bottom(`<button class="ghost" id="pcSkip">${TX('Ahora no')}</button>`)}`, 'ill22');
+    Sound.jingle('win');
+    body.querySelectorAll('[data-pchoose]').forEach(b => b.onclick = () => { PC.chooseTech(+b.dataset.pchoose); UI.toast(TX('¡Has aprendido {0}!', TECH(+b.dataset.pchoose).name), 2200); Sound.sfx('reveal'); next(); });
+    $('pcSkip').onclick = () => { PC.chooseTech(null); next(); };
+  }
+  function renderPCTechs() {
+    const m = PC.mine(), eq = PC.equipped(m);
+    screen(`${top(TX('Tus técnicas'))}
+      <p class="note">${TX('Llevas 2 al partido: toca para equiparlas o quitarlas.')}</p>
+      <div class="csquad">${m.known.length ? m.known.map(t => `<button class="ghost pctech ${eq.includes(t) ? 'sel' : ''}" data-peq="${t}">${techLine(TECH(t))}${eq.includes(t) ? ' <b>✅</b>' : ''}</button>`).join('')
+        : `<p class="note">${TX('Aún no sabes ninguna. Aprende una al subir de nivel o practicándola.')}</p>`}</div>`, 'bg_green');
+    body.querySelectorAll('[data-peq]').forEach(b => b.onclick = () => {
+      const t = +b.dataset.peq; let list = PC.equipped(m).slice();
+      list = list.includes(t) ? list.filter(x => x !== t) : [t, ...list].slice(0, TECH_SLOTS);
+      PC.setEquip(list.length ? list : [t]); Sound.sfx('click'); renderPCTechs();
+    });
+    $('back').onclick = renderPC;
+  }
+  function renderPCTeam() {
+    const c = PC.data, roles = FORMATIONS[c.formation].roles;
+    screen(`${top(TX('Tu equipo'))}
+      <p class="cweek">${esc(c.school)} · ${TX('media')} ${PC.myRating()} · ${TX('el entrenador pone a los 5 mejores')}</p>
+      <div class="csquad" id="pcSq"></div>`, 'bg_green');
+    c.squad.slice().sort((a, b) => (c.lineup.indexOf(a.id) < 0 ? 9 : c.lineup.indexOf(a.id)) - (c.lineup.indexOf(b.id) < 0 ? 9 : c.lineup.indexOf(b.id)) || PC.ovr(b) - PC.ovr(a)).forEach(m => {
+      const pd = PLAYER(m.id), at = c.lineup.indexOf(m.id), el = document.createElement('div'); el.className = 'cpl' + (m.id === c.me.id ? ' sel' : '');
+      el.appendChild(face(pcRef(m), 44));
+      el.insertAdjacentHTML('beforeend', `<span class="cplb"><b>${esc(pd.name)}${m.id === c.me.id ? ' ★' : ''}</b><span class="cst">${RAB(pd.role)} · ${TX('media')} ${PC.ovr(m)} · ${at >= 0 ? '✅ ' + TX('Titular') + ' (' + RAB(roles[at]) + ')' : TX('Banquillo')}</span></span>`);
+      $('pcSq').appendChild(el);
+    });
+    $('back').onclick = renderPC;
+  }
+  function renderPCTable(d = PC.myDiv()) {
+    const rows = PC.standings(d);
+    screen(`${top(TX('Clasificación'))}
+      <div class="opts">${[1, 2, 3].map(k => `<button data-pdiv="${k}" aria-pressed="${k === d}">${PC.divLabel(k)}</button>`).join('')}</div>
+      <table class="ctable"><tr><th></th><th></th><th>${TX('PJ')}</th><th>${TX('Pts')}</th></tr>
+      ${rows.map((r, i) => `<tr class="${r.key === YOU ? 'you' : ''}"><td>${i + 1}</td><td>${pcCrest(r.key, 'ccrest mini')} ${esc(PC.teamName(r.key))}</td><td>${r.pj}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table>`, 'bg_green');
+    body.querySelectorAll('[data-pdiv]').forEach(b => b.onclick = () => renderPCTable(+b.dataset.pdiv));
+    $('back').onclick = renderPC;
+  }
+  function renderPCHistory(back) {
+    const c = PC.data, me = c.me, T = me.total;
+    screen(`${top(TX('Trayectoria'))}
+      <p class="cweek">${T.apps} ${TX('PJ ·')} ${T.starts} ${TX('de titular')} · ${T.goals} ${TX('goles')} · ${T.assists} ${TX('asist.')} · ⭐ ${T.mvp}</p>
+      <table class="ctable"><tr><th>${TX('T')}</th><th>${TX('Club')}</th><th>${TX('PJ')}</th><th>⚽</th><th>${TX('Nota')}</th></tr>
+      ${me.seasons.map(s => `<tr><td>${s.season}</td><td>${pcCrest(s.club, 'ccrest mini')} ${esc(TEAM(s.club).name)} <small>(${s.pro && s.div === 1 ? 'Pro' : DIV_NAME[s.div][0]})</small></td><td>${s.apps}</td><td>${s.goals}</td><td class="${noteCls(s.avg)}">${noteTx(s.avg)}</td></tr>`).join('') || `<tr><td colspan="5">${TX('Aún no has acabado ninguna temporada.')}</td></tr>`}</table>
+      ${me.awards.length ? `<h3>${TX('Premios')}</h3><p class="note">${me.awards.map(a => `🏅 ${esc(a.name)} (${TX('T{0}', a.season)})`).join('<br>')}</p>` : ''}`, 'bg_green');
+    $('back').onclick = back;
+  }
+
+  /* --- Partido --- */
+  function pcStartMatch(opts = {}) {
+    const c = PC.data, nm = PC.nextMatch(), d = PC.myDiv();
+    const t = PC.matchTeams(opts);
+    api.mode = 'pcareer';
+    api.pcMatch = { lockId: t.lockId, part: opts.subIn ? PC_SUB_PART : 1, base: opts.base || { gA: 0, gB: 0 } };
+    api.matchOpts = { lockId: t.lockId, preset: opts.base ? { A: opts.base.gA, B: opts.base.gB, timeMul: PC_SUB_PART } : null, extra: { friendKeys: t.friendKeys } };
+    startMatch({ A: t.A, B: t.B }, !!nm.ko, TEAM_FIELD[nm.rival], nm.ko ? 'match_final' : { 1: 'match_hard', 2: 'match_mid', 3: 'match_easy' }[d], nm.rival);
+  }
+  function renderPCBench() {
+    const c = PC.data, nm = PC.nextMatch(), plan = PC.benchPlan();
+    screen(`<h2>🪑 ${TX('En el banquillo')}</h2>
+      <div class="cvs sim"><div>${pcCrest(YOU)}<b>${esc(c.school)}</b></div><span>${plan.gA} - ${plan.gB}</span><div>${pcCrest(nm.rival)}<b>${esc(PC.teamName(nm.rival))}</b></div></div>
+      <p class="cweek">${TX('Primera parte')}</p>
+      <p class="note cmsg ${plan.enters ? 'gold' : ''}">${plan.enters ? TX('¡El entrenador te llama! Sales a jugar los últimos minutos.') : TX('Esta vez no sales: el entrenador confía en los titulares.')}</p>
+      ${bottom(plan.enters ? `<div class="grid2"><button class="cta" id="pcIn">${TX('⚽ Salir al campo')}</button><button class="ghost" id="pcInSim">${TX('📋 Simular')}</button></div>` : `<button class="cta" id="pcOut">${TX('Ver el resultado')}</button>`)}`, 'bg_vs');
+    if ($('pcIn')) $('pcIn').onclick = () => pcStartMatch({ subIn: true, base: plan });
+    if ($('pcInSim')) $('pcInSim').onclick = () => { const out = PC.simulateWeek(plan); jingleFor(out); renderPCResult(out); };
+    if ($('pcOut')) $('pcOut').onclick = () => { const out = PC.simulateWeek(plan); jingleFor(out); renderPCResult(out); };
+  }
+  function renderPCResult(out) {
+    const c = PC.data, r = out.pc, st = r.stats || {};
+    const lvUp = r.ups > 0;
+    screen(`<h2>${out.gA > out.gB || (out.pens && out.pens[0] > out.pens[1]) ? TX('¡Victoria!') : out.gA === out.gB && !out.pens ? TX('Empate') : TX('Derrota')}</h2>
+      <div class="cvs sim"><div>${pcCrest(YOU)}<b>${esc(c.school)}</b></div><span>${out.gA} - ${out.gB}${out.pens ? `<small>(${TX('pen.')} ${out.pens[0]}-${out.pens[1]})</small>` : ''}</span><div>${pcCrest(out.rival)}<b>${esc(PC.teamName(out.rival))}</b></div></div>
+      ${r.played ? `<div class="pcnote ${noteCls(r.note)}"><small>${TX('Tu nota')}</small><b>${noteTx(r.note)}</b></div>
+        <p class="cweek">${r.starter ? TX('Titular') : TX('Saliste en la 2.ª parte')} · ⚽ ${r.gl} · 🅰️ ${r.as}${r.stats ? ` · ${TX('tiros')} ${st.sh} · ${TX('robos')} ${st.tk || 0} · ${TX('regates')} ${st.dr || 0} · ${TX('pases')} ${st.pok || 0}` : ''}</p>`
+        : `<p class="note cmsg">${TX('No jugaste este partido.')}</p>`}
+      <p class="cweek">+${r.xp} XP · ${TX('Nivel')} ${r.lv}${lvUp ? ' · <b>' + TX('¡SUBES DE NIVEL!') + '</b>' : ''}</p>
+      ${r.rewards.length ? `<p class="note cmsg gold">${r.rewards.join('<br>')}</p>` : ''}
+      ${bottom(`<button class="cta" id="pcCont">${TX('Continuar')}</button>`)}`, r.note >= 7.5 ? 'ill25' : 'bg_vs');
+    $('pcCont').onclick = () => {
+      const go = () => pcAdvance();
+      if (PC.data.me.techChoice) renderPCTech(go); else go();
+    };
+  }
+  function renderPCSeason(sum) {
+    const c = PC.data, r = sum.pc;
+    screen(`<h2>${TX('Fin de la temporada')} ${sum.season}</h2>
+      <p class="cweek">${PC.divLabel(sum.div)} · ${TX('puesto')} <b>${ordTx(sum.pos)}</b></p>
+      <div class="pcnote ${noteCls(r.avg)}"><small>${TX('Nota media')}</small><b>${noteTx(r.avg)}</b></div>
+      <p class="cweek">${r.apps} ${TX('PJ ·')} ${r.starts} ${TX('de titular')} · ⚽ ${r.goals} · 🅰️ ${r.assists}</p>
+      ${r.rewards.length ? `<p class="note cmsg gold">${r.rewards.join('<br>')}</p>` : ''}
+      <p class="note">${TX('Premios de la temporada:')} +${r.tickets} 🎟️ · +${r.coins} 🪙 · 📈 ${c.me.graduated && !r.graduated ? TX('un año más de experiencia (+1 en todo)') : TX('pasas de curso (+1 en todo)')}</p>
+      ${r.callup ? `<p class="note cmsg gold">🌍 <b>${TX('¡Te convocan con {0} para el Mundial!', esc(PC.natName(c.pwc ? c.pwc.nat : PC.myNat())))}</b><br>${TX('Vas como')} <b>${PC_WC_ROLE_LABEL[r.callup] || ''}</b>${r.callup === 'titular' ? '' : ' · ' + TX('gánate el puesto en los partidos')}</p>` : ''}
+      ${r.awards && r.awards.balonWinner ? `<p class="note">🏆 ${TX('Balón de Oro de la temporada: {0} ({1})', esc(PLAYER(r.awards.balonWinner.id).name), esc(PC.teamName(r.awards.balonWinner.club)))}</p>` : ''}
+      ${r.graduated ? `<p class="note cmsg gold">🎓 <b>${TX('¡Terminas 3º y te graduas!')}</b> ${TX('Te esperan los clubes de la Liga Pro.')}</p>` : ''}
+      ${bottom(`<button class="cta" id="pcCont">${TX('Continuar')}</button>`)}`, r.avg >= 7 ? 'ill25' : 'bg_team');
+    Sound.jingle(r.avg >= 6.5 ? 'win' : null);
+    $('pcCont').onclick = renderPC;
+  }
+  /* --- Reto 1 contra 1 --- */
+  function renderPCDuel() {
+    const c = PC.data, D = c.me.duel, pd = PLAYER(D.id), R = c.me.rel[D.id];
+    screen(`<h2>⚔️ ${TX('¡Te retan!')}</h2>
+      <div class="cvs"><div><span id="dMe"></span><b>${esc(PLAYER(c.me.id).name)}</b><small>${TX('media')} ${PC.ovrMe()}</small></div><span>VS</span><div><span id="dThem"></span><b>${esc(pd.name)}</b><small>${esc(PC.teamName(D.club))}</small></div></div>
+      <p class="note">${TX('{0} no ha digerido la derrota y te reta a un 1 contra 1 en un minicampo, cada uno con su portero. Gana el primero que marque 3.', esc(pd.name))}</p>
+      ${R ? `<p class="cweek">🔥 ${TX('Rivalidad nivel {0}', R.lv)} · ${TX('Retos: {0} ganados, {1} perdidos', c.me.duels.w, c.me.duels.l)}</p>` : ''}
+      ${bottom(`<div class="grid2"><button class="cta" id="dPlay">${TX('⚽ Aceptar el reto')}</button><button class="cta" id="dSim">${TX('📋 Simular')}</button></div><button class="ghost" id="dNo">${TX('Pasar del reto')}</button>`)}`, 'bg_vs');
+    $('dMe').appendChild(face(Sprites.refOf(PLAYER(c.me.id)), 56)); $('dThem').appendChild(face(Sprites.refOf(pd), 56));
+    $('dPlay').onclick = () => {
+      const t = PC.duelTeams();
+      api.mode = 'pduel';
+      api.matchOpts = { lockId: t.lockId, extra: { mini: true, minutes: 1.5, goalLimit: 3, noOffside: true } };
+      startMatch({ A: t.A, B: t.B }, false, 'normal', 'match_special', t.club);
+    };
+    $('dSim').onclick = () => { const r = PC.duelSimulate(); Sound.jingle(r.win ? 'win' : r.draw ? null : 'lose'); renderPCDuelEnd(r); };
+    $('dNo').onclick = () => { UI.toast(PC.duelDecline(), 2600); renderPC(); };
+  }
+  function renderPCDuelEnd(r) {
+    screen(`<h2>${r.win ? TX('¡Reto ganado!') : r.draw ? TX('Empate') : TX('Reto perdido')}</h2>
+      <div class="cvs sim"><div><b>${esc(PLAYER(PC.data.me.id).name)}</b></div><span>${r.gA} - ${r.gB}</span><div><b>${esc(r.name)}</b></div></div>
+      <p class="note cmsg ${r.win ? 'gold' : ''}">${esc(r.msg)}</p>
+      <p class="cweek">+${r.xp} XP${r.tickets ? ' · +' + r.tickets + ' 🎟️' : ''}</p>
+      ${bottom(`<button class="cta" id="dCont">${TX('Continuar')}</button>`)}`, r.win ? 'ill25' : 'bg_vs');
+    $('dCont').onclick = () => { if (PC.data.me.techChoice) renderPCTech(renderPC); else renderPC(); };
+  }
+  /* --- Decisiones --- */
+  function renderPCEvent() {
+    const V = PC.eventView(); if (!V) { PC.data.me.event = null; PC.save(); return renderPC(); }
+    screen(`<h2>💬 ${esc(V.title)}</h2>
+      <p class="note">${esc(V.text)}</p>
+      <div class="csquad">${V.opts.map((o, i) => `<button class="ghost big" data-pev="${i}">${esc(o)}</button>`).join('')}</div>`, 'bg_team');
+    body.querySelectorAll('[data-pev]').forEach(b => b.onclick = () => { const msg = PC.resolveEvent(+b.dataset.pev); Sound.sfx('reveal'); if (msg) UI.toast(msg, 3200); PC.data.me.techChoice ? renderPCTech(renderPC) : renderPC(); });
+  }
+  /* --- Amigos y rivales --- */
+  function renderPCRel() {
+    const L = PC.relList(), me = PC.data.me;
+    screen(`${top(TX('Amigos y rivales'))}
+      <p class="note">${TX('Tus amigos del equipo te pasan más el balón y, si están en otro club, a veces te recomiendan. Contra el club de un rival sales con más ganas, y a veces te reta a un 1 contra 1.')}</p>
+      <p class="cweek">⚔️ ${TX('Retos: {0} ganados, {1} perdidos', me.duels.w, me.duels.l)}</p>
+      <div class="csquad" id="relL"></div>`, 'bg_green');
+    if (!L.length) $('relL').innerHTML = `<p class="note">${TX('Aún no tienes amigos ni rivales. Saldrán de las decisiones y de los partidos.')}</p>`;
+    L.forEach(r => {
+      const pd = PLAYER(r.id), el = document.createElement('div'); el.className = 'cpl';
+      el.appendChild(face(Sprites.refOf(pd), 44));
+      el.insertAdjacentHTML('beforeend', `<span class="cplb"><b>${r.t === 'amigo' ? '🤝' : '🔥'} ${esc(pd.name)}</b><span class="cst">${r.t === 'amigo' ? TX('Amigo') : TX('Rival')} · ${TX('nivel {0}', r.lv)} · ${r.club === YOU ? TX('tu equipo') : r.club ? esc(PC.teamName(r.club)) : TX('sin club')}</span></span>`);
+      $('relL').appendChild(el);
+    });
+    $('back').onclick = renderPC;
+  }
+  function renderPCOffers() {
+    const c = PC.data, offers = c.me.offers || [], pro = !!c.goPro, mid = !pro && c.week > 1;
+    const why = o => o.why === 'amigo' ? TX('te recomienda tu amigo {0}', esc(PLAYER(o.friend).name)) : o.why === 'pro' ? TX('Liga Pro') : o.why === 'up' ? TX('un salto de categoría') : o.why === 'down' ? TX('allí jugarías más') : mid ? TX('te quiere ya') : TX('un club más fuerte');
+    const divOf = k => pro ? TX('Liga Pro') : PC.divLabel(PC.divOf(k));
+    const rat = k => pro ? PC.proRating(k) : PC.rating(k);
+    screen(`<h2>${pro ? '🌍 ' + TX('¡Ofertas de la Liga Pro!') : '📨 ' + TX('Ofertas de otros clubes')}</h2>
+      <p class="note">${pro ? TX('Das el salto al fútbol profesional. Elige tu primer club de la Liga Pro: equipos de todo el mundo con las estrellas del Inazuma 3.')
+        : mid ? TX('Has pedido el traspaso. Si te vas ahora, sigues la temporada con tu nuevo club (con su clasificación). ¿Te vas o te quedas en {0}?', esc(c.school))
+        : TX('Tu temporada no ha pasado desapercibida. ¿Cambias de club o te quedas en {0}?', esc(c.school))}</p>
+      <div class="modes">${offers.map(o => `<button class="mode" data-poff="${o.key}">${Sprites.crest(crestOf(o.key))}<span class="mt"><b>${esc(TEAM(o.key).name)}</b><small>${divOf(o.key)} · ${TX('media')} ${rat(o.key)} · ${why(o)}</small></span></button>`).join('')}</div>
+      ${pro ? '' : bottom(`<button class="ghost" id="pcStay">${TX('Me quedo en {0}', esc(c.school))}</button>`)}`, pro ? 'ill25' : 'bg_team');
+    body.querySelectorAll('[data-poff]').forEach(b => b.onclick = () => { const k = b.dataset.poff; PC.acceptOffer(k); Sound.sfx('reveal'); UI.toast(TX('¡Fichas por {0}!', TEAM(k).name), 2400); renderPC(); });
+    if ($('pcStay')) $('pcStay').onclick = () => { PC.rejectOffers(); renderPC(); };
+  }
+
+  /* --- Mundial con tu selección --- */
+  const ROLE_NOTE = { titular: TX('Juegas de titular todo el partido.'), suplente: TX('Empiezas en el banquillo y sales en la segunda parte. Con buena nota te ganas la titularidad.'),
+    reserva: TX('Estás en la convocatoria pero no juegas: lo ves desde la grada. El seleccionador puede subirte a suplente.') };
+  const MOVE_MSG = { titular: TX('¡Te ganas la titularidad!'), suplente: TX('El seleccionador te pone de suplente.') };
+  function renderPCWC(last) {
+    const c = PC.data, W = PC.wcFix(), nat = W.nat;
+    const oppName = k => PC.natName(k), oppCrest = k => `<img class="ccrest" src="ui/crest${PC.natCrest(k)}.png" alt="">`;
+    if (W.state !== 'on') {
+      screen(`<h2>🌍 ${TX('Fin del Mundial')}</h2>
+        ${last ? `<p class="note cmsg ${W.state === 'champion' ? 'gold' : ''}">${esc(last.msg || '')}</p>` : ''}
+        <p class="note">${W.log.map(l => `${PC.wcRoundName(l.round)} · ${esc(oppName(l.opp))} ${l.gA}-${l.gB}${l.pens ? ` (${TX('pen.')} ${l.pens[0]}-${l.pens[1]})` : ''} · ${l.note != null ? TX('nota') + ' ' + noteTx(l.note) : TX('no jugaste')}`).join('<br>')}</p>
+        ${W.reward ? `<p class="note cmsg gold">+${W.reward.tickets} 🎟️ · +${W.reward.coins} 🪙</p>` : ''}
+        ${bottom(`<button class="cta" id="pcWcEnd">${TX('Volver al club')}</button>`)}`, W.state === 'champion' ? 'ill25' : 'bg_vs');
+      if (W.state === 'champion') Sound.jingle('win');
+      $('pcWcEnd').onclick = () => { PC.wcClose(); renderPC(); };
+      return;
+    }
+    const t = PC.wcTeams(), role = W.role;
+    const mv = last && last.move ? `<p class="note cmsg ${last.move === 'titular' ? 'gold' : ''}">${last.from === 'reserva' ? TX('El seleccionador te sube a suplente.') : MOVE_MSG[last.move]}</p>` : '';
+    screen(`<h2>🌍 ${TX('Mundial con {0}', esc(PC.natName(nat)))}</h2>
+      ${last && last.msg ? `<p class="note cmsg">${esc(last.msg)}</p>` : ''}
+      ${last ? `<p class="cweek">${TX('Último partido:')} ${last.gA}-${last.gB}${last.note != null ? ` · ${TX('tu nota')} <b class="${noteCls(last.note)}">${noteTx(last.note)}</b>` : ''}</p>` : ''}${mv}
+      <p class="cweek">${PC.wcRoundName(W.round)}${W.round < 3 ? ` · ${W.pts} ${TX('pts')}` : ''}</p>
+      <div class="cvs">${'<div>' + oppCrest(nat) + `<b>${esc(PC.natName(nat))}</b><small>${TX('media')} ${t.rA}</small></div>`}<span>VS</span><div>${oppCrest(t.opp)}<b>${esc(oppName(t.opp))}</b><small>${TX('media')} ${t.rB}</small></div></div>
+      <p class="note cmsg ${role === 'titular' ? 'gold' : ''}">${TX('Tu papel:')} <b>${PC_WC_ROLE_LABEL[role]}</b><br><small>${ROLE_NOTE[role]}</small></p>
+      <p class="note">${TX('Juegan:')} ${t.A.players.map(p => esc(p.name) + (p.key === c.me.id ? ' ★' : '')).join(', ')}</p>
+      ${bottom(role === 'reserva' ? `<button class="cta" id="pcWcSim">${TX('👀 Verlo desde la grada')}</button>`
+        : `<div class="grid2"><button class="cta" id="pcWcPlay">${role === 'suplente' ? TX('⚽ Salir en la 2.ª parte') : TX('⚽ Jugar')}</button><button class="cta" id="pcWcSim">${TX('📋 Simular')}</button></div>`)}`, 'bg_vs');
+    if ($('pcWcPlay')) $('pcWcPlay').onclick = () => {
+      if (role === 'suplente') {
+        const plan = PC.wcBenchPlan(), t2 = PC.wcTeams({ subIn: true });
+        api.mode = 'pwc'; api.pcMatch = { lockId: t2.lockId, part: PC_SUB_PART };
+        api.matchOpts = { lockId: t2.lockId, preset: { A: plan.gA, B: plan.gB, timeMul: PC_SUB_PART } };
+        UI.toast(TX('Primera parte: {0}-{1}. ¡Sales al campo!', plan.gA, plan.gB), 2200);
+        return startMatch({ A: t2.A, B: t2.B }, W.round >= 3, 'cielo', 'match_final', t2.opp === 'JP' ? null : t2.opp);
+      }
+      api.mode = 'pwc'; api.pcMatch = { lockId: t.lockId, part: 1 }; api.matchOpts = { lockId: t.lockId };
+      startMatch({ A: t.A, B: t.B }, W.round >= 3, 'cielo', 'match_final', t.opp === 'JP' ? null : t.opp);
+    };
+    $('pcWcSim').onclick = () => { const r = PC.wcSimulate(); renderPCWC(r); };
+  }
+  function renderPCEnd() {
+    const c = PC.data, me = c.me, G = c.graduation || {}, pd = PLAYER(me.id);
+    if (!pd) { PC.clear(); return renderPCNew(); }
+    screen(`${top('🎓 ' + TX('¡Te graduas!'))}
+      <div class="chead pchead"><span id="pcFace"></span><div><b>${esc(pd.name)}</b><small>${TX('media')} ${PC.ovrMe()} · ${TX('Nivel')} ${me.lv} · ${me.total.goals} ${TX('goles')} · ${me.total.apps} ${TX('PJ')}</small></div></div>
+      ${G.joined ? `<p class="note cmsg gold">⭐ ${TX('{0} entra en tu colección con todo lo que ha mejorado. Búscalo en Plantilla.', esc(pd.name))}</p>` : G.star ? `<p class="note cmsg gold">⭐ ${TX('{0} gana una estrella en tu colección.', esc(pd.name))}</p>` : ''}
+      <p class="note cmsg">${TX('Premio de graduación:')} +${G.tickets || 0} 🎟️ · +${G.coins || 0} 🪙</p>
+      <p class="note">${TX('Tu carrera sigue: ahora juegas en la Liga Pro, sin final. ¡A por todo!')}</p>
+      ${bottom(`<div class="grid2"><button class="ghost" id="pcHist2">${TX('📜 Trayectoria')}</button><button class="cta" id="pcGoPro">${TX('🌍 ¡A la Liga Pro!')}</button></div>`)}`, 'ill25');
+    $('pcFace').appendChild(face(Sprites.refOf(pd), 56));
+    $('pcHist2').onclick = () => renderPCHistory(renderPCEnd);
+    $('pcGoPro').onclick = () => { c.graduation.seen = true; PC.save(); renderPC(); };
+    $('back') && ($('back').onclick = renderMenu);
   }
 
   /* ---------- Guardar y cargar partidas ---------- */
@@ -1944,7 +2620,8 @@ const App = (() => {
       <span class="cst">${when}</span>
       <span class="cst">👥 <b>${d.players}</b> ${TX('jugadores · 🎟️')} ${d.tickets} · 🪙 ${d.coins}</span>
       <span class="cst">${TX('Victorias:')} ${d.wins} ${TX('· Etapas completadas:')} ${d.etapas}</span>
-      ${d.career ? `<span class="cst">${TX('Carrera:')} ${esc(d.career)}</span>` : ''}</span></button>`;
+      ${d.career ? `<span class="cst">${TX('Carrera:')} ${esc(d.career)}</span>` : ''}
+      ${d.pcareer ? `<span class="cst">⭐ ${TX('Carrera Jugador:')} ${esc(d.pcareer)}</span>` : ''}</span></button>`;
     screen(`<div class="top"><h2>${TX('¿Qué partida conservas?')}</h2></div>
       <p class="note">${TX('Tu cuenta')} <b>${esc(Cloud.user())}</b> ${TX('tiene una partida en la nube distinta de la de este móvil. Elige con cuál sigues. La otra se guarda como copia en este móvil (Cuenta → Opciones avanzadas), así que no se pierde.')}</p>
       ${card('cCloud', TX('☁️ La de la nube'), C.cloudInfo, C.cloudDate ? TX('Guardada el ') + new Date(C.cloudDate).toLocaleString('es-ES') : '', '')}
@@ -2157,6 +2834,7 @@ const App = (() => {
       <h3>${TX('Trucos')}</h3>
       <ul class="gtips"><li>${TX('Pulsa Pase o Tiro un poco antes de que te llegue el balón: pasarás o chutarás al primer toque.')}</li>
         <li>${TX('Tiro cargado a tope (barra llena) = tiro mucho más fuerte.')}</li>
+        <li>${TX('Con una técnica de bloqueo puedes frenar o parar los tiros rivales: ponte delante del tiro y pulsa Técnica cuando salga el aviso. Cuanta más defensa y físico, más fácil.')}</li>
         <li>${TX('Las supertécnicas tienen recarga: el botón se va llenando hasta que vuelve a estar lista.')}</li>
         <li>${TX('En Ajustes puedes poner las supertécnicas automáticas y quitar el cambio automático de jugador.')}</li></ul>`, 'bg_green');
     body.querySelectorAll('[data-gtab]').forEach(b => b.onclick = () => { guideTab = b.dataset.gtab; renderControlsGuide(back); });
@@ -2164,11 +2842,42 @@ const App = (() => {
   }
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
-    { v: '0.31.14', date: '25/10/2026', items: [
+    { v: '0.36.0', date: '25/10/2026', items: [
       TX('⚖️ Faltas, tarjetas y penaltis: las entradas por detrás o sin tocar el balón pueden ser falta (tiro libre, o penalti en el área). Hay tarjetas amarillas y rojas: con la segunda amarilla, o con una roja, el jugador se va y su equipo juega con uno menos. Se puede desactivar en Ajustes.'),
       TX('🔄 Ajustes → «Elegir jugador con el balón parado»: cuando el balón sale, hay falta o penalti, el partido espera y eliges quién saca o a quién controlas.')] },
+    { v: '0.35.5', date: '25/10/2026', items: [
+      TX('🔧 Arreglado: en la Carrera Jugador, algunos retos 1 contra 1 (por ejemplo contra Caleb Stonewall) daban error y no dejaban seguir.')] },
+    { v: '0.35.4', date: '25/10/2026', items: [
+      TX('📈 Más reto: en la Historia, las Cadenas y el Infinito los rivales se hacen más fuertes a medida que avanzas. En el Infinito suben más y hasta más arriba.'),
+      TX('🔥 En Difícil y en las oleadas altas del Infinito (desde la 10, y aún más desde la 25) la IA presiona entre dos, roba más y piensa más rápido.')] },
+    { v: '0.35.3', date: '25/10/2026', items: [
+      TX('🔧 Arreglado: los retos 1 contra 1 de la Carrera Jugador se podían quedar congelados en un saque (sobre todo si tu jugador es portero).'),
+      TX('🧤 En los retos 1 contra 1 los porteros ya no sacan de punta a punta del minicampo: sacan corto o a media distancia.')] },
+    { v: '0.35.2', date: '25/10/2026', items: [
+      TX('🔧 Arreglado: en el Infinito podían salir clubes de la Liga Pro (como Los Angeles Stars) y el partido no cargaba. Si tenías uno en tu partida, se cambia por otro rival.'),
+      TX('🛟 Si algo falla, el juego ya no se queda congelado: sale un aviso con un botón para volver al menú (lo guardado no se pierde).'),
+      TX('⌨️ Ordenador: al cambiar de pestaña o de ventana ya no se quedan teclas «pulsadas» al volver al partido.')] },
+    { v: '0.35.1', date: '25/10/2026', items: [
+      TX('⚖️ Rivales más justos: en ninguna dificultad usan más supertécnicas que tú (como mucho 2). La dificultad está en cómo juegan, no en tener más técnicas.'),
+      TX('⚽ Jugar sin defensas ya no sale gratis: los delanteros no bajan a defender a su campo y se quedan arriba esperando la contra. Los rivales lo aprovechan con balones largos a la espalda.')] },
+    { v: '0.35.0', date: '25/10/2026', items: [
+      TX('🛒 ¡Nueva Tienda! Gasta tus monedas en tickets (hasta 10 al día), sobres «elige 1 de 3» (raro, épico, épico del puesto que quieras y uno legendario por semana), diseños y colores nuevos para tu equipación, tu propio escudo, campos para jugar en casa y niveles para tus supertécnicas (algunas hasta evolucionan).'),
+      TX('📖 Álbum de colección: completa los equipos con tus jugadores y recoge un premio por cada uno. Si te falta alguno, lo puedes comprar.'),
+      TX('⭐ Nuevo modo Carrera Jugador: crea tu jugador o elige uno de tu colección, gánate el puesto, gradúate y salta a la Liga Pro.'),
+      TX('Promesas y negocios: amistades y rivalidades, retos 1 contra 1, decisiones de prensa, vida y vestuario, y fichajes entre clubes.'),
+      TX('✂️ Personaliza a tu jugador de la Carrera Jugador: pelo, piel, botas, dorsal y cara. Al crearlo es gratis; después lo puedes cambiar en la Tienda.'),
+      TX('🌍 Mundial con tu selección en la Carrera Jugador (también desde la Liga Pro): titular, suplente o reserva según tu nivel.'),
+      TX('🏆 Modo Carrera: el Raimon ya es un club, puedes crear tu club o comprar con monedas uno que ya existe (los mejores, más caros), y las 3 divisiones tienen 12 equipos (entran Servicio Secreto, Mary Times, Triple C y Mar de Árboles del Inazuma 2).'),
+      TX('Modo Carrera: las supertécnicas se desbloquean cuando el jugador las aprende (todos empiezan con la primera), y entrenar está más equilibrado: cada jugador puede subir +1 con suerte.'),
+      TX('Nueva cadena «Los olvidados del 2», con cuatro rivales del Inazuma 2 que faltaban.'),
+      TX('🛡️ Bloqueos de tiro como en el Inazuma DS: ponte delante del tiro rival con tu jugador y pulsa Técnica para frenarlo o pararlo, según sus estadísticas y su técnica.'),
+      TX('🔺 Supertécnicas de varios jugadores (Triángulo letal, Fuego cruzado, Empuje trillizo…): tus compañeros más cercanos aparecen a hacerla contigo y luego vuelven corriendo a su sitio. Si en el campo están los compañeros que también saben esa técnica, tiene un +5 % de potencia.'),
+      TX('💾 3 ranuras de guardado para cada carrera.'),
+      TX('🏅 Logros con premios.')] },
+    { v: '0.31.14', date: '24/10/2026', items: [
+      TX('🧤 Porteros más listos: si hay otro atacante libre para el pase, no salen a lo loco, y cuando el rival pasa vuelven corriendo a tapar la portería.')] },
     { v: '0.31.13', date: '24/10/2026', items: [
-      TX('Pequeños ajustes y mejoras en el gacha y en los avisos al abrir el juego.')] },
+      TX('🔴 Cuando Franmen está en directo en Twitch, sale un botón arriba en el menú para ir a verlo.')] },
     { v: '0.31.12', date: '23/10/2026', items: [
       TX('Partidos más equilibrados: con el balón se esprinta un poco menos y los rivales corren algo más cuando defienden. Ya no te escapas solo corriendo.')] },
     { v: '0.31.11', date: '23/10/2026', items: [
@@ -2213,7 +2922,7 @@ const App = (() => {
       TX('Ordenador: teclas más cómodas (J/Z pase, K/X tiro, L/C profundidad, I/V regate, E cambiar técnica) y aviso de que se puede jugar con mando.')] },
     { v: '0.31.0', date: '', items: [TX('El juego, traducido al inglés (cámbialo en Ajustes).')] },
   ];
-  function renderNews(back = renderMenu) {
+  function renderPatchNotes(back = renderMenu) {
     settings.seenNews = VERSION; settings.aviso = AVISO.key; saveSettings();   // las Novedades ya cuentan lo del aviso
     screen(`${top(TX('📰 Novedades'))}
       ${NEWS.map((n, i) => `<div class="newsv${i === 0 ? ' last' : ''}"><h3>v${n.v}${n.date ? ` <small>${n.date}</small>` : ''}${i === 0 ? ` <span class="newtag">${TX('¡NUEVO!')}</span>` : ''}</h3>
@@ -2221,6 +2930,148 @@ const App = (() => {
       ${bottom(`<button class="cta" id="newsOk">${TX('¡A jugar!')}</button>`)}`, 'bg_title');
     $('back').onclick = back; $('newsOk').onclick = back;
   }
+  /* ---------- Tienda 🛒 (v0.35) ---------- */
+  let shopTab = 'sobres', shopTechType = '', shopTechQ = '', shopAlbumOpen = null;
+  function renderShop(tab) {
+    if (tab) shopTab = tab;
+    Shop.st();
+    const P = Profile.data, TABS = [['sobres', TX('🎟️ Sobres')], ['equip', TX('👕 Equipación')], ['escudo', TX('🛡️ Escudo y campo')], ['tecnicas', TX('✨ Técnicas')], ['album', TX('📖 Álbum')], ['jugador', TX('✂️ Tu jugador')]];
+    const alN = Shop.albumPending();
+    const tabs = `<div class="opts shoptabs" id="shT">${TABS.map(([k, n]) => `<button data-st="${k}" aria-pressed="${shopTab === k}">${n}${k === 'album' && alN ? ' <i class="newdot"></i>' : ''}</button>`).join('')}</div>`;
+    const price = (c, ok = P.coins >= c) => `<button class="cta mini" data-buy ${ok ? '' : 'disabled'}>${c} 🪙</button>`;
+    let html = '';
+    if (shopTab === 'sobres') {
+      const left = Shop.ticketsLeft();
+      html = `<h3>${TX('Tickets')} <small>${TX('{0} 🪙 cada uno · te quedan {1} hoy', SHOP.ticket, left)}</small></h3>
+        <div class="csquad">${[1, 5, 10].map(n => { const k = Math.min(n, left), c = k * SHOP.ticket;
+          return `<div class="cpl fac"><span class="cicon">🎟️</span><div class="cplb"><b>${TXn(n, '{0} ticket', '{0} tickets')}</b>${n > left && left ? `<span class="cst">${TX('Solo te quedan {0} hoy', left)}</span>` : ''}</div><button class="cta mini" data-tk="${n}" ${left && P.coins >= c ? '' : 'disabled'}>${left ? (k * SHOP.ticket) + ' 🪙' : TX('Mañana')}</button></div>`; }).join('')}</div>
+        <h3>${TX('Sobres de jugador')} <small>${TX('eliges 1 de 3')}</small></h3>
+        <div class="csquad">${Object.entries(SHOP.packs).map(([k, K]) => { const wk = K.weekly && !Shop.legReady();
+          return `<div class="cpl fac pack ${k}"><span class="cicon">${{ rara: '🔵', epica: '🟣', puesto: '🎯', legendaria: '🌟' }[k]}</span><div class="cplb"><b>${K.name}</b><span class="cst">${K.desc}</span>
+            ${K.role ? `<span class="opts small" id="pRole">${ROLES4.map(r => `<button data-prole="${r}" aria-pressed="${shopRole === r}">${RAB(r)}</button>`).join('')}</span>` : ''}</div>
+            <button class="cta mini" data-pack="${k}" ${wk || P.coins < K.cost ? 'disabled' : ''}>${wk ? TX('La semana que viene') : K.cost + ' 🪙'}</button></div>`; }).join('')}</div>
+        ${(P.giftPicks || []).length ? `<p class="note">${TXn(P.giftPicks.length, 'Tienes {0} «elige 1 de 3» sin abrir:', 'Tienes {0} «elige 1 de 3» sin abrir:')} <button class="ghost mini" id="shPicks">${TX('Elegir ahora')}</button></p>` : ''}`;
+    } else if (shopTab === 'equip') {
+      const k = myKit() || { a: '#e8c21a', b: '#1f4fc0', d: '' };
+      html = `<p class="note">${TX('Lo que compres aparece en el creador de equipación de Mi equipo y del Modo Carrera. Los diseños y colores de siempre siguen gratis.')}</p>
+        <h3>${TX('Diseños nuevos')}</h3><div class="shopgrid" id="shD">${Object.entries(SHOP.designs).map(([d, c]) => `<div class="shopit" data-d="${d}"><span class="pv"></span><b>${DESIGN_NAME[d]}</b>${Shop.owns('d:' + d) ? `<button class="ghost mini" data-use="${d}">${(k.d || '') === d ? TX('Puesta ✓') : TX('Ponérmela')}</button>` : `<button class="cta mini" data-bd="${d}" ${P.coins >= c ? '' : 'disabled'}>${c} 🪙</button>`}</div>`).join('')}</div>
+        <h3>${TX('Colores especiales')}</h3><div class="shopgrid">${Object.entries(SHOP.colors).map(([col, c]) => `<div class="shopit"><span class="swbig" style="background:${col}"></span><b>${COLOR_NAME[col]}</b>${Shop.owns('c:' + col) ? `<small>${TX('✓ Tuyo')}</small>` : `<button class="cta mini" data-bc="${col}" ${P.coins >= c ? '' : 'disabled'}>${c} 🪙</button>`}</div>`).join('')}</div>`;
+    } else if (shopTab === 'escudo') {
+      const cr = Shop.crestData(), f = Shop.myField() || 'normal';
+      const sw = (key, v) => `<div class="swatches">${Shop.kitColors().map(col => `<button class="sw" data-ck="${key}" data-c="${col}" style="background:${col}" aria-pressed="${v === col}"></button>`).join('')}</div>`;
+      html = `<h3>${TX('Escudo de tu equipo')}</h3>
+        <div class="clubpv"><img class="ccrest huge" src="${Shop.myCrest() ? ClubCrest.url(cr, '') : 'ui/crest1.png'}" alt=""><div><b>${Shop.myCrest() ? TX('Tu escudo') : TX('Escudo del Raimon')}</b><small>${TX('Sale en el marcador de tus partidos (Historia, Equipos especiales, Cadenas e Infinito)')}</small></div></div>
+        ${cr ? `<div class="opts">${Shop.crestShapes().map(s => `<button data-shape="${s}" aria-pressed="${cr.shape === s}">${SHAPE_NAME[s] || s}</button>`).join('')}</div>
+          <p class="note">${TX('Color de fondo')}</p>${sw('c1', cr.c1)}<p class="note">${TX('Color del borde y símbolo')}</p>${sw('c2', cr.c2)}
+          <div class="opts syms">${Object.entries(CREST_SYMBOLS).map(([k, s]) => `<button data-sym="${k}" aria-pressed="${cr.sym === k}">${s}</button>`).join('')}</div>
+          <button class="ghost mini" id="crOff">${P.crestOff ? TX('Usar mi escudo') : TX('Volver al del Raimon')}</button>`
+          : `<div class="cpl fac"><span class="cicon">🛡️</span><div class="cplb"><b>${TX('Crea tu escudo')}</b><span class="cst">${TX('Forma, colores y símbolo, como en el Modo Carrera')}</span></div><button class="cta mini" id="bCrest" ${P.coins >= SHOP.crest ? '' : 'disabled'}>${SHOP.crest} 🪙</button></div>`}
+        <h3>${TX('Formas especiales')} <small>${TX('también para el escudo del Modo Carrera')}</small></h3>
+        <div class="shopgrid">${Object.entries(SHOP.shapes).map(([s, c]) => `<div class="shopit"><img class="ccrest big" src="${ClubCrest.url({ shape: s, c1: (cr || {}).c1 || '#1f4fc0', c2: (cr || {}).c2 || '#e8c21a', sym: (cr || {}).sym || 'estrella' }, '')}" alt=""><b>${SHAPE_NAME[s]}</b>${Shop.owns('s:' + s) ? `<small>${TX('✓ Tuya')}</small>` : `<button class="cta mini" data-bs="${s}" ${P.coins >= c ? '' : 'disabled'}>${c} 🪙</button>`}</div>`).join('')}</div>
+        <h3>${TX('Tu campo')} <small>${TX('juegas en casa la mitad de los partidos (no en las finales)')}</small></h3>
+        <div class="shopgrid">${['normal', ...Object.keys(SHOP.fields)].map(k => { const F = FIELDS[k] || FIELDS.normal, hx = n => '#' + n.toString(16).padStart(6, '0'), own = k === 'normal' || Shop.owns('f:' + k);
+          return `<div class="shopit"><span class="fieldpv" style="background:repeating-linear-gradient(90deg,${hx(F.a)} 0 8px,${hx(F.b)} 8px 16px);border-color:${hx(F.runoff)};box-shadow:inset 0 0 0 1px ${hx(F.line)}"></span><b>${(FIELD_LABEL[k] || k).replace(/^Campo (de la |del |de |)/, '')}</b>${own ? `<button class="ghost mini" data-fld="${k}">${f === k ? TX('Elegido ✓') : TX('Elegir')}</button>` : `<button class="cta mini" data-bf="${k}" ${P.coins >= SHOP.fields[k] ? '' : 'disabled'}>${SHOP.fields[k]} 🪙</button>`}</div>`; }).join('')}</div>`;
+    } else if (shopTab === 'tecnicas') {
+      html = `<p class="note">${TX('Sube de nivel las supertécnicas de tus jugadores: cada nivel, +{0} de potencia en todos los modos menos en las Carreras. Al nivel 3, algunas pueden evolucionar.', SHOP.LV_POWER)}</p>
+        <div class="opts" id="shTT">${[['', TX('Todas')], ...Object.entries(TYPE_LABEL)].map(([k, n]) => `<button data-tt="${k}" aria-pressed="${shopTechType === k}">${k ? TYPE_ICON[k] + ' ' : ''}${n}</button>`).join('')}</div>
+        <div class="pfbar"><div class="pfq"><input id="shQ" type="search" placeholder="${TX('Buscar técnica')}" value="${esc(shopTechQ)}" autocomplete="off"></div></div>
+        <div class="csquad" id="shTL"></div>`;
+    } else if (shopTab === 'jugador') {
+      PC.load(); const me = PC.data && PC.data.me, pd = me && me.pd && (PLAYER(me.id) || me.pd);
+      html = `<p class="note">${TX('Cambia el pelo, la piel, las botas, el dorsal o la cara de tu jugador creado en la Carrera Jugador.')}</p>
+        ${pd ? `<div class="cpl fac"><span id="shPF"></span><div class="cplb"><b>${esc(pd.name)}</b><span class="cst">${TX('Cara y peinado {0} 🪙 · pelo {1} · piel {2} · botas {3} · dorsal {4}', PC_LOOK_COST.cara, PC_LOOK_COST.hair, PC_LOOK_COST.skin, PC_LOOK_COST.boots, PC_LOOK_COST.num)}</span></div><button class="cta mini" id="shLook">${TX('Personalizar')}</button></div>`
+          : `<p class="note cmsg">${TX('Crea un jugador en la Carrera Jugador para poder personalizarlo.')}</p>`}`;
+    } else {
+      const A = Shop.album(), done = A.filter(a => Shop.albumState(a.key).done).length;
+      html = `<p class="note">${TX('Completa equipos con los jugadores de tu colección: cada equipo completo da {0} 🪙 y {1} 🎟️. Si te falta alguno, lo puedes comprar.', SHOP.albumPrize.coins, SHOP.albumPrize.tickets)}</p>
+        <p class="note"><b>${TX('{0} de {1} equipos completos', done, A.length)}</b></p>
+        <div class="csquad" id="shAL">${A.map(a => { const s = Shop.albumState(a.key);
+          return `<div class="cpl fac alb${s.done ? ' done' : ''}${shopAlbumOpen === a.key ? ' sel' : ''}" data-al="${esc(a.key)}">${Sprites.crest(a.crest || 2)}<div class="cplb"><b>${esc(a.name)}</b><span class="cst">${s.have}/${s.total}${s.claimed ? ' · ' + TX('✓ Premio recogido') : ''}</span><span class="albar"><i style="width:${Math.round(100 * s.have / s.total)}%"></i></span></div>
+            ${s.done && !s.claimed ? `<button class="cta mini" data-claim="${esc(a.key)}">${TX('¡Recoger!')}</button>` : ''}</div>${shopAlbumOpen === a.key ? `<div class="albfaces" id="alF"></div>` : ''}`; }).join('')}</div>`;
+    }
+    screen(`${top(TX('🛒 Tienda'))}${wallet()}${tabs}${html}`, 'bg_green');
+    body.querySelectorAll('[data-st]').forEach(b => b.onclick = () => { Sound.sfx('click'); renderShop(b.dataset.st); });
+    $('back').onclick = renderMenu;
+    const res = (r, ok) => { if (!r.ok) { Sound.sfx('click'); return UI.toast(r.msg, 2000); } Sound.sfx('reveal'); if (ok) ok(r); else { if (r.msg) UI.toast(r.msg, 1600); renderShop(); } };
+    if (shopTab === 'sobres') {
+      body.querySelectorAll('[data-tk]').forEach(b => b.onclick = () => res(Shop.buyTickets(+b.dataset.tk)));
+      body.querySelectorAll('[data-prole]').forEach(b => b.onclick = () => { shopRole = b.dataset.prole; body.querySelectorAll('[data-prole]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+      body.querySelectorAll('[data-pack]').forEach(b => b.onclick = () => {
+        const k = b.dataset.pack;
+        if (SHOP.packs[k].role && !shopRole) return UI.toast(TX('Elige primero el puesto'), 1800);
+        if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = TX('¿Comprar? Toca otra vez'); return; }
+        res(Shop.buyPack(k, shopRole), r => renderShopPick(r.uid));
+      });
+      if ($('shPicks')) $('shPicks').onclick = () => renderShopPick(P.giftPicks[0].uid);
+    } else if (shopTab === 'equip') {
+      const who = PLAYER(((api.myTeam || savedTeam()).ids || []).find(id => id != null && PLAYER(id).role !== 'POR') || 10), k = myKit() || { a: '#e8c21a', b: '#1f4fc0' };
+      body.querySelectorAll('#shD [data-d]').forEach(el => el.querySelector('.pv').appendChild(Sprites.kitPreview(Sprites.refOf(who), Object.assign({}, k, { d: el.dataset.d }), 1.5)));
+      body.querySelectorAll('[data-bd]').forEach(b => b.onclick = () => res(Shop.buyDesign(b.dataset.bd)));
+      body.querySelectorAll('[data-bc]').forEach(b => b.onclick = () => res(Shop.buyColor(b.dataset.bc)));
+      body.querySelectorAll('[data-use]').forEach(b => b.onclick = () => { Profile.data.kit = Object.assign({ a: '#e8c21a', b: '#1f4fc0', d: '' }, myKit() || {}, { d: b.dataset.use }); Profile.save(); Sound.sfx('click'); renderShop(); });
+    } else if (shopTab === 'escudo') {
+      if ($('bCrest')) $('bCrest').onclick = () => res(Shop.buyCrest());
+      if ($('crOff')) $('crOff').onclick = () => { P.crestOff = !P.crestOff; Profile.save(); Sound.sfx('click'); renderShop(); };
+      body.querySelectorAll('[data-shape]').forEach(b => b.onclick = () => { Shop.setCrest({ shape: b.dataset.shape }); P.crestOff = false; Sound.sfx('click'); renderShop(); });
+      body.querySelectorAll('[data-ck]').forEach(b => b.onclick = () => { Shop.setCrest({ [b.dataset.ck]: b.dataset.c }); P.crestOff = false; Sound.sfx('click'); renderShop(); });
+      body.querySelectorAll('[data-sym]').forEach(b => b.onclick = () => { Shop.setCrest({ sym: b.dataset.sym }); P.crestOff = false; Sound.sfx('click'); renderShop(); });
+      body.querySelectorAll('[data-bs]').forEach(b => b.onclick = () => res(Shop.buyShape(b.dataset.bs)));
+      body.querySelectorAll('[data-bf]').forEach(b => b.onclick = () => res(Shop.buyField(b.dataset.bf), () => { Shop.setField(b.dataset.bf); renderShop(); }));
+      body.querySelectorAll('[data-fld]').forEach(b => b.onclick = () => { Shop.setField(b.dataset.fld); Sound.sfx('click'); renderShop(); });
+    } else if (shopTab === 'tecnicas') {
+      const draw = () => {
+        const q = shopTechQ.trim().toLowerCase();
+        const list = Shop.myTechs().map(TECH).filter(t => (!shopTechType || t.type === shopTechType) && (!q || t.name.toLowerCase().includes(q)))
+          .sort((a, b) => Shop.techLevel(b.id) - Shop.techLevel(a.id) || b.power - a.power);
+        $('shTL').innerHTML = list.slice(0, 120).map(t => { const lv = Shop.techLevel(t.id), c = Shop.levelCost(t.id), e = EVO(t.id);
+          const btn = c != null ? `<button class="cta mini" data-lv="${t.id}" ${P.coins >= c ? '' : 'disabled'}>${TX('Nv.')} ${lv + 1} · ${c} 🪙</button>`
+            : Shop.canEvolve(t.id) ? `<button class="cta mini" data-evo="${t.id}" ${P.coins >= SHOP.techEvo ? '' : 'disabled'}>${TX('Evolucionar')} · ${SHOP.techEvo} 🪙</button>` : `<span class="cst">${TX('Máximo')}</span>`;
+          return `<div class="cpl fac"><span class="cicon">${TYPE_ICON[t.type] || '★'}</span><div class="cplb">${techLineMy(t)}<span class="cst">${'★'.repeat(lv)}${'☆'.repeat(SHOP.TECH_MAX - lv)}${e != null && TECH(e) ? ' · ' + TX('evoluciona a ') + esc(TECH(e).name) + ((P.techs || {})[e] ? ' ✓' : '') : ''}</span></div>${btn}</div>`; }).join('')
+          || `<p class="note">${TX('No hay técnicas con ese filtro.')}</p>`;
+        $('shTL').querySelectorAll('[data-lv]').forEach(b => b.onclick = () => res(Shop.levelUp(+b.dataset.lv), r => { UI.toast(TX('¡Nivel {0}!', r.lv), 1400); renderShop(); }));
+        $('shTL').querySelectorAll('[data-evo]').forEach(b => b.onclick = () => res(Shop.evolve(+b.dataset.evo), r => { UI.toast(TX('¡Nueva técnica: {0}! Equípala en Plantilla', TECH(r.to).name), 2600); renderShop(); }));
+      };
+      body.querySelectorAll('[data-tt]').forEach(b => b.onclick = () => { shopTechType = b.dataset.tt; body.querySelectorAll('[data-tt]').forEach(x => x.setAttribute('aria-pressed', x === b)); draw(); });
+      $('shQ').addEventListener('input', () => { shopTechQ = $('shQ').value; draw(); });
+      $('shQ').addEventListener('keydown', e => e.stopPropagation());
+      draw();
+    } else if (shopTab === 'jugador') {
+      if ($('shPF')) { const me = PC.data.me; $('shPF').appendChild(face(Sprites.refOf(PLAYER(me.id) || me.pd), 48)); $('shLook').onclick = () => renderPCLook(() => renderShop('jugador')); }
+    } else {
+      body.querySelectorAll('[data-al]').forEach(el => el.onclick = e => { if (e.target.closest('[data-claim]')) return; shopAlbumOpen = shopAlbumOpen === el.dataset.al ? null : el.dataset.al; Sound.sfx('click'); renderShop(); if (shopAlbumOpen) { const x = body.querySelector('.alb.sel'); if (x) x.scrollIntoView({ block: 'nearest' }); } });
+      body.querySelectorAll('[data-claim]').forEach(b => b.onclick = () => res(Shop.claimAlbum(b.dataset.claim), r => { UI.toast(TX('+{0} 🪙 y +{1} 🎟️', r.coins, r.tickets), 2200); renderShop(); }));
+      if ($('alF')) {
+        const A = Shop.album().find(a => a.key === shopAlbumOpen);
+        A.ids.forEach(id => {
+          const pd = PLAYER(id), have = !!P.coll[id], b = document.createElement('div'); b.className = 'albp' + (have ? '' : ' miss');
+          b.appendChild(face(Sprites.refOf(pd), 56));
+          b.insertAdjacentHTML('beforeend', `<b>${esc(pd.name)}</b><small>${rchip(pd.rarity)} ${RAB(pd.role)}</small>${have ? '' : `<button class="cta mini" data-bp="${id}" ${P.coins >= Shop.priceOf(id) ? '' : 'disabled'}>${Shop.priceOf(id)} 🪙</button>`}`);
+          $('alF').appendChild(b);
+        });
+        $('alF').querySelectorAll('[data-bp]').forEach(b => b.onclick = () => {
+          if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = TX('¿Comprar? Toca otra vez'); return; }
+          res(Shop.buyPlayer(+b.dataset.bp), r => renderReveal([r], () => renderShop(), TX('¡Fichado!')));
+        });
+      }
+    }
+  }
+  let shopRole = '';
+  // Abre un «elige 1 de 3» comprado en la tienda
+  function renderShopPick(uid) {
+    const P = Profile.data, i = (P.giftPicks || []).findIndex(g => g.uid === uid); if (i < 0) return renderShop();
+    const g = P.giftPicks[i];
+    screen(`${top(TX('Elige a tu jugador'))}<p class="note">${esc(g.desc)}</p><div class="hwpick" id="spk"></div><p class="note">${TX('Si sales sin elegir, lo tienes en 🎁 Código de regalo.')}</p>`, 'bg_whistle');
+    g.opts.forEach(id => {
+      const pd = PLAYER(id); if (!pd) return;
+      const b = document.createElement('button'); b.className = 'hwpk';
+      b.appendChild(face(Sprites.refOf(pd), 72));
+      b.insertAdjacentHTML('beforeend', `<b>${esc(pd.name)}</b><small>${rchip(pd.rarity)} ${RAB(pd.role)} ${chip(pd.elem)}</small>${P.coll[id] ? `<small>${TX('ya lo tienes (+1 ★)')}</small>` : ''}`);
+      b.onclick = () => { const j = P.giftPicks.findIndex(x => x.uid === uid); const r = j >= 0 && Profile.takePick(j, id); if (!r) return; Sound.sfx('reveal'); renderReveal([r], () => renderShop(), TX('¡Nuevo fichaje!')); };
+      $('spk').appendChild(b);
+    });
+    $('back').onclick = () => renderShop();
+  }
+
   function renderGift() {
     const P = Profile.data, used = Object.entries(P.codes || {}).sort((x, y) => y[1] - x[1]);
     screen(`${top(TX('Código de regalo'))}${wallet()}
@@ -2305,10 +3156,10 @@ const App = (() => {
       ${opts(TX('Supertécnicas'), 'techMode', [['boton', TX('Con botón')], ['auto', TX('Automáticas')]])}
       ${opts(TX('Cámara lenta en supertécnicas'), 'slowmo', [[1, TX('Sí')], [0, TX('No')]])}
       ${opts(TX('Cambio automático de jugador'), 'autoSwitch', [[1, TX('Sí')], [0, TX('No')]])}
-      ${opts(TX('Faltas, tarjetas y penaltis'), 'fouls', [[1, TX('Sí')], [0, TX('No')]])}
-      ${opts(TX('Elegir jugador con el balón parado'), 'pickStop', [[1, TX('Sí')], [0, TX('No')]])}
-      <p class="note">${TX('Con «Elegir jugador», cuando el balón sale, hay falta o penalti, el partido espera y eliges quién saca o a quién controlas.')}</p>
-      <h3>${TX('Controles')}</h3>
+            ${opts(TX('Faltas, tarjetas y penaltis'), 'fouls', [[1, TX('Sí')], [0, TX('No')]])}
+            ${opts(TX('Elegir jugador con el balón parado'), 'pickStop', [[1, TX('Sí')], [0, TX('No')]])}
+            <p class="note">${TX('Con «Elegir jugador», cuando el balón sale, hay falta o penalti, el partido espera y eliges quién saca o a quién controlas.')}</p>
+<h3>${TX('Controles')}</h3>
       ${opts(TX('Botones en pantalla'), 'controls', [['auto', TX('Auto')], ['tactil', TX('Siempre')], ['teclado', TX('Nunca (PC)')]])}
       ${opts(TX('Tamaño de los botones (móvil)'), 'padSize', [['pequeno', TX('Pequeños')], ['normal', TX('Normales')], ['grande', TX('Grandes')]], Object.assign({ padSize: 'normal' }, settings))}
       <button class="ghost" id="sPadEd">${TX('📱 Colocar los botones a tu gusto')}</button>
@@ -2382,6 +3233,148 @@ const App = (() => {
     $('dsQ').oninput = draw; draw();
     $('back').onclick = renderDev;
   }
+  /* ---------- (desarrollador) Galería de supertécnicas: cualquiera, en acción en un minicampo ---------- */
+  let techGal = { type: '', elem: '', q: '' };
+  function renderDevTechs() {
+    api.techDemo = null;
+    const G = techGal, all = Object.values(GAME.techniques).filter(t => (t.id < 30000 || t.id >= 30900) && (!G.type || t.type === G.type) && (!G.elem || t.elem === G.elem));
+    const types = [['', TX('Todas')], ['tiro', TYPE_LABEL.tiro], ['parada', TYPE_LABEL.parada], ['regate', TYPE_LABEL.regate], ['bloqueo', TYPE_LABEL.bloqueo]];
+    const elems = [['', TX('Todos')], ['fuego', ELEM_LABEL.fuego], ['viento', ELEM_LABEL.viento], ['bosque', ELEM_LABEL.bosque], ['montaña', ELEM_LABEL['montaña']], ['neutro', TX('Neutro')]];
+    screen(`${top(TX('Galería de supertécnicas'))}
+      <p class="note">${TX('Toca una y la verás en acción en un minicampo, una y otra vez. Para volver, pausa y «Salir».')}</p>
+      <div class="opts">${types.map(([k, n]) => `<button data-gt="${k}" aria-pressed="${G.type === k}">${n}</button>`).join('')}</div>
+      <div class="opts small">${elems.map(([k, n]) => `<button data-ge="${k}" aria-pressed="${G.elem === k}">${n}</button>`).join('')}</div>
+      <div class="pfbar"><div class="pfq"><input id="gtQ" type="search" placeholder="${TX('Buscar técnica…')}" autocomplete="off" value="${esc(G.q)}"></div></div>
+      <p class="cweek" id="gtN"></p><div class="csquad" id="gtL"></div>`, 'bg_title');
+    const draw = () => {
+      const q = norm(G.q.trim()), L = $('gtL'), list = all.filter(t => !q || norm(t.name).includes(q)).sort((a, b) => a.type.localeCompare(b.type) || b.power - a.power);
+      $('gtN').textContent = TXn(list.length, '{0} técnica', '{0} técnicas');
+      L.innerHTML = list.slice(0, 150).map(t => `<button class="ghost pctech" data-gtech="${t.id}">${techLine(t)}</button>`).join('') + (list.length > 150 ? `<p class="note">${TX('Escribe para ver más…')}</p>` : '');
+      L.querySelectorAll('[data-gtech]').forEach(b => b.onclick = () => techDemo(+b.dataset.gtech));
+    };
+    $('gtQ').addEventListener('keydown', e => e.stopPropagation());
+    $('gtQ').oninput = e => { G.q = e.target.value; draw(); };
+    body.querySelectorAll('[data-gt]').forEach(b => b.onclick = () => { G.type = b.dataset.gt; renderDevTechs(); });
+    body.querySelectorAll('[data-ge]').forEach(b => b.onclick = () => { G.elem = b.dataset.ge; renderDevTechs(); });
+    draw();
+    $('back').onclick = renderDev;
+  }
+  // Monta un minicampo con 2 contra 2 y repite la técnica elegida
+  function techDemo(id) {
+    const t = TECH(id); if (!t) return;
+    const pick = role => GAME.players.find(p => p.cs && p.gacha !== false && p.role === role && (p.elem === t.elem || t.elem === 'neutro'))
+      || GAME.players.find(p => p.cs && p.gacha !== false && p.role === role);
+    const shotT = Object.values(GAME.techniques).find(x => x.type === 'tiro' && x.power >= 70 && x.id < 30000);   // tiro del rival (para ver paradas)
+    const role = t.type === 'parada' ? 'POR' : t.type === 'bloqueo' ? 'DEF' : 'DEL';
+    const owner = GAME.players.find(p => p.cs && (p.leyenda || p.selva) && p.moves.some(([m]) => m === id));   // técnica de evento: la hace su dueño (Gafas Royale → Willy LEYENDA)
+    const star = owner && t.type !== 'parada' ? owner : pick(role === 'POR' ? 'DEL' : role), gkA = t.type === 'parada' ? (owner || pick('POR')) : GAME.players.find(p => p.cs && p.role === 'POR');
+    const rivF = pick('MED'), gkB = GAME.players.filter(p => p.cs && p.role === 'POR')[1];
+    const mk = (pd, r, techs, row) => Object.assign(buildMatchPlayer(pd.id, r, k => Math.round(pd.ie[k] * 0.9), techs, [], row), { sprite: Sprites.refOf(pd), name: pd.name });
+    const A = { name: TX('Galería'), players: [mk(gkA, 'POR', t.type === 'parada' ? [id] : [], 0), mk(star, t.type === 'bloqueo' ? 'DEF' : 'DEL', t.type === 'parada' ? [] : [id], 1)] };
+    const B = { name: t.name, players: [mk(gkB, 'POR', [], 2), mk(rivF, 'MED', t.type === 'parada' && shotT ? [shotT.id] : [], 3)] };
+    api.mode = 'techview';
+    api.matchOpts = { lockId: 'A1', extra: { mini: true, minutes: 99, noOffside: true, techMode: 'boton' } };
+    api.techDemo = { id, type: t.type, n: 0, next: 0 };
+    startMatch({ A, B }, false, 'normal', 'match_special', null).then(() => techLoop());
+  }
+  // Coloca a los jugadores y lanza la técnica; se repite cada pocos segundos
+  function techLoop() {
+    const D = api.techDemo, s = api.match; if (!D || api.mode !== 'techview' || !s || s.over) return;
+    // Se repite cuando la jugada ha terminado (sin técnica en marcha ni tiro en el aire) y ha pasado un momento
+    const busy = s.tech || (s.ball.shot && !s.ball.shot.resolved) || s.players.some(p => p.dash);
+    if (busy) D.idleAt = 0; else if (!D.idleAt) D.idleAt = performance.now();
+    const now = performance.now(), ready = (!busy && now - D.idleAt > 1300) || now > D.next + 6000;
+    if (api.running && now >= D.next && ready) {
+      const F = Logic.FIELD, cx = F.w / 2, P = id => s.players.find(p => p.id === id), T = Logic._t;
+      const gA = P('A0'), me = P('A1'), gB = P('B0'), rv = P('B1');
+      const put = (p, x, y) => Object.assign(p, { x, y, z: 0, vx: 0, vy: 0, dvx: 0, dvy: 0, stun: 0, dash: null, tackle: null, windup: null, tkWind: 0, gkTech: null, diving: false, kickLock: 0 });
+      s.tech = null; s.pause = null; s.slow = 0; Object.assign(s.ball, { shot: null, fire: null, vx: 0, vy: 0, vz: 0, z: 0 });
+      for (const p of s.players) p.cd = {};
+      put(gA, cx, F.l - 1.2); put(gB, cx, 1.2);
+      if (D.type === 'tiro') { put(me, cx, 9); put(rv, 3, 20); me.aim = -Math.PI / 2; T.take(s, me); T.startTech(s, me, me.techs[0], 0); }
+      else if (D.type === 'parada') { put(me, 3, 10); put(rv, cx, 19); rv.aim = Math.PI / 2; T.take(s, rv); if (rv.techs[0]) T.startTech(s, rv, rv.techs[0], 0); }
+      else if (D.type === 'regate') { put(me, cx, 16); put(rv, cx, 12.5); me.aim = -Math.PI / 2; T.take(s, me); T.startTech(s, me, me.techs[0], 0); }
+      else { put(rv, cx, 12); put(me, cx, 15.2); rv.aim = Math.PI / 2; T.take(s, rv); T.startTech(s, me, me.techs[0], 0); }
+      D.n++; D.next = performance.now() + 1500; D.idleAt = 0;
+    }
+    setTimeout(techLoop, 200);
+  }
+  /* ---------- (desarrollador) Probar bloqueos de tiro: un rival te chuta una y otra vez y tú bloqueas ---------- */
+  const blockCfg = { tech: null, shot: 'super', def: 85, mode: 'boton', q: '' };
+  function renderDevBlocks() {
+    api.blockDemo = null;
+    const C = blockCfg, all = Object.values(GAME.techniques).filter(t => t.type === 'bloqueo' && t.id < 30000).sort((a, b) => b.power - a.power);
+    if (C.tech == null || !TECH(C.tech)) C.tech = all[0].id;
+    const opt = (k, list) => `<div class="opts">${list.map(([v, n]) => `<button data-bk="${k}" data-bv="${v}" aria-pressed="${String(C[k]) === String(v)}">${n}</button>`).join('')}</div>`;
+    screen(`${top(TX('Probar bloqueos de tiro'))}
+      <p class="note">${TX('Eres un defensa en un minicampo y el rival te chuta una y otra vez. Ponte delante y pulsa Técnica cuando salga el aviso. Para volver, pausa y «Salir».')}</p>
+      <h3>${TX('Tiro del rival')}</h3>${opt('shot', [['normal', TX('Normal')], ['cargado', TX('Cargado')], ['super', TX('Supertécnica')]])}
+      <h3>${TX('Defensa y físico de tu jugador')}</h3>${opt('def', [[50, '50'], [70, '70'], [85, '85'], [99, '99']])}
+      <h3>${TX('Cómo se activa')}</h3>${opt('mode', [['boton', TX('Con botón')], ['auto', TX('Automático')]])}
+      <h3>${TX('Tu técnica de bloqueo')}</h3>
+      <div class="pfbar"><div class="pfq"><input id="bkQ" type="search" placeholder="${TX('Buscar técnica…')}" autocomplete="off" value="${esc(C.q)}"></div></div>
+      <div class="csquad" id="bkL"></div>`, 'bg_title');
+    const draw = () => {
+      const q = norm(C.q.trim()), list = all.filter(t => !q || norm(t.name).includes(q));
+      $('bkL').innerHTML = list.slice(0, 80).map(t => `<button class="ghost pctech${t.id === C.tech ? ' sel' : ''}" data-btech="${t.id}">${techLine(t)}</button>`).join('');
+      $('bkL').querySelectorAll('[data-btech]').forEach(b => b.onclick = () => { C.tech = +b.dataset.btech; blockDemo(); });
+    };
+    $('bkQ').addEventListener('keydown', e => e.stopPropagation());
+    $('bkQ').oninput = e => { C.q = e.target.value; draw(); };
+    body.querySelectorAll('[data-bk]').forEach(b => b.onclick = () => { const k = b.dataset.bk; C[k] = k === 'def' ? +b.dataset.bv : b.dataset.bv; Sound.sfx('click'); const y = $('screen').scrollTop; renderDevBlocks(); $('screen').scrollTop = y; });
+    draw();
+    $('back').onclick = renderDev;
+  }
+  function blockDemo() {
+    const C = blockCfg, t = TECH(C.tech); if (!t) return;
+    const pick = (role, i = 0) => GAME.players.filter(p => p.cs && p.gacha !== false && p.role === role)[i];
+    const shotT = Object.values(GAME.techniques).filter(x => x.type === 'tiro' && x.id < 30000).sort((a, b) => b.power - a.power)[8];
+    const me = pick('DEF'), rv = pick('DEL', 3);
+    const mk = (pd, r, techs, row, st) => Object.assign(buildMatchPlayer(pd.id, r, k => st && st[k] != null ? st[k] : Math.round(pd.ie[k] * 0.9), techs, [], row), { sprite: Sprites.refOf(pd), name: pd.name });
+    const A = { name: TX('Bloqueos'), players: [mk(pick('POR'), 'POR', [], 0), mk(me, 'DEF', [t.id], 1, { defensa: C.def, fisico: C.def })] };
+    const B = { name: TX('Rival'), players: [mk(pick('POR', 1), 'POR', [], 2), mk(rv, 'DEL', shotT ? [shotT.id] : [], 3, { tiro: 85 })] };
+    api.mode = 'blockview';
+    api.matchOpts = { lockId: 'A1', extra: { mini: true, minutes: 99, noOffside: true, techMode: C.mode } };
+    api.blockDemo = { n: 0, next: 0, stop: 0, slow: 0, miss: 0, shot: null, p0: 0 };
+    startMatch({ A, B }, false, 'normal', 'match_special', null).then(() => blockLoop());
+  }
+  function blockLoop() {
+    const D = api.blockDemo, s = api.match; if (!D || api.mode !== 'blockview' || !s || s.over) return;
+    const F = Logic.FIELD, cx = F.w / 2, P = id => s.players.find(p => p.id === id), T = Logic._t, me = P('A1');
+    if (s.ball.shot && !D.shot) { D.shot = s.ball.shot; D.p0 = s.ball.shot.power; }
+    const busy = s.tech || (s.ball.shot && !s.ball.shot.resolved && s.ball.shot === D.shot && !s.ball.owner);
+    if (busy) D.idleAt = 0; else if (!D.idleAt) D.idleAt = performance.now();
+    const now = performance.now();
+    if (D.shot && !busy && now - D.idleAt > 300 && !D.done) {   // resultado del tiro
+      D.done = true;
+      if (s.ball.owner === me) D.stop++; else if (D.shot.power < D.p0) D.slow++; else D.miss++;
+      UI.toast(TX('Parados {0} · Frenados {1} · Sin bloquear {2}', D.stop, D.slow, D.miss), 1500);
+    }
+    if (api.running && now >= D.next && ((!busy && now - D.idleAt > 1400) || now > D.next + 7000)) {
+      const put = (p, x, y) => Object.assign(p, { x, y, z: 0, vx: 0, vy: 0, dvx: 0, dvy: 0, stun: 0, dash: null, tackle: null, windup: null, tkWind: 0, gkTech: null, diving: false, kickLock: 0, invuln: 0 });
+      s.tech = null; s.pause = null; s.slow = 0; s.blockAsk = null; Object.assign(s.ball, { shot: null, fire: null, vx: 0, vy: 0, vz: 0, z: 0 });
+      for (const p of s.players) p.cd = {};
+      const gA = P('A0'), gB = P('B0'), rv = P('B1');
+      put(gA, cx, F.l - 1.2); put(gB, cx, 1.2); put(rv, cx + (Math.random() - 0.5) * 4, 15); put(me, cx + (Math.random() - 0.5) * 2, 21);
+      rv.aim = Math.PI / 2; me.aim = -Math.PI / 2; s.controlledId = me.id;
+      T.take(s, rv);
+      if (blockCfg.shot === 'super' && rv.techs[0]) T.startTech(s, rv, rv.techs[0], 0);
+      else T.shoot(s, rv, blockCfg.shot === 'cargado' ? 1 : 0.4, (Math.random() - 0.5) * 0.6, null);
+      D.n++; D.next = performance.now() + 1500; D.idleAt = 0; D.shot = null; D.done = false;
+    }
+    setTimeout(blockLoop, 100);
+  }
+  // (desarrollador) Lista de todas las decisiones de la Carrera Jugador: toca una para que salga ya
+  function renderDevEvents() {
+    const keys = PC.devEventKeys(), seen = PC.data.me.evSeen || [];
+    const title = k => { const save = PC.data.me.event; if (!PC.devEventForce(k, true)) { PC.data.me.event = save; return null; } const v = PC.eventView(); PC.data.me.event = save; return v; };
+    const rows = keys.map(k => [k, title(k)]);
+    screen(`${top(TX('Probar decisiones'))}
+      <p class="note">${TX('Toca una y te sale ahora mismo en la Carrera Jugador. Las marcadas con ✓ ya te han salido hace poco.')}</p>
+      <div class="csquad">${rows.map(([k, v]) => `<button class="ghost big" data-dev="${k}" ${v ? '' : 'disabled'}>${seen.includes(k) ? '✓ ' : ''}${v ? esc(v.title) : k}<small>${v ? esc(v.text) : TX('necesita compañeros en tu equipo')}</small></button>`).join('')}</div>`, 'bg_title');
+    body.querySelectorAll('[data-dev]').forEach(b => b.onclick = () => { if (PC.devEventForce(b.dataset.dev)) { Sound.sfx('click'); renderPC(); } });
+    $('back').onclick = renderDev;
+  }
   function renderDev() {
     if (!BETA) return renderMenu();
     const P = Profile.data;
@@ -2402,18 +3395,43 @@ const App = (() => {
         ${b('dWC', TX('🌍 Empezar el Mundial'), 'ahora mismo')}${b('dSeason', TX('Terminar temporada'), TX('simula lo que queda'))}
         ${b('dDiv1', TX('Subir a Primera'), TX('la temporada empieza de nuevo'))}${b('dDiv3', TX('Bajar a Tercera'), TX('la temporada empieza de nuevo'))}</div>`
         : `<p class="note">${TX('No hay ninguna carrera empezada.')}</p><div class="grid2">${b('dNewCar', TX('Crear carrera rápida'), TX('normal, con Nelly'))}</div>`}
+      <h3>${TX('Carrera Jugador')}</h3>
+      ${PC.data ? `<p class="note">${esc(PLAYER(PC.data.me.id).name)} · ${esc(PC.data.school)} · ${TX('Temporada')} ${PC.data.season} · ${TX('Nivel')} ${PC.data.me.lv} · ${TX('media')} ${PC.ovrMe()}${PC.data.pro ? ' · ' + TX('Liga Pro') : ''}</p>
+      <div class="grid2">${b('pLv', TX('+1 nivel'), TX('puntos y técnica'))}${b('pSt', TX('+10 en todo'), TX('stats de tu jugador'))}
+        ${b('pTech', TX('Aprender técnica'), TX('elige 1 de 3'))}${b('pTrust', TX('Titular fijo'), TX('confianza y forma al máximo'))}
+        ${b('pSeason', TX('Terminar temporada'), TX('simula lo que queda'))}${b('pOff', TX('Ofertas ahora'), TX('3 clubes te quieren'))}
+        ${b('pGrad', TX('Graduarse ya'), TX('y saltar a la Liga Pro'))}${b('pWC', TX('🌍 Mundial ahora'), TX('con tu selección'))}${b('pWCs', TX('🌍 Mundial de suplente'), TX('sales en la 2.ª parte'))}${b('pWCr', TX('🌍 Mundial de reserva'), TX('lo ves desde la grada'))}${b('pNat', TX('🌍 Selección: {0}', esc(PC.natName(PC.myNat()))), TX('toca para cambiarla'))}
+        ${b('pDuel', TX('⚔️ Reto 1v1 ahora'), TX('contra un rival de tu liga'))}${b('pEv', TX('💬 Decisión ahora'), TX('prensa, vida o vestuario'))}
+        ${b('pEvAll', TX('💬 Probar decisiones'), TX('elige cualquiera de las {0}', PC.devEventKeys().length))}</div>`
+        : `<p class="note">${TX('No hay ninguna Carrera Jugador empezada.')}</p>`}
+      <h3>${TX('Fichajes')}</h3>
+      <div class="grid2">${b('dMkt', TX('Mercado entre clubes'), TX('5 fichajes ahora (Carrera y Jugador)'))}${b('dBid', TX('Oferta por un jugador'), TX('Carrera mánager'))}</div>
+      <h3>${TX('Logros')}</h3>
+      <div class="grid2">${b('dAchAll', TX('Conseguir todos'), TX('listos para recoger'))}${b('dAchReset', TX('Reiniciar logros'), TX('se vuelven a comprobar'))}</div>
       <h3>${TX('Halloween')}</h3>
       <div class="grid2">${b('dHwOn', settings.hwForce ? TX('🎃 Evento forzado: SÍ') : TX('🎃 Evento forzado: NO'), TX('verlo fuera de fechas'))}${b('dHwCandy', TX('+300 caramelos'))}
         ${b('dHwRetos', TX('Completar los retos'), TX('desbloquea a Ray Dark'))}${b('dHwReset', TX('Reiniciar el evento'), TX('caramelos, retos y regalo'))}</div>
+      <h3>${TX('Jugadores especiales')}</h3>
+      <div class="grid2">${b('dAddHw', TX('🎃 Legendarios de Halloween'), TX('los {0} + Jim épico', HW_LEGENDS.length))}${b('dAddSv', TX('🍃 Legendarios del Sobre Selva'), TX('los {0}', SV_LEGENDS.length))}
+        ${b('dAddInf', TX('∞ Versiones del Infinito'), TX('las {0}', GAME.players.filter(p => p.inf).length))}${b('dAddOrig', TX('⭐ Originales de Fran'), TX('Goggle Jr., Rosfire y Knack'))}</div>
+      <h3>${TX('Sobre Selva')}</h3>
+      <div class="grid2">${b('dLyWin', TX('Cadena Leyenda: al partido 15'), TX('empieza o salta al último partido'))}${b('dLyReset', TX('Reiniciar la Cadena Leyenda'), TX('premios, récord y Willy'))}</div>
+      <div class="grid2">${b('dSvLeg', TX('Legendario en la próxima tirada'), TX('asegurado del Sobre Selva'))}${b('dSvReset', TX('Reiniciar el Sobre Selva'), TX('tiradas y asegurado'))}</div>
+      <p class="note">${TX('El Sobre Selva sale en el Gacha cuando el evento de Halloween está forzado (en la beta, siempre).')}</p>
+      <h3>${TX('Tienda y álbum')}</h3>
+      <div class="grid2">${b('dShopAll', TX('Desbloquear toda la tienda'), TX('diseños, colores, escudo, formas y campos'))}${b('dShopDay', TX('Reiniciar límites'), TX('tickets del día y sobre legendario'))}
+        ${b('dTechLv', TX('Técnicas a nivel 3'), TX('las de tus jugadores'))}${b('dAlbum', TX('Completar el álbum'), TX('premios listos para recoger'))}</div>
+      <h3>${TX('Partido rápido')}</h3>
+      <div class="grid2">${b('dQuick', TX('⚽ Partido rápido'), TX('tus 5 de Plantilla contra un rival al azar'))}${b('dOff', TX('Salir del modo'), 'desarrollador')}</div>
       <h3>${TX('Navidad')}</h3>
       <div class="grid2">${b('dXmOn', settings.xmForce ? TX('🎄 Evento forzado: SÍ') : TX('🎄 Evento forzado: NO'), TX('verlo fuera de fechas'))}${b('dXmSnow', TX('+300 copos'))}
         ${b('dXmRetos', TX('Completar los retos'), TX('y recibir el regalo especial'))}${b('dXmReset', TX('Reiniciar el evento'), TX('copos, retos y regalo'))}</div>
-      <h3>${TX('Modo')}</h3>
-      <div class="grid2">${b('dOff', TX('Salir del modo'), 'desarrollador')}</div>
       <h3>${TX('Partido')}</h3>
       ${opts(TX('Velocidad del juego'), 'speed', [[0.5, '50 %'], [0.75, TX('75 % (normal)')], [1, '100 %']])}
       ${opts(TX('Datos en pantalla (FPS, recargas…)'), 'debug', [[1, TX('Sí')], [0, TX('No')]])}
       ${opts(TX('Botón «Ganar ahora» en la pausa'), 'devWin', [[1, TX('Sí')], [0, TX('No')]])}
+      <h3>${TX('Supertécnicas')}</h3>
+      <div class="grid2">${b('dTechs2', TX('✨ Galería de supertécnicas'), TX('las {0}, en acción', Object.values(GAME.techniques).filter(t => t.id < 30000).length))}${b('dBlocks', TX('🧱 Probar bloqueos de tiro'), TX('te chutan una y otra vez'))}</div>
       <h3>${TX('Gacha')}</h3>
       <div class="grid2">${b('dLeg', TX('Legendario asegurado'), (P.devLeg ? P.devLeg + TX(' pendientes · ') : '') + TX('las próximas 10 tiradas'))}</div>
       <button class="ghost" id="dSim">${TX('Simular 1000 tiradas en cada gacha')} <small>${TX('(no gasta nada)')}</small></button>
@@ -2445,16 +3463,62 @@ const App = (() => {
       $('dSign').onclick = () => renderDevSign();
     } else $('dNewCar').onclick = () => { Career.create(13, TX('Instituto Inazuma')); done(TX('Carrera creada')); };
     $('dRun').onclick = () => { Run.clear(); api.run = null; done(TX('Partida en curso borrada')); };
+    $('dQuick').onclick = startQuick;
+    $('dTechs2').onclick = () => renderDevTechs();
+    $('dBlocks').onclick = () => renderDevBlocks();
+    $('dAchAll').onclick = () => { Ach.devAll(); done(TX('Todos los logros listos para recoger')); };
+    $('dAchReset').onclick = () => { Ach.devReset(); done(TX('Logros reiniciados')); };
+    $('dMkt').onclick = () => {
+      let n = 0;
+      if (Career.data) { n += Career.aiTransfers(5).length; Career.save(); }
+      if (PC.data) { n += PC.aiTransfers(5).length; PC.save(); }
+      done(TXn(n, '{0} fichaje entre clubes (mira las noticias)', '{0} fichajes entre clubes (mira las noticias)'));
+    };
+    $('dBid').onclick = () => {
+      if (!Career.data) return UI.toast(TX('No hay ninguna carrera empezada.'));
+      Career.data.bid = Career.makeBid(true); Career.save();
+      if (Career.data.bid) { Sound.sfx('reveal'); renderCareer(); } else UI.toast(TX('Ningún club puede pujar ahora'));
+    };
+    if (PC.data) {
+      const pdone = msg => { PC.save(); done(msg); };
+      $('pLv').onclick = () => { PC.devLevel(); pdone(TX('+1 nivel')); };
+      $('pSt').onclick = () => { PC.devStats(10); pdone(TX('+10 en todas las stats')); };
+      $('pTech').onclick = () => { if (PC.devTech()) renderPCTech(renderDev); else UI.toast(TX('No hay técnicas nuevas a tu alcance')); };
+      $('pTrust').onclick = () => { PC.devTrust(); pdone(TX('Ahora eres titular fijo')); };
+      $('pSeason').onclick = () => { const sum = PC.devEndSeason(); Sound.music('menu'); if (sum) renderPCSeason(sum); else renderPC(); };
+      $('pOff').onclick = () => { PC.devOffers(); renderPC(); };
+      $('pGrad').onclick = () => { if (PC.devGraduate()) renderPC(); else UI.toast(TX('Ya estás graduado')); };
+      $('pWC').onclick = () => { PC.devWC(); renderPC(); };
+      $('pWCs').onclick = () => { PC.devWC('suplente'); renderPC(); };
+      $('pWCr').onclick = () => { PC.devWC('reserva'); renderPC(); };
+      $('pNat').onclick = () => { const me = PC.data.me, i = PC_NATS.indexOf(PC.myNat()); me.nat = PC_NATS[(i + 1) % PC_NATS.length]; PC.save(); renderDev(); };
+      $('pDuel').onclick = () => { PC.data.me.duel = null; if (PC.devDuel()) renderPC(); else UI.toast(TX('No hay rival disponible')); };
+      $('pEv').onclick = () => { if (PC.devEvent()) renderPC(); };
+      $('pEvAll').onclick = () => renderDevEvents();
+    }
     $('dHwOn').onclick = () => { settings.hwForce = !settings.hwForce; Halloween.forced = settings.hwForce; saveSettings(); done(settings.hwForce ? TX('Evento de Halloween forzado') : TX('Evento de Halloween según la fecha')); };
     $('dHwCandy').onclick = () => { Halloween.data().candy += 300; done(TX('+300 caramelos')); };
     $('dHwRetos').onclick = () => { const H = Halloween.data(); Halloween.RETOS.forEach(R => { H.retos[R.id] = Date.now(); }); H.ray = true; done(TX('Retos completados: Ray Dark desbloqueado')); };
     $('dHwReset').onclick = () => { delete P.hw; Halloween.data(); done(TX('Evento reiniciado')); };
+    const addIds = (ids, msg) => { ids.forEach(id => { if (PLAYER(id) && !P.coll[id]) P.coll[id] = { stars: 1, up: {} }; }); done(msg); };
+    $('dAddHw').onclick = () => addIds(HW_LEGENDS.map(L => L.id).concat([HW_EPIC.id]), TX('Legendarios de Halloween añadidos'));
+    $('dAddSv').onclick = () => addIds(SV_LEGENDS.map(L => L.id), TX('Legendarios del Sobre Selva añadidos'));
+    $('dAddInf').onclick = () => addIds(GAME.players.filter(p => p.inf).map(p => p.id), TX('Versiones del Infinito añadidas'));
+    $('dAddOrig').onclick = () => addIds(GAME.players.filter(p => p.original).map(p => p.id), TX('Originales añadidos'));
+    $('dLyWin').onclick = () => { let r = Run.load('leyenda'); if (!r) { const t = savedTeam(); if (t.ids.some(x => x == null)) return UI.toast(TX('Completa tu equipo en Plantilla')); r = Run.create('leyenda', t.ids, { formation: t.formation }); } r.index = r.schedule.length - 1; r.state = 'map'; Run.save(r); api.run = r; openRun(); };
+    $('dLyReset').onclick = () => { delete P.ly; delete P.coll[LY_ID]; Run.clear('leyenda'); Leyenda.data(); done(TX('Cadena Leyenda reiniciada')); };
+    $('dSvLeg').onclick = () => { Selva.data().pity = SV_PITY - 1; done(TX('La próxima tirada del Sobre Selva será legendaria')); };
+    $('dSvReset').onclick = () => { delete P.sv; Selva.data(); done(TX('Sobre Selva reiniciado')); };
+    $('dShopAll').onclick = () => { const S = Shop.st(); Object.keys(SHOP.designs).forEach(d => S.own['d:' + d] = 1); Object.keys(SHOP.colors).forEach(c => S.own['c:' + c] = 1); Object.keys(SHOP.shapes).forEach(x => S.own['s:' + x] = 1); Object.keys(SHOP.fields).forEach(f => S.own['f:' + f] = 1); S.own.crest = 1; if (!P.crest) P.crest = { shape: 'escudo', c1: '#1f4fc0', c2: '#e8c21a', sym: 'rayo' }; done(TX('Tienda desbloqueada')); };
+    $('dShopDay').onclick = () => { const S = Shop.st(); S.day = ''; S.t = 0; S.legWeek = -1; done(TX('Límites de la tienda reiniciados')); };
+    $('dTechLv').onclick = () => { Shop.st(); Shop.myTechs().forEach(t => { P.techLv[t] = SHOP.TECH_MAX; }); done(TX('Técnicas a nivel 3')); };
+    $('dAlbum').onclick = () => { Shop.album().forEach(a => a.ids.forEach(id => { if (!P.coll[id]) P.coll[id] = { stars: 1, up: {} }; })); done(TX('Álbum completo')); };
     $('dXmOn').onclick = () => { settings.xmForce = !settings.xmForce; Navidad.forced = settings.xmForce; saveSettings(); done(settings.xmForce ? TX('Evento de Navidad forzado') : TX('Evento de Navidad según la fecha')); };
     $('dXmSnow').onclick = () => { Navidad.data().snow += 300; done(TX('+300 copos')); };
     $('dXmRetos').onclick = () => { const H = Navidad.data(); Navidad.RETOS.forEach(R => { H.retos[R.id] = Date.now(); }); if (!H.gift) { H.gift = true; Navidad.give(XM_EPIC.id); } Profile.save(); done(TX('Retos completados: regalo especial recibido')); };
     $('dXmReset').onclick = () => { delete P.xm; Navidad.data(); done(TX('Evento reiniciado')); };
-    let resetArm = false;
-    $('dReset').onclick = () => {
+      let resetArm = false;
+$('dReset').onclick = () => {
       if (!resetArm) { resetArm = true; $('dReset').firstChild.textContent = TX('¿Seguro? Toca otra vez'); return; }
       try { localStorage.removeItem('inazuma-perfil'); } catch (_) {}
       Run.clear(); api.run = null; api.myTeam = null; Profile.load(); UI.toast(TX('Perfil borrado'), 1400); renderMenu();
@@ -2471,8 +3535,9 @@ const App = (() => {
       });
       $('simOut').innerHTML = rows.join('<br>');
     };
-    $('back').onclick = renderMenu;
+    $('back').onclick = () => hub();
   }
+  if ($('devFab')) $('devFab').addEventListener('click', () => { Sound.sfx('click'); renderDev(); });
 
   $('pauseBtn').addEventListener('click', () => api.togglePause());
   /* ---------- Intro: imágenes del juego con la música del opening; se puede saltar ---------- */
@@ -2523,7 +3588,7 @@ const App = (() => {
       const nTracks = Object.values(TRACKS).filter(t => !t.jingle).length;
       const crests = [1, 2, 10, 15, 33, 41, 48, 49, 31, 38, 599, 588];
       const T = 3000;   // cada plano del tráiler
-      const ie3 = GAME.players.filter(p => p.id >= 30000 && p.cs && (p.rarity === 'legendaria' || p.rarity === 'epica')).sort(() => Math.random() - 0.5).slice(0, 12);
+      const ie3 = GAME.players.filter(p => p.id >= 30000 && p.cs && !p.original && (p.rarity === 'legendaria' || p.rarity === 'epica')).sort(() => Math.random() - 0.5).slice(0, 12);
       const faces = (list, t, sub) => {
         const d = layer('<div class="in-faces"></div>', 'in-slide');
         list.forEach((p, i) => { const c = face(Sprites.refOf(p), 64); c.style.animationDelay = (i * 0.1) + 's'; d.firstChild.appendChild(c); });
@@ -2580,6 +3645,29 @@ const App = (() => {
   };
 
   api.renderMenu = () => renderMenu();
+  // Red de seguridad: si algo falla (un error del código), en vez de quedarse la pantalla congelada sale una barra
+  // con «Volver al menú» y el error en pequeño para poder contarlo. Lo que había guardado no se toca.
+  let crashT = 0;
+  function onCrash(msg) {
+    try {
+      if (!api.booted || Date.now() - crashT < 400 || document.getElementById('crashBar')) return;
+      crashT = Date.now();
+      const d = document.createElement('div'); d.id = 'crashBar'; d.className = 'crashbar';
+      d.innerHTML = `<b>${TX('⚠️ Algo ha fallado.')}</b><small>${esc(String(msg || '').slice(0, 140))}</small><button class="cta" id="crashGo">${TX('Volver al menú')}</button>`;
+      document.body.appendChild(d);
+      d.querySelector('#crashGo').onclick = () => {
+        d.remove();
+        try { if (api.match) { api.match.over = true; api.match.quit = true; } } catch (_) {}
+        api.running = false; api.mode = null; api.techDemo = null; api.blockDemo = null;
+        document.querySelectorAll('.tutbox').forEach(x => x.remove());
+        try { Sound.stop(0.2); } catch (_) {}
+        try { show(null); } catch (_) {}
+        try { renderMenu(); } catch (e) { location.reload(); }
+      };
+    } catch (_) {}
+  }
+  addEventListener('error', e => { if (e && (e.error || e.message) && !(e.target && e.target !== window && (e.target.src || e.target.href))) onCrash(e.message || (e.error && e.error.message)); });
+  addEventListener('unhandledrejection', e => { const r = e && e.reason; if (r && !/fetch|network|load|firebase|firestore|auth/i.test(String(r.message || r))) onCrash(r.message || String(r)); });
   // Solo arranca en la web oficial (o en la beta y en las pruebas). Las direcciones van como números para que no se cambien con un simple «buscar y reemplazar».
   const OFFICIAL = String.fromCharCode(104,116,116,112,115,58,47,47,102,114,97,110,109,110,100,101,122,122,122,122,46,103,105,116,104,117,98,46,105,111,47,73,110,97,122,117,109,97,45,82,111,103,117,101,47,106,117,101,103,111) + '/';
   function hostOk() {
@@ -2595,9 +3683,10 @@ const App = (() => {
       <a class="cta linkbtn" href="${OFFICIAL}">${TX('▶ Ir a la web oficial')}</a></div>`, 'bg_title');
   }
   api.boot = () => {
+    api.booted = true;
     if (!hostOk()) return renderCopy();
     Controls.apply();
-    Career.load();
+    Career.load(); PlayerCareer.load();
     const pend = hashCode();
     const first = pend ? () => renderTransfer(renderMenu, pend) : renderMenu;
     const start = () => { if (settings.intro !== 0 && !pend) playIntro(first); else first(); };
