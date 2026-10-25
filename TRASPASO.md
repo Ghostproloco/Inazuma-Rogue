@@ -218,11 +218,20 @@ Misma estructura que Halloween, con tema navideño y **botón 🎄 Navidad justo
 
 ## Gacha limitado de Bai Long (v0.31.13)
 
-- `src/limited.js`: rareza nueva **limitada** (`RARITY.limitada` en run.js), Bai Long (id 998004, nota 100, `lim: true`) con sus técnicas **Dragón relámpago** (30490, tiro) y **Estela del dragón blanco** (30491, regate), marcadas `lim` para que no salgan como premio aleatorio.
-- Sobre: 100 🎟️ = 10 jugadores (`Limitado.pull()`), bote de 10: Bai Long, Arion, Victor, Riccardo, Bianchi Christmas, Jang Cho, Jim Flareson, Changsu Choi, Umi Wang, Sol Crater. Probabilidades 2/10/23/30/35 %, al menos una épica o mejor por sobre, Bai Long asegurado a las 30 tiradas (`profile.lm`). `LM_END` = fecha de fin (null = sin fin).
-- **Ya no hay códigos** para Arion, Victor, Riccardo, Bai Long ni Bianchi Christmas (quien los canjeó los conserva).
-- Foto: `juego/ui/bailong.jpg` (tarjeta en el Gacha, botón del menú, cabecera). Rayos con SVG/CSS (`lmBolts`, `lmBoom` en app.js).
-- **Aviso de jugador nuevo:** añade `{ id, v }` a `NEW_PLAYERS` (limited.js) y al abrir el juego sale su pantalla una vez por dispositivo (`settings.seenPlayers`).
-- `tools/i18n_sync.js` y `test/i18n.js` ahora incluyen christmas.js, go.js, dialog.js y limited.js (antes `add` borraba esas traducciones).
-- Test nuevo: `node test/limited.js`. `test/cloud.js` ya fallaba una prueba (intermitente) antes de estos cambios.
+- `src/limited.js`: rareza **limitada** (`RARITY.limitada`), Bai Long (id 998004, media 100, empieza con todas sus stats: `startMul` en run.js) con **Dragón relámpago** (30490, tiro) y **Estela del dragón blanco** (30491, regate), marcadas `lim` para que no salgan como premio aleatorio.
+- Sobre: 100 🎟️ = 10 jugadores. Bote de 10: Bai Long, Jang Cho, Jim Flareson, Clive Mooney, Changsu Choi, Umi Wang, Rick Hatter, Sol Crater, Lou Edmonds, Hugo Tallgeese. Probabilidades (se enseñan en pantalla): Limitada 0,3 % · Épica 12 % · Rara 32 % · Común 55,7 %. Sin garantías extra salvo Bai Long a las 200 tiradas (`LM_PITY`, `profile.lm`). `LM_END` = fecha de fin (null = sin fin).
+- **Arion, Victor y Riccardo ya no existen**: `Profile.load` los quita de las colecciones guardadas. Bianchi Christmas sigue en el juego pero NO sale en este gacha ni con códigos (ahora no se puede conseguir: decidir dónde).
+- Códigos ARIONGOLD, VICTORGOLD, RICCARDOGOLD, BAILONGGOLD y BIANCHINAVIDAD eliminados.
+- **Economía de inicio:** perfil nuevo = 0 monedas + 100 de la tirada de bienvenida, 10 tickets. Los perfiles con exactamente 99999 monedas y 99999 tickets (valores de pruebas) pasan una sola vez a 100 / 10 (`econFix`).
+- **Portada:** `juego/ui/portada.jpg` es la primera pantalla de la intro (en `startIntro`, `app.js`). Foto de Bai Long: `juego/ui/bailong.jpg`.
+- **Aviso de jugador nuevo:** añade `{ id, v }` a `NEW_PLAYERS` (limited.js): al abrir el juego sale su pantalla una vez por dispositivo (`settings.seenPlayers`).
+- `tools/i18n_sync.js` y `test/i18n.js` ahora incluyen christmas.js, go.js, dialog.js y limited.js.
+- Tests: `node test/limited.js` y `node test/go.js`. `test/cloud.js` tenía ya una prueba intermitente antes de estos cambios.
 - Pendiente: animación propia para las técnicas de Bai Long (ahora usan las de «dragón» y regate por nombre).
+
+## Cinemática de supertécnica (partidos)
+
+- `UI.cutin` (view.js) ahora tiene versión **grande** para tiros y paradas (no las paradas rápidas): fondo oscurecido (`#cineDim`), retrato de 128 px, rayos giratorios (`.ci-fx`) y nombre grande. Regates y bloqueos siguen con la franja pequeña.
+- Las técnicas con `lim: true` (las de Bai Long) usan rayos azules y dorados (`.cutin.lim`).
+- Probada en navegador (horizontal y vertical) lanzando `UI.cutin(...)` a mano; **falta verla dentro de un partido real** (Phaser no está en el sandbox).
+- CSS al final de shell.html: «Cinemática de supertécnica».
