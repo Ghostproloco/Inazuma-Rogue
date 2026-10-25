@@ -41,4 +41,4 @@ for (let season = 0; season < 6 && !c.over; season++) {
   }
 }
 console.log('over', c.over, 'títulos', JSON.stringify(c.titles), 'negociación', JSON.stringify(negs));
-for (const d of [1, 2, 3]) if (c.divs[d].length !== 10) console.log('ERROR tamaño div', d, c.divs[d].length);
+for (const d of [1, 2, 3]) if (c.divs[d].length !== 12) console.log('ERROR tamaño div', d, c.divs[d].length);

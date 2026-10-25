@@ -1,0 +1,21 @@
+const fs = require('fs'), vm = require('vm');
+const S = require('path').join(__dirname,'..','src')+'/';
+const store = {};
+const ctx = { TX: (s, ...a) => a.length ? s.replace(/\{(\d+)\}/g, (m, i) => a[i]) : s, TXn: (n, a, b) => (n === 1 ? a : b).replace('{0}', n), console, Math, JSON, Object, Array, Set, Map, localStorage: { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => delete store[k] } };
+ctx.GAME = JSON.parse(fs.readFileSync(require('path').join(__dirname,'..','juego','gamedata.json'), 'utf8'));
+ctx.Sprites = { refOf: pd => ({ file: 'c00.png', row: 0 }) };
+vm.createContext(ctx);
+vm.runInContext(fs.readFileSync(S + 'logic.js', 'utf8') + '\n' + fs.readFileSync(S + 'run.js', 'utf8') + '\n' + fs.readFileSync(S + 'career.js', 'utf8') + '\nthis.Career=Career;this.DIV_NAME=DIV_NAME;this.PLAYER=PLAYER;this.FORMATIONS=FORMATIONS;Profile.load();this.Profile=Profile;', ctx);
+const { Career, DIV_NAME, PLAYER } = ctx;
+const c = Career.create(13, 'Instituto Prueba');
+// Carrera mánager: solo se pueden usar las supertécnicas aprendidas (empiezan con la primera)
+let fails = 0; const ok = (c, m) => { console.log((c ? '  ✓ ' : '  ✗ ') + m); if (!c) fails++; };
+const m = c.squad.find(x => Career.learnset(x.id).length >= 2) || c.squad[0], ls = Career.learnset(m.id);
+const pd = PLAYER(m.id), first = pd.moves.filter(([t]) => ls.includes(t)).sort((a, b) => a[1] - b[1])[0][0];
+ok(m.known.includes(first), 'empieza sabiendo su primera técnica (' + first + ')');
+const locked = ls.find(t => !m.known.includes(t));
+ok(locked != null && Career.toggleEquip(m.id, locked) === false && !Career.equipped(m).includes(locked), 'una técnica sin aprender no se puede equipar');
+m.equip = [locked]; ok(!Career.equipped(m).includes(locked), 'aunque estuviera equipada en una partida de antes, no se usa');
+m.known.push(locked); if (!Career.equipped(m).includes(locked)) Career.toggleEquip(m.id, locked); ok(Career.equipped(m).includes(locked), 'al aprenderla ya se puede equipar y usar');
+console.log(fails ? '\n✗ ' + fails + ' fallos' : '\n✓ Todo bien');
+process.exit(fails ? 1 : 0);

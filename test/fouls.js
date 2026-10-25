@@ -91,6 +91,24 @@ console.log('5. Elegir jugador en balón parado (ajuste pickStop)');
   Logic._t.foulCall(s, t, h, false); run(s, 3);
   ok(!s.pick, 'con el ajuste apagado no se pregunta nada'); }
 
+console.log('5b. Carrera Jugador (jugador fijo) y minicampo');
+{ const s = make({ lockId: 'A3', pickStop: 1, autoSwitch: 0 }); s.pause = null;
+  const mine = s.players.find(p => p.id === 'A3'), rv = s.players.find(p => p.team === 'B' && p.role === 'DEL');
+  for (let i = 0; i < 60; i++) { s.pause = null; s.penalty = null; s.pick = null; Logic._t.foulCall(s, mine, rv, true); }
+  ok(s.players.some(p => p.id === 'A3') && s.controlledId === 'A3', 'tu jugador nunca es expulsado y sigues llevándolo');
+  s.pause = null; s.pick = null;
+  const a = s.players.find(p => p.team === 'A' && p.role === 'DEL' && p.id !== 'A3'), r2 = s.players.find(p => p.team === 'B' && p.role === 'DEF');
+  a.x = F.w / 2; a.y = 4; r2.x = a.x; r2.y = 3; Logic._t.take(s, a);
+  Logic._t.foulCall(s, r2, a, false);
+  for (let g = 0; g < 60 * 6 && !s.penalty; g++) Logic.update(s, idle(), 1 / 60);
+  ok(!s.pick, 'con jugador fijo no sale el selector');
+  ok(s.penalty && s.penalty.auto && s.controlledId === 'A3', 'el penalti lo tira la IA y tú sigues con el tuyo');
+  run(s, 6); ok(!s.penalty, 'el penalti se tira solo'); }
+{ const s = make({ mini: true }); s.pause = null; let f = 0;
+  const a = s.players.find(p => p.team === 'A'), b = s.players.find(p => p.team === 'B');
+  for (let i = 0; i < 400; i++) { a.x = b.x = 11; a.y = 15; b.y = 16; Logic._t.take(s, b); a.tackle = null; Logic._t.startTech; for (const e of s.events) if (e.type === 'foul') f++; s.events.length = 0; Logic.update(s, idle(), 1 / 60); }
+  ok(f === 0, 'en el minicampo (1 contra 1) no hay faltas'); }
+
 console.log('6. Partidos enteros de IA contra IA');
 let tot = 0, withCards = 0, pens = 0, over = 0; const N = 12;
 for (let k = 0; k < N; k++) {

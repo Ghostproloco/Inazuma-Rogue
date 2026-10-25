@@ -5,9 +5,9 @@ let fails = 0; const ok = (c, t) => { console.log((c ? '  ✓ ' : '  ✗ ') + t)
 
 console.log('1. Todas las claves TX(…) tienen traducción');
 const KEY = /TXn?\(\s*(?:[^,()']+,\s*)?'((?:[^'\\]|\\.)*)'/g;
-const files = ['app.js', 'view.js', 'logic.js', 'run.js', 'career.js', 'event.js', 'dialog.js', 'christmas.js', 'go.js', 'limited.js', 'cloud.js', 'media.js', 'techfx.js'];
+const files = ['app.js', 'view.js', 'logic.js', 'run.js', 'career.js', 'event.js', 'shop.js', 'selva.js', 'leyenda.js', 'cloud.js', 'media.js', 'techfx.js', 'pcareer.js', 'ach.js'];
 const used = new Set();
-for (const f of files) { const src = fs.readFileSync(S + f, 'utf8'); let m; while ((m = KEY.exec(src))) used.add(eval("'" + m[1] + "'")); }
+for (const f of files) { const src = fs.readFileSync(S + f, 'utf8'); let m; while ((m = KEY.exec(src))) used.add(eval("'" + m[1] + "'")); const PL = /TXn\([^,]+,\s*'((?:[^'\\]|\\.)*)'\s*,\s*'((?:[^'\\]|\\.)*)'/g; while ((m = PL.exec(src))) { used.add(eval("'" + m[1] + "'")); used.add(eval("'" + m[2] + "'")); } }
 const store = { 'inazuma-idioma': 'en' };
 const ctx = { console, Math, JSON, Object, Array, Set, Map, Date, String, Number, navigator: { language: 'en-GB' },
   localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); }, removeItem: k => delete store[k] } };
