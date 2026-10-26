@@ -65,6 +65,15 @@ Misma estructura que Halloween, con tema navideño y **botón 🎄 Navidad justo
 - Tests: `node test/limited.js` (incluye partida guardada vieja y reparto de probabilidades) y `node test/i18n.js`.
 - `index.html` se compiló sin comprimir (sin red): para comprimir, `cd tools/minify && npm install && cd ../.. && python3 build.py`.
 
+## v0.36.2 · Cambios de Navidad y Gacha limitado (26 oct 2026)
+
+- **Bianchi Christmas (997008) ya NO está en el Gacha limitado**: ahora solo sale en el **Sobre Navideño** (`src/christmas.js`), súper difícil: **0,2 % por tirada** (`XM_BIANCHI_RATE`, aparte de las demás) y **asegurado a las 300 tiradas sin él** (`XM_BIANCHI_PITY`, contador `Profile.data.xm.bpity`). Cuenta para el reto «Regalo de Reyes».
+- **Navidad se abre el 12 de diciembre** (`XM_START = '2026-12-12'`, fin 6 ene). Antes de esa fecha el menú enseña un botón apagado «PRÓXIMAMENTE · se abrirá el 12 de diciembre» (`Navidad.upcoming()`, `xmSoonBtn`) que abre una pantalla de aviso con la cuenta atrás (`renderNavidadSoon`). El modo desarrollador sigue pudiendo forzar el evento.
+- **Gacha limitado**: sobre de **50 🎟️** (`LM_PRICE`); limitados más difíciles (`LM_RATES` limitada 1 % = 0,25 % cada uno; garantía a las **200** tiradas, `LM_PITY`); legendarias 6 %, épica 33 %, rara 25 %, común 35 %. El bote ahora lleva los **12 mejores legendarios** y los **40 mejores épicos** del gacha (`LM_N_LEG`, `LM_N_EPIC`; se calculan solos en `Limitado.pool()`).
+- **Ilustraciones «modo furia»** de los 4 limitados: `juego/sprites/ffur.png` (hecho con `python3 tools/fur_faces.py`), campo `furFace` en `limited.js` y `refOf` (media.js). Aura del color de cada uno, ojos brillantes y cejas fruncidas.
+- `VERSION` 0.36.2 con NEWS (sin mencionar a Bianchi). Traducciones al inglés añadidas. `test/limited.js` ampliado (precio, bote, Bianchi en Navidad, garantías).
+- `index.html` se compiló sin comprimir (sin red).
+
 ---
 
 # PARTE B · Lo de la versión nueva (texto de sus traspasos)
