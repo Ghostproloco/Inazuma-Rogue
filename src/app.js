@@ -19,7 +19,7 @@ const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><
 // Igual, con el nivel comprado en la tienda (solo para las técnicas de tu colección)
 const techLineMy = t => { const lv = Shop.techLevel(t.id); return lv > 1 ? techLine(Object.assign({}, t, { power: t.power + SHOP.LV_POWER * (lv - 1), name: t.name + ' · ' + TX('Nv.') + lv })) : techLine(t); };
 
-const VERSION = '0.36.0';
+const VERSION = '0.36.1';
 const DISCORD_URL = 'https://discord.gg/G6SyT2rZW', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 // Jugadores originales de Fran (Goggle Jr., Rosfire, Knack…: «original» en gamedata): ocultos en las versiones públicas,
@@ -402,7 +402,7 @@ const App = (() => {
     }
     if (Limitado.active()) {
       const lim = document.createElement('button'); lim.className = 'banner-card lim';
-      lim.innerHTML = `<span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Gacha de Bai Long')}</b><small>${TX('LIMITADO · 100 🎟️ = 10 jugadores · nota 100')}</small></span>`;
+      lim.innerHTML = `<span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Tormenta Celestial')}</b><small>${TX('LIMITADO · 10 🎟️ = 10 jugadores · nota 100')}</small></span>`;
       lim.onclick = () => { Sound.sfx('click'); renderLimitado(); };
       $('bn').appendChild(lim);
     }
@@ -505,7 +505,7 @@ const App = (() => {
     g.fillStyle = '#10183a'; g.fillRect(16, 122, 64, 6);
   }
   function renderMachine(res, bannerId, done, title) {
-    const B = BANNERS.find(b => b.id === bannerId) || (bannerId === HW_BANNER ? { name: TX('Sobre Calabaza'), crest: 3 } : bannerId === SV_BANNER ? { name: TX('Sobre Selva'), crest: 4104 } : bannerId === XM_BANNER ? { name: TX('Sobre Navideño'), crest: 36 } : bannerId === LM_BANNER ? { name: TX('Gacha de Bai Long'), crest: 3021 } : BANNERS[0]);
+    const B = BANNERS.find(b => b.id === bannerId) || (bannerId === HW_BANNER ? { name: TX('Sobre Calabaza'), crest: 3 } : bannerId === SV_BANNER ? { name: TX('Sobre Selva'), crest: 4104 } : bannerId === XM_BANNER ? { name: TX('Sobre Navideño'), crest: 36 } : bannerId === LM_BANNER ? { name: TX('Tormenta Celestial'), crest: 3021 } : BANNERS[0]);
     screen(`<h2>${esc(title || B.name)}</h2>
       <div class="gmach"><canvas id="mc" width="96" height="128"></canvas><div class="gm-hint" id="mHint">${Controls.pc() ? TX('Arrastra la manivela en círculo (o pulsa Espacio)') : TX('Gira la manivela con el dedo ↻')}</div></div>
       <div class="caps" id="caps"></div>
@@ -815,7 +815,7 @@ const App = (() => {
   }
 
   /* =====================================================================
-     GACHA LIMITADO DE BAI LONG (pantalla propia) y AVISO DE JUGADORES NUEVOS
+     GACHA LIMITADO «TORMENTA CELESTIAL» (pantalla propia) y AVISO DE JUGADORES NUEVOS
      ===================================================================== */
   // Rayos animados (amarillos y azules) para el gacha limitado
   function lmBolts() {
@@ -823,27 +823,34 @@ const App = (() => {
       'M0 40 L24 46 L18 56 L44 62', 'M100 55 L76 60 L84 70 L58 76', 'M30 100 L40 80 L34 74 L52 56'];
     return `<svg class="lmbolts" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${P.map((d, i) => `<path class="lb lb${i % 2}" style="animation-delay:${(i * 0.37).toFixed(2)}s" d="${d}"/>`).join('')}</svg>`;
   }
-  // Destello de rayos a pantalla completa al salir Bai Long
+  // Destello de rayos a pantalla completa al salir un jugador limitado
   function lmBoom() { const d = document.createElement('div'); d.className = 'lmboom'; d.innerHTML = lmBolts() + lmBolts(); document.body.appendChild(d); setTimeout(() => d.remove(), 1500); }
   function lmMenuBtn() {
     const H = Limitado.data();
-    return `<button class="mode lmmode" id="mLm"><span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Bai Long')} <em class="lmnew">${TX('LIMITADO')}</em></b><small>${TX('Gacha limitado · 100 🎟️ = 10 jugadores')}${H.pity ? ' · ' + H.pity + '/' + LM_PITY : ''}</small></span></button>`;
+    return `<button class="mode lmmode" id="mLm"><span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Tormenta Celestial')} <em class="lmnew">${TX('LIMITADO')}</em></b><small>${TX('Gacha limitado · 10 🎟️ = 10 jugadores')}${H.pity ? ' · ' + H.pity + '/' + LM_PITY : ''}</small></span></button>`;
   }
   function renderLimitado() {
-    const H = Limitado.data(), P = Profile.data, bai = PLAYER(BAI_ID);
+    const H = Limitado.data(), P = Profile.data;
     const pct = n => { const t = String(+n.toFixed(2)); return (I18N.en() ? t : t.replace('.', ',')) + ' %'; };
     screen(`${top('⚡ ' + TX('Gacha limitado'))}${wallet()}
-      <div class="lmhero"><img src="ui/bailong.jpg" alt="Bai Long">${lmBolts()}<span class="lmtag">${TX('LIMITADO')}</span>
-        <div class="lmname"><b>Bai Long</b><small>${TX('Nota')} ${Math.round(Limitado.avgOf(bai))} · ${RAB(bai.role)} · ${ELEM_LABEL[bai.elem]}</small></div></div>
-      <h3>${TX('Técnicas de Bai Long')}</h3>
-      <div class="lmtechs">${BAI_TECHS.map(b => { const t = TECH(b.id); return `<div class="lmtech ${EL(t.elem).css}"><b>${esc(t.name)}</b><small>${TYPE_LABEL[t.type]} · ${t.power}</small></div>`; }).join('')}</div>
+      <div class="lmhero"><img src="ui/tormenta.jpg" alt="${TX('Tormenta Celestial')}">${lmBolts()}<span class="lmtag">${TX('LIMITADO')}</span>
+        <div class="lmname"><b>${TX('Tormenta Celestial')}</b><small>${TX('4 jugadores limitados · nota 100')}</small></div></div>
+      <h3>${TX('Jugadores limitados')}</h3>
+      <div class="lmfeat" id="lmFeat"></div>
       <h3>${TX('Probabilidades')}</h3>
       <div class="lmrates">${LM_RATES.map(([t, w]) => `<div class="${t}">${rchip(t)}<b>${pct(w)}</b></div>`).join('')}</div>
-      <p class="note">${TX('Bai Long es súper difícil de conseguir: solo')} <b>${pct(LM_RATES[0][1])}</b> ${TX('por jugador. Está asegurado a las')} ${LM_PITY} ${TX('tiradas sin él (llevas')} ${H.pity}${TX(').')}<br>
+      <p class="note">${TX('Cada jugador limitado sale con solo {0} de probabilidad. Uno de los 4 está asegurado a las {1} tiradas sin ninguno (llevas {2}).', pct(LM_RATES[0][1] / Limitado.featured().length), LM_PITY, H.pity)}<br>
         ${TX('Los repetidos suben una estrella (máx.')} ${MAX_STARS}${TX('); con 5 estrellas dan monedas.')}</p>
       <h3>${TX('Jugadores del sobre')}</h3>
       <div class="lmlist" id="lmList"></div>
       ${bottom(`<button class="cta lmgo" id="lm10" ${P.tickets < LM_PRICE ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${LM_PRICE} 🎟️ · ${TX('10 jugadores')}</small></button>`)}`, 'bg_title');
+    Limitado.featured().forEach(id => {   // los 4 limitados: retrato, puesto, elemento, nota y su supertécnica
+      const pd = PLAYER(id), t = TECH(signatureTech(pd)), w = document.createElement('div');
+      w.className = 'lmf' + (P.coll[id] ? ' own' : '');
+      w.appendChild(face(Sprites.refOf(pd), 48));
+      w.insertAdjacentHTML('beforeend', `<span class="lmft"><b>${esc(pd.name)}</b><small>${TX('Nota')} ${Math.round(Limitado.avgOf(pd))} · ${RAB(pd.role)} · ${ELEM_LABEL[pd.elem]}</small><small class="lmfs">${t ? esc(t.name) : ''}</small></span>`);
+      $('lmFeat').appendChild(w);
+    });
     Limitado.ids().forEach(id => {
       const pd = PLAYER(id), w = document.createElement('div');
       w.className = 'lmp ' + pd.rarity + (P.coll[id] ? ' own' : '');
@@ -853,7 +860,7 @@ const App = (() => {
     });
     $('lm10').onclick = () => {
       const res = Limitado.pull(); if (!res) return UI.toast(TX('No tienes tickets suficientes'));
-      renderMachine(res, LM_BANNER, renderLimitado, TX('Gacha de Bai Long'));
+      renderMachine(res, LM_BANNER, renderLimitado, TX('Tormenta Celestial'));
     };
     $('back').onclick = renderGacha;
     Sound.music('menu');
@@ -2842,6 +2849,9 @@ const App = (() => {
   }
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
+    { v: '0.36.1', date: '26/10/2026', items: [
+      TX('⚡ Nuevo gacha limitado «Tormenta Celestial»: 4 jugadores limitados de nota 100 (Samford, Da Silva, Almeida y Trick). Uno de los 4 está asegurado a las 100 tiradas sin ninguno. El sobre cuesta solo 10 tickets.'),
+      TX('🧹 Arion, Victor, Riccardo y Bai Long ya no están en el juego.')] },
     { v: '0.36.0', date: '25/10/2026', items: [
       TX('⚖️ Faltas, tarjetas y penaltis: las entradas por detrás o sin tocar el balón pueden ser falta (tiro libre, o penalti en el área). Hay tarjetas amarillas y rojas: con la segunda amarilla, o con una roja, el jugador se va y su equipo juega con uno menos. Se puede desactivar en Ajustes.'),
       TX('🔄 Ajustes → «Elegir jugador con el balón parado»: cuando el balón sale, hay falta o penalti, el partido espera y eliges quién saca o a quién controlas.')] },

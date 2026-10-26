@@ -782,7 +782,7 @@ html,body,button,.act,#shell{touch-action:manipulation}
 .talk .tkb{font-size:14px;max-width:calc(100% - 70px)}
 .talk .tk.me .tkb{background:#ffe9b8}
 
-/* ===== Gacha limitado de Bai Long: rareza «limitada», rayos y aviso de jugador nuevo ===== */
+/* ===== Gacha limitado «Tormenta Celestial»: rareza «limitada», rayos y aviso de jugador nuevo ===== */
 .rar.limitada{background:linear-gradient(90deg,#35d6ff,#ffd23a,#35d6ff);background-size:200% 100%;color:#06143a;animation:limShine 2.2s linear infinite}
 @keyframes limShine{to{background-position:200% 0}}
 .gcard.limitada{box-shadow:0 0 0 2px #35d6ff,0 0 0 4px #ffd23a,0 0 22px rgba(60,200,255,.9)}
@@ -796,7 +796,7 @@ html,body,button,.act,#shell{touch-action:manipulation}
 .lb{fill:none;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;stroke-width:3;opacity:0;animation:lmBolt 2.6s infinite}
 .lb0{stroke:#ffe14a;filter:drop-shadow(0 0 4px #ffd23a)}.lb1{stroke:#8fdcff;filter:drop-shadow(0 0 4px #35a8ff)}
 @keyframes lmBolt{0%,100%{opacity:0}5%{opacity:1}8%{opacity:.15}11%{opacity:1}22%{opacity:0}}
-.limbg{position:absolute;inset:0;z-index:0;background:linear-gradient(90deg,rgba(6,14,50,.92) 30%,rgba(6,14,50,.0) 75%),url(ui/bailong.jpg) 70% 22%/cover no-repeat}
+.limbg{position:absolute;inset:0;z-index:0;background:linear-gradient(90deg,rgba(6,14,50,.92) 30%,rgba(6,14,50,.0) 75%),url(ui/tormenta.jpg) 0 40%/150% auto no-repeat}
 .mode.lmmode,.banner-card.lim{position:relative;overflow:hidden;min-height:70px;padding:8px 10px;background:#06143a;box-shadow:0 0 0 2px #35d6ff,0 0 16px rgba(60,200,255,.6)}
 .lmmode .mt,.banner-card.lim .mt{position:relative;z-index:2}
 .lmmode b,.banner-card.lim b{color:#ffe27a;text-shadow:0 0 8px #35d6ff}
@@ -808,8 +808,11 @@ html,body,button,.act,#shell{touch-action:manipulation}
 .lmtag{position:absolute;top:8px;left:8px;z-index:3;background:#ffd23a;color:#06143a;font-size:14px;padding:2px 8px;line-height:1.3;box-shadow:0 0 10px #ffd23a}
 .lmname{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:18px 10px 6px;background:linear-gradient(transparent,rgba(4,10,40,.92));line-height:1.2;display:flex;flex-direction:column}
 .lmname b{font-size:32px;color:#ffe27a;font-weight:400;text-shadow:0 0 10px #35d6ff}.lmname small{font-size:14px;color:#fff}
-.lmtechs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.lmtech{display:flex;flex-direction:column;padding:6px 8px;background:var(--navy);border:2px solid #35d6ff}.lmtech b{font-size:16px;color:#ffe27a;font-weight:400}.lmtech small{font-size:12px}
+.lmfeat{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lmf{display:flex;align-items:center;gap:6px;min-width:0;padding:5px;background:var(--navy);border:2px solid #35d6ff;box-shadow:0 0 10px rgba(60,200,255,.55);opacity:.8}
+.lmf.own{opacity:1}
+.lmf>:first-child{flex-shrink:0}
+.lmft{display:flex;flex-direction:column;min-width:0;line-height:1.15}.lmft b{font-size:16px;color:#ffe27a;font-weight:400}.lmft small{font-size:11px;color:#fff}.lmft .lmfs{color:#8fdcff}
 .lmlist{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .lmp{display:flex;flex-direction:column;align-items:center;gap:2px;width:78px;padding:4px;background:var(--navy);border:2px solid #5a7ab8;text-align:center;opacity:.65}
 .lmp small{font-size:11px;line-height:1.1;min-height:24px}.lmp.own{opacity:1}.lmp.limitada{border-color:#35d6ff;box-shadow:0 0 10px rgba(60,200,255,.8);opacity:1}.lmp.legendaria{border-color:#ffd23a}.lmp.epica{border-color:#b07cff}

@@ -382,7 +382,7 @@ const UI = (() => {
   }
   // Presentación de una supertécnica: franja con el retrato del jugador y el nombre
   let cutT;
-  // Los tiros y las paradas (no las rápidas) llevan cinemática: fondo oscurecido, retrato grande y rayos. `opts.lim` = técnica de Bai Long (rayos azules y dorados)
+  // Los tiros y las paradas (no las rápidas) llevan cinemática: fondo oscurecido, retrato grande y rayos. `opts.lim` = técnica marcada `lim` (rayos azules y dorados)
   function cutin(name, elem, team, kind, ref, ms, opts) {
     const c = $('cutin'), dim = $('cineDim'), o = opts || {};
     const big = (kind === 'tiro' || kind === 'parada') && !o.small;
@@ -680,6 +680,7 @@ class MatchScene extends Phaser.Scene {
     UI.pickSync(s);
     if (this.views.size !== s.players.length) for (const [id, v] of this.views) if (!s.players.some(p => p.id === id)) v.root.setVisible(false);   // expulsados
     this.drawAura(s, time);
+    this.drawLimited(s, time);
 
     for (const p of s.players) {
       const v = this.views.get(p.id);
@@ -808,6 +809,32 @@ class MatchScene extends Phaser.Scene {
       s._stars[team] = l[0] ? l[0].id : null;
     }
     return s.players.find(p => p.id === s._stars[team]);
+  }
+  // Jugadores limitados (LM_FX en limited.js): aura que respira, rayos que chisporrotean alrededor y chispas del elemento al correr
+  drawLimited(s, time) {
+    if (!this.limG) { this.limG = this.add.graphics().setDepth(3900).setBlendMode(Phaser.BlendModes.ADD); this.limT = {}; }
+    const g = this.limG; g.clear();
+    for (const p of s.players) {
+      const fx = typeof LM_FX !== 'undefined' && LM_FX[p.key]; if (!fx) continue;
+      const v = this.views.get(p.id); if (!v || !v.root.visible) continue;
+      const x = p.x * PX, y = p.y * PX - p.z * PX, spd = Math.hypot(p.vx, p.vy), k = 0.5 + 0.5 * Math.sin(time / 130 + p.row);
+      g.fillStyle(fx.a, 0.1 + 0.07 * k).fillEllipse(x, y - 26, 44 + 8 * k, 74 + 10 * k);
+      g.lineStyle(2, fx.b, 0.35 + 0.25 * k).strokeEllipse(x, y + 8, 40 + 6 * k, 14);
+      const seed = Math.floor(time / 90) * 7 + p.row * 13, rn = i => { const t = Math.sin(seed * 12.9898 + i * 78.233) * 43758.5453; return t - Math.floor(t); };
+      for (let b = 0, nb = spd > 0.6 ? 4 : 2; b < nb; b++) {   // rayos en zigzag
+        let bx = x + (rn(b * 9) - 0.5) * 38, by = y - 62 + rn(b * 9 + 1) * 10;
+        g.lineStyle(2, b % 2 ? fx.b : fx.a, 0.9).beginPath().moveTo(bx, by);
+        for (let i = 1; i <= 4; i++) { bx += (rn(b * 9 + i * 2) - 0.5) * 18; by += 12 + rn(b * 9 + i * 2 + 1) * 6; g.lineTo(bx, by); }
+        g.strokePath();
+      }
+      if (spd > 0.6) {   // al correr: rayo por el suelo detrás y chispas
+        const bx = -p.vx / spd, by = -p.vy / spd; let cx = x, cy = y + 2;
+        g.lineStyle(3, fx.a, 0.8).beginPath().moveTo(cx, cy);
+        for (let i = 1; i <= 5; i++) { cx += bx * 8 + (rn(40 + i) - 0.5) * 8; cy += by * 4 + (rn(50 + i) - 0.5) * 6; g.lineTo(cx, cy); }
+        g.strokePath();
+        if (time - (this.limT[p.id] || 0) > 90) { this.limT[p.id] = time; this.burst(p.elem, x, y - 10, 1, p.y * PX + 1); }
+      }
+    }
   }
   // Aura: llamas del color del elemento mientras lanzas una técnica; brillo suave en la estrella que lleva el balón
   drawAura(s, time) {

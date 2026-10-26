@@ -125,7 +125,7 @@ const PASSIVES = {
 /* ---------- Estadísticas ---------- */
 // Valor de una estadística de un jugador de tu colección (permanente)
 // Los legendarios empiezan ya al máximo (media de 90 o más); el resto empieza al 82 % y se entrena
-const startMul = pd => pd.rarity === 'legendaria' ? 1 : 0.82;
+const startMul = pd => pd.rarity === 'legendaria' || pd.rarity === 'limitada' ? 1 : 0.82;   // los limitados también empiezan con todas sus estadísticas
 function statOf(id, owned, k) {
   const pd = PLAYER(id), ie = pd.ie[k], stars = owned ? owned.stars : 1, up = owned ? (owned.up[k] || 0) : 0;
   return Math.min(ie + 2 * (stars - 1), Math.round(ie * startMul(pd)) + up * 3 + (stars - 1) * 2);
@@ -248,7 +248,7 @@ const GIFT_CODES = {
   FUEGOSAGRADO:      { pick: { rarity: 'epica', elem: 'fuego' }, tickets: 5, desc: TX('Elige 1 de 3 jugadores de fuego épicos o mejores') },
   DISCORDINAZUMA:    { tickets: 15, rayos: 2, desc: TX('Regalo de la comunidad') },
   TICKETAZO:         { tickets: 50, desc: TX('Lluvia de tickets') },
-  // Arion, Victor, Riccardo, Bai Long y Bianchi Christmas ya NO se consiguen con códigos: solo en el Gacha limitado (src/limited.js)
+  // Bianchi Christmas ya NO se consigue con código: solo en el Gacha limitado (src/limited.js)
   DOBLELEYENDA:      { leg: 2, desc: TX('Dos tiradas legendarias aseguradas') },
 };
 const PICK_TIERS = { comun: 0, rara: 1, epica: 2, legendaria: 3, limitada: 4 };
@@ -300,6 +300,8 @@ function versionPickOptions(wave, n = 3) {
 }
 const normCode = c => String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 
+// Jugadores retirados del juego (Arion Sherwind, Victor Blade, Riccardo Di Rigo y Bai Long) y su puesto: se quitan de las partidas guardadas
+const REMOVED_PLAYERS = { 998001: 'MED', 998002: 'MED', 998003: 'DEF', 998004: 'DEL' };
 const Profile = {
   data: null,
   load() {
@@ -310,6 +312,7 @@ const Profile = {
     this.data.techs = this.data.techs || {};
     (this.data.custom || []).forEach(registerCustom);   // tus jugadores creados (Modo Carrera Jugador)
     this.data.codes = this.data.codes || {};
+    for (const id in REMOVED_PLAYERS) delete this.data.coll[id];   // ya no existen
     this.data.story.s2 = this.data.story.s2 || { best: 0, done: false };
     for (const k of ['s3', 's4']) this.data.story[k] = this.data.story[k] || { best: 0, done: false };
     // Cambios de id entre versiones (p. ej. Raimon del 1 en su versión base): se conserva lo que tenías
@@ -526,6 +529,14 @@ const Run = {
   playable(key) { const t = TEAM(key); return !!t && t.kind !== 'pro' && t.kind !== 'career' && !t.pro && t.players.length >= 5 && t.players.every(m => m.file); },
   // Partidas guardadas con un rival que no vale (p. ej. «Los Angeles Stars» en el Infinito): se cambia por otro
   repair(run) {
+    if (run && Array.isArray(run.roster)) run.roster.forEach((m, i) => {   // un jugador retirado del juego se cambia por otro de tu colección del mismo puesto (o uno prestado)
+      if (!m || !REMOVED_PLAYERS[m.id]) return;
+      const role = REMOVED_PLAYERS[m.id], used = new Set(run.roster.map(x => x && x.id));
+      const mine = Profile.ids().filter(id => PLAYER(id) && !used.has(id) && PLAYER(id).role === role).sort((a, b) => Profile.owned(b).stars - Profile.owned(a).stars);
+      const loan = GAME.players.filter(p => p.cs && p.gacha !== false && p.role === role && p.rarity === 'comun' && !used.has(p.id)).map(p => p.id);
+      const id = mine.length ? mine[0] : loan[0];
+      if (id != null) run.roster[i] = runMember(id, !Profile.owned(id));
+    });
     if (!run || !Array.isArray(run.schedule)) return run;
     if (run.kind === 'leyenda' && typeof LY_TEAMS !== 'undefined' && run.schedule.join() !== LY_TEAMS.join()) run.schedule = LY_TEAMS.slice();   // cadena empezada antes de la 0.35.3: rivales nuevos (con el jefe final)
     if (run.kind === 'leyenda') return run;   // el jefe final (Leyendas) no es «jugable» suelto, pero aquí sí

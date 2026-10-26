@@ -1,48 +1,69 @@
 /* =====================================================================
-   GACHA LIMITADO DE BAI LONG + AVISO DE JUGADORES NUEVOS
-   - Rareza nueva «limitada» (RARITY.limitada en run.js): solo Bai Long.
-   - Bai Long (id 998004, registrado en go.js): media 100, delantero de fuego,
-     con su tiro «Dragón relámpago» y su técnica «Estela del dragón blanco».
-   - Sobre limitado: 100 🎟️ = 10 jugadores. Bote de 10 jugadores:
-       limitada · Bai Long
-       legendaria · Arion, Victor, Riccardo y Bianchi Christmas
-         (ya NO se consiguen con códigos: solo aquí)
+   GACHA LIMITADO «TORMENTA CELESTIAL» + AVISO DE JUGADORES NUEVOS
+   - Rareza «limitada» (RARITY.limitada en run.js): 4 jugadores con nota 100, solo en este gacha.
+       David Samford · Falcèo Da Silva · Leonardo Almeida · Isabelle Trick
+     (versiones nuevas con ids 994001-994004; las normales ya NO salen en el gacha de siempre)
+   - Sobre limitado: 10 🎟️ = 10 jugadores. Bote de 10 jugadores:
+       limitada · Samford, Da Silva, Almeida y Trick (0,5 % cada uno)
+       legendaria · Bianchi Christmas (ya NO se consigue con código: solo aquí)
        épica · Jang Cho, Jim Flareson · rara · Changsu Choi, Umi Wang · común · Sol Crater
-   - Cada sobre de 10 trae al menos una épica o mejor; Bai Long asegurado a las 30 tiradas sin él.
+   - Cada sobre de 10 trae al menos una épica o mejor; uno de los 4 limitados asegurado a las 100 tiradas sin ninguno.
+   - Imagen del banner: juego/ui/tormenta.jpg. Nombre del gacha: TX('Tormenta Celestial') (app.js, 3 sitios).
+   - Bai Long, Arion, Victor y Riccardo (gacha anterior) YA NO EXISTEN: Profile.load y Run.repair (run.js) los quitan de las partidas guardadas.
    - NEW_PLAYERS: al añadir un jugador nuevo, pon aquí su id y la versión: al abrir
      el juego sale una pantalla con él (una sola vez por dispositivo).
    ===================================================================== */
 const LM_BANNER = 68;
-const LM_PRICE = 100, LM_N = 10;                  // 100 tickets por sobre de 10 jugadores
-const LM_PITY = 30;                               // Bai Long asegurado a las 30 tiradas sin él
-const LM_RATES = [['limitada', 2], ['legendaria', 10], ['epica', 23], ['rara', 30], ['comun', 35]];
+const LM_PRICE = 10, LM_N = 10;                   // 10 tickets por sobre de 10 jugadores
+const LM_PITY = 100;                              // uno de los 4 limitados asegurado a las 100 tiradas (10 sobres) sin ninguno
+const LM_RATES = [['limitada', 2], ['legendaria', 3], ['epica', 28], ['rara', 30], ['comun', 37]];   // la de «limitada» se reparte entre los 4 (0,5 % cada uno): muy difíciles
 const LM_END = null;                              // último día del gacha limitado (AAAA-MM-DD); null = sin fecha de fin
-const BAI_ID = 998004;
+const LM_AVG = 100, LM_STAT_MAX = 105;            // nota de los limitados y tope por estadística
+// base = jugador del que copian aspecto y técnicas; lead = técnicas de nivel 100 (la primera es su supertécnica; el resto de técnicas de la base se conserva)
+const LM_PLAYERS = [
+  { id: 994001, base: 30,    lead: [[295, 100], [101, 100]] },       // David Samford: Pingüino espacial + Regate múltiple
+  { id: 994002, base: 31862, lead: [[30429, 100], [30438, 100]] },   // Falcèo Da Silva (POR): Parada celestial + Parada de capoeira
+  { id: 994003, base: 31870, lead: [[339, 100], [30292, 100]] },     // Leonardo Almeida: Cruz del Sur + Tornado doble
+  { id: 994004, base: 31061, lead: [[30353, 100], [30452, 100]] },   // Isabelle Trick: Superelástico + Cañón X
+];
+// Aura y rayos de cada limitado en el campo (view.js, drawLimited): a = color principal, b = color de los destellos
+const LM_FX = {
+  994001: { a: 0x9fe8ff, b: 0xffffff },   // Samford: hielo y pingüinos
+  994002: { a: 0xffd23a, b: 0xfff2a0 },   // Da Silva: oro
+  994003: { a: 0x3dff8a, b: 0xe6ffd8 },   // Almeida: esmeralda
+  994004: { a: 0x35d6ff, b: 0xffe27a },   // Trick: relámpago azul y dorado
+};
 const LM_POOL_IDS = {
-  limitada: [BAI_ID],
-  legendaria: [998001, 998002, 998003, 997008],
+  limitada: LM_PLAYERS.map(l => l.id),
+  legendaria: [997008],
   epica: [31766, 21459],
   rara: [31775, 31767],
   comun: [277],
 };
 // Jugadores nuevos: se enseñan al abrir el juego la primera vez (settings.seenPlayers)
-const NEW_PLAYERS = [
-  { id: BAI_ID, v: '0.31.13' },
-];
+const NEW_PLAYERS = LM_PLAYERS.map(l => ({ id: l.id, v: '0.36.1' }));
 
-// Técnicas de Bai Long (solo suyas: `lim` las saca de los premios aleatorios y de las técnicas legendarias del gacha)
-const BAI_TECHS = [
-  { id: 30490, name: 'Dragón relámpago', name_en: 'Lightning Dragon', type: 'tiro', tp: 80, power: 125, elem: 'fuego', lim: true },
-  { id: 30491, name: 'Estela del dragón blanco', name_en: 'White Dragon Trail', type: 'regate', tp: 60, power: 100, elem: 'fuego', lim: true },
-];
-(function registerBaiLong() {
+(function registerLimited() {
   if (typeof GAME === 'undefined') return;
-  BAI_TECHS.forEach(t => { if (!GAME.techniques[String(t.id)]) GAME.techniques[String(t.id)] = Object.assign({}, t, typeof I18N !== 'undefined' && I18N.en() ? { name: t.name_en } : {}); });
-  const b = PLAYER(BAI_ID); if (!b) return;
-  const rest = (b.moves || []).filter(m => m[1] !== 100 && !BAI_TECHS.some(t => t.id === m[0])).map(m => m.slice());
-  b.moves = [[30490, 100], [30491, 100]].concat(rest);   // nivel 100 = técnica de historia: la primera es su tiro
-  b.rarity = 'limitada'; b.lim = true;
-  b.ie = Object.assign({}, b.ie, { tiro: 104, control: 98, defensa: 96, rapidez: 102, fisico: 100, aguante: 100 });   // media 100 (tiro+control+defensa+rapidez+físico)
+  const KEYS = ['tiro', 'control', 'defensa', 'rapidez', 'fisico'];
+  // Sube (o baja) las estadísticas en la misma proporción hasta que la media sea `target`, sin pasar de `max` por estadística
+  const scaled = (b, target, max) => {
+    const mk = f => { const ie = {}; for (const k in b.ie) ie[k] = Math.min(max, Math.round(b.ie[k] * f)); return ie; };
+    const mean = ie => KEYS.reduce((t, k) => t + ie[k], 0) / KEYS.length;
+    let lo = 0.5, hi = 3, ie = mk(1);
+    for (let i = 0; i < 40; i++) { const f = (lo + hi) / 2; ie = mk(f); if (mean(ie) < target) lo = f; else hi = f; }
+    return mk(hi);
+  };
+  LM_PLAYERS.forEach(L => {
+    if (PBY[L.id]) return;
+    const b = PLAYER(L.base); if (!b) return;
+    b.gacha = false;   // los limitados SOLO salen en este gacha: las versiones normales se quitan del gacha de siempre (quien ya las tiene se las queda)
+    const lead = L.lead.filter(([id]) => TECH(id));
+    const rest = (b.moves || []).filter(m => m[1] !== 100 && !lead.some(l => l[0] === m[0])).map(m => m.slice());
+    const p = Object.assign({}, b, { id: L.id, full: (b.full || b.name).replace(/ \((IE2|IE3)\)$/, '') + ' (Limitado)', rarity: 'limitada', ie: scaled(b, LM_AVG, LM_STAT_MAX), ie0: undefined, also: undefined,
+      moves: lead.map(m => m.slice()).concat(rest), gacha: false, banner: null, inf: false, lim: true, limBase: L.base });
+    GAME.players.push(p); PBY[p.id] = p;
+  });
 })();
 
 const Limitado = {
@@ -63,6 +84,8 @@ const Limitado = {
     return (this._pool = P);
   },
   ids() { const P = this.pool(); return ['limitada', 'legendaria', 'epica', 'rara', 'comun'].reduce((a, t) => a.concat(P[t]), []); },
+  // Los jugadores limitados del banner (los 4 que salen en la cabecera del gacha)
+  featured() { return this.pool().limitada.slice(); },
   // % de que un jugador concreto salga en una tirada: la probabilidad de su rareza repartida entre los jugadores de esa rareza
   chanceOf(id) {
     const P = this.pool();
