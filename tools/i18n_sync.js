@@ -6,7 +6,7 @@ const fs = require('fs'), path = require('path');
 const S = path.join(__dirname, '..', 'src') + '/';
 const KEY = /TXn?\(\s*(?:[^,()']+,\s*)?'((?:[^'\\]|\\.)*)'/g;
 const used = new Set();
-for (const f of ['app.js', 'view.js', 'logic.js', 'run.js', 'career.js', 'event.js', 'shop.js', 'selva.js', 'leyenda.js', 'cloud.js', 'media.js', 'techfx.js', 'pcareer.js', 'ach.js', 'christmas.js', 'go.js', 'limited.js', 'dialog.js']) {
+for (const f of ['app.js', 'view.js', 'logic.js', 'run.js', 'career.js', 'event.js', 'shop.js', 'selva.js', 'leyenda.js', 'cloud.js', 'media.js', 'techfx.js', 'pcareer.js', 'ach.js', 'christmas.js', 'limited.js', 'dialog.js']) {
   const src = fs.readFileSync(S + f, 'utf8'); let m; while ((m = KEY.exec(src))) used.add(eval("'" + m[1] + "'")); const PL = /TXn\([^,]+,\s*'((?:[^'\\]|\\.)*)'\s*,\s*'((?:[^'\\]|\\.)*)'/g; while ((m = PL.exec(src))) { used.add(eval("'" + m[1] + "'")); used.add(eval("'" + m[2] + "'")); }
 }
 const enSrc = fs.readFileSync(S + 'en.js', 'utf8');
