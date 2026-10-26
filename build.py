@@ -2,7 +2,7 @@ import json
 S='./src/'; P='./juego/'
 shell=open(S+'shell.html').read()
 data=open(P+'gamedata.json').read()
-js='\n'.join(open(S+f).read() for f in ['i18n.js','en.js','media.js','logic.js','run.js','career.js','pcareer.js','ach.js','event.js','christmas.js','go.js','limited.js','shop.js','selva.js','leyenda.js','cloud-config.js','cloud.js','dialog.js','view.js','techfx.js','app.js'])
+js='\n'.join(open(S+f).read() for f in ['i18n.js','en.js','media.js','logic.js','run.js','career.js','pcareer.js','ach.js','event.js','christmas.js','limited.js','shop.js','selva.js','leyenda.js','cloud-config.js','cloud.js','dialog.js','view.js','techfx.js','app.js'])
 boot="""
 App.boot();
 new Phaser.Game({ type: Phaser.AUTO, parent: 'app', backgroundColor: '#1d4a22', scale: { mode: Phaser.Scale.RESIZE, width: '100%', height: '100%' }, scene: [MatchScene] });

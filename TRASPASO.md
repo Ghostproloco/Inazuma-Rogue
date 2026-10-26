@@ -7,7 +7,7 @@
 **De la versión nueva (v0.35.x):** Carrera Jugador (3 ranuras; crear y personalizar a tu jugador), Modo Carrera con ranuras y jornadas, Mundial (también el de jugador),
 bloqueo de tiros (porteros y defensas), supertécnicas en equipo, Tienda (sobres, equipaciones, escudos, técnicas, álbum, «Tu jugador»), Álbum de equipos con premios, Logros, Cadena Leyenda (evento),
 Sobre Selva (evento), porteros más listos, minicampo 1 contra 1, botones del móvil colocables, campos nuevos (playa, galaxia, dorado), 13 jugadores y 4 equipos nuevos, guardado en la nube con ranuras.
-**Lo nuestro, que se conserva:** menú principal (diseño nuevo, marca Gold, portada), Navidad, Gacha limitado de Bai Long, jugadores de GO, globos de diálogo, cinemática de supertécnica,
+**Lo nuestro, que se conserva:** menú principal (diseño nuevo, marca Gold, portada), Navidad, Gacha limitado, globos de diálogo, cinemática de supertécnica,
 faltas/tarjetas/penaltis y «elegir jugador con el balón parado» (ver abajo), 99999 monedas y tickets al empezar, nuestra configuración de Firebase y nuestra web.
 
 **Cosas que se tocaron al fusionar (por si algo se ve raro):**
@@ -53,35 +53,17 @@ Misma estructura que Halloween, con tema navideño y **botón 🎄 Navidad justo
 - Pruebas: `test/fouls.js` (falta, penalti propio y rival, tarjetas, selector, partidos IA vs IA). Las demás pruebas siguen pasando. La interfaz del selector se probó en navegador con un Phaser falso (Phaser viene de internet).
 - NEWS 0.31.14 y traducciones al inglés añadidas. Posible mejora futura: marcador de tarjetas en pantalla y estadísticas de faltas al final del partido.
 
-## Jugadores de Inazuma Eleven GO (`src/go.js`)
-- **Arion Sherwind** (998001, MED viento), **Victor Blade** (998002, MED bosque), **Riccardo Di Rigo** (998003, DEF montaña) y **Bai Long** (998004, DEL fuego): legendarios que no salen en gacha.
-- Códigos de regalo (`GIFT_CODES` en `run.js`): `ARIONGOLD`, `VICTORGOLD`, `RICCARDOGOLD`, `BAILONGGOLD`.
-- Retratos propios en `juego/sprites/fgo.png` (una fila de 64 px por jugador; la fila es `goFace`, igual que `fxm.png` en Navidad). `media.js` lo carga en `refOf`.
-- Muñeco del partido **provisional**: copia el `cs` de otro jugador parecido (`sprite` en `GO_PLAYERS`). Para ponerles el suyo propio: añadir una fila a una hoja `cNN.png` y cambiar el `cs`.
-- Estadísticas y técnicas (copiadas de un jugador de referencia, `ref`) se editan en `GO_PLAYERS`. Prueba: `node test/go.js`.
-- `build.py` incluye `go.js` justo después de `christmas.js`.
+## Gacha limitado «Tormenta Celestial» (v0.36.1, 26 oct 2026)
 
----
-
-## Gacha limitado de Bai Long (v0.31.13)
-
-- `src/limited.js`: rareza **limitada** (`RARITY.limitada`), Bai Long (id 998004, media 100, empieza con todas sus stats: `startMul` en run.js) con **Dragón relámpago** (30490, tiro) y **Estela del dragón blanco** (30491, regate), marcadas `lim` para que no salgan como premio aleatorio.
-- Sobre: 100 🎟️ = 10 jugadores. Bote de 10: Bai Long, Jang Cho, Jim Flareson, Clive Mooney, Changsu Choi, Umi Wang, Rick Hatter, Sol Crater, Lou Edmonds, Hugo Tallgeese. Probabilidades (se enseñan en pantalla): Limitada 0,3 % · Épica 12 % · Rara 32 % · Común 55,7 %. Sin garantías extra salvo Bai Long a las 200 tiradas (`LM_PITY`, `profile.lm`). `LM_END` = fecha de fin (null = sin fin).
-- **Arion, Victor y Riccardo ya no existen**: `Profile.load` los quita de las colecciones guardadas. Bianchi Christmas sigue en el juego pero NO sale en este gacha ni con códigos (ahora no se puede conseguir: decidir dónde).
-- Códigos ARIONGOLD, VICTORGOLD, RICCARDOGOLD, BAILONGGOLD y BIANCHINAVIDAD eliminados.
-- **Economía de inicio:** perfil nuevo = 0 monedas + 100 de la tirada de bienvenida, 10 tickets. Los perfiles con exactamente 99999 monedas y 99999 tickets (valores de pruebas) pasan una sola vez a 100 / 10 (`econFix`).
-- **Portada:** `juego/ui/portada.jpg` es la primera pantalla de la intro (en `startIntro`, `app.js`). Foto de Bai Long: `juego/ui/bailong.jpg`.
-- **Aviso de jugador nuevo:** añade `{ id, v }` a `NEW_PLAYERS` (limited.js): al abrir el juego sale su pantalla una vez por dispositivo (`settings.seenPlayers`).
-- `tools/i18n_sync.js` y `test/i18n.js` ahora incluyen christmas.js, go.js, dialog.js y limited.js.
-- Tests: `node test/limited.js` y `node test/go.js`. `test/cloud.js` tenía ya una prueba intermitente antes de estos cambios.
-- Pendiente: animación propia para las técnicas de Bai Long (ahora usan las de «dragón» y regate por nombre).
-
-## Cinemática de supertécnica (partidos)
-
-- `UI.cutin` (view.js) ahora tiene versión **grande** para tiros y paradas (no las paradas rápidas): fondo oscurecido (`#cineDim`), retrato de 128 px, rayos giratorios (`.ci-fx`) y nombre grande. Regates y bloqueos siguen con la franja pequeña.
-- Las técnicas con `lim: true` (las de Bai Long) usan rayos azules y dorados (`.cutin.lim`).
-- Probada en navegador (horizontal y vertical) lanzando `UI.cutin(...)` a mano; **falta verla dentro de un partido real** (Phaser no está en el sandbox).
-- CSS al final de shell.html: «Cinemática de supertécnica».
+- `src/limited.js`: rareza **limitada** con 4 jugadores de nota 100, versiones nuevas (ids **994001-994004**, nombre «(Limitado)», `lim: true`) de David Samford (base 30), Falcèo Da Silva (31862, POR), Leonardo Almeida (31870) e Isabelle Trick (31061). Copian aspecto y técnicas de la base; `LM_PLAYERS.lead` pone sus técnicas de nivel 100. Los normales (ids 30, 31862, 31870, 31061) **ya no salen en el gacha de siempre** (`gacha=false` al registrarse; quien ya los tiene se los queda).
+- Sobre: **10 🎟️ = 10 jugadores**. Bote: los 4 limitados + Bianchi Christmas (legendaria, solo sale aquí) + Jang Cho, Jim Flareson, Changsu Choi, Umi Wang y Sol Crater. Probabilidades (`LM_RATES`): Limitada 2 % (0,5 % cada uno) · Legendaria 3 % · Épica 28 % · Rara 30 % · Común 37 %. Uno de los 4 asegurado a las 100 tiradas (10 sobres) sin ninguno (`LM_PITY`). `LM_END` = fecha de fin (null = sin fin).
+- Efectos de limitado en el campo: `LM_FX` (limited.js) da color a cada uno; `drawLimited` (view.js) dibuja aura, rayos en zigzag, rayo por el suelo y chispas al correr; en sus supertécnicas la cinemática usa los rayos azules y dorados (techfx.js).
+- Imagen del banner: `juego/ui/tormenta.jpg` (recorte de la foto original; se usa en la pantalla y en las tarjetas `.limbg`). Nombre: `TX('Tormenta Celestial')` en app.js (menú, tarjeta del Gacha, máquina).
+- **Bai Long, Arion, Victor y Riccardo ya NO existen**: borrados `src/go.js`, `test/go.js`, `fgo.png` y `bailong.jpg`. `REMOVED_PLAYERS` (run.js) los quita de la colección en `Profile.load` y de rondas guardadas en `Run.repair`. Códigos ARIONGOLD, VICTORGOLD, RICCARDOGOLD, BAILONGGOLD y BIANCHINAVIDAD eliminados.
+- `startMul` (run.js): los limitados empiezan con todas sus estadísticas, igual que los legendarios.
+- Aviso de jugador nuevo: `NEW_PLAYERS` tiene los 4 (v 0.36.1); al abrir el juego sale una pantalla por cada uno (una vez por dispositivo).
+- Tests: `node test/limited.js` (incluye partida guardada vieja y reparto de probabilidades) y `node test/i18n.js`.
+- `index.html` se compiló sin comprimir (sin red): para comprimir, `cd tools/minify && npm install && cd ../.. && python3 build.py`.
 
 ---
 
