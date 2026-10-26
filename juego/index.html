@@ -782,7 +782,7 @@ html,body,button,.act,#shell{touch-action:manipulation}
 .talk .tkb{font-size:14px;max-width:calc(100% - 70px)}
 .talk .tk.me .tkb{background:#ffe9b8}
 
-/* ===== Gacha limitado de Bai Long: rareza «limitada», rayos y aviso de jugador nuevo ===== */
+/* ===== Gacha limitado «Tormenta Celestial»: rareza «limitada», rayos y aviso de jugador nuevo ===== */
 .rar.limitada{background:linear-gradient(90deg,#35d6ff,#ffd23a,#35d6ff);background-size:200% 100%;color:#06143a;animation:limShine 2.2s linear infinite}
 @keyframes limShine{to{background-position:200% 0}}
 .gcard.limitada{box-shadow:0 0 0 2px #35d6ff,0 0 0 4px #ffd23a,0 0 22px rgba(60,200,255,.9)}
@@ -796,7 +796,7 @@ html,body,button,.act,#shell{touch-action:manipulation}
 .lb{fill:none;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;stroke-width:3;opacity:0;animation:lmBolt 2.6s infinite}
 .lb0{stroke:#ffe14a;filter:drop-shadow(0 0 4px #ffd23a)}.lb1{stroke:#8fdcff;filter:drop-shadow(0 0 4px #35a8ff)}
 @keyframes lmBolt{0%,100%{opacity:0}5%{opacity:1}8%{opacity:.15}11%{opacity:1}22%{opacity:0}}
-.limbg{position:absolute;inset:0;z-index:0;background:linear-gradient(90deg,rgba(6,14,50,.92) 30%,rgba(6,14,50,.0) 75%),url(ui/bailong.jpg) 70% 22%/cover no-repeat}
+.limbg{position:absolute;inset:0;z-index:0;background:linear-gradient(90deg,rgba(6,14,50,.92) 30%,rgba(6,14,50,.0) 75%),url(ui/tormenta.jpg) 0 40%/150% auto no-repeat}
 .mode.lmmode,.banner-card.lim{position:relative;overflow:hidden;min-height:70px;padding:8px 10px;background:#06143a;box-shadow:0 0 0 2px #35d6ff,0 0 16px rgba(60,200,255,.6)}
 .lmmode .mt,.banner-card.lim .mt{position:relative;z-index:2}
 .lmmode b,.banner-card.lim b{color:#ffe27a;text-shadow:0 0 8px #35d6ff}
@@ -808,8 +808,11 @@ html,body,button,.act,#shell{touch-action:manipulation}
 .lmtag{position:absolute;top:8px;left:8px;z-index:3;background:#ffd23a;color:#06143a;font-size:14px;padding:2px 8px;line-height:1.3;box-shadow:0 0 10px #ffd23a}
 .lmname{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:18px 10px 6px;background:linear-gradient(transparent,rgba(4,10,40,.92));line-height:1.2;display:flex;flex-direction:column}
 .lmname b{font-size:32px;color:#ffe27a;font-weight:400;text-shadow:0 0 10px #35d6ff}.lmname small{font-size:14px;color:#fff}
-.lmtechs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.lmtech{display:flex;flex-direction:column;padding:6px 8px;background:var(--navy);border:2px solid #35d6ff}.lmtech b{font-size:16px;color:#ffe27a;font-weight:400}.lmtech small{font-size:12px}
+.lmfeat{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lmf{display:flex;align-items:center;gap:6px;min-width:0;padding:5px;background:var(--navy);border:2px solid #35d6ff;box-shadow:0 0 10px rgba(60,200,255,.55);opacity:.8}
+.lmf.own{opacity:1}
+.lmf>:first-child{flex-shrink:0}
+.lmft{display:flex;flex-direction:column;min-width:0;line-height:1.15}.lmft b{font-size:16px;color:#ffe27a;font-weight:400}.lmft small{font-size:11px;color:#fff}.lmft .lmfs{color:#8fdcff}
 .lmlist{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .lmp{display:flex;flex-direction:column;align-items:center;gap:2px;width:78px;padding:4px;background:var(--navy);border:2px solid #5a7ab8;text-align:center;opacity:.65}
 .lmp small{font-size:11px;line-height:1.1;min-height:24px}.lmp.own{opacity:1}.lmp.limitada{border-color:#35d6ff;box-shadow:0 0 10px rgba(60,200,255,.8);opacity:1}.lmp.legendaria{border-color:#ffd23a}.lmp.epica{border-color:#b07cff}
@@ -1053,6 +1056,7 @@ const EN_TEXT = {
   '20 tickets y 2 «elige 1 de 3» de jugadores de +80 (con suerte, legendarios)': '20 tickets and 2 "pick 1 of 3" of 80+ players (with luck, legendaries)',
   '3 clubes te quieren': '3 clubs want you',
   '3 min': '3 min',
+  '4 jugadores limitados · nota 100': '4 limited players · rating 100',
   '5 contra 5 · roguelite': '5 vs 5 · roguelite',
   '5 días del evento (no hace falta que sean seguidos)': '5 days of the event (they don\'t have to be in a row)',
   '5 fichajes ahora (Carrera y Jugador)': '5 transfers now (Career and Player)',
@@ -1143,8 +1147,6 @@ const EN_TEXT = {
   'Aún no sabes ninguna. Aprende una al subir de nivel o practicándola.': 'You don\'t know any yet. Learn one when you level up or by practising it.',
   'Aún no tienes amigos ni rivales. Saldrán de las decisiones y de los partidos.': 'You have no friends or rivals yet. They\'ll come from decisions and matches.',
   'Aún no tienes ninguna. Salen en el tramo legendario del gacha.': 'You don\'t have any yet. They come from the legendary tier of the gacha.',
-  'Bai Long': 'Bai Long',
-  'Bai Long es súper difícil de conseguir: solo': 'Bai Long is super hard to get: only',
   'Bajar a Tercera': 'Drop to Third Division',
   'Balón de Oro': 'Ballon d\'Or',
   'Balón de Oro de la temporada: {0} ({1})': 'Ballon d\'Or of the season: {0} ({1})',
@@ -1174,6 +1176,7 @@ const EN_TEXT = {
   'Cada 3 temporadas: convoca a 10 y lleva a Inazuma Japón a lo más alto': 'Every 3 seasons: call up 10 and take Inazuma Japan to the top',
   'Cada club se compra una vez con monedas y es tuyo para siempre: cuanto mejor es su plantilla, más caro.': 'Each club is bought once with coins and is yours forever: the better its squad, the more it costs.',
   'Cada intento es roguelite: las técnicas, habilidades y fichajes se pierden al acabar. La etapa que completas queda superada para siempre y abre las Cadenas, el Infinito y más equipos especiales.': 'Each attempt is roguelite: techniques, skills and signings are lost when it ends. A stage you complete stays cleared forever and unlocks Chains, Infinite and more special teams.',
+  'Cada jugador limitado sale con solo {0} de probabilidad. Uno de los 4 está asegurado a las {1} tiradas sin ninguno (llevas {2}).': 'Each limited player has only a {0} chance. One of the 4 is guaranteed after {1} pulls without any (you\'re at {2}).',
   'Cada jugador puede subir +1 en una estadística (con suerte)': 'Each player may gain +1 in a stat (with luck)',
   'Cada partida es distinta: vidas, mejoras y jefes': 'Every run is different: lives, upgrades and bosses',
   'Cadena': 'Chain',
@@ -1661,9 +1664,8 @@ const EN_TEXT = {
   'Fútbol 5 contra 5': '5-a-side football',
   'Fútbol Frontier': 'Football Frontier',
   'Gacha': 'Gacha',
-  'Gacha de Bai Long': 'Bai Long gacha',
   'Gacha limitado': 'Limited gacha',
-  'Gacha limitado · 100 🎟️ = 10 jugadores': 'Limited gacha · 100 🎟️ = 10 players',
+  'Gacha limitado · 10 🎟️ = 10 jugadores': 'Limited gacha · 10 🎟️ = 10 players',
   'Galería': 'Gallery',
   'Galería de supertécnicas': 'Special move gallery',
   'Gana': 'Win',
@@ -1801,6 +1803,7 @@ const EN_TEXT = {
   'Jugadores de nieve y hielo, y 6 legendarios exclusivos de Navidad.': 'Snow and ice players, and 6 exclusive Christmas legendaries.',
   'Jugadores del sobre': 'Players in the pack',
   'Jugadores especiales': 'Special players',
+  'Jugadores limitados': 'Limited players',
   'Jugar como invitado': 'Play as a guest',
   'Jugar contra': 'Play against',
   'J{0}': 'MD{0}',
@@ -1808,7 +1811,7 @@ const EN_TEXT = {
   'Kirkwood, Royal Academy y Zeus, uno detrás de otro y al máximo.': 'Kirkwood, Royal Academy and Zeus, back to back and at full strength.',
   'LEYENDA': 'LEGEND',
   'LIMITADO': 'LIMITED',
-  'LIMITADO · 100 🎟️ = 10 jugadores · nota 100': 'LIMITED · 100 🎟️ = 10 players · rating 100',
+  'LIMITADO · 10 🎟️ = 10 jugadores · nota 100': 'LIMITED · 10 🎟️ = 10 players · rating 100',
   'La Caravana Inazuma': 'The Inazuma Caravan',
   'La Copa empieza la temporada que viene': 'The Cup starts next season',
   'La Copa empieza la temporada que viene.': 'The Cup starts next season.',
@@ -2481,6 +2484,7 @@ const EN_TEXT = {
   'Todos los países': 'All countries',
   'Todos los puestos': 'All positions',
   'Torch (versión del Infinito)': 'Torch (Infinite version)',
+  'Tormenta Celestial': 'Heavenly Storm',
   'Torneo internacional': 'International tournament',
   'Trae tu partida aquí': 'Bring your save here',
   'Traer mi partida': 'Bring my save',
@@ -2540,7 +2544,6 @@ const EN_TEXT = {
   'Técnicas': 'Techniques',
   'Técnicas (': 'Techniques (',
   'Técnicas a nivel 3': 'Techniques at level 3',
-  'Técnicas de Bai Long': 'Bai Long\'s techniques',
   'Técnicas equipadas': 'Equipped techniques',
   'Técnicas legendarias que has sacado en el gacha. Las puede equipar cualquier jugador de su elemento desde su ficha.': 'Legendary techniques you\'ve pulled from the gacha. Any player of their element can equip them from their profile.',
   'Técnicas prohibidas': 'Forbidden moves',
@@ -2805,7 +2808,6 @@ const EN_TEXT = {
   'playoff': 'playoff',
   'playoff ·': 'playoff ·',
   'por': 'for',
-  'por jugador. Está asegurado a las': 'per player. He is guaranteed after',
   'por jugar': 'for playing',
   'por la tercera plaza; los 3 últimos bajan. Ficha jugadores, mejora el club y gana la': 'for the third spot; the bottom 3 go down. Sign players, upgrade the club and win the',
   'portero asegurado': 'guaranteed goalkeeper',
@@ -2865,7 +2867,6 @@ const EN_TEXT = {
   'tickets para el gacha por tus logros de la temporada': 'tickets for the gacha for your achievements this season',
   'tiene una partida en la nube distinta de la de este móvil. Elige con cuál sigues. La otra se guarda como copia en este móvil (Cuenta → Opciones avanzadas), así que no se pierde.': 'has a save in the cloud that\'s different from the one on this device. Choose which one to continue with. The other one is kept as a copy on this device (Account → Advanced options), so nothing is lost.',
   'tiradas (llevas': 'pulls (you\'re at',
-  'tiradas sin él (llevas': 'pulls without him (you have',
   'tiradas y asegurado': 'pulls and guarantee',
   'tiro': 'shot',
   'tiro (mantén para cargar)': 'shoot (hold to charge)',
@@ -3138,6 +3139,7 @@ const EN_TEXT = {
   '⚡ Los 10 mejores': '⚡ The best 10',
   '⚡ Mejor equipo': '⚡ Best team',
   '⚡ Mejores 5': '⚡ Best 5',
+  '⚡ Nuevo gacha limitado «Tormenta Celestial»: 4 jugadores limitados de nota 100 (Samford, Da Silva, Almeida y Trick). Uno de los 4 está asegurado a las 100 tiradas sin ninguno. El sobre cuesta solo 10 tickets.': '⚡ New limited gacha "Heavenly Storm": 4 limited players with rating 100 (Samford, Da Silva, Almeida and Trick). One of the 4 is guaranteed after 100 pulls without any. The pack costs just 10 tickets.',
   '⚡ Rayo Raimon · 5 🎟️ · 150 🪙 · la estrella del último rival se une a tu plantilla (o sube una ★).': '⚡ Raimon Bolt · 5 🎟️ · 150 🪙 · the last rival\'s star joins your squad (or gets one more ★).',
   '⚡ Usar Rayo Raimon': '⚡ Use Raimon Bolt',
   '⚡ ¡5 victorias más: ganas un Rayo Raimon!': '⚡ 5 more wins: you earn a Raimon Bolt!',
@@ -3316,6 +3318,7 @@ const EN_TEXT = {
   '🧤 Parada de': '🧤 Save by',
   '🧤 Porteros más listos: si hay otro atacante libre para el pase, no salen a lo loco, y cuando el rival pasa vuelven corriendo a tapar la portería.': '🧤 Smarter goalkeepers: if another attacker is free for the pass, they don\'t rush out blindly, and when the opponent passes they sprint back to cover the goal.',
   '🧱 Probar bloqueos de tiro': '🧱 Test shot blocks',
+  '🧹 Arion, Victor, Riccardo y Bai Long ya no están en el juego.': '🧹 Arion, Victor, Riccardo and Bai Long are no longer in the game.',
   '🪑 Al banquillo': '🪑 To the bench',
 };
 I18N.applyData();
@@ -3349,7 +3352,7 @@ const Sprites = (() => {
   }
   const collFile = pd => pd && pd.cs ? 'c' + String(pd.cs[0]).padStart(2, '0') + '.png' : fallbackRef(pd).file;
   // hwFace: retrato de miedo de los legendarios de Halloween (sprites/fhw.png, hecho con tools/hw_faces.py)
-  const refOf = pd => !pd || !pd.cs ? Object.assign({}, fallbackRef(pd), pd && pd.look ? { look: pd.look } : {}) : Object.assign({ file: collFile(pd), row: pd.cs[1] }, pd.hwFace != null ? { ff: 'fhw.png', fr: pd.hwFace } : pd.xmFace != null ? { ff: 'fxm.png', fr: pd.xmFace } : pd.goFace != null ? { ff: 'fgo.png', fr: pd.goFace } : {}, pd.look ? { look: pd.look } : {});   // look: personalización del jugador creado   // goFace: jugadores de GO (sprites/fgo.png)   // xmFace: retrato navideño (sprites/fxm.png)
+  const refOf = pd => !pd || !pd.cs ? Object.assign({}, fallbackRef(pd), pd && pd.look ? { look: pd.look } : {}) : Object.assign({ file: collFile(pd), row: pd.cs[1] }, pd.hwFace != null ? { ff: 'fhw.png', fr: pd.hwFace } : pd.xmFace != null ? { ff: 'fxm.png', fr: pd.xmFace } : {}, pd.look ? { look: pd.look } : {});   // look: personalización del jugador creado   // xmFace: retrato navideño (sprites/fxm.png)
   // Dibuja el primer fotograma (de frente) de un jugador en un <canvas>
   function portrait(ref, scale = 2) {
     const c = document.createElement('canvas');
@@ -5256,7 +5259,7 @@ const PASSIVES = {
 /* ---------- Estadísticas ---------- */
 // Valor de una estadística de un jugador de tu colección (permanente)
 // Los legendarios empiezan ya al máximo (media de 90 o más); el resto empieza al 82 % y se entrena
-const startMul = pd => pd.rarity === 'legendaria' ? 1 : 0.82;
+const startMul = pd => pd.rarity === 'legendaria' || pd.rarity === 'limitada' ? 1 : 0.82;   // los limitados también empiezan con todas sus estadísticas
 function statOf(id, owned, k) {
   const pd = PLAYER(id), ie = pd.ie[k], stars = owned ? owned.stars : 1, up = owned ? (owned.up[k] || 0) : 0;
   return Math.min(ie + 2 * (stars - 1), Math.round(ie * startMul(pd)) + up * 3 + (stars - 1) * 2);
@@ -5379,7 +5382,7 @@ const GIFT_CODES = {
   FUEGOSAGRADO:      { pick: { rarity: 'epica', elem: 'fuego' }, tickets: 5, desc: TX('Elige 1 de 3 jugadores de fuego épicos o mejores') },
   DISCORDINAZUMA:    { tickets: 15, rayos: 2, desc: TX('Regalo de la comunidad') },
   TICKETAZO:         { tickets: 50, desc: TX('Lluvia de tickets') },
-  // Arion, Victor, Riccardo, Bai Long y Bianchi Christmas ya NO se consiguen con códigos: solo en el Gacha limitado (src/limited.js)
+  // Bianchi Christmas ya NO se consigue con código: solo en el Gacha limitado (src/limited.js)
   DOBLELEYENDA:      { leg: 2, desc: TX('Dos tiradas legendarias aseguradas') },
 };
 const PICK_TIERS = { comun: 0, rara: 1, epica: 2, legendaria: 3, limitada: 4 };
@@ -5431,6 +5434,8 @@ function versionPickOptions(wave, n = 3) {
 }
 const normCode = c => String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 
+// Jugadores retirados del juego (Arion Sherwind, Victor Blade, Riccardo Di Rigo y Bai Long) y su puesto: se quitan de las partidas guardadas
+const REMOVED_PLAYERS = { 998001: 'MED', 998002: 'MED', 998003: 'DEF', 998004: 'DEL' };
 const Profile = {
   data: null,
   load() {
@@ -5441,6 +5446,7 @@ const Profile = {
     this.data.techs = this.data.techs || {};
     (this.data.custom || []).forEach(registerCustom);   // tus jugadores creados (Modo Carrera Jugador)
     this.data.codes = this.data.codes || {};
+    for (const id in REMOVED_PLAYERS) delete this.data.coll[id];   // ya no existen
     this.data.story.s2 = this.data.story.s2 || { best: 0, done: false };
     for (const k of ['s3', 's4']) this.data.story[k] = this.data.story[k] || { best: 0, done: false };
     // Cambios de id entre versiones (p. ej. Raimon del 1 en su versión base): se conserva lo que tenías
@@ -5657,6 +5663,14 @@ const Run = {
   playable(key) { const t = TEAM(key); return !!t && t.kind !== 'pro' && t.kind !== 'career' && !t.pro && t.players.length >= 5 && t.players.every(m => m.file); },
   // Partidas guardadas con un rival que no vale (p. ej. «Los Angeles Stars» en el Infinito): se cambia por otro
   repair(run) {
+    if (run && Array.isArray(run.roster)) run.roster.forEach((m, i) => {   // un jugador retirado del juego se cambia por otro de tu colección del mismo puesto (o uno prestado)
+      if (!m || !REMOVED_PLAYERS[m.id]) return;
+      const role = REMOVED_PLAYERS[m.id], used = new Set(run.roster.map(x => x && x.id));
+      const mine = Profile.ids().filter(id => PLAYER(id) && !used.has(id) && PLAYER(id).role === role).sort((a, b) => Profile.owned(b).stars - Profile.owned(a).stars);
+      const loan = GAME.players.filter(p => p.cs && p.gacha !== false && p.role === role && p.rarity === 'comun' && !used.has(p.id)).map(p => p.id);
+      const id = mine.length ? mine[0] : loan[0];
+      if (id != null) run.roster[i] = runMember(id, !Profile.owned(id));
+    });
     if (!run || !Array.isArray(run.schedule)) return run;
     if (run.kind === 'leyenda' && typeof LY_TEAMS !== 'undefined' && run.schedule.join() !== LY_TEAMS.join()) run.schedule = LY_TEAMS.slice();   // cadena empezada antes de la 0.35.3: rivales nuevos (con el jefe final)
     if (run.kind === 'leyenda') return run;   // el jefe final (Leyendas) no es «jugable» suelto, pero aquí sí
@@ -8369,79 +8383,71 @@ const Navidad = {
 };
 
 /* =====================================================================
-   JUGADORES DE INAZUMA ELEVEN GO: Arion Sherwind, Victor Blade, Riccardo Di Rigo y Bai Long.
-   - Ya NO se consiguen con códigos: salen en el Gacha limitado de Bai Long (src/limited.js).
-   - Retrato propio en sprites/fgo.png (una fila de 64 px por jugador; fila = goFace).
-   - Muñeco del partido provisional: el de otro jugador parecido (goBase); se cambia poniendo otro `cs`.
-   - Estadísticas y técnicas: editar aquí (técnicas copiadas de un jugador de referencia, ref).
-   ===================================================================== */
-const GO_PLAYERS = [
-  { id: 998001, name: 'Arion Sherwind', nick: 'Arion', role: 'MED', elem: 'viento',  face: 1, sprite: 31763, ref: 29,
-    ie: { tiro: 88, control: 96, defensa: 84, rapidez: 94, fisico: 86, aguante: 96 } },
-  { id: 998002, name: 'Victor Blade', nick: 'Victor', role: 'MED', elem: 'bosque', face: 2, sprite: 21905, ref: 157,
-    ie: { tiro: 86, control: 97, defensa: 85, rapidez: 90, fisico: 84, aguante: 94 } },
-  { id: 998003, name: 'Riccardo Di Rigo', nick: 'Riccardo', role: 'DEF', elem: 'montaña', face: 3, sprite: 21770, ref: 21399,
-    ie: { tiro: 76, control: 88, defensa: 98, rapidez: 90, fisico: 97, aguante: 94 } },
-  { id: 998004, name: 'Bai Long', nick: 'Bai Long', role: 'DEL', elem: 'fuego', face: 0, sprite: 21607, ref: 10,
-    ie: { tiro: 104, control: 98, defensa: 96, rapidez: 102, fisico: 100, aguante: 100 } },   // media 100; su rareza «limitada» y sus técnicas se ponen en limited.js
-];
-(function registerGO() {
-  if (typeof GAME === 'undefined') return;
-  const reg = (p, list) => { if (PBY[p.id]) return; if (list) GAME.players.push(p); PBY[p.id] = p; };
-  GO_PLAYERS.forEach(G => {
-    const body = PLAYER(G.sprite), ref = PLAYER(G.ref);
-    if (!body || !ref) return;
-    reg(Object.assign({}, body, { id: G.id, name: G.name, full: G.name, nick: G.nick, role: G.role, elem: G.elem, rarity: 'legendaria',
-      ie: Object.assign({}, G.ie), ie0: undefined, also: undefined, moves: (ref.moves || []).map(m => m.slice()),
-      gacha: false, banner: null, inf: false, go: true, goBase: G.sprite, goFace: G.face }), true);
-  });
-})();
-
-/* =====================================================================
-   GACHA LIMITADO DE BAI LONG + AVISO DE JUGADORES NUEVOS
-   - Rareza nueva «limitada» (RARITY.limitada en run.js): solo Bai Long.
-   - Bai Long (id 998004, registrado en go.js): media 100, delantero de fuego,
-     con su tiro «Dragón relámpago» y su técnica «Estela del dragón blanco».
-   - Sobre limitado: 100 🎟️ = 10 jugadores. Bote de 10 jugadores:
-       limitada · Bai Long
-       legendaria · Arion, Victor, Riccardo y Bianchi Christmas
-         (ya NO se consiguen con códigos: solo aquí)
+   GACHA LIMITADO «TORMENTA CELESTIAL» + AVISO DE JUGADORES NUEVOS
+   - Rareza «limitada» (RARITY.limitada en run.js): 4 jugadores con nota 100, solo en este gacha.
+       David Samford · Falcèo Da Silva · Leonardo Almeida · Isabelle Trick
+     (versiones nuevas con ids 994001-994004; las normales ya NO salen en el gacha de siempre)
+   - Sobre limitado: 10 🎟️ = 10 jugadores. Bote de 10 jugadores:
+       limitada · Samford, Da Silva, Almeida y Trick (0,5 % cada uno)
+       legendaria · Bianchi Christmas (ya NO se consigue con código: solo aquí)
        épica · Jang Cho, Jim Flareson · rara · Changsu Choi, Umi Wang · común · Sol Crater
-   - Cada sobre de 10 trae al menos una épica o mejor; Bai Long asegurado a las 30 tiradas sin él.
+   - Cada sobre de 10 trae al menos una épica o mejor; uno de los 4 limitados asegurado a las 100 tiradas sin ninguno.
+   - Imagen del banner: juego/ui/tormenta.jpg. Nombre del gacha: TX('Tormenta Celestial') (app.js, 3 sitios).
+   - Bai Long, Arion, Victor y Riccardo (gacha anterior) YA NO EXISTEN: Profile.load y Run.repair (run.js) los quitan de las partidas guardadas.
    - NEW_PLAYERS: al añadir un jugador nuevo, pon aquí su id y la versión: al abrir
      el juego sale una pantalla con él (una sola vez por dispositivo).
    ===================================================================== */
 const LM_BANNER = 68;
-const LM_PRICE = 100, LM_N = 10;                  // 100 tickets por sobre de 10 jugadores
-const LM_PITY = 30;                               // Bai Long asegurado a las 30 tiradas sin él
-const LM_RATES = [['limitada', 2], ['legendaria', 10], ['epica', 23], ['rara', 30], ['comun', 35]];
+const LM_PRICE = 10, LM_N = 10;                   // 10 tickets por sobre de 10 jugadores
+const LM_PITY = 100;                              // uno de los 4 limitados asegurado a las 100 tiradas (10 sobres) sin ninguno
+const LM_RATES = [['limitada', 2], ['legendaria', 3], ['epica', 28], ['rara', 30], ['comun', 37]];   // la de «limitada» se reparte entre los 4 (0,5 % cada uno): muy difíciles
 const LM_END = null;                              // último día del gacha limitado (AAAA-MM-DD); null = sin fecha de fin
-const BAI_ID = 998004;
+const LM_AVG = 100, LM_STAT_MAX = 105;            // nota de los limitados y tope por estadística
+// base = jugador del que copian aspecto y técnicas; lead = técnicas de nivel 100 (la primera es su supertécnica; el resto de técnicas de la base se conserva)
+const LM_PLAYERS = [
+  { id: 994001, base: 30,    lead: [[295, 100], [101, 100]] },       // David Samford: Pingüino espacial + Regate múltiple
+  { id: 994002, base: 31862, lead: [[30429, 100], [30438, 100]] },   // Falcèo Da Silva (POR): Parada celestial + Parada de capoeira
+  { id: 994003, base: 31870, lead: [[339, 100], [30292, 100]] },     // Leonardo Almeida: Cruz del Sur + Tornado doble
+  { id: 994004, base: 31061, lead: [[30353, 100], [30452, 100]] },   // Isabelle Trick: Superelástico + Cañón X
+];
+// Aura y rayos de cada limitado en el campo (view.js, drawLimited): a = color principal, b = color de los destellos
+const LM_FX = {
+  994001: { a: 0x9fe8ff, b: 0xffffff },   // Samford: hielo y pingüinos
+  994002: { a: 0xffd23a, b: 0xfff2a0 },   // Da Silva: oro
+  994003: { a: 0x3dff8a, b: 0xe6ffd8 },   // Almeida: esmeralda
+  994004: { a: 0x35d6ff, b: 0xffe27a },   // Trick: relámpago azul y dorado
+};
 const LM_POOL_IDS = {
-  limitada: [BAI_ID],
-  legendaria: [998001, 998002, 998003, 997008],
+  limitada: LM_PLAYERS.map(l => l.id),
+  legendaria: [997008],
   epica: [31766, 21459],
   rara: [31775, 31767],
   comun: [277],
 };
 // Jugadores nuevos: se enseñan al abrir el juego la primera vez (settings.seenPlayers)
-const NEW_PLAYERS = [
-  { id: BAI_ID, v: '0.31.13' },
-];
+const NEW_PLAYERS = LM_PLAYERS.map(l => ({ id: l.id, v: '0.36.1' }));
 
-// Técnicas de Bai Long (solo suyas: `lim` las saca de los premios aleatorios y de las técnicas legendarias del gacha)
-const BAI_TECHS = [
-  { id: 30490, name: 'Dragón relámpago', name_en: 'Lightning Dragon', type: 'tiro', tp: 80, power: 125, elem: 'fuego', lim: true },
-  { id: 30491, name: 'Estela del dragón blanco', name_en: 'White Dragon Trail', type: 'regate', tp: 60, power: 100, elem: 'fuego', lim: true },
-];
-(function registerBaiLong() {
+(function registerLimited() {
   if (typeof GAME === 'undefined') return;
-  BAI_TECHS.forEach(t => { if (!GAME.techniques[String(t.id)]) GAME.techniques[String(t.id)] = Object.assign({}, t, typeof I18N !== 'undefined' && I18N.en() ? { name: t.name_en } : {}); });
-  const b = PLAYER(BAI_ID); if (!b) return;
-  const rest = (b.moves || []).filter(m => m[1] !== 100 && !BAI_TECHS.some(t => t.id === m[0])).map(m => m.slice());
-  b.moves = [[30490, 100], [30491, 100]].concat(rest);   // nivel 100 = técnica de historia: la primera es su tiro
-  b.rarity = 'limitada'; b.lim = true;
-  b.ie = Object.assign({}, b.ie, { tiro: 104, control: 98, defensa: 96, rapidez: 102, fisico: 100, aguante: 100 });   // media 100 (tiro+control+defensa+rapidez+físico)
+  const KEYS = ['tiro', 'control', 'defensa', 'rapidez', 'fisico'];
+  // Sube (o baja) las estadísticas en la misma proporción hasta que la media sea `target`, sin pasar de `max` por estadística
+  const scaled = (b, target, max) => {
+    const mk = f => { const ie = {}; for (const k in b.ie) ie[k] = Math.min(max, Math.round(b.ie[k] * f)); return ie; };
+    const mean = ie => KEYS.reduce((t, k) => t + ie[k], 0) / KEYS.length;
+    let lo = 0.5, hi = 3, ie = mk(1);
+    for (let i = 0; i < 40; i++) { const f = (lo + hi) / 2; ie = mk(f); if (mean(ie) < target) lo = f; else hi = f; }
+    return mk(hi);
+  };
+  LM_PLAYERS.forEach(L => {
+    if (PBY[L.id]) return;
+    const b = PLAYER(L.base); if (!b) return;
+    b.gacha = false;   // los limitados SOLO salen en este gacha: las versiones normales se quitan del gacha de siempre (quien ya las tiene se las queda)
+    const lead = L.lead.filter(([id]) => TECH(id));
+    const rest = (b.moves || []).filter(m => m[1] !== 100 && !lead.some(l => l[0] === m[0])).map(m => m.slice());
+    const p = Object.assign({}, b, { id: L.id, full: (b.full || b.name).replace(/ \((IE2|IE3)\)$/, '') + ' (Limitado)', rarity: 'limitada', ie: scaled(b, LM_AVG, LM_STAT_MAX), ie0: undefined, also: undefined,
+      moves: lead.map(m => m.slice()).concat(rest), gacha: false, banner: null, inf: false, lim: true, limBase: L.base });
+    GAME.players.push(p); PBY[p.id] = p;
+  });
 })();
 
 const Limitado = {
@@ -8462,6 +8468,8 @@ const Limitado = {
     return (this._pool = P);
   },
   ids() { const P = this.pool(); return ['limitada', 'legendaria', 'epica', 'rara', 'comun'].reduce((a, t) => a.concat(P[t]), []); },
+  // Los jugadores limitados del banner (los 4 que salen en la cabecera del gacha)
+  featured() { return this.pool().limitada.slice(); },
   // % de que un jugador concreto salga en una tirada: la probabilidad de su rareza repartida entre los jugadores de esa rareza
   chanceOf(id) {
     const P = this.pool();
@@ -9798,7 +9806,7 @@ const UI = (() => {
   }
   // Presentación de una supertécnica: franja con el retrato del jugador y el nombre
   let cutT;
-  // Los tiros y las paradas (no las rápidas) llevan cinemática: fondo oscurecido, retrato grande y rayos. `opts.lim` = técnica de Bai Long (rayos azules y dorados)
+  // Los tiros y las paradas (no las rápidas) llevan cinemática: fondo oscurecido, retrato grande y rayos. `opts.lim` = técnica marcada `lim` (rayos azules y dorados)
   function cutin(name, elem, team, kind, ref, ms, opts) {
     const c = $('cutin'), dim = $('cineDim'), o = opts || {};
     const big = (kind === 'tiro' || kind === 'parada') && !o.small;
@@ -10096,6 +10104,7 @@ class MatchScene extends Phaser.Scene {
     UI.pickSync(s);
     if (this.views.size !== s.players.length) for (const [id, v] of this.views) if (!s.players.some(p => p.id === id)) v.root.setVisible(false);   // expulsados
     this.drawAura(s, time);
+    this.drawLimited(s, time);
 
     for (const p of s.players) {
       const v = this.views.get(p.id);
@@ -10224,6 +10233,32 @@ class MatchScene extends Phaser.Scene {
       s._stars[team] = l[0] ? l[0].id : null;
     }
     return s.players.find(p => p.id === s._stars[team]);
+  }
+  // Jugadores limitados (LM_FX en limited.js): aura que respira, rayos que chisporrotean alrededor y chispas del elemento al correr
+  drawLimited(s, time) {
+    if (!this.limG) { this.limG = this.add.graphics().setDepth(3900).setBlendMode(Phaser.BlendModes.ADD); this.limT = {}; }
+    const g = this.limG; g.clear();
+    for (const p of s.players) {
+      const fx = typeof LM_FX !== 'undefined' && LM_FX[p.key]; if (!fx) continue;
+      const v = this.views.get(p.id); if (!v || !v.root.visible) continue;
+      const x = p.x * PX, y = p.y * PX - p.z * PX, spd = Math.hypot(p.vx, p.vy), k = 0.5 + 0.5 * Math.sin(time / 130 + p.row);
+      g.fillStyle(fx.a, 0.1 + 0.07 * k).fillEllipse(x, y - 26, 44 + 8 * k, 74 + 10 * k);
+      g.lineStyle(2, fx.b, 0.35 + 0.25 * k).strokeEllipse(x, y + 8, 40 + 6 * k, 14);
+      const seed = Math.floor(time / 90) * 7 + p.row * 13, rn = i => { const t = Math.sin(seed * 12.9898 + i * 78.233) * 43758.5453; return t - Math.floor(t); };
+      for (let b = 0, nb = spd > 0.6 ? 4 : 2; b < nb; b++) {   // rayos en zigzag
+        let bx = x + (rn(b * 9) - 0.5) * 38, by = y - 62 + rn(b * 9 + 1) * 10;
+        g.lineStyle(2, b % 2 ? fx.b : fx.a, 0.9).beginPath().moveTo(bx, by);
+        for (let i = 1; i <= 4; i++) { bx += (rn(b * 9 + i * 2) - 0.5) * 18; by += 12 + rn(b * 9 + i * 2 + 1) * 6; g.lineTo(bx, by); }
+        g.strokePath();
+      }
+      if (spd > 0.6) {   // al correr: rayo por el suelo detrás y chispas
+        const bx = -p.vx / spd, by = -p.vy / spd; let cx = x, cy = y + 2;
+        g.lineStyle(3, fx.a, 0.8).beginPath().moveTo(cx, cy);
+        for (let i = 1; i <= 5; i++) { cx += bx * 8 + (rn(40 + i) - 0.5) * 8; cy += by * 4 + (rn(50 + i) - 0.5) * 6; g.lineTo(cx, cy); }
+        g.strokePath();
+        if (time - (this.limT[p.id] || 0) > 90) { this.limT[p.id] = time; this.burst(p.elem, x, y - 10, 1, p.y * PX + 1); }
+      }
+    }
   }
   // Aura: llamas del color del elemento mientras lanzas una técnica; brillo suave en la estrella que lleva el balón
   drawAura(s, time) {
@@ -10485,7 +10520,7 @@ class TechFX {
     switch (e.type) {
       case 'techStart': {
         const p = P(e.id), t = p && p.techs.find(x => x.name === e.name);
-        UI.cutin(e.name, e.elem, e.team, e.kind, p && p.sprite, e.kind === 'tiro' || e.kind === 'parada' ? 1250 : 800, { lim: !!(t && t.lim), small: !!e.quick });
+        UI.cutin(e.name, e.elem, e.team, e.kind, p && p.sprite, e.kind === 'tiro' || e.kind === 'parada' ? 1250 : 800, { lim: !!(t && t.lim) || !!(p && typeof LM_FX !== 'undefined' && LM_FX[p.key]), small: !!e.quick });
         if (p) UI.say(p.sprite, p.name, Dialog.shout(e.elem, e.kind), e.team, false, 1500);
         this.crewStart(s, p, e);
         if (t && (e.kind === 'tiro' || e.kind === 'parada')) { this.zoomBack = false; this.sc.cameras.main.zoomTo(1.3, 220, 'Sine.easeOut', true); }
@@ -11627,7 +11662,7 @@ const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><
 // Igual, con el nivel comprado en la tienda (solo para las técnicas de tu colección)
 const techLineMy = t => { const lv = Shop.techLevel(t.id); return lv > 1 ? techLine(Object.assign({}, t, { power: t.power + SHOP.LV_POWER * (lv - 1), name: t.name + ' · ' + TX('Nv.') + lv })) : techLine(t); };
 
-const VERSION = '0.36.0';
+const VERSION = '0.36.1';
 const DISCORD_URL = 'https://discord.gg/G6SyT2rZW', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 // Jugadores originales de Fran (Goggle Jr., Rosfire, Knack…: «original» en gamedata): ocultos en las versiones públicas,
@@ -12010,7 +12045,7 @@ const App = (() => {
     }
     if (Limitado.active()) {
       const lim = document.createElement('button'); lim.className = 'banner-card lim';
-      lim.innerHTML = `<span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Gacha de Bai Long')}</b><small>${TX('LIMITADO · 100 🎟️ = 10 jugadores · nota 100')}</small></span>`;
+      lim.innerHTML = `<span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Tormenta Celestial')}</b><small>${TX('LIMITADO · 10 🎟️ = 10 jugadores · nota 100')}</small></span>`;
       lim.onclick = () => { Sound.sfx('click'); renderLimitado(); };
       $('bn').appendChild(lim);
     }
@@ -12113,7 +12148,7 @@ const App = (() => {
     g.fillStyle = '#10183a'; g.fillRect(16, 122, 64, 6);
   }
   function renderMachine(res, bannerId, done, title) {
-    const B = BANNERS.find(b => b.id === bannerId) || (bannerId === HW_BANNER ? { name: TX('Sobre Calabaza'), crest: 3 } : bannerId === SV_BANNER ? { name: TX('Sobre Selva'), crest: 4104 } : bannerId === XM_BANNER ? { name: TX('Sobre Navideño'), crest: 36 } : bannerId === LM_BANNER ? { name: TX('Gacha de Bai Long'), crest: 3021 } : BANNERS[0]);
+    const B = BANNERS.find(b => b.id === bannerId) || (bannerId === HW_BANNER ? { name: TX('Sobre Calabaza'), crest: 3 } : bannerId === SV_BANNER ? { name: TX('Sobre Selva'), crest: 4104 } : bannerId === XM_BANNER ? { name: TX('Sobre Navideño'), crest: 36 } : bannerId === LM_BANNER ? { name: TX('Tormenta Celestial'), crest: 3021 } : BANNERS[0]);
     screen(`<h2>${esc(title || B.name)}</h2>
       <div class="gmach"><canvas id="mc" width="96" height="128"></canvas><div class="gm-hint" id="mHint">${Controls.pc() ? TX('Arrastra la manivela en círculo (o pulsa Espacio)') : TX('Gira la manivela con el dedo ↻')}</div></div>
       <div class="caps" id="caps"></div>
@@ -12423,7 +12458,7 @@ const App = (() => {
   }
 
   /* =====================================================================
-     GACHA LIMITADO DE BAI LONG (pantalla propia) y AVISO DE JUGADORES NUEVOS
+     GACHA LIMITADO «TORMENTA CELESTIAL» (pantalla propia) y AVISO DE JUGADORES NUEVOS
      ===================================================================== */
   // Rayos animados (amarillos y azules) para el gacha limitado
   function lmBolts() {
@@ -12431,27 +12466,34 @@ const App = (() => {
       'M0 40 L24 46 L18 56 L44 62', 'M100 55 L76 60 L84 70 L58 76', 'M30 100 L40 80 L34 74 L52 56'];
     return `<svg class="lmbolts" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${P.map((d, i) => `<path class="lb lb${i % 2}" style="animation-delay:${(i * 0.37).toFixed(2)}s" d="${d}"/>`).join('')}</svg>`;
   }
-  // Destello de rayos a pantalla completa al salir Bai Long
+  // Destello de rayos a pantalla completa al salir un jugador limitado
   function lmBoom() { const d = document.createElement('div'); d.className = 'lmboom'; d.innerHTML = lmBolts() + lmBolts(); document.body.appendChild(d); setTimeout(() => d.remove(), 1500); }
   function lmMenuBtn() {
     const H = Limitado.data();
-    return `<button class="mode lmmode" id="mLm"><span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Bai Long')} <em class="lmnew">${TX('LIMITADO')}</em></b><small>${TX('Gacha limitado · 100 🎟️ = 10 jugadores')}${H.pity ? ' · ' + H.pity + '/' + LM_PITY : ''}</small></span></button>`;
+    return `<button class="mode lmmode" id="mLm"><span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Tormenta Celestial')} <em class="lmnew">${TX('LIMITADO')}</em></b><small>${TX('Gacha limitado · 10 🎟️ = 10 jugadores')}${H.pity ? ' · ' + H.pity + '/' + LM_PITY : ''}</small></span></button>`;
   }
   function renderLimitado() {
-    const H = Limitado.data(), P = Profile.data, bai = PLAYER(BAI_ID);
+    const H = Limitado.data(), P = Profile.data;
     const pct = n => { const t = String(+n.toFixed(2)); return (I18N.en() ? t : t.replace('.', ',')) + ' %'; };
     screen(`${top('⚡ ' + TX('Gacha limitado'))}${wallet()}
-      <div class="lmhero"><img src="ui/bailong.jpg" alt="Bai Long">${lmBolts()}<span class="lmtag">${TX('LIMITADO')}</span>
-        <div class="lmname"><b>Bai Long</b><small>${TX('Nota')} ${Math.round(Limitado.avgOf(bai))} · ${RAB(bai.role)} · ${ELEM_LABEL[bai.elem]}</small></div></div>
-      <h3>${TX('Técnicas de Bai Long')}</h3>
-      <div class="lmtechs">${BAI_TECHS.map(b => { const t = TECH(b.id); return `<div class="lmtech ${EL(t.elem).css}"><b>${esc(t.name)}</b><small>${TYPE_LABEL[t.type]} · ${t.power}</small></div>`; }).join('')}</div>
+      <div class="lmhero"><img src="ui/tormenta.jpg" alt="${TX('Tormenta Celestial')}">${lmBolts()}<span class="lmtag">${TX('LIMITADO')}</span>
+        <div class="lmname"><b>${TX('Tormenta Celestial')}</b><small>${TX('4 jugadores limitados · nota 100')}</small></div></div>
+      <h3>${TX('Jugadores limitados')}</h3>
+      <div class="lmfeat" id="lmFeat"></div>
       <h3>${TX('Probabilidades')}</h3>
       <div class="lmrates">${LM_RATES.map(([t, w]) => `<div class="${t}">${rchip(t)}<b>${pct(w)}</b></div>`).join('')}</div>
-      <p class="note">${TX('Bai Long es súper difícil de conseguir: solo')} <b>${pct(LM_RATES[0][1])}</b> ${TX('por jugador. Está asegurado a las')} ${LM_PITY} ${TX('tiradas sin él (llevas')} ${H.pity}${TX(').')}<br>
+      <p class="note">${TX('Cada jugador limitado sale con solo {0} de probabilidad. Uno de los 4 está asegurado a las {1} tiradas sin ninguno (llevas {2}).', pct(LM_RATES[0][1] / Limitado.featured().length), LM_PITY, H.pity)}<br>
         ${TX('Los repetidos suben una estrella (máx.')} ${MAX_STARS}${TX('); con 5 estrellas dan monedas.')}</p>
       <h3>${TX('Jugadores del sobre')}</h3>
       <div class="lmlist" id="lmList"></div>
       ${bottom(`<button class="cta lmgo" id="lm10" ${P.tickets < LM_PRICE ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${LM_PRICE} 🎟️ · ${TX('10 jugadores')}</small></button>`)}`, 'bg_title');
+    Limitado.featured().forEach(id => {   // los 4 limitados: retrato, puesto, elemento, nota y su supertécnica
+      const pd = PLAYER(id), t = TECH(signatureTech(pd)), w = document.createElement('div');
+      w.className = 'lmf' + (P.coll[id] ? ' own' : '');
+      w.appendChild(face(Sprites.refOf(pd), 48));
+      w.insertAdjacentHTML('beforeend', `<span class="lmft"><b>${esc(pd.name)}</b><small>${TX('Nota')} ${Math.round(Limitado.avgOf(pd))} · ${RAB(pd.role)} · ${ELEM_LABEL[pd.elem]}</small><small class="lmfs">${t ? esc(t.name) : ''}</small></span>`);
+      $('lmFeat').appendChild(w);
+    });
     Limitado.ids().forEach(id => {
       const pd = PLAYER(id), w = document.createElement('div');
       w.className = 'lmp ' + pd.rarity + (P.coll[id] ? ' own' : '');
@@ -12461,7 +12503,7 @@ const App = (() => {
     });
     $('lm10').onclick = () => {
       const res = Limitado.pull(); if (!res) return UI.toast(TX('No tienes tickets suficientes'));
-      renderMachine(res, LM_BANNER, renderLimitado, TX('Gacha de Bai Long'));
+      renderMachine(res, LM_BANNER, renderLimitado, TX('Tormenta Celestial'));
     };
     $('back').onclick = renderGacha;
     Sound.music('menu');
@@ -14450,6 +14492,9 @@ const App = (() => {
   }
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
+    { v: '0.36.1', date: '26/10/2026', items: [
+      TX('⚡ Nuevo gacha limitado «Tormenta Celestial»: 4 jugadores limitados de nota 100 (Samford, Da Silva, Almeida y Trick). Uno de los 4 está asegurado a las 100 tiradas sin ninguno. El sobre cuesta solo 10 tickets.'),
+      TX('🧹 Arion, Victor, Riccardo y Bai Long ya no están en el juego.')] },
     { v: '0.36.0', date: '25/10/2026', items: [
       TX('⚖️ Faltas, tarjetas y penaltis: las entradas por detrás o sin tocar el balón pueden ser falta (tiro libre, o penalti en el área). Hay tarjetas amarillas y rojas: con la segunda amarilla, o con una roja, el jugador se va y su equipo juega con uno menos. Se puede desactivar en Ajustes.'),
       TX('🔄 Ajustes → «Elegir jugador con el balón parado»: cuando el balón sale, hay falta o penalti, el partido espera y eliges quién saca o a quién controlas.')] },
