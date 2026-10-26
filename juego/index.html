@@ -9152,7 +9152,9 @@ const Cloud = (() => {
   }
   function startSession(fbUser, name, via) {
     if (meta.uid !== fbUser.uid) { meta.owner = null; meta.rev = null; meta.hash = null; }   // otra cuenta: lo que haya en el móvil aún no es suyo
-    meta.uid = fbUser.uid; meta.user = name; meta.via = via; meta.expired = false; saveMeta();
+    meta.uid = fbUser.uid; meta.user = name; meta.via = via; meta.expired = false;
+    meta.email = via === 'google' && fbUser.emailVerified !== false ? String(fbUser.email || '').toLowerCase() : '';   // solo el correo verificado de Google (para el modo admin)
+    saveMeta();
     return { ok: true };
   }
   // Cerrar sesión: sube lo último y deja el móvil limpio para que otro pueda entrar.
@@ -9336,7 +9338,7 @@ const Cloud = (() => {
   const guestChosen = () => !!meta.guest;
   function chooseGuest() { meta.guest = true; saveMeta(); }
 
-  return { SAVE_KEYS, enabled, ready, loggedIn, user, via: () => meta.via || '', expired: () => !!meta.expired, pendingRedirect: () => !!meta.redirect,
+  return { SAVE_KEYS, enabled, ready, loggedIn, user, via: () => meta.via || '', email: () => meta.email || '', expired: () => !!meta.expired, pendingRedirect: () => !!meta.redirect,
     state, onChange: f => (listeners.add(f), () => listeners.delete(f)),
     signUp, signIn, signInGoogle, signOut, sync, push, flush, flushOld, resolve, snapshot, restore, describe, hasProgress, guestChosen, chooseGuest, checkUser, cleanUser, PROGRESS_KEYS,
     _meta: () => meta };
@@ -11696,6 +11698,9 @@ const techLineMy = t => { const lv = Shop.techLevel(t.id); return lv > 1 ? techL
 const VERSION = '0.36.2';
 const DISCORD_URL = 'https://discord.gg/G6SyT2rZW', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
+// Modo admin: igual que el modo desarrollador, pero también en la versión pública para quien entre con Google con uno de estos correos
+const ADMIN_EMAILS = ['ricardojmrxd@gmail.com'];
+const isAdmin = () => BETA || (typeof Cloud !== 'undefined' && Cloud.loggedIn() && !Cloud.expired() && Cloud.via() === 'google' && ADMIN_EMAILS.includes(Cloud.email()));
 // Jugadores originales de Fran (Goggle Jr., Rosfire, Knack…: «original» en gamedata): ocultos en las versiones públicas,
 // solo salen en la beta. Fran decide cuándo (y cómo) se publican: NO meterlos directamente al sacar versiones.
 if (!BETA && typeof GAME !== 'undefined') GAME.players.forEach(p => { if (p.original) p.gacha = false; });
@@ -11705,7 +11710,7 @@ const App = (() => {
   try { Object.assign(settings, JSON.parse(localStorage.getItem('inazuma-ajustes') || '{}')); } catch (_) {}
   const saveSettings = () => { try { localStorage.setItem('inazuma-ajustes', JSON.stringify(settings)); } catch (_) {} };
   // Fuera de la beta no hay modo desarrollador: si alguien lo tenía encendido, se apaga sin avisar
-  if (!BETA && (settings.dev || settings.debug || settings.hwForce || settings.xmForce || settings.devWin || settings.speed)) {
+  if (!isAdmin() && (settings.dev || settings.debug || settings.hwForce || settings.xmForce || settings.devWin || settings.speed)) {
     settings.dev = false; settings.debug = 0; settings.hwForce = false; settings.xmForce = false; settings.devWin = 0; settings.speed = 0; saveSettings();
   }
   Profile.load();
@@ -11830,7 +11835,7 @@ const App = (() => {
     let vt = 0, vtT = 0;   // 20 toques seguidos en la versión: modo desarrollador
     $('ver').onclick = () => {
       const now = Date.now(); vt = now - vtT < 1500 ? vt + 1 : 1; vtT = now;
-      if (!BETA) return;
+      if (!isAdmin()) return;
       if (vt >= 20) { vt = 0; if (!settings.dev) { settings.dev = true; settings.devWin = 1; saveSettings(); UI.toast(TX('Modo desarrollador activado'), 1800); } Sound.sfx('reveal'); renderDev(); }
       else if (vt >= 15) UI.toast(TX('Faltan ') + (20 - vt) + TX(' toques…'), 600);
     };
@@ -15086,7 +15091,7 @@ const App = (() => {
     $('back').onclick = renderDev;
   }
   function renderDev() {
-    if (!BETA) return renderMenu();
+    if (!isAdmin()) return renderMenu();
     const P = Profile.data;
     const b = (id, t, sub = '') => `<button class="ghost big" id="${id}">${t}<small>${sub}</small></button>`;
     screen(`${top(TX('Desarrollador'))}
