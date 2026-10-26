@@ -1,5 +1,6 @@
 /* =====================================================================
-   EVENTO DE NAVIDAD (24 oct – 6 ene): todo fuera de los modos, igual que Halloween.
+   EVENTO DE NAVIDAD (12 dic – 6 ene): todo fuera de los modos, igual que Halloween.
+   Hasta el 12 de diciembre el menú enseña «Se abrirá el 12 de diciembre» (Navidad.upcoming).
    - Moneda ❄️ copos de nieve (perfil: Profile.data.xm): +5 por partido en
      cualquier modo (+10 si ganas), +20 de regalo diario, +60 al ganar al
      Alpino jefe (una vez al día) y los retos del evento.
@@ -7,16 +8,19 @@
      6 legendarios exclusivos (versiones Navidad, nuevos ids 997001…).
      Legendario 3 % · épica 15 % · rara 32 % · común 50 %; legendario
      asegurado a las 40 tiradas sin uno.
+   - Bianchi Christmas (media 105): SOLO sale en este sobre y es súper difícil:
+     0,2 % por tirada, aparte de las demás, y asegurado a las 300 tiradas sin él.
    - 3 retos del evento + 4 retos del día; al completar los 3 del evento
      se regala Shawn Froste de Navidad (épico especial).
    - Premios por entrar: 5 días (no hace falta que sean seguidos).
    - Fuera de fechas no se ve nada (salvo forzarlo en el modo desarrollador).
    Los jugadores se registran siempre: si los consigues, son tuyos para siempre.
    ===================================================================== */
-const XM_START = '2026-10-24', XM_END = '2027-01-06';   // ambos incluidos (hora del dispositivo)
+const XM_START = '2026-12-12', XM_END = '2027-01-06';   // ambos incluidos (hora del dispositivo)
 const XM_BANNER = 67;
 const XM_PRICE = 15, XM_PITY = 40;
 const XM_RATES = [['legendaria', 3], ['epica', 15], ['rara', 32], ['comun', 50]];
+const XM_BIANCHI_RATE = 0.2, XM_BIANCHI_PITY = 300;   // Bianchi Christmas: 0,2 % por tirada (aparte de las demás) y asegurado a las 300 tiradas sin él
 const XM_BOSS_AVG = 85, XM_BOSS_STAR = 93, XM_BOSS_TEAM = 'Alpino', XM_BOSS_STAR_ID = 21505;   // Alpino jefe; su estrella es Shawn Froste (IE2)
 const XM_DAILY = 20, XM_BOSS = 60, XM_MATCH = 5, XM_WIN = 10;
 
@@ -32,7 +36,7 @@ const XM_LEGENDS = [
 // Épico especial (premio del día 5 y del último reto): Shawn Froste (IE3) con la mejor media de los épicos
 const XM_EPIC = { id: 997007, base: 31170, mean: 86 };
 // Bianchi Christmas: delantero legendario de media 105 (por encima del tope normal de 99), con gorro de Papá Noel en el retrato (sprites/fxm.png, tools/xm_faces.py).
-// Solo se consigue con el código BIANCHINAVIDAD (GIFT_CODES en run.js).
+// Solo sale en el Sobre Navideño (0,2 % por tirada, asegurado a las 300): no hay código ni sale en otro gacha.
 const XM_BIANCHI = { id: 997008, base: 31855, face: 0, ie: { tiro: 110, control: 103, defensa: 98, rapidez: 108, fisico: 106, aguante: 105 } };
 (function registerChristmas() {
   if (typeof GAME === 'undefined') return;
@@ -62,10 +66,13 @@ const Navidad = {
   forced: false,   // (desarrollador) ver el evento fuera de fechas
   today() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); },
   active() { if (this.forced) return true; const t = this.today(); return t >= XM_START && t <= XM_END; },
+  // Todavía no ha empezado (el menú enseña «Se abrirá el 12 de diciembre»)
+  upcoming() { return !this.forced && this.today() < XM_START; },
+  daysToStart() { const st = new Date(XM_START + 'T00:00:00'); return Math.max(0, Math.ceil((st - new Date()) / 86400000)); },
   daysLeft() { const end = new Date(XM_END + 'T23:59:59'); return Math.max(0, Math.ceil((end - new Date()) / 86400000)); },
   data() {
     const P = Profile.data;
-    const D = { snow: 0, pulls: 0, pity: 0, daily: null, boss: null, bossWins: 0, matches: 0, retos: {}, legends: 0, gift: false };
+    const D = { snow: 0, pulls: 0, pity: 0, bpity: 0, daily: null, boss: null, bossWins: 0, matches: 0, retos: {}, legends: 0, gift: false };
     const H = P.xm = P.xm || {};
     for (const k in D) if (H[k] === undefined) H[k] = D[k];
     return H;
@@ -111,6 +118,11 @@ const Navidad = {
     if (H.snow < XM_PRICE * n) return null;
     H.snow -= XM_PRICE * n;
     for (let i = 0; i < n; i++) {
+      // Bianchi Christmas: súper difícil (0,2 % por tirada, asegurado a las 300 sin él)
+      if (PLAYER(XM_BIANCHI.id) && (H.bpity >= XM_BIANCHI_PITY - 1 || Math.random() * 100 < XM_BIANCHI_RATE)) {
+        H.bpity = 0; H.pity = 0; res.push({ id: XM_BIANCHI.id, tier: 'legendaria' }); continue;
+      }
+      H.bpity++;
       let tier = 'comun';
       if (H.pity >= XM_PITY - 1) tier = 'legendaria';
       else { let r = Math.random() * 100; for (const [t, w] of XM_RATES) { if (r < w) { tier = t; break; } r -= w; } }
@@ -124,7 +136,7 @@ const Navidad = {
       else if (o.stars < MAX_STARS) { o.stars++; r.star = o.stars; }
       else { const c = RARITY[r.tier].dupCoins; P.coins += c; r.coins = c; }
     }
-    H.pulls += n; this.dayData().pulls += n; H.legends = XM_LEGENDS.filter(L => P.coll[L.id]).length;
+    H.pulls += n; this.dayData().pulls += n; H.legends = XM_LEGENDS.concat([XM_BIANCHI]).filter(L => P.coll[L.id]).length;
     P.pulls = (P.pulls || 0) + n;
     Profile.save();
     return res;

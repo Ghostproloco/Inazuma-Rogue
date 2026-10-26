@@ -3,20 +3,23 @@
    - Rareza «limitada» (RARITY.limitada en run.js): 4 jugadores con nota 100, solo en este gacha.
        David Samford · Falcèo Da Silva · Leonardo Almeida · Isabelle Trick
      (versiones nuevas con ids 994001-994004; las normales ya NO salen en el gacha de siempre)
-   - Sobre limitado: 10 🎟️ = 10 jugadores. Bote de 10 jugadores:
-       limitada · Samford, Da Silva, Almeida y Trick (0,5 % cada uno)
-       legendaria · Bianchi Christmas (ya NO se consigue con código: solo aquí)
-       épica · Jang Cho, Jim Flareson · rara · Changsu Choi, Umi Wang · común · Sol Crater
-   - Cada sobre de 10 trae al menos una épica o mejor; uno de los 4 limitados asegurado a las 100 tiradas sin ninguno.
+   - Sobre limitado: 50 🎟️ = 10 jugadores. Bote:
+       limitada · Samford, Da Silva, Almeida y Trick (0,25 % cada uno: muy difíciles)
+       legendaria · los 12 mejores legendarios del gacha (LM_N_LEG) · épica · los 40 mejores épicos (LM_N_EPIC)
+       rara · Changsu Choi, Umi Wang, Jim Flareson… (LM_POOL_IDS) · común · Sol Crater
+     (Bianchi Christmas ya NO sale aquí: ahora es del Sobre Navideño, src/christmas.js)
+   - Cada sobre de 10 trae al menos una épica o mejor; uno de los 4 limitados asegurado a las 200 tiradas (20 sobres) sin ninguno.
+   - Los 4 limitados tienen otra ilustración «modo furia» (juego/sprites/ffur.png, tools/fur_faces.py; `furFace` en media.js).
    - Imagen del banner: juego/ui/tormenta.jpg. Nombre del gacha: TX('Tormenta Celestial') (app.js, 3 sitios).
    - Bai Long, Arion, Victor y Riccardo (gacha anterior) YA NO EXISTEN: Profile.load y Run.repair (run.js) los quitan de las partidas guardadas.
    - NEW_PLAYERS: al añadir un jugador nuevo, pon aquí su id y la versión: al abrir
      el juego sale una pantalla con él (una sola vez por dispositivo).
    ===================================================================== */
 const LM_BANNER = 68;
-const LM_PRICE = 10, LM_N = 10;                   // 10 tickets por sobre de 10 jugadores
-const LM_PITY = 100;                              // uno de los 4 limitados asegurado a las 100 tiradas (10 sobres) sin ninguno
-const LM_RATES = [['limitada', 2], ['legendaria', 3], ['epica', 28], ['rara', 30], ['comun', 37]];   // la de «limitada» se reparte entre los 4 (0,5 % cada uno): muy difíciles
+const LM_PRICE = 50, LM_N = 10;                   // 50 tickets por sobre de 10 jugadores
+const LM_PITY = 200;                              // uno de los 4 limitados asegurado a las 200 tiradas (20 sobres) sin ninguno
+const LM_RATES = [['limitada', 1], ['legendaria', 6], ['epica', 33], ['rara', 25], ['comun', 35]];   // la de «limitada» se reparte entre los 4 (0,25 % cada uno): muy difíciles
+const LM_N_LEG = 12, LM_N_EPIC = 40;              // cuántos legendarios y épicos del gacha entran al bote (los de mejor nota)
 const LM_END = null;                              // último día del gacha limitado (AAAA-MM-DD); null = sin fecha de fin
 const LM_AVG = 100, LM_STAT_MAX = 105;            // nota de los limitados y tope por estadística
 // base = jugador del que copian aspecto y técnicas; lead = técnicas de nivel 100 (la primera es su supertécnica; el resto de técnicas de la base se conserva)
@@ -35,8 +38,8 @@ const LM_FX = {
 };
 const LM_POOL_IDS = {
   limitada: LM_PLAYERS.map(l => l.id),
-  legendaria: [997008],
-  epica: [31766, 21459],
+  legendaria: [],   // se rellenan solos con los mejores del gacha (Limitado.pool)
+  epica: [31766, 21459],   // + los mejores épicos del gacha (se añaden solos en Limitado.pool)
   rara: [31775, 31767],
   comun: [277],
 };
@@ -61,7 +64,7 @@ const NEW_PLAYERS = LM_PLAYERS.map(l => ({ id: l.id, v: '0.36.1' }));
     const lead = L.lead.filter(([id]) => TECH(id));
     const rest = (b.moves || []).filter(m => m[1] !== 100 && !lead.some(l => l[0] === m[0])).map(m => m.slice());
     const p = Object.assign({}, b, { id: L.id, full: (b.full || b.name).replace(/ \((IE2|IE3)\)$/, '') + ' (Limitado)', rarity: 'limitada', ie: scaled(b, LM_AVG, LM_STAT_MAX), ie0: undefined, also: undefined,
-      moves: lead.map(m => m.slice()).concat(rest), gacha: false, banner: null, inf: false, lim: true, limBase: L.base });
+      moves: lead.map(m => m.slice()).concat(rest), gacha: false, banner: null, inf: false, lim: true, limBase: L.base, furFace: LM_PLAYERS.indexOf(L) });   // furFace: retrato «modo furia» (sprites/ffur.png)
     GAME.players.push(p); PBY[p.id] = p;
   });
 })();
@@ -79,8 +82,13 @@ const Limitado = {
   },
   pool() {
     if (this._pool) return this._pool;
-    const P = {};
+    const P = {}, av = pd => this.avgOf(pd);
     for (const t in LM_POOL_IDS) P[t] = LM_POOL_IDS[t].filter(id => PLAYER(id));
+    // legendarios y épicos del gacha (los de mejor nota), sin los de evento, originales ni los limitados
+    const top = (rarity, n) => GAME.players.filter(p => p.cs && p.gacha !== false && p.ie && !p.halloween && !p.xmas && !p.selva && !p.leyenda && !p.original && !p.special && !p.lim && p.rarity === rarity)
+      .sort((a, b) => av(b) - av(a) || a.id - b.id).slice(0, n).map(p => p.id);
+    P.legendaria = top('legendaria', LM_N_LEG);
+    P.epica = [...new Set(P.epica.concat(top('epica', LM_N_EPIC)))];
     return (this._pool = P);
   },
   ids() { const P = this.pool(); return ['limitada', 'legendaria', 'epica', 'rara', 'comun'].reduce((a, t) => a.concat(P[t]), []); },
@@ -93,7 +101,7 @@ const Limitado = {
     return 0;
   },
   avgOf(pd) { return ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + pd.ie[k], 0) / 5; },
-  // Un sobre: 10 jugadores por 100 tickets (null si no te llegan)
+  // Un sobre: 10 jugadores por 50 tickets (null si no te llegan)
   pull() {
     const P = Profile.data, H = this.data(), pool = this.pool(), res = [];
     if (P.tickets < LM_PRICE) return null;

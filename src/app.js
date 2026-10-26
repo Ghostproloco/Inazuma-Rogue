@@ -19,7 +19,7 @@ const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><
 // Igual, con el nivel comprado en la tienda (solo para las técnicas de tu colección)
 const techLineMy = t => { const lv = Shop.techLevel(t.id); return lv > 1 ? techLine(Object.assign({}, t, { power: t.power + SHOP.LV_POWER * (lv - 1), name: t.name + ' · ' + TX('Nv.') + lv })) : techLine(t); };
 
-const VERSION = '0.36.1';
+const VERSION = '0.36.2';
 const DISCORD_URL = 'https://discord.gg/G6SyT2rZW', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 // Jugadores originales de Fran (Goggle Jr., Rosfire, Knack…: «original» en gamedata): ocultos en las versiones públicas,
@@ -127,7 +127,7 @@ const App = (() => {
       <div class="title nm-title"><img class="logo" id="logo" src="ui/logo_gold.png" alt="Inazuma Gold"><span>${TX('5 contra 5 · roguelite')}</span></div>${wallet()}
       ${Leyenda.active() ? lyMenuBtn() : ''}
       ${Halloween.active() ? hwMenuBtn() : ''}
-      ${Navidad.active() ? xmMenuBtn() : ''}
+      ${Navidad.active() ? xmMenuBtn() : Navidad.upcoming() ? xmSoonBtn() : ''}
       ${Limitado.active() ? lmMenuBtn() : ''}
       ${open.map(r => `<button class="cta" data-cont="${r.kind}">${TX('Continuar:')} ${esc(r.name)}<small>${TX('Partido')} ${r.index + 1}${r.kind === 'infinite' ? '' : TX(' de ') + r.schedule.length} · ${'♥'.repeat(r.lives)}</small></button>`).join('')}
       <div class="modes">
@@ -193,6 +193,7 @@ const App = (() => {
     if ($('mHw')) $('mHw').onclick = renderHalloween;
     if ($('mLy')) $('mLy').onclick = () => { if (!resume('leyenda')) renderLeyenda(); };
     if ($('mXm')) $('mXm').onclick = renderNavidad;
+    if ($('mXmSoon')) $('mXmSoon').onclick = renderNavidadSoon;
     if ($('mLm')) $('mLm').onclick = renderLimitado;
     if (Navidad.active()) xmDecor(); else if (Halloween.active()) hwDecor();   // el menú lleva el tema del evento activo (niebla y calabazas, o nieve)
     if (settings.seenNews === VERSION || settings.newsShown === VERSION) setTimeout(aviso, 500);
@@ -402,7 +403,7 @@ const App = (() => {
     }
     if (Limitado.active()) {
       const lim = document.createElement('button'); lim.className = 'banner-card lim';
-      lim.innerHTML = `<span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Tormenta Celestial')}</b><small>${TX('LIMITADO · 10 🎟️ = 10 jugadores · nota 100')}</small></span>`;
+      lim.innerHTML = `<span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Tormenta Celestial')}</b><small>${TX('LIMITADO · 50 🎟️ = 10 jugadores · nota 100')}</small></span>`;
       lim.onclick = () => { Sound.sfx('click'); renderLimitado(); };
       $('bn').appendChild(lim);
     }
@@ -719,6 +720,26 @@ const App = (() => {
     const H = Navidad.data(), gift = H.daily !== Navidad.today() || Navidad.loginReady(), n = Navidad.pending();
     return `<button class="mode xmmode" id="mXm"><span class="cicon">🎄</span><span class="mt"><b>${TX('Navidad')}${gift || n ? ' <i class="xmdot"></i>' : ''}</b><small>${TX('Sobre Navideño, partido jefe y retos')} · ❄️ ${H.snow}${gift ? ' · ' + TX('🎁 regalo') : ''}</small></span></button>`;
   }
+  // Antes del 12 de diciembre: botón apagado con la fecha de apertura y pantalla de aviso
+  function xmSoonBtn() {
+    return `<button class="mode xmmode xmsoon" id="mXmSoon"><span class="cicon">🎄</span><span class="mt"><b>${TX('Navidad')} <em class="lmnew">${TX('PRÓXIMAMENTE')}</em></b><small>${TX('Gacha de Navidad · se abrirá el 12 de diciembre')}</small></span></button>`;
+  }
+  function renderNavidadSoon() {
+    if (Navidad.active()) return renderNavidad();
+    const d = Navidad.daysToStart();
+    screen(`${top('🎄 ' + TX('Navidad'))}
+      <div class="runbar xmbar"><span>🎁 ${TX('Se abrirá el 12 de diciembre')}</span><span>${TXn(d, 'Falta {0} día', 'Faltan {0} días')}</span></div>
+      <h3>${TX('Sobre Navideño')}</h3>
+      <div class="xmlegs" id="xmLegs"></div>
+      <p class="note">${TX('El gacha de Navidad se abrirá el 12 de diciembre y durará hasta el 6 de enero.')}<br>${TX('Jugadores de nieve y hielo, 6 legendarios exclusivos de Navidad y un legendario súper difícil de conseguir.')}</p>`, 'bg_title');
+    xmDecor();
+    xmLegsRow(XM_LEGENDS.map(L => PLAYER(L.id)).filter(Boolean));
+    $('back').onclick = renderMenu;
+  }
+  // Fila de legendarios exclusivos de Navidad
+  function xmLegsRow(legs) {
+    legs.forEach(p => { const w = document.createElement('div'); w.className = 'xmleg' + (Profile.data.coll[p.id] ? ' own' : ''); w.appendChild(face(Sprites.refOf(p), 48)); w.insertAdjacentHTML('beforeend', `<small>${esc(p.full.replace(/ \(Navidad\)$/, ''))}</small>`); $('xmLegs').appendChild(w); });
+  }
   // Nieve cayendo y adornos
   function xmDecor() {
     const sc = $('screen'); sc.classList.add('xmtheme');
@@ -728,7 +749,7 @@ const App = (() => {
   function renderNavidad() {
     if (!Navidad.active()) return renderMenu();
     const gift = Navidad.daily(), H = Navidad.data(), d = Navidad.daysLeft();
-    const legs = XM_LEGENDS.map(L => PLAYER(L.id)).filter(Boolean);
+    const legs = XM_LEGENDS.concat([XM_BIANCHI]).map(L => PLAYER(L.id)).filter(Boolean);
     const row = (R, key, st, v) => `<div class="xmreto ${st}"><div><b>${R.name}</b><small>${R.desc} · ${v}/${R.goal}</small><small>${TX('Premio:')} ${R.reward.snow} ❄️ · ${R.reward.tickets} 🎟️</small></div>
         ${st === 'got' ? '<span class="xmok">✓</span>' : `<button class="cta" data-${key}="${R.id}" ${st === 'ready' ? '' : 'disabled'}>${TX('Recoger')}</button>`}</div>`;
     const retos = Navidad.RETOS.map(R => row(R, 'xreto', Navidad.retoState(R), Math.min(R.goal, R.val(H)))).join('');
@@ -741,8 +762,9 @@ const App = (() => {
       ${Navidad.loginReady() ? `<button class="cta" id="xmLogin">${TX('🎁 Recoger el premio del día {0}', Navidad.login().n + 1)}</button>` : Navidad.login().n < Navidad.LOGIN.length ? `<p class="note">${TX('Vuelve mañana a por el siguiente premio.')}</p>` : ''}
       <h3>${TX('Sobre Navideño')}</h3>
       <div class="xmlegs" id="xmLegs"></div>
-      <p class="note">${TX('Jugadores de nieve y hielo, y 6 legendarios exclusivos de Navidad.')}<br>
-        ${TX('Legendario 3 % · Épica 15 % · Rara 32 % · Común 50 %. Legendario asegurado a las')} ${XM_PITY} ${TX('tiradas (llevas')} ${H.pity}${TX(').')}</p>
+      <p class="note">${TX('Jugadores de nieve y hielo, 6 legendarios exclusivos de Navidad y un legendario súper difícil de conseguir.')}<br>
+        ${TX('Legendario 3 % · Épica 15 % · Rara 32 % · Común 50 %. Legendario asegurado a las')} ${XM_PITY} ${TX('tiradas (llevas')} ${H.pity}${TX(').')}<br>
+        ${TX('Bianchi Christmas (nota 105): solo {0} % por tirada, aparte de las demás. Asegurado a las {1} tiradas sin él (llevas {2}).', String(XM_BIANCHI_RATE).replace('.', I18N.en() ? '.' : ','), XM_BIANCHI_PITY, H.bpity)}</p>
       <div class="grid2"><button class="cta" id="xm1" ${H.snow < XM_PRICE ? 'disabled' : ''}>${TX('Tirar ×1')}<small>${XM_PRICE} ❄️</small></button><button class="cta" id="xm10" ${H.snow < XM_PRICE * 10 ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${XM_PRICE * 10} ❄️</small></button></div>
       <h3>${TX('Partido jefe')}</h3>
       <button class="mode xmmode" id="xmBoss">${Sprites.crest(36)}<span class="mt"><b>${TX('Alpino')}</b><small>${TX('Versión jefe · campo nevado')}<br>${Navidad.bossDone() ? TX('Premio de hoy ya cobrado (puedes repetir)') : TX('Gánale: +60 ❄️ (una vez al día)')}</small></span></button>
@@ -753,7 +775,7 @@ const App = (() => {
       <p class="note">${Navidad.giftUnlocked() ? '<b>' + TX('✓ Ya has recibido a Shawn Froste de Navidad.') + '</b>' : TX('Completa los 3 retos y recibirás de regalo a') + ' <b>' + TX('Shawn Froste de Navidad') + '</b>.'}</p>
       <p class="note">${TX('Copos: +5 por partido en cualquier modo (+10 más si ganas), +20 de regalo cada día, +60 al ganar al Alpino jefe, los retos del día y los del evento. El evento dura hasta el 6 de enero; los jugadores que consigas son tuyos para siempre.')}</p>`, 'bg_title');
     xmDecor();
-    legs.forEach(p => { const w = document.createElement('div'); w.className = 'xmleg' + (Profile.data.coll[p.id] ? ' own' : ''); w.appendChild(face(Sprites.refOf(p), 48)); w.insertAdjacentHTML('beforeend', `<small>${esc(p.full.replace(/ \(Navidad\)$/, ''))}</small>`); $('xmLegs').appendChild(w); });
+    xmLegsRow(legs);
     const go = n => { const res = Navidad.pull(n); if (!res) return UI.toast(TX('No tienes copos suficientes')); renderMachine(res, XM_BANNER, renderNavidad, TX('Sobre Navideño')); };
     $('xm1').onclick = () => go(1); $('xm10').onclick = () => go(10);
     $('xmBoss').onclick = startXmBoss;
@@ -827,7 +849,7 @@ const App = (() => {
   function lmBoom() { const d = document.createElement('div'); d.className = 'lmboom'; d.innerHTML = lmBolts() + lmBolts(); document.body.appendChild(d); setTimeout(() => d.remove(), 1500); }
   function lmMenuBtn() {
     const H = Limitado.data();
-    return `<button class="mode lmmode" id="mLm"><span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Tormenta Celestial')} <em class="lmnew">${TX('LIMITADO')}</em></b><small>${TX('Gacha limitado · 10 🎟️ = 10 jugadores')}${H.pity ? ' · ' + H.pity + '/' + LM_PITY : ''}</small></span></button>`;
+    return `<button class="mode lmmode" id="mLm"><span class="limbg"></span>${lmBolts()}<span class="mt"><b>⚡ ${TX('Tormenta Celestial')} <em class="lmnew">${TX('LIMITADO')}</em></b><small>${TX('Gacha limitado · 50 🎟️ = 10 jugadores')}${H.pity ? ' · ' + H.pity + '/' + LM_PITY : ''}</small></span></button>`;
   }
   function renderLimitado() {
     const H = Limitado.data(), P = Profile.data;
@@ -2849,6 +2871,10 @@ const App = (() => {
   }
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
+    { v: '0.36.2', date: '26/10/2026', items: [
+      TX('⚡ Gacha limitado «Tormenta Celestial»: el sobre ahora cuesta 50 tickets, los 4 limitados son mucho más difíciles de conseguir (asegurado a las 200 tiradas) y entran más legendarios y muchísimos jugadores épicos al sobre.'),
+      TX('🔥 Los 4 jugadores limitados tienen una nueva ilustración «modo furia».'),
+      TX('🎄 El gacha de Navidad se abrirá el 12 de diciembre.')] },
     { v: '0.36.1', date: '26/10/2026', items: [
       TX('⚡ Nuevo gacha limitado «Tormenta Celestial»: 4 jugadores limitados de nota 100 (Samford, Da Silva, Almeida y Trick). Uno de los 4 está asegurado a las 100 tiradas sin ninguno. El sobre cuesta solo 10 tickets.'),
       TX('🧹 Arion, Victor, Riccardo y Bai Long ya no están en el juego.')] },
