@@ -516,3 +516,17 @@ Decisiones de Fran: en la Carrera cada jugador empieza con su primera técnica (
   y **chat de Twitch propio 250×400** (`franmen_chat.html`: lee el chat sin cuenta por `wss://irc-ws.chat.twitch.tv`, `?canal=…`, `&borrar=60`, `&demo=1`; en OBS: Navegador, SIN «Archivo local», URL `file:///…/franmen_chat.html?canal=…`).
   Escena de Fran: 1920×1080, cámara arriba a la izquierda (~745×420), panel debajo, juego a la derecha.
 
+
+## v0.37.0 · Menús de decisión (pedido de Fran, 27 oct 2026)
+
+Como en el Inazuma Eleven de la DS: el tiempo se para y eliges. Ajuste **Ajustes → Partido → «Menús de decisión»** (`settings.decide`, por defecto Sí en la app; en `Logic` sin el ajuste todo se comporta como antes, así que los tests viejos no cambian).
+
+- **Te sale un rival** (`decideOwner` en `logic.js`): si llevas el balón y un rival (no portero) está a menos de 2,1 m delante, sale el menú `regate`: Regatear (sin técnica), tus técnicas de regate y hasta 3 pases, cada uno con su probabilidad (`dribbleOdds` usa las mismas fórmulas que `updateDash`; `passOdds` cuenta rivales en la línea de pase y cerca del receptor). Tras elegir (2,8 s) o cancelar (2,2 s) no vuelve a salir enseguida (`s.menuCd`).
+- **Tiro**: al pulsar (ya no hace falta mantener) con la portería a ≤ 24 m (`MENU_DIST`) sale `tiro`: Chutar, Chute con poder, **Vaselina** y las técnicas de tiro listas; con selector de puntería (izq./centro/der.). Más lejos chuta directamente. Los % de gol vienen de `saveChance` (la misma que usa `resolveSave`), así lo que ves es lo que pasa.
+- **Vaselina** (`lob`): balón alto, tiro con `shot.lob`. `lobSave`: el portero en su línea la caza casi siempre (~95 %); cada metro que se adelante baja un 30 %. Medido en `test/decide.js`: ~3 % de gol con el portero en la línea y ~67 % con el portero 2,4 m fuera.
+- **Rayo (Técnica)**: abre `tecnica` con tus técnicas (con balón: tiro y regate; sin balón: bloqueo si el rival con balón está a ≤ 4,5 m). El bloqueo de tiro «¡Bloquéalo!» sigue funcionando con un toque como antes.
+- **Balón parado** (`s.hold`, puesto en `restart`): si sacas tú (falta, córner, banda, tiro libre) no te mueves; Pase → lista de compañeros con probabilidad; Tiro → opciones de chute si la portería está cerca (a ≤ 24 m; si no, chuta directo; en saque de banda no se puede chutar). A los 14 s sin hacer nada pasa solo. **Penalti propio**: Pase no hace nada; Tiro abre las opciones (el reloj no corre mientras eliges).
+- **Interfaz** (`UI.menuSync` en `view.js`, `#menu` en `shell.html`): panel con botones grandes y el % en verde/amarillo/rojo. Se maneja con toque, teclas 1-9 (↑↓ Intro, ←→ puntería, Retroceso = volver) o mando (cruceta, A, B). El botón Tiro del móvil pone «elegir» en vez de «mantener».
+- `pass()` admite un 6.º parámetro (receptor forzado). `Logic.chooseMenu(s, i)` / `setMenuAim(s, v)`; `i = null` cancela.
+- Tests: `node test/decide.js` (nuevo) y `node test/i18n.js`. `solo.js` y `sig_methods.js` fallan igual en el código original (ya estaba anotado).
+- Pendiente: probarlo en el navegador con Phaser real (aquí se probó el panel con un arnés sin Phaser) y ajustar a gusto: distancia a la que salta el menú del regate (2,1 m), % de la vaselina y pausas entre menús.
