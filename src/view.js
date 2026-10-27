@@ -186,7 +186,7 @@ const Input = (() => {
 const Pad = (() => {
   const SETS = {
     attack: [
-      { label: TX('Tiro'), sub: 'mantener', cls: 'big', hold: true },
+      { label: TX('Tiro'), sub: 'mantener', subDecide: TX('elegir'), cls: 'big', hold: true },
       { label: TX('Pase'), sub: TX('mantén'), cls: 's2', action: 'A', holdPass: true },
       { label: TX('Técnica'), cls: 's3 fire', action: 'tech', tech: true },
       { label: '⇄', cls: 's6 tnext', action: 'techNext' },
@@ -243,19 +243,23 @@ const Pad = (() => {
     };
     return (parts[m] || parts.attack) + ' · ' + n(k.pause) + ' ' + TX('pausa');
   }
+  const decideOn = () => { try { return !!App.settings.decide; } catch (_) { return false; } };
   let mode = null, techBtn = null, techLbl = null, lastName = null, lastKH = null, dribBtn = null, lastDrib = -1, nextBtn = null;
   const down = new Set();   // dedos sobre los botones: mientras haya alguno, los botones no cambian (si no, el botón desaparecía bajo el dedo)
   function render(m) {
     if (m === mode || down.size) return;
     let sch = 'nuevas'; try { sch = App.settings.keys || 'nuevas'; } catch (_) {}
-    kh.querySelector('.kh-keys').innerHTML = sch === 'custom' ? customHud(m) : (sch === 'clasicas' ? KEYS_CLASICAS : KEYS)[m] + ' · <b>P</b> ' + TX('pausa');
+    let hud = sch === 'custom' ? customHud(m) : (sch === 'clasicas' ? KEYS_CLASICAS : KEYS)[m] + ' · <b>P</b> ' + TX('pausa');
+    if (decideOn()) hud = hud.replace(TX('tiro (mantén) ·'), TX('tiro (menú) ·'));
+    kh.querySelector('.kh-keys').innerHTML = hud;
     mode = m; pad.innerHTML = ''; techBtn = null; dribBtn = null; nextBtn = null; lastDrib = -1; lastName = null;
     Input.holdShoot(false); Input.holdPass(false);
     SETS[m].forEach(b => {
       const el = document.createElement('button');
       el.className = 'act ' + b.cls;
       applyLayout(el, b.cls.split(' ')[0]);   // posición y tamaño a tu gusto (Ajustes → Colocar los botones)
-      el.innerHTML = (b.tech ? `<span class="tt">${b.label}</span>` : b.label) + (b.sub ? `<small>${b.sub}</small>` : '') + (b.tech ? '<small class="tn"></small>' : '');
+      const sub = b.subDecide && decideOn() ? b.subDecide : b.sub;
+      el.innerHTML = (b.tech ? `<span class="tt">${b.label}</span>` : b.label) + (sub ? `<small>${sub}</small>` : '') + (b.tech ? '<small class="tn"></small>' : '');
       el.addEventListener('pointerdown', e => {
         e.preventDefault(); el.classList.add('down'); down.add(e.pointerId);
         if (b.hold) { Input.holdShoot(true, e.pointerId); try { el.setPointerCapture(e.pointerId); } catch (_) {} }
@@ -365,7 +369,74 @@ const UI = (() => {
     const sk = el.querySelector('.pk-skip'); sk.textContent = TX('Seguir con el de siempre'); sk.onclick = () => choose(null);
     el.hidden = false;
   }
-  function reset() { last = {}; sayCool = 0; const d = $('say'); if (d) d.className = 'say'; pickOn = false; const k = $('pick'); if (k) { k.hidden = true; k.innerHTML = ''; } }
+
+  // Menús de decisión (como el Inazuma Eleven de la DS): el tiempo está parado y eliges regate, técnica, pase o tipo de chute.
+  // Se maneja con toque/ratón, con las teclas 1-9 (y ↑ ↓ Intro, ← → para apuntar, Retroceso para volver) y con el mando (cruceta, A, B).
+  let menuOn = null, menuSel = 0, menuS = null, gpMenuPrev = [];
+  const MENU_ICON = { regate: '🌀', normal: '⚽', poder: '💥', vaselina: '☁️', tecnica: '⚡' };
+  const firstOn = m => { const i = m.opts.findIndex(o => !o.off); return i < 0 ? 0 : i; };
+  function menuChoose(s, i) {
+    const m = s.menu; if (!m) return;
+    if (i != null && i >= 0 && (!m.opts[i] || m.opts[i].off)) return;
+    Sound.sfx('click'); Logic.chooseMenu(s, i); menuSync(s);
+  }
+  function menuMark() { const el = $('menu'); if (!el) return; el.querySelectorAll('.dc').forEach((b, i) => b.classList.toggle('sel', i === menuSel)); }
+  function menuAim(s, v) { if (!Logic.setMenuAim(s, v)) return; Sound.sfx('click'); const el = $('menu'); el && el.querySelectorAll('.dc-aim button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.v === s.menu.aimX))); }
+  function menuSync(s) {
+    const el = $('menu'); if (!el) return;
+    menuS = s;
+    if (!s.menu) { if (menuOn) { el.hidden = true; el.innerHTML = ''; menuOn = null; } return; }
+    if (menuOn === s.menu) { menuPad(s); return; }
+    const m = menuOn = s.menu; menuSel = firstOn(m);
+    el.innerHTML = '<h4></h4><div class="dc-list"></div>';
+    el.querySelector('h4').textContent = m.title;
+    const list = el.querySelector('.dc-list');
+    m.opts.forEach((o, i) => {
+      const b = document.createElement('button'); b.className = 'dc'; b.disabled = !!o.off;
+      const ic = document.createElement('span'); ic.className = 'dc-ic';
+      if (o.face != null) { const p = s.players.find(q => q.id === o.face); try { ic.appendChild(Sprites.face(p.sprite, 38)); } catch (_) { ic.textContent = '⚽'; } }
+      else ic.textContent = MENU_ICON[o.act] || '•';
+      const t = document.createElement('span'); t.className = 'dc-t';
+      const n = document.createElement('b'); n.textContent = (i < 9 ? (i + 1) + '. ' : '') + o.label; const sm = document.createElement('small'); sm.textContent = o.sub || '';
+      t.append(n, sm); b.append(ic, t);
+      if (o.pct != null) { const pc = document.createElement('span'); pc.className = 'dc-pct ' + (o.pct >= 65 ? 'good' : o.pct >= 35 ? 'mid' : 'bad'); pc.textContent = o.pct + ' %'; b.appendChild(pc); }
+      b.onclick = () => menuChoose(s, i);
+      list.appendChild(b);
+    });
+    if (m.aimable) {
+      const row = document.createElement('div'); row.className = 'dc-aim';
+      const lb = document.createElement('span'); lb.textContent = TX('Apuntar'); row.appendChild(lb);
+      for (const [v, t] of [[-0.85, '◀ ' + TX('Izquierda')], [0, TX('Centro')], [0.85, TX('Derecha') + ' ▶']]) {
+        const b = document.createElement('button'); b.dataset.v = v; b.textContent = t; b.setAttribute('aria-pressed', String(v === m.aimX)); b.onclick = () => menuAim(s, v); row.appendChild(b);
+      }
+      el.appendChild(row);
+    }
+    const c = document.createElement('button'); c.className = 'dc-cancel'; c.textContent = m.kind === 'regate' ? TX('Seguir corriendo') : TX('Volver'); c.onclick = () => menuChoose(s, -1); el.appendChild(c);
+    el.hidden = false; el.scrollTop = 0; menuMark();
+  }
+  // Mando: cruceta ↑↓ elige, ←→ apunta, A confirma, B vuelve
+  function menuPad(s) {
+    const pads = navigator.getGamepads ? navigator.getGamepads() : [], g = [...pads].find(p => p && p.connected); if (!g) return;
+    const b = i => !!(g.buttons[i] && (g.buttons[i].pressed || g.buttons[i].value > 0.5)), e = i => b(i) && !gpMenuPrev[i];
+    const m = s.menu, n = m.opts.length;
+    if (e(12) || e(13)) { const d = e(13) ? 1 : -1; for (let k = 1; k <= n; k++) { const j = (menuSel + d * k + n * 2) % n; if (!m.opts[j].off) { menuSel = j; break; } } Sound.sfx('click'); menuMark(); }
+    if (e(14)) menuAim(s, Math.max(-0.85, m.aimX - 0.85)); if (e(15)) menuAim(s, Math.min(0.85, m.aimX + 0.85));
+    const go = e(0), back = e(1);
+    gpMenuPrev = g.buttons.map((_, i) => b(i));
+    if (go) menuChoose(s, menuSel); else if (back) menuChoose(s, -1);
+  }
+  addEventListener('keydown', e => {
+    const s = menuS; if (!s || !s.menu || menuOn !== s.menu || e.ctrlKey || e.metaKey || e.altKey) return;
+    const m = s.menu, d = /^(Digit|Numpad)([1-9])$/.exec(e.code);
+    if (d) { menuChoose(s, +d[2] - 1); e.preventDefault(); return; }
+    const n = m.opts.length;
+    if (e.code === 'ArrowDown' || e.code === 'ArrowUp') { const dir = e.code === 'ArrowDown' ? 1 : -1; for (let k = 1; k <= n; k++) { const j = (menuSel + dir * k + n * 2) % n; if (!m.opts[j].off) { menuSel = j; break; } } menuMark(); e.preventDefault(); }
+    else if (e.code === 'ArrowLeft') { menuAim(s, Math.max(-0.85, m.aimX - 0.85)); e.preventDefault(); }
+    else if (e.code === 'ArrowRight') { menuAim(s, Math.min(0.85, m.aimX + 0.85)); e.preventDefault(); }
+    else if (e.code === 'Enter' || e.code === 'NumpadEnter') { menuChoose(s, menuSel); e.preventDefault(); }
+    else if (e.code === 'Backspace') { menuChoose(s, -1); e.preventDefault(); }
+  });
+  function reset() { last = {}; sayCool = 0; const d = $('say'); if (d) d.className = 'say'; pickOn = false; const k = $('pick'); if (k) { k.hidden = true; k.innerHTML = ''; } menuOn = null; menuS = null; const mn = $('menu'); if (mn) { mn.hidden = true; mn.innerHTML = ''; } }
   // Globo de diálogo de un jugador (con su retrato). Sin «force» respeta una pausa entre frases para no saturar.
   function say(ref, name, text, team, force, ms = 2300) {
     const d = $('say'), now = performance.now();
@@ -396,7 +467,7 @@ const UI = (() => {
     clearTimeout(cutT);
     cutT = setTimeout(() => { c.classList.add('out'); if (dim) dim.classList.remove('on'); cutT = setTimeout(() => { c.className = 'cutin'; }, 240); }, ms);
   }
-  return { toast, banner, update, reset, cutin, say, pickSync };
+  return { toast, banner, update, reset, cutin, say, pickSync, menuSync };
 })();
 
 /* =====================================================================
@@ -677,7 +748,7 @@ class MatchScene extends Phaser.Scene {
     const s = App.match;
     if (!s || !this.views.size) return;
     if (App.running) Logic.update(s, Input.read(), Math.min(delta / 1000, 0.05)); else Input.read();
-    UI.pickSync(s);
+    UI.pickSync(s); UI.menuSync(s);
     if (this.views.size !== s.players.length) for (const [id, v] of this.views) if (!s.players.some(p => p.id === id)) v.root.setVisible(false);   // expulsados
     this.drawAura(s, time);
     this.drawLimited(s, time);

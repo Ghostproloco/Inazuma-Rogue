@@ -19,7 +19,7 @@ const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><
 // Igual, con el nivel comprado en la tienda (solo para las técnicas de tu colección)
 const techLineMy = t => { const lv = Shop.techLevel(t.id); return lv > 1 ? techLine(Object.assign({}, t, { power: t.power + SHOP.LV_POWER * (lv - 1), name: t.name + ' · ' + TX('Nv.') + lv })) : techLine(t); };
 
-const VERSION = '0.36.2';
+const VERSION = '0.37.0';
 const DISCORD_URL = 'https://discord.gg/G6SyT2rZW', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 // Jugadores originales de Fran (Goggle Jr., Rosfire, Knack…: «original» en gamedata): ocultos en las versiones públicas,
@@ -27,7 +27,7 @@ const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí e
 if (!BETA && typeof GAME !== 'undefined') GAME.players.forEach(p => { if (p.original) p.gacha = false; });
 const App = (() => {
   const $ = id => document.getElementById(id);
-  const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1, fouls: 1, pickStop: 0 };
+  const settings = { minutes: 3, techMode: 'boton', formation: '1-2-1-1', slowmo: 1, intro: 1, controls: 'auto', autoSwitch: 1, fouls: 1, pickStop: 0, decide: 1 };
   try { Object.assign(settings, JSON.parse(localStorage.getItem('inazuma-ajustes') || '{}')); } catch (_) {}
   const saveSettings = () => { try { localStorage.setItem('inazuma-ajustes', JSON.stringify(settings)); } catch (_) {} };
   // Fuera de la beta no hay modo desarrollador: si alguien lo tenía encendido, se apaga sin avisar
@@ -2871,6 +2871,10 @@ const App = (() => {
   }
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
+    { v: '0.37.0', date: '27/10/2026', items: [
+      TX('🎮 Menús de decisión, como en el Inazuma Eleven de la DS: cuando un rival te sale al paso se para el tiempo y eliges entre regatear, usar una técnica o pasar a un compañero, viendo la probabilidad de que salga bien.'),
+      TX('⚽ Al pulsar Tiro, con la portería cerca, eliges chutar normal, con poder o vaselina (nuevo: pasa por encima del portero si se ha adelantado). Con el rayo (Técnica) eliges la supertécnica que quieres usar.'),
+      TX('🚩 En faltas, saques y penaltis el que saca ya no se mueve: elige pasar (a quién) o chutar. Se puede quitar en Ajustes → Menús de decisión.')] },
     { v: '0.36.2', date: '26/10/2026', items: [
       TX('⚡ Gacha limitado «Tormenta Celestial»: el sobre ahora cuesta 50 tickets, los 4 limitados son mucho más difíciles de conseguir (asegurado a las 200 tiradas) y entran más legendarios y muchísimos jugadores épicos al sobre.'),
       TX('🔥 Los 4 jugadores limitados tienen una nueva ilustración «modo furia».'),
@@ -3194,6 +3198,8 @@ const App = (() => {
       ${opts(TX('Cambio automático de jugador'), 'autoSwitch', [[1, TX('Sí')], [0, TX('No')]])}
             ${opts(TX('Faltas, tarjetas y penaltis'), 'fouls', [[1, TX('Sí')], [0, TX('No')]])}
             ${opts(TX('Elegir jugador con el balón parado'), 'pickStop', [[1, TX('Sí')], [0, TX('No')]])}
+            ${opts(TX('Menús de decisión (el tiempo se para y eliges)'), 'decide', [[1, TX('Sí')], [0, TX('No')]])}
+            <p class="note">${TX('Cuando un rival te sale al paso eliges regate, técnica o pase (con sus probabilidades). Al pulsar Tiro eliges chutar, con poder o vaselina, y con el rayo (Técnica) eliges la supertécnica. En faltas, saques y penaltis el que saca no se mueve: pasa o chuta.')}</p>
             <p class="note">${TX('Con «Elegir jugador», cuando el balón sale, hay falta o penalti, el partido espera y eliges quién saca o a quién controlas.')}</p>
 <h3>${TX('Controles')}</h3>
       ${opts(TX('Botones en pantalla'), 'controls', [['auto', TX('Auto')], ['tactil', TX('Siempre')], ['teclado', TX('Nunca (PC)')]])}
@@ -3222,7 +3228,7 @@ const App = (() => {
       ${settings.dev ? '<button class="ghost" id="toDev">' + TX('🛠 Modo desarrollador') + '</button>' : ''}
       <p class="note">${TX('Inazuma Gold v')}${VERSION} ${TX('· fan game gratuito y no oficial. Inazuma Eleven es de Level-5.')}</p>`);
     $('sPadEd').onclick = () => padEditor(() => { const yy = $('screen').scrollTop; renderSettings(); $('screen').scrollTop = yy; });
-    bindOpts(settings, k => { saveSettings(); if (k === 'controls' || k === 'padSize') Controls.apply(); if (k === 'keys') { const y = $('screen').scrollTop; renderSettings(); $('screen').scrollTop = y; } });
+    bindOpts(settings, k => { saveSettings(); if (k === 'controls' || k === 'padSize') Controls.apply(); if (k === 'decide') Pad.refresh(); if (k === 'keys') { const y = $('screen').scrollTop; renderSettings(); $('screen').scrollTop = y; } });
     body.querySelectorAll('[data-lang]').forEach(b => b.onclick = () => {
       if (b.dataset.lang === I18N.lang) return;
       I18N.set(b.dataset.lang); Sound.sfx('click');
