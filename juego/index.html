@@ -573,6 +573,21 @@ details.tgroup .tracks{margin-top:8px}
 .sv .rar.legendaria{background:linear-gradient(90deg,#e0b030,#2f8a2a);color:#10200a}
 .gcard.legendaria.sv{animation:pop .35s ease-out forwards,svglow 2.2s ease-in-out infinite alternate}
 @keyframes svglow{to{box-shadow:0 0 0 2px #b8ff70,0 0 0 5px #6a4320,0 0 0 6px #e0b030,0 0 24px rgba(150,255,90,.95)}}
+.banner-card.hwcard{background:linear-gradient(90deg,#2a0f38,#6a3412);box-shadow:0 0 0 2px #a8561c,0 0 10px rgba(150,60,200,.55)}
+.hwmap{position:relative;height:640px;margin:8px 0;border:2px solid #3a1446;border-radius:12px;overflow:hidden;background:radial-gradient(circle at 50% 4%,rgba(255,220,140,.38),transparent 26%),linear-gradient(#150a22,#2a1236 55%,#0e1a14)}
+.hwmap svg{position:absolute;inset:0;width:100%;height:100%}
+.hwmap polyline{fill:none;stroke:#a8561c;stroke-width:3;stroke-dasharray:6 6;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.85}
+.hwmap .hwdec{position:absolute;font-size:26px;opacity:.5;pointer-events:none}
+.hwnode{position:absolute;transform:translate(-50%,-50%);width:104px;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;color:#f3d9c0;font-family:var(--font-ui);cursor:pointer;text-align:center;padding:0}
+.hwnode .crest{width:58px;height:58px;border-radius:50%;border:3px solid #6a5a78;background:#241632;box-sizing:border-box;padding:4px;object-fit:contain}
+.hwnode.now .crest{border-color:#ffb03a;box-shadow:0 0 0 3px rgba(255,176,58,.4),0 0 16px #ff8a1a;animation:hwpulse 1.1s infinite alternate}
+.hwnode.done .crest{border-color:#5ec46a}
+.hwnode.lock{opacity:.55;filter:grayscale(.8)}
+.hwnode.boss .crest{width:72px;height:72px;border-color:#c0392b;box-shadow:0 0 14px rgba(220,40,40,.6)}
+.hwnode b{font-size:12px;font-weight:400;text-shadow:0 1px 2px #000;line-height:1.1}
+.hwnode small{font-size:10px;color:#ffd9a0}
+.hwnode .hwst{position:absolute;top:-6px;right:14px;font-style:normal;font-size:18px}
+@keyframes hwpulse{to{transform:scale(1.08)}}
 .banner-card.svcard{background:linear-gradient(90deg,#1f4a22,#5a3a1a);box-shadow:0 0 0 2px #e0b030,0 0 10px rgba(80,200,60,.5)}
 .svleg{border-color:#e0b030}.svleg.own{box-shadow:0 0 8px rgba(80,200,60,.8)}
 /* Cadena Leyenda: marco dorado y blanco con «LEYENDA» (Willy Glass LEYENDA; la corona va en su muñeco y su foto) */
@@ -1146,6 +1161,7 @@ const EN_TEXT = {
   'Amigo': 'Friend',
   'Amigos y rivales': 'Friends and rivals',
   'Antes de traer la partida': 'Before bringing the save over',
+  'Antes tienes que ganar al equipo anterior': 'You have to beat the previous team first',
   'Aprende una supertécnica en {0} semana': 'Learn a special move in {0} week',
   'Aprende una supertécnica en {0} semanas': 'Learn a special move in {0} weeks',
   'Aprende una supertécnica nueva practicándola': 'Learn a new special move by practising it',
@@ -1254,6 +1270,7 @@ const EN_TEXT = {
   'Canjeados': 'Redeemed',
   'Canjear': 'Redeem',
   'Cantar con ganas': 'Sing your heart out',
+  'Caos': 'Chaos',
   'Capitán por un día': 'Captain for a day',
   'Cara y peinado': 'Face and hairstyle',
   'Cara y peinado {0} 🪙 · pelo {1} · piel {2} · botas {3} · dorsal {4}': 'Face and hairstyle {0} 🪙 · hair {1} · skin {2} · boots {3} · number {4}',
@@ -1412,6 +1429,7 @@ const EN_TEXT = {
   'Del gacha': 'From the gacha',
   'Delantero': 'Forward',
   'Demasiados intentos seguidos. Espera un poco y vuelve a probar.': 'Too many attempts in a row. Wait a moment and try again.',
+  'Demons Z': 'Demons Z',
   'Derecha': 'Right',
   'Derrota': 'Defeat',
   'Desafío elemental': 'Elemental Challenge',
@@ -1440,7 +1458,6 @@ const EN_TEXT = {
   'Directa': 'Direct',
   'Diseño': 'Design',
   'Diseños nuevos': 'New designs',
-  'Diseños raros y 6 legendarios de evento · hasta el miércoles': 'Weird designs and 6 event legendaries · until Wednesday',
   'Disponible hasta la semana': 'Available until week',
   'División': 'Division',
   'División ·': 'Division ·',
@@ -1536,6 +1553,7 @@ const EN_TEXT = {
   'Eliminatoria: si hay empate, penaltis': 'Knockout: penalties if it\'s a draw',
   'Empate': 'Draw',
   'Empate con {0}: esto no ha terminado.': 'A draw with {0}: this isn\'t over.',
+  'Emperadores Oscuros': 'Dark Emperors',
   'Emperadores Oscuros - El campo del trueno': 'Dark Emperors - The Thunder Pitch',
   'Empezar': 'Start',
   'Empezar carrera': 'Start career',
@@ -1654,10 +1672,12 @@ const EN_TEXT = {
   'Evento de Navidad forzado': 'Christmas event forced on',
   'Evento de Navidad según la fecha': 'Christmas event by date',
   'Evento reiniciado': 'Event reset',
+  'Evento: mapa de equipos tenebrosos y 6 legendarios de miedo': 'Event: a map of spooky teams and 6 scary legendaries',
   'Evolucionar': 'Evolve',
   'Evolución': 'Evolution',
   'Exorcista': 'Exorcist',
   'Exorcista del día': 'Exorcist of the day',
+  'Explorador de la noche': 'Night explorer',
   'Falta': 'Foul',
   'Falta del rival': 'Foul by the rival',
   'Falta del rival: ¡penalti para ti!': 'Foul by the rival: penalty for you!',
@@ -1670,6 +1690,7 @@ const EN_TEXT = {
   'Faltas, tarjetas y penaltis': 'Fouls, cards and penalties',
   'Fama': 'Fame',
   'Fama y forma al 100': 'Fame and form at 100',
+  'Fantasmas del Brocken': 'Brocken Ghosts',
   'Fase de grupos': 'Group stage',
   'Fase de grupos · partido': 'Group stage · match',
   'Fase de grupos · partido {0}': 'Group stage · match {0}',
@@ -1715,9 +1736,12 @@ const EN_TEXT = {
   'Gana': 'Win',
   'Gana 10 partidos': 'Win 10 matches',
   'Gana 100 partidos': 'Win 100 matches',
+  'Gana 2 partidos del mapa hoy': 'Win 2 map matches today',
   'Gana 2 partidos hoy': 'Win 2 matches today',
   'Gana 3 retos 1 contra 1': 'Win 3 one-on-one challenges',
   'Gana 500 partidos': 'Win 500 matches',
+  'Gana a 8 equipos de miedo, uno tras otro': 'Beat 8 scary teams, one after another',
+  'Gana a cada equipo para abrir el siguiente (el empate no cuenta). La primera vez que lo superas cobras su premio, y el último regala un legendario del evento. Puedes repetir los niveles: los caramelos de siempre (+5 por partido, +10 si ganas) se cobran igual.': 'Beat each team to unlock the next (a draw doesn\'t count). The first time you clear one you get its prize, and the last one gives an event legendary. You can replay levels: the usual candy (+5 per match, +10 if you win) still applies.',
   'Gana al Alpino jefe': 'Beat the boss Alpine',
   'Gana al Ocultismo jefe': 'Beat the Occult boss',
   'Gana el Balón de Oro con tu jugador': 'Win the Ballon d\'Or with your player',
@@ -1760,6 +1784,7 @@ const EN_TEXT = {
   'Gánale: +60 ❄️ (una vez al día)': 'Beat them: +60 ❄️ (once a day)',
   'Gánale: +60 🍬 (una vez al día)': 'Beat them: +60 🍬 (once a day)',
   'Géminis - El balón negro': 'Gemini - The Black Ball',
+  'Génesis': 'Genesis',
   'Génesis - El equipo G': 'Genesis - Team G',
   'Génesis - Los superhumanos': 'Genesis - The Superhumans',
   'Habilidad': 'Skill',
@@ -1773,6 +1798,7 @@ const EN_TEXT = {
   'Hasta 32 equipos de las 3 divisiones, a partido único (con penaltis si hay empate). Ganarla da dinero, fama y': 'Up to 32 teams from the 3 divisions, single-leg ties (penalties if it\'s a draw). Winning it gives money, fame and',
   'Hay dos versiones distintas de tu partida.': 'There are two different versions of your save.',
   'Hay otra versión de tu partida en la nube. Resuélvelo antes de salir.': 'There\'s another version of your save in the cloud. Sort it out before leaving.',
+  'Hay que ganar para avanzar: el empate no cuenta.': 'You must win to advance: a draw doesn\'t count.',
   'Hay teclas repetidas (en rojo): cámbialas para que cada una haga una sola cosa.': 'Some keys are repeated (in red): change them so each one does only one thing.',
   'Haz 100 tiradas en el gacha': 'Do 100 gacha pulls',
   'Haz 20 tiradas del Sobre Calabaza': 'Do 20 Pumpkin Pack pulls',
@@ -1811,7 +1837,6 @@ const EN_TEXT = {
   'Instituto Inazuma': 'Inazuma School',
   'Instituto Ocultismo': 'Occult',
   'Intro': 'Intro',
-  'Intro al abrir el juego': 'Intro when opening the game',
   'Invasión Alius': 'Alius Invasion',
   'Invitado · tu partida solo está en este móvil.': 'Guest · your save is only on this device.',
   'Ir a la cena': 'Go to the dinner',
@@ -1827,7 +1852,6 @@ const EN_TEXT = {
   'Izquierda': 'Left',
   'Japón': 'Japan',
   'Jefe de la oleada {0} del Infinito: elige una versión': 'Endless wave {0} boss: choose a version',
-  'Jim de Halloween (épico especial) de regalo': 'Halloween Jim (special epic) as a gift',
   'Jornada': 'Matchday',
   'Jornada de descanso': 'Rest week',
   'Jornada {0} de {1}': 'Matchday {0} of {1}',
@@ -1935,6 +1959,7 @@ const EN_TEXT = {
   'Logro conseguido: {0}': 'Achievement unlocked: {0}',
   'Logros': 'Achievements',
   'Logros reiniciados': 'Achievements reset',
+  'Los Ogros': 'The Ogres',
   'Los botones están en Ajustes.': 'The buttons are in Settings.',
   'Los chavales te miran como a un héroe.': 'The kids look at you like a hero.',
   'Los clubes fichan entre ellos en verano (al acabar la temporada) y en invierno (semana {0}).': 'Clubs sign players from each other in the summer (at the end of the season) and in the winter (week {0}).',
@@ -2072,6 +2097,8 @@ const EN_TEXT = {
   'No tienes tickets suficientes': 'You don\'t have enough tickets',
   'No, me centro en jugar': 'No, I\'m focusing on playing',
   'No, que': 'No, let',
+  'Noche Tenebrosa': 'Spooky Night',
+  'Noche Tenebrosa: el mapa': 'Spooky Night: the map',
   'Noche de partidos': 'Match night',
   'Noche épica con {0}: ahora sois amigos. El lunes cuesta…': 'Epic night with {0}: you\'re friends now. Monday is tough…',
   'Noche épica. El lunes cuesta…': 'Epic night. Monday is tough…',
@@ -2345,6 +2372,7 @@ const EN_TEXT = {
   'Rumbo al mundo': 'Heading for the world',
   'Rumores de fichaje': 'Transfer rumours',
   'Récord: {0} de 15 · intentos: {1}': 'Record: {0} of 15 · attempts: {1}',
+  'Sael de Halloween (épico especial) de regalo': 'Halloween Sael (special epic) as a gift',
   'Sale en el marcador de tus partidos (Historia, Equipos especiales, Cadenas e Infinito)': 'Shown on the scoreboard of your matches (Story, Special teams, Chains and Infinite)',
   'Salir al menú': 'Back to menu',
   'Salir del modo': 'Leave the mode',
@@ -2396,6 +2424,7 @@ const EN_TEXT = {
   'Si sales sin elegir, lo tienes en 🎁 Código de regalo.': 'If you leave without choosing, it waits in 🎁 Gift code.',
   'Siempre': 'Always',
   'Sigues con {0} ({1}/{2})': 'Keep going with {0} ({1}/{2})',
+  'Siguiente nivel ▶': 'Next level ▶',
   'Siguiente ronda: ': 'Next round: ',
   'Siguiente: elegir club': 'Next: choose a club',
   'Simulación': 'Simulation',
@@ -2685,6 +2714,7 @@ const EN_TEXT = {
   'Volver a los sobres normales': 'Back to the normal packs',
   'Volver al club': 'Back to the club',
   'Volver al del Raimon': 'Back to Raimon\'s',
+  'Volver al mapa': 'Back to the map',
   'Volver al menú': 'Back to menu',
   'Vuelve a esta pestaña y toca': 'Come back to this tab and tap',
   'Vuelve mañana a por el siguiente premio.': 'Come back tomorrow for the next prize.',
@@ -2697,6 +2727,7 @@ const EN_TEXT = {
   'Ya está al máximo.': 'Already maxed out.',
   'Ya está en tu club': 'Already in your club',
   'Ya estás graduado': 'You\'ve already graduated',
+  'Ya habías superado este nivel.': 'You had already cleared this level.',
   'Ya has comprado los 10 tickets de hoy. ¡Vuelve mañana!': 'You\'ve bought today\'s 10 tickets. Come back tomorrow!',
   'Ya has hecho la actividad de esta semana.': 'You\'ve already done this week\'s activity.',
   'Ya hay una cuenta con ese correo de otra forma.': 'There\'s already an account with that email using another login method.',
@@ -2789,6 +2820,7 @@ const EN_TEXT = {
   'entrar, pero la plantilla está llena: ahora eliges si haces hueco.': 'join, but the squad is full: now you choose whether to make room.',
   'equipos': 'teams',
   'equipos rivales': 'rival teams',
+  'equipos vencidos': 'teams beaten',
   'esprint': 'sprint',
   'esprint ·': 'sprint ·',
   'evoluciona a ': 'evolves into ',
@@ -3000,6 +3032,7 @@ const EN_TEXT = {
   '{0} se va cabizbajo.': '{0} walks off, head down.',
   '{0} será el capitán. Te lo agradece.': '{0} will be captain. He thanks you.',
   '{0} te gana el reto. El míster se ha enterado…': '{0} wins the challenge. The coach has heard about it…',
+  '{0} te ha asustado…': '{0} gave you a scare…',
   '{0} te lo agradece: ahora sois amigos.': '{0} is grateful: you\'re friends now.',
   '{0} te lo agradece: ya no sois rivales.': '{0} appreciates it: you\'re no longer rivals.',
   '{0} te pide que te quedes a entrenar con él después de la sesión.': '{0} asks you to stay and train with him after the session.',
@@ -3057,6 +3090,7 @@ const EN_TEXT = {
   '¡Gracias por unirte! +10 tickets 🎟️': 'Thanks for joining! +10 tickets 🎟️',
   '¡Hacia el infinito!': 'To infinity!',
   '¡Has aprendido {0}!': 'You\'ve learned {0}!',
+  '¡Has vencido a {0}!': 'You beat {0}!',
   '¡Has vencido al Alpino!': 'You beat Alpine!',
   '¡Has vencido al Ocultismo!': 'You beat Occult!',
   '¡Hola, ': 'Hi, ',
@@ -3070,6 +3104,7 @@ const EN_TEXT = {
   '¡Medio millón de personas mirando! +2 🎟️.': 'Half a million people watching! +2 🎟️.',
   '¡NUEVO JUGADOR!': 'NEW PLAYER!',
   '¡NUEVO!': 'NEW!',
+  '¡Nivel superado!': 'Level cleared!',
   '¡Nivel {0}!': 'Level {0}!',
   '¡Nueva técnica: {0}! Equípala en Plantilla': 'New technique: {0}! Equip it in Squad',
   '¡Nueva versión!': 'New version!',
@@ -3087,6 +3122,7 @@ const EN_TEXT = {
   '¡Pasáis a semifinales!': 'Through to the semi-finals!',
   '¡Penalti!': 'Penalty!',
   '¡Premio del día {0}!': 'Day {0} prize!',
+  '¡Premio del mapa!': 'Map prize!',
   '¡Premio recogido!': 'Reward collected!',
   '¡Premios recogidos!': 'Rewards collected!',
   '¡Pásamela!': 'Pass it!',
@@ -3185,6 +3221,7 @@ const EN_TEXT = {
   '¿Y mis botas?': 'Where are my boots?',
   'Ábrelo en el otro dispositivo y se carga solo': 'Open it on the other device and it loads by itself',
   'Álbum completo': 'Album complete',
+  'Ángeles Caídos': 'Fallen Angels',
   'Épica': 'Epic',
   'Épica asegurada': 'Guaranteed epic',
   'Épica o mejor asegurada cada 10 tiradas (llevas': 'Epic or better guaranteed every 10 pulls (you\'re on',
@@ -3199,7 +3236,6 @@ const EN_TEXT = {
   '⌨️ Ordenador': '⌨️ Computer',
   '⌨️ Ordenador: al cambiar de pestaña o de ventana ya no se quedan teclas «pulsadas» al volver al partido.': '⌨️ Computer: switching tabs or windows no longer leaves keys "stuck" when you return to the match.',
   '▶ Ir a la web oficial': '▶ Go to the official website',
-  '▶ Ver la intro': '▶ Watch the intro',
   '☁️ Guardar ahora': '☁️ Save now',
   '☁️ La de la nube': '☁️ The cloud one',
   '♥ −1 vida': '♥ −1 life',
@@ -3273,7 +3309,9 @@ const EN_TEXT = {
   '🎁 Recoger el premio del día {0}': '🎁 Claim the day {0} prize',
   '🎁 Recoger todo': '🎁 Collect all',
   '🎁 Regalo diario:': '🎁 Daily gift:',
+  '🎁 Ver el premio': '🎁 See the prize',
   '🎁 regalo': '🎁 gift',
+  '🎃 El Sobre Calabaza trae 5 legendarios nuevos con retrato de miedo (Astaroth, Bump Trungus, Bellatrix, Oni Triumvir y Gaiel) además de Lancer, y el épico del día 5 ahora es Sael. Ahora se entra desde el Gacha.': '🎃 The Pumpkin Pack brings 5 new legendaries with scary portraits (Astaroth, Bump Trungus, Bellatrix, Oni Triumvir and Gaiel) as well as Lancer, and the day-5 epic is now Sael. You now enter from the Gacha.',
   '🎃 Evento forzado: NO': '🎃 Event forced: NO',
   '🎃 Evento forzado: SÍ': '🎃 Event forced: YES',
   '🎃 Legendarios de Halloween': '🎃 Halloween legendaries',
@@ -3320,6 +3358,7 @@ const EN_TEXT = {
   '👥 Alineación (10 convocados · 2 equipos)': '👥 Line-up (10 called up · 2 teams)',
   '👥 Plantilla': '👥 Squad',
   '👥 Tu equipo': '👥 Your team',
+  '👻 El evento de miedo cambia por completo: nuevo mapa «Noche Tenebrosa» con 8 equipos tenebrosos, cada uno más difícil. Gana para abrir el siguiente, cobra premios y, al vencer al último, llévate un legendario del evento.': '👻 The scary event changes completely: a new "Spooky Night" map with 8 spooky teams, each harder than the last. Win to unlock the next, collect prizes and, after beating the last one, take home an event legendary.',
   '💀 Una derrota y fuera: la Cadena Leyenda vuelve a empezar desde el partido 1': '💀 One defeat and you\'re out: the Legend Chain starts again from match 1',
   '💀 Una derrota y vuelves a empezar desde el partido 1.': '💀 One defeat and you start again from match 1.',
   '💎 ¡Cadena perfecta sin perder vidas! +5 🎟️': '💎 Perfect chain without losing a life! +5 🎟️',
@@ -3400,6 +3439,7 @@ const EN_TEXT = {
   '🧤 Porteros más listos: si hay otro atacante libre para el pase, no salen a lo loco, y cuando el rival pasa vuelven corriendo a tapar la portería.': '🧤 Smarter goalkeepers: if another attacker is free for the pass, they don\'t rush out blindly, and when the opponent passes they sprint back to cover the goal.',
   '🧱 Probar bloqueos de tiro': '🧱 Test shot blocks',
   '🧹 Arion, Victor, Riccardo y Bai Long ya no están en el juego.': '🧹 Arion, Victor, Riccardo and Bai Long are no longer in the game.',
+  '🧹 Se quitan el Sobre Selva, la intro al abrir el juego y lo de Halloween del menú principal.': '🧹 The Jungle Pack, the intro when opening the game and the Halloween stuff on the main menu are gone.',
   '🪑 Al banquillo': '🪑 To the bench',
 };
 I18N.applyData();
@@ -8313,36 +8353,57 @@ const HW_BOSS_AVG = 85, HW_BOSS_STAR = 93;   // media del Ocultismo jefe y de su
 const HW_DAILY = 20, HW_BOSS = 60, HW_MATCH = 5, HW_WIN = 10;
 
 // Legendarios exclusivos: versión Halloween de jugadores reales (mismo aspecto, stats de legendario)
+// Evento rehecho el 28 oct: Lancer se queda y entran 5 nuevos. face = fila de su retrato de miedo en sprites/fhw.png
 const HW_LEGENDS = [
-  { id: 996001, base: 30037, extra: 'Tiro fantasma' },   // Johan Tassman
-  { id: 996002, base: 36 },                              // Nathan Jones
-  { id: 996003, base: 32025 },                           // Destra
-  { id: 996004, base: 32018 },                           // Hebimos
-  { id: 996005, base: 32001 },                           // Bash Lancer
-  { id: 996006, base: 21399 },                           // Zohen (DF, añadido el 22 oct)
+  { id: 996005, base: 32001, face: 4 },    // Bash Lancer (DL)
+  { id: 996011, base: 32015, face: 7 },    // Astaroth (PT)
+  { id: 996012, base: 31995, face: 8 },    // Bump Trungus (DF)
+  { id: 996013, base: 1405, face: 9 },     // Bellatrix (MD)
+  { id: 996014, base: 31996, face: 10 },   // Oni Triumvir (MD)
+  { id: 996015, base: 32013, face: 11 },   // Gaiel (DL)
 ];
-// Épico especial (premio del día 5): Jim (Oscuro) con retrato de evento y la mejor media de los épicos
-const HW_EPIC = { id: 996007, base: 21583, mean: 86, face: 6 };
+// Los de la primera versión del evento: ya no salen en el sobre, pero se registran para que quien los consiguió los conserve
+const HW_OLD = [
+  { id: 996001, base: 30037, extra: 'Tiro fantasma', face: 0 },   // Johan Tassman
+  { id: 996002, base: 36, face: 1 },                              // Nathan Jones
+  { id: 996003, base: 32025, face: 2 },                           // Destra
+  { id: 996004, base: 32018, face: 3 },                           // Hebimos
+  { id: 996006, base: 21399, face: 5 },                           // Zohen
+];
+// Épico especial (premio del día 5): Sael con retrato de evento y la mejor media de los épicos (antes era Jim, que sigue registrado)
+const HW_EPIC = { id: 996016, base: 32014, mean: 86, face: 12 };
+const HW_EPIC_OLD = { id: 996007, base: 21583, mean: 86, face: 6 };
+// Mapa de la Noche Tenebrosa: 8 equipos de miedo, cada uno más difícil. Hay que ganar para avanzar; el premio es la primera vez que ganas
+const HW_MAP = [
+  { team: 'Occult', name: TX('Instituto Ocultismo'), avg: 68, reward: { candy: 20, tickets: 1 } },
+  { team: 'The Ogre', name: TX('Los Ogros'), avg: 72, reward: { candy: 25, tickets: 2 } },
+  { team: 'Caos', name: TX('Caos'), avg: 76, reward: { candy: 30, tickets: 2, coins: 500 } },
+  { team: 'Demons Z', name: TX('Demons Z'), avg: 80, reward: { candy: 40, tickets: 3 } },
+  { team: 'Brocken Bogue', name: TX('Fantasmas del Brocken'), avg: 84, reward: { candy: 50, tickets: 3, coins: 1000 } },
+  { team: 'Dark Angel', name: TX('Ángeles Caídos'), avg: 87, reward: { candy: 60, tickets: 4 } },
+  { team: 'Génesis', name: TX('Génesis'), avg: 90, reward: { candy: 80, tickets: 5, coins: 1500 } },
+  { team: 'Emperadores Oscuros', name: TX('Emperadores Oscuros'), avg: 93, boss: true, reward: { candy: 150, tickets: 10, coins: 3000, legend: true } },
+];
 (function registerHalloween() {
   if (typeof GAME === 'undefined') return;
   const reg = (p, list) => { if (PBY[p.id]) return; if (list) GAME.players.push(p); PBY[p.id] = p; };
   const KEYS = ['tiro', 'control', 'defensa', 'rapidez', 'fisico'];
-  HW_LEGENDS.forEach((L, i) => {
+  HW_LEGENDS.concat(HW_OLD).forEach(L => {
     const b = PLAYER(L.base); if (!b) return;
     const mean = KEYS.reduce((t, k) => t + b.ie[k], 0) / KEYS.length, f = 93 / mean, ie = {};
     for (const k in b.ie) ie[k] = Math.min(99, Math.round(b.ie[k] * f));
     const moves = (b.moves || []).map(m => m.slice());
     if (L.extra) { const t = Object.values(GAME.techniques).find(x => x.name === L.extra && x.id < 30000); if (t && !moves.some(m => m[0] === t.id)) moves.unshift([t.id, 1]); }
-    reg(Object.assign({}, b, { id: L.id, full: b.full + ' (Halloween)', rarity: 'legendaria', ie, ie0: undefined, moves, gacha: false, banner: null, halloween: true, hwFace: i, hwBase: L.base }), true);
+    reg(Object.assign({}, b, { id: L.id, full: b.full + ' (Halloween)', rarity: 'legendaria', ie, ie0: undefined, moves, gacha: false, banner: null, halloween: true, hwFace: L.face, hwBase: L.base }), true);
   });
-  { const b = PLAYER(HW_EPIC.base);
+  [HW_EPIC, HW_EPIC_OLD].forEach(E => { const b = PLAYER(E.base);
     if (b) {
-      const mean = KEYS.reduce((t, k) => t + b.ie[k], 0) / KEYS.length, f = HW_EPIC.mean / mean, ie = {};
+      const mean = KEYS.reduce((t, k) => t + b.ie[k], 0) / KEYS.length, f = E.mean / mean, ie = {};
       for (const k in b.ie) ie[k] = Math.min(99, Math.round(b.ie[k] * f));
-      reg(Object.assign({}, b, { id: HW_EPIC.id, full: b.full.replace(/ \(Oscuro\)$/, '') + ' (Halloween)', rarity: 'epica', ie, ie0: undefined, moves: (b.moves || []).map(m => m.slice()),
-        gacha: false, banner: null, halloween: true, hwFace: HW_EPIC.face, hwBase: HW_EPIC.base }), true);
+      reg(Object.assign({}, b, { id: E.id, full: b.full.replace(/ \(Oscuro\)$/, '') + ' (Halloween)', rarity: 'epica', ie, ie0: undefined, moves: (b.moves || []).map(m => m.slice()),
+        gacha: false, banner: null, halloween: true, hwFace: E.face, hwBase: E.base }), true);
     }
-  }
+  });
   // Ray Dark: solo como mánager (retrato propio: juego/ui/raydark.png); no entra en las listas de jugadores
   reg({ id: RAY_DARK, name: 'Ray Dark', full: 'Ray Dark', role: 'MED', elem: 'neutro', rarity: 'legendaria', faceImg: 'ui/raydark.png', ie: { tiro: 50, control: 50, defensa: 50, rapidez: 50, fisico: 50, aguante: 50 }, moves: [], gacha: false, halloween: true });
 })();
@@ -8354,7 +8415,7 @@ const Halloween = {
   daysLeft() { const end = new Date(HW_END + 'T23:59:59'); return Math.max(0, Math.ceil((end - new Date()) / 86400000)); },
   data() {
     const P = Profile.data;
-    const D = { candy: 0, pulls: 0, pity: 0, daily: null, boss: null, bossWins: 0, matches: 0, retos: {}, legends: 0, ray: false };
+    const D = { candy: 0, pulls: 0, pity: 0, daily: null, boss: null, bossWins: 0, matches: 0, retos: {}, legends: 0, ray: false, map: 0, mapWins: 0 };
     const H = P.hw = P.hw || {};
     for (const k in D) if (H[k] === undefined) H[k] = D[k];
     return H;
@@ -8383,6 +8444,25 @@ const Halloween = {
   bossTeam() {
     const mean = pd => ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + pd.ie[k], 0) / 5;
     return rivalTeam('Occult', pd => (pd.id === 44 ? HW_BOSS_STAR : HW_BOSS_AVG) / mean(pd), 1);
+  },
+
+  // Equipo de un nivel del mapa: el rival de siempre con la media del nivel
+  stageTeam(i) { const st = HW_MAP[i]; return rivalTeam(st.team, pd => st.avg / this.avgOf(pd), 1); },
+  // Al acabar un partido del mapa. Solo se avanza ganando; el premio se cobra la primera vez que superas el nivel
+  mapResult(i, won) {
+    const H = this.data(), P = Profile.data, st = HW_MAP[i], out = { won, first: false, reward: null, players: [] };
+    if (!won || !st) return out;
+    H.mapWins++; const T = this.dayData(); T.map = (T.map || 0) + 1;
+    if (i === H.map) {
+      H.map++; out.first = true; out.reward = st.reward;
+      H.candy += st.reward.candy || 0; P.tickets += st.reward.tickets || 0; P.coins += st.reward.coins || 0;
+      if (st.reward.legend) {   // el jefe final regala un legendario del evento (uno que no tengas, si queda alguno)
+        const all = HW_LEGENDS.map(L => L.id).filter(id => PLAYER(id)), free = all.filter(id => !P.coll[id]), list = free.length ? free : all;
+        out.players.push(this.give(list[Math.floor(Math.random() * list.length)]));
+        H.legends = HW_LEGENDS.filter(L => P.coll[L.id]).length;
+      }
+    }
+    Profile.save(); return out;
   },
 
   /* ---------- Sobre Calabaza ---------- */
@@ -8438,10 +8518,11 @@ const Halloween = {
     { id: 'd_win', name: TX('Victoria de ultratumba'), desc: TX('Gana 2 partidos hoy'), goal: 2, val: T => T.wins, reward: { candy: 35, tickets: 2 } },
     { id: 'd_pull', name: TX('Caramelo o susto'), desc: TX('Haz 3 tiradas del Sobre Calabaza hoy'), goal: 3, val: T => T.pulls, reward: { candy: 20, tickets: 3 } },
     { id: 'd_boss', name: TX('Exorcista del día'), desc: TX('Gana hoy al Ocultismo jefe'), goal: 1, val: T => T.boss, reward: { candy: 20, tickets: 2 } },
+    { id: 'd_map', name: TX('Explorador de la noche'), desc: TX('Gana 2 partidos del mapa hoy'), goal: 2, val: T => T.map || 0, reward: { candy: 30, tickets: 2 } },
   ],
   dayData() {
     const H = this.data(), t = this.today();
-    if (!H.day || H.day.date !== t) H.day = { date: t, matches: 0, wins: 0, pulls: 0, boss: 0, got: {} };
+    if (!H.day || H.day.date !== t) H.day = { date: t, matches: 0, wins: 0, pulls: 0, boss: 0, map: 0, got: {} };
     return H.day;
   },
   dailyState(R) { const T = this.dayData(); return T.got[R.id] ? 'got' : R.val(T) >= R.goal ? 'ready' : 'locked'; },
@@ -8459,7 +8540,7 @@ const Halloween = {
     { tickets: 10, label: TX('10 tickets'), icon: '🎟️' },
     { coins: 1000, label: TX('1000 monedas'), icon: '🪙' },
     { pick: true, label: TX('Elige 1 de 3 jugadores de +80'), icon: '⭐' },
-    { player: HW_EPIC.id, label: TX('Jim de Halloween (épico especial) de regalo'), icon: '🎁' },
+    { player: HW_EPIC.id, label: TX('Sael de Halloween (épico especial) de regalo'), icon: '🎁' },
   ],
   login() { const H = this.data(); H.login = H.login || { n: 0, last: null, pick: null }; return H.login; },
   loginReady() { const L = this.login(); return this.active() && L.n < this.LOGIN.length && L.last !== this.today(); },
@@ -9112,7 +9193,7 @@ const SV_ROLE_KEYS = { POR: ['defensa', 'fisico'], DEF: ['defensa', 'fisico'], M
 const Selva = {
   get forced() { return typeof Halloween !== 'undefined' && Halloween.forced; },   // la beta lo enseña siempre
   today() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); },
-  active() { if (this.forced) return true; const t = this.today(); return t >= SV_START && t <= SV_END; },
+  active() { return false; },   // el Sobre Selva se quitó (28 oct): no sale más; los legendarios que ya tengas siguen siendo tuyos
   daysLeft() { const end = new Date(SV_END + 'T23:59:59'); return Math.max(0, Math.ceil((end - new Date()) / 86400000)); },
   data() { const P = Profile.data, S = P.sv = P.sv || {}; if (S.pity == null) S.pity = 0; if (S.pulls == null) S.pulls = 0; return S; },
   legends() { return SV_LEGENDS.map(L => PLAYER(L.id)).filter(Boolean); },
@@ -12071,7 +12152,7 @@ const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><
 // Igual, con el nivel comprado en la tienda (solo para las técnicas de tu colección)
 const techLineMy = t => { const lv = Shop.techLevel(t.id); return lv > 1 ? techLine(Object.assign({}, t, { power: t.power + SHOP.LV_POWER * (lv - 1), name: t.name + ' · ' + TX('Nv.') + lv })) : techLine(t); };
 
-const VERSION = '0.37.0';
+const VERSION = '0.38.0';
 const DISCORD_URL = 'https://discord.gg/G6SyT2rZW', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 // Jugadores originales de Fran (Goggle Jr., Rosfire, Knack…: «original» en gamedata): ocultos en las versiones públicas,
@@ -12178,7 +12259,6 @@ const App = (() => {
       </div>
       <div class="title nm-title"><img class="logo" id="logo" src="ui/logo_gold.png" alt="Inazuma Gold"><span>${TX('5 contra 5 · roguelite')}</span></div>${wallet()}
       ${Leyenda.active() ? lyMenuBtn() : ''}
-      ${Halloween.active() ? hwMenuBtn() : ''}
       ${Navidad.active() ? xmMenuBtn() : Navidad.upcoming() ? xmSoonBtn() : ''}
       ${Limitado.active() ? lmMenuBtn() : ''}
       ${open.map(r => `<button class="cta" data-cont="${r.kind}">${TX('Continuar:')} ${esc(r.name)}<small>${TX('Partido')} ${r.index + 1}${r.kind === 'infinite' ? '' : TX(' de ') + r.schedule.length} · ${'♥'.repeat(r.lives)}</small></button>`).join('')}
@@ -12247,7 +12327,7 @@ const App = (() => {
     if ($('mXm')) $('mXm').onclick = renderNavidad;
     if ($('mXmSoon')) $('mXmSoon').onclick = renderNavidadSoon;
     if ($('mLm')) $('mLm').onclick = renderLimitado;
-    if (Navidad.active()) xmDecor(); else if (Halloween.active()) hwDecor();   // el menú lleva el tema del evento activo (niebla y calabazas, o nieve)
+    if (Navidad.active()) xmDecor();   // el menú lleva el tema de Navidad (nieve) cuando está activa
     if (settings.seenNews === VERSION || settings.newsShown === VERSION) setTimeout(aviso, 500);
     Sound.music('menu');
   }
@@ -12446,11 +12526,11 @@ const App = (() => {
       ${TX('Épica o mejor asegurada cada 10 tiradas (llevas')} ${P.pity} ${TX('de 10). Los repetidos suben una estrella (máx.')} ${MAX_STARS}${TX('); con 5 estrellas, o una técnica repetida, dan monedas.')}</p>
       <p class="note">${TX('Tickets: Historia (1 por victoria y 3 al completarla), Especiales (2), Cadenas (2 al completarlas) e Infinito (2 por oleada especial).')}</p>
       ${bottom(`<div class="grid2"><button class="cta" id="g1" ${P.tickets < 1 ? 'disabled' : ''}>${TX('Tirar ×1')}<small>${TX('1 ticket')}</small></button><button class="cta" id="g10" ${P.tickets < 10 ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${TX('10 tickets')}</small></button></div>`)}`, 'bg_green');
-    if (Selva.active()) {   // Sobre Selva (evento): tarjeta destacada arriba
-      const el = document.createElement('button'); el.className = 'banner-card svcard';
-      el.innerHTML = `${Sprites.crest(4104)}<span class="mt"><b>🍃 ${TX('Sobre Selva')}</b><small>${TX('Diseños raros y 6 legendarios de evento · hasta el miércoles')}</small><span class="legs"></span></span>`;
-      Selva.legends().forEach(p => el.querySelector('.legs').appendChild(face(Sprites.refOf(p), 32)));
-      el.onclick = () => { P.banner = SV_BANNER; Profile.save(); Sound.sfx('click'); renderGacha(); };
+    if (Halloween.active()) {   // Evento (Noche Tenebrosa): tarjeta destacada arriba; el menú ya no lleva nada de Halloween
+      const el = document.createElement('button'); el.className = 'banner-card hwcard';
+      el.innerHTML = `${Sprites.crest(3)}<span class="mt"><b>🎃 ${TX('Sobre Calabaza')}</b><small>${TX('Evento: mapa de equipos tenebrosos y 6 legendarios de miedo')}</small><span class="legs"></span></span>`;
+      HW_LEGENDS.map(L => PLAYER(L.id)).filter(Boolean).forEach(p => el.querySelector('.legs').appendChild(face(Sprites.refOf(p), 32)));
+      el.onclick = () => { Sound.sfx('click'); renderHalloween(); };
       $('bn').appendChild(el);
     }
     if (Limitado.active()) {
@@ -12691,6 +12771,7 @@ const App = (() => {
       <div class="hwlogin">${Halloween.LOGIN.map((R, i) => { const L = Halloween.login(), st = i < L.n ? 'got' : i === L.n && Halloween.loginReady() ? 'ready' : 'locked';
         return `<div class="hwday ${st}"><small>${TX('Día {0}', i + 1)}</small><span>${st === 'got' ? '✓' : R.icon}</span><small>${esc(R.label)}</small></div>`; }).join('')}</div>
       ${Halloween.loginReady() ? `<button class="cta" id="hwLogin">${TX('🎁 Recoger el premio del día {0}', Halloween.login().n + 1)}</button>` : Halloween.login().n < Halloween.LOGIN.length ? `<p class="note">${TX('Vuelve mañana a por el siguiente premio.')}</p>` : ''}
+      <button class="mode hwmode" id="hwMap"><span class="cicon">🗺️</span><span class="mt"><b>${TX('Noche Tenebrosa: el mapa')}</b><small>${TX('Gana a 8 equipos de miedo, uno tras otro')} · ${Math.min(H.map, HW_MAP.length)}/${HW_MAP.length}${H.map >= HW_MAP.length ? ' ✓' : ''}</small></span></button>
       <h3>${TX('Sobre Calabaza')}</h3>
       <div class="hwlegs" id="hwLegs"></div>
       <p class="note">${TX('Solo jugadores villanos y de miedo, y 6 legendarios exclusivos de Halloween.')}<br>
@@ -12708,7 +12789,7 @@ const App = (() => {
     legs.forEach(p => { const w = document.createElement('div'); w.className = 'hwleg' + (Profile.data.coll[p.id] ? ' own' : ''); w.appendChild(face(Sprites.refOf(p), 48)); w.insertAdjacentHTML('beforeend', `<small>${esc(p.full.replace(/ \(Halloween\)$/, ''))}</small>`); $('hwLegs').appendChild(w); });
     const go = n => { const res = Halloween.pull(n); if (!res) return UI.toast(TX('No tienes caramelos suficientes')); renderMachine(res, HW_BANNER, renderHalloween, TX('Sobre Calabaza')); };
     $('hw1').onclick = () => go(1); $('hw10').onclick = () => go(10);
-    $('hwBoss').onclick = startBoss;
+    $('hwBoss').onclick = startBoss; $('hwMap').onclick = renderHwMap;
     if ($('hwLogin')) $('hwLogin').onclick = () => {
       const R = Halloween.LOGIN[Halloween.login().n];
       if (R.pick) return renderHwPick();
@@ -12755,6 +12836,49 @@ const App = (() => {
       return Shop.boost(Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: mySprite(pd, F.roles[i]) }));
     }) };
     startMatch({ A, B: Halloween.bossTeam() }, false, 'niebla', 'match', 'Occult');
+  }
+  // Mapa de la Noche Tenebrosa: 8 equipos de miedo, hay que ir ganando uno tras otro
+  function renderHwMap() {
+    if (!Halloween.active()) return renderMenu();
+    const H = Halloween.data(), n = HW_MAP.length;
+    const pos = [[24, 93], [72, 81], [26, 69], [74, 57], [26, 45], [72, 33], [28, 21], [50, 8]];
+    const nodes = HW_MAP.map((st, i) => {
+      const state = i < H.map ? 'done' : i === H.map ? 'now' : 'lock', tm = TEAM(st.team), r = st.reward;
+      return `<button class="hwnode ${state}${st.boss ? ' boss' : ''}" data-i="${i}" style="left:${pos[i][0]}%;top:${pos[i][1]}%">${Sprites.crest(tm ? tm.crest : 3)}<i class="hwst">${state === 'done' ? '✓' : state === 'lock' ? '🔒' : st.boss ? '👑' : '⚔️'}</i><b>${esc(st.name)}</b><small>${TX('media')} ${st.avg} · ${r.candy} 🍬${r.legend ? ' · 🎁' : ''}</small></button>`;
+    }).join('');
+    screen(`${top('🗺️ ' + TX('Noche Tenebrosa'), 'back', TX('Volver'))}
+      <div class="runbar hwbar"><span>🍬 ${H.candy}</span><span>🎟️ ${Profile.data.tickets}</span><span>${Math.min(H.map, n)}/${n} ${TX('equipos vencidos')}</span></div>
+      <div class="hwmap"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pos.map(p => p.join(',')).join(' ')}"/></svg>
+        <span class="hwdec" style="left:4%;top:60%">🪦</span><span class="hwdec" style="right:4%;top:72%">🦇</span><span class="hwdec" style="left:6%;top:30%">🦇</span><span class="hwdec" style="right:5%;top:12%">🌕</span><span class="hwdec" style="left:42%;top:92%">🪦</span>${nodes}</div>
+      <p class="note">${TX('Gana a cada equipo para abrir el siguiente (el empate no cuenta). La primera vez que lo superas cobras su premio, y el último regala un legendario del evento. Puedes repetir los niveles: los caramelos de siempre (+5 por partido, +10 si ganas) se cobran igual.')}</p>`, 'bg_title');
+    hwDecor();
+    body.querySelectorAll('.hwnode').forEach(b => b.onclick = () => {
+      const i = +b.dataset.i; if (i > H.map) { Sound.sfx('click'); return UI.toast(TX('Antes tienes que ganar al equipo anterior')); }
+      startMapStage(i);
+    });
+    $('back').onclick = renderHalloween;
+    Sound.music('menu');
+  }
+  function startMapStage(i) {
+    const T = savedTeam(), F = FORMATIONS[T.formation], pos = layout(F.roles), L = T.ids, st = HW_MAP[i];
+    if (L.some(x => x == null)) return UI.toast(TX('Completa tu equipo en Plantilla'));
+    api.mode = 'hwmap'; api.hwStage = i;
+    const A = { name: TX('Tu equipo'), players: L.map((id, k) => {
+      const pd = PLAYER(id);
+      return Shop.boost(Object.assign(buildMatchPlayer(id, F.roles[k], q => statOf(id, Profile.owned(id), q), runMember(id).techs, [], k, pos[k]), { sprite: mySprite(pd, F.roles[k]) }));
+    }) };
+    startMatch({ A, B: Halloween.stageTeam(i) }, false, 'niebla', 'match', st.team);
+  }
+  function renderMapEnd(s, candy, out) {
+    const a = s.score.A, b = s.score.B, i = api.hwStage, st = HW_MAP[i], r = out.reward, last = i >= HW_MAP.length - 1;
+    const extra = out.first ? `<br><b>${TX('¡Nivel superado!')} +${r.candy} 🍬 · +${r.tickets} 🎟️${r.coins ? ' · +' + r.coins + ' 🪙' : ''}</b>` : a > b ? '<br>' + TX('Ya habías superado este nivel.') : a === b ? '<br>' + TX('Hay que ganar para avanzar: el empate no cuenta.') : '';
+    screen(`<img class="finimg" src="ui/fin.png" alt="${TX('Fin del partido')}"><h2>${a > b ? TX('¡Has vencido a {0}!', st.name) : a < b ? TX('{0} te ha asustado…', st.name) : TX('Empate')}</h2>
+      ${scoreLine(s)}
+      <p class="note">${candy ? '+' + candy + ' 🍬 ' + TX('por jugar') : ''}${extra}</p>
+      ${out.players.length ? `<button class="cta" id="hwRev">${TX('🎁 Ver el premio')}</button>` : ''}
+      <button class="cta" id="again">${out.first && !last ? TX('Siguiente nivel ▶') : TX('Volver al mapa')}</button><button class="ghost" id="toMenu">${TX('Menú')}</button>`, a > b ? 'ill27' : a < b ? 'ill15' : 'ill28');
+    if (out.players.length) $('hwRev').onclick = () => renderReveal(out.players, renderHwMap, TX('¡Premio del mapa!'));
+    $('again').onclick = () => out.first && !last ? startMapStage(i + 1) : renderHwMap(); $('toMenu').onclick = renderMenu;
   }
   function renderBossEnd(s, candy, bonus) {
     const a = s.score.A, b = s.score.B;
@@ -13289,7 +13413,7 @@ const App = (() => {
         else if (['career', 'wc', 'pcareer', 'pwc', 'pduel'].includes(api.mode)) { const m = api.match; m.over = true; m.score.A = 0; m.score.B = Math.max(3, m.score.B); m.result = 'loss'; api.matchEnded(m); }
         else if (api.mode === 'techview') { api.match.over = true; api.techDemo = null; renderDevTechs(); }
         else if (api.mode === 'blockview') { api.match.over = true; api.blockDemo = null; renderDevBlocks(); }
-        else { api.match.over = true; Sound.stop(0.3); api.mode === 'hwboss' ? renderHalloween() : api.mode === 'xmboss' ? renderNavidad() : renderMenu(); }
+        else { api.match.over = true; Sound.stop(0.3); api.mode === 'hwmap' ? renderHwMap() : api.mode === 'hwboss' ? renderHalloween() : api.mode === 'xmboss' ? renderNavidad() : renderMenu(); }
       };
       show('pause');
     } else { show(null); api.running = true; }
@@ -13301,11 +13425,12 @@ const App = (() => {
       setTimeout(() => { try { Cloud.flushOld(); } catch (_) {} }, 2000);   // al acabar el partido se sube lo pendiente si hace rato de la última subida
       // Halloween: caramelos por jugar en cualquier modo (+5, +10 más si ganas)
       const candy = s.quit ? 0 : Halloween.matchPlayed(s.score.A > s.score.B);
-      if (candy && api.mode !== 'hwboss') setTimeout(() => UI.toast('+' + candy + ' 🍬 ' + TX('caramelos de Halloween'), 2200), 500);
+      if (candy && api.mode !== 'hwboss' && api.mode !== 'hwmap') setTimeout(() => UI.toast('+' + candy + ' 🍬 ' + TX('caramelos de Halloween'), 2200), 500);
       // Navidad: copos por jugar en cualquier modo (+5, +10 más si ganas)
       const snow = s.quit ? 0 : Navidad.matchPlayed(s.score.A > s.score.B);
       if (snow && api.mode !== 'xmboss') setTimeout(() => UI.toast('+' + snow + ' ❄️ ' + TX('copos de Navidad'), 2200), candy ? 2900 : 500);
       if (api.mode === 'xmboss') { const won = s.score.A > s.score.B, bonus = Navidad.bossResult(won); Sound.jingle(won ? 'win' : s.score.A < s.score.B ? 'lose' : null); renderXmBossEnd(s, snow, bonus); return; }
+      if (api.mode === 'hwmap') { const won = s.score.A > s.score.B, out = Halloween.mapResult(api.hwStage, won); Sound.jingle(won ? 'win' : s.score.A < s.score.B ? 'lose' : null); renderMapEnd(s, candy, out); return; }
       if (api.mode === 'hwboss') { const won = s.score.A > s.score.B, bonus = Halloween.bossResult(won); Sound.jingle(won ? 'win' : s.score.A < s.score.B ? 'lose' : null); renderBossEnd(s, candy, bonus); return; }
       if (api.mode === 'pduel') { const r = PC.duelResult(s.score.A, s.score.B); Sound.jingle(r.win ? 'win' : r.draw ? null : 'lose'); renderPCDuelEnd(r); return; }
       if (api.mode === 'pcareer') { const M = api.pcMatch; const out = PC.playedResult(s, M.lockId, M.part, M.base); jingleFor(out); renderPCResult(out); return; }
@@ -14923,6 +15048,10 @@ const App = (() => {
   }
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
+    { v: '0.38.0', date: '28/10/2026', items: [
+      TX('👻 El evento de miedo cambia por completo: nuevo mapa «Noche Tenebrosa» con 8 equipos tenebrosos, cada uno más difícil. Gana para abrir el siguiente, cobra premios y, al vencer al último, llévate un legendario del evento.'),
+      TX('🎃 El Sobre Calabaza trae 5 legendarios nuevos con retrato de miedo (Astaroth, Bump Trungus, Bellatrix, Oni Triumvir y Gaiel) además de Lancer, y el épico del día 5 ahora es Sael. Ahora se entra desde el Gacha.'),
+      TX('🧹 Se quitan el Sobre Selva, la intro al abrir el juego y lo de Halloween del menú principal.')] },
     { v: '0.37.0', date: '27/10/2026', items: [
       TX('🎮 Menús de decisión, como en el Inazuma Eleven de la DS: cuando un rival te sale al paso se para el tiempo y eliges entre regatear, usar una técnica o pasar a un compañero, viendo la probabilidad de que salga bien.'),
       TX('⚽ Al pulsar Tiro, con la portería cerca, eliges chutar normal, con poder o vaselina (nuevo: pasa por encima del portero si se ha adelantado). Con el rayo (Técnica) eliges la supertécnica que quieres usar.'),
@@ -15268,11 +15397,9 @@ const App = (() => {
       <div class="mixer"><label>${TX('🎵 Música')} <b id="mvT">${Math.round((c.music ? c.mv ?? 1 : 0) * 100)} %</b><input type="range" id="mvR" min="0" max="100" step="5" value="${Math.round((c.music ? c.mv ?? 1 : 0) * 100)}"></label>
         <label>${TX('🔊 Efectos')} <b id="svT">${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)} %</b><input type="range" id="svR" min="0" max="100" step="5" value="${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)}"></label></div>
       <p class="note">${TX('La música sale de tus archivos del Inazuma 1 y 2, reconstruida desde las partituras del juego. Los nombres son los de la colección de música del Inazuma 2.')}</p>
-      ${opts(TX('Intro al abrir el juego'), 'intro', [[1, TX('Sí')], [0, TX('No')]])}
-      <button class="ghost" id="seeIntro">${TX('▶ Ver la intro')}</button>
       <div class="group"><label>${TX('Rivales con tema propio')}</label><div class="opts"><button id="tt1" aria-pressed="${c.teamThemes !== false}">${TX('Su música')}</button><button id="tt0" aria-pressed="${c.teamThemes === false}">${TX('La de la etapa')}</button></div></div>
       <details class="roles"><summary>${TX('Elegir música de cada momento')}</summary>
-      ${sel('menu', false)}${sel('intro', false)}${sel('match', false, rnd)}${['match_easy', 'match_mid', 'match_hard', 'match_final', 's2_easy', 's2_mid', 's2_hard', 's2_final', 'match_special'].map(r => sel(r, false, rnd)).join('')}
+      ${sel('menu', false)}${sel('match', false, rnd)}${['match_easy', 'match_mid', 'match_hard', 'match_final', 's2_easy', 's2_mid', 's2_hard', 's2_final', 'match_special'].map(r => sel(r, false, rnd)).join('')}
       ${sel('goal', true, none)}${sel('win', true, none)}${sel('lose', true, none)}
       <button class="ghost" id="resetRoles">${TX('Volver a la música de serie')}</button></details>
       <h3>${TX('Escuchar')} <small>${TX('toca para oír cada pista')}</small></h3>
@@ -15293,7 +15420,6 @@ const App = (() => {
     $('svR').oninput = e => { const v = +e.target.value / 100; Sound.setVol('sfx', v); $('svT').textContent = e.target.value + ' %'; };
     $('svR').onchange = () => Sound.sfx('click');
     body.querySelectorAll('select[data-role]').forEach(s => { s.value = c.roles[s.dataset.role] ?? ''; s.onchange = () => Sound.setRole(s.dataset.role, s.value); });
-    $('seeIntro').onclick = () => { Sound.stop(0.2); playIntro(renderSettings); };
     $('sGuide').onclick = () => renderControlsGuide(renderSettings);
     bindKeyMap();
     $('tt1').onclick = () => { Sound.setTeamThemes(true); renderSettings(); };
@@ -15784,7 +15910,7 @@ $('dReset').onclick = () => {
     Career.load(); PlayerCareer.load();
     const pend = hashCode();
     const first = pend ? () => renderTransfer(renderMenu, pend) : renderMenu;
-    const start = () => { if (settings.intro !== 0 && !pend) playIntro(first); else first(); };
+    const start = () => first();   // ya no hay intro al abrir el juego
     if (!Cloud.enabled() || (!(Cloud.loggedIn() && !Cloud.expired()) && !Cloud.pendingRedirect())) return start();
     // Con cuenta: mira la nube antes de empezar (máximo unos segundos; si no hay internet, se juega igual)
     screen(`<div class="title"><img class="logo" src="ui/logo_gold.png" alt="Inazuma Gold"><span>${TX('Comprobando tu partida…')}</span></div>`, 'bg_title');
