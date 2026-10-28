@@ -147,6 +147,15 @@ console.log('11. Balón parado: NADIE se mueve ni te quita el balón hasta que s
   for (let i = 0; i < 60 * 8; i++) { Logic.update(s, inp(), 1 / 60); if (s.menu) Logic.chooseMenu(s, -1); }
   ok(!(s.hold && s.hold.kind === 'falta'), 'el rival acaba sacando y se acaba la retención'); }
 
+console.log('12. Saca la IA: también se queda quieta y solo pasa o chuta');
+{ let still = 0, kicked = 0, n = 20;
+  for (let k = 0; k < n; k++) { const s = live(); Logic._t.restart(s, 'B', cx + (Math.random() - 0.5) * 10, 18 + Math.random() * 20, 'falta', null); s.pause = null;
+    const tk = s.ball.owner, x0 = tk.x, y0 = tk.y; let moved = false, done = false;
+    for (let i = 0; i < 60 * 6 && !done; i++) { Logic.update(s, inp(), 1 / 60); if (s.hold && tk.x === x0 && tk.y === y0) {} else if (s.hold) moved = true; if (s.menu) Logic.chooseMenu(s, -1); if (s.ball.owner !== tk) done = true; }
+    if (!moved) still++; if (done) kicked++; }
+  ok(still === n, 'el que saca nunca se mueve antes de golpear (' + still + '/' + n + ')');
+  ok(kicked === n, 'y siempre acaba pasando o chutando (' + kicked + '/' + n + ')'); }
+
 console.log('8. Partidos completos con menús: sin congelarse (la IA y tú eligiendo al azar)');
 { let stuck = 0, menus = 0;
   for (let g = 0; g < 6; g++) {
