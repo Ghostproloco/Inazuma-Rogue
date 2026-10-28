@@ -95,7 +95,7 @@ console.log('6. Balón parado: el que saca no se mueve; pasa o chuta');
   Logic.update(s, press('shoot'), 1 / 60); ok(!s.menu && s.ball.shot, 'falta lejos: chuta sin menú'); }
 { const s = live(); Logic._t.restart(s, 'A', 0.25, 30, 'banda', null); s.pause = null;
   Logic.update(s, press('shoot'), 1 / 60); ok(!s.menu && !s.ball.shot && s.ball.owner, 'en un saque de banda no se puede chutar'); }
-{ const s = live(); Logic._t.restart(s, 'B', cx, 20, 'falta', null); s.pause = null; ok(!s.hold, 'si saca el rival no hay retención'); }
+{ const s = live(); Logic._t.restart(s, 'B', cx, 20, 'falta', null); s.pause = null; ok(s.hold && s.hold.ai, 'si saca el rival también se retiene a todos (no hay menú para ti)'); }
 
 console.log('7. Penalti propio: solo se chuta, con las opciones');
 { const s = live(); const t = mine(s, 'DEL'); s.controlledId = t.id; Logic._t.startPenalty(s, 'A', t.id); s.pause = null;
@@ -103,6 +103,49 @@ console.log('7. Penalti propio: solo se chuta, con las opciones');
   Logic.update(s, press('shoot'), 1 / 60); ok(s.menu && s.menu.kind === 'tiro', 'Tiro abre el menú');
   const t0 = s.time; run(s, 20); ok(s.time === t0 && s.menu, 'espera sin límite de tiempo');
   const n0 = s.events.length; Logic.chooseMenu(s, 0); run(s, 1); ok(s.events.slice(n0).some(e => e.type === 'shot') && !s.penalty, 'el penalti sale'); }
+
+
+console.log('9. Portero: «¡El rival va a disparar!» → Atajo, Despeje o técnica');
+{ const s = live(); const sh = s.players.find(p => p.team === 'B' && p.role === 'DEL'), gk = s.players.find(p => p.team === 'A' && p.role === 'POR');
+  give(s, sh, cx, 14); s.controlledId = 'A4'; clear(s, [sh, gk]); sh.team === 'B' && (gk.x = cx, gk.y = F.l - 1.2);
+  const n0 = s.events.length; Logic._t.shoot(s, sh, 0.8, 0);
+  ok(s.menu && s.menu.kind === 'portero' && s.menu.pid === gk.id, 'al chutar el rival se abre el menú de tu portero');
+  ok(['atajo', 'despeje'].every(a => s.menu.opts.some(o => o.act === a)), 'con Atajo y Despeje (y su %: ' + s.menu.opts.map(o => o.act + ' ' + o.pct).join(', ') + ')');
+  const t0 = s.time, by = s.ball.y; run(s, 2); ok(s.time === t0 && s.ball.y === by, 'el tiempo y el balón están parados');
+  Logic.chooseMenu(s, 1); ok(s.ball.shot && s.ball.shot.gkMode === 'despeje', 'elegir Despeje se queda guardado en el tiro'); }
+{ const rate = mode => { let sv = 0, n = 400; for (let k = 0; k < n; k++) { const s = live(); const sh = s.players.find(p => p.team === 'B' && p.role === 'DEL'), gk = s.players.find(p => p.team === 'A' && p.role === 'POR');
+      give(s, sh, cx + (Math.random() - 0.5) * 8, F.l - 14); clear(s, [sh, gk]); gk.x = cx; gk.y = F.l - 1.2; s.controlledId = 'A4';
+      Logic._t.shoot(s, sh, 0.8, (Math.random() - 0.5)); if (mode === 'auto') Logic.chooseMenu(s, -1); else Logic.chooseMenu(s, s.menu.opts.findIndex(o => o.act === mode));
+      for (let i = 0; i < 60 * 4 && !s.score.B && !s.pause; i++) Logic.update(s, inp(), 1 / 60);
+      if (!s.score.B) sv++; } return sv / n; };
+  const at = rate('atajo'), de = rate('despeje'), au = rate('auto');
+  console.log('    paradas: atajo ' + (at * 100).toFixed(0) + ' % · despeje ' + (de * 100).toFixed(0) + ' % · lo decide el portero ' + (au * 100).toFixed(0) + ' %');
+  ok(de > at, 'despejar para más que atajar (a cambio de que el balón rebote)'); }
+
+console.log('10. Defensa: te encuentras al rival con el balón → quitársela, técnica o dejarlo');
+{ const s = live(); const me = mine(s, 'DEF'), h = s.players.find(p => p.team === 'B' && p.role === 'DEL');
+  clear(s, [me, h]); me.x = cx; me.y = 24; h.x = cx; h.y = 22.8; Logic._t.take(s, h); s.controlledId = me.id; for (const k in me.cd) me.cd[k] = 0;
+  Logic.update(s, inp(), 1 / 60);
+  ok(s.menu && s.menu.kind === 'defensa', 'se abre el menú de defensa');
+  ok(s.menu.opts[0].act === 'entrada' && s.menu.opts[0].pct > 0 && /Rival/.test(s.menu.info), 'Quitar el balón con ' + s.menu.opts[0].pct + ' % · ' + s.menu.info);
+  const t0 = s.time; run(s, 2); ok(s.time === t0, 'el tiempo se para');
+  Logic.chooseMenu(s, 0); ok(me.tackle, 'al elegir, tu jugador hace la entrada'); }
+{ const s = live(); const me = mine(s, 'DEF'), h = s.players.find(p => p.team === 'B' && p.role === 'DEL');
+  clear(s, [me, h]); me.x = cx; me.y = 24; h.x = cx; h.y = 22.8; Logic._t.take(s, h); s.controlledId = me.id;
+  Logic.update(s, inp(), 1 / 60); Logic.chooseMenu(s, -1); run(s, 1); ok(!s.menu, 'dejarlo pasar no vuelve a preguntar al momento'); }
+
+console.log('11. Balón parado: NADIE se mueve ni te quita el balón hasta que se saca');
+{ const s = live(); const taker0 = mine(s, 'MED'); Logic._t.restart(s, 'A', cx, 30, 'falta', null); s.pause = null;
+  const snap = s.players.map(p => [p.x, p.y]);
+  run(s, 3);
+  ok(s.players.every((p, i) => p.x === snap[i][0] && p.y === snap[i][1]), 'ningún jugador se ha movido en 3 s (tú sacando)');
+  ok(s.ball.owner && s.ball.owner.team === 'A', 'y el balón sigue siendo tuyo'); }
+{ const s = live(); Logic._t.restart(s, 'B', cx, 30, 'falta', null); s.pause = null;
+  const me = s.players.find(p => p.id === s.controlledId), x0 = me.x, y0 = me.y;
+  const taker = s.ball.owner; ok(s.hold && s.hold.ai, 'si saca el rival también hay retención');
+  run(s, 0.5, () => inp({ move: { x: 1, y: 1 }, pressed: new Set(['A']) })); ok(me.x === x0 && me.y === y0 && !me.tackle, 'tu jugador no se mueve ni hace entradas mientras saca el rival');
+  for (let i = 0; i < 60 * 8; i++) { Logic.update(s, inp(), 1 / 60); if (s.menu) Logic.chooseMenu(s, -1); }
+  ok(!(s.hold && s.hold.kind === 'falta'), 'el rival acaba sacando y se acaba la retención'); }
 
 console.log('8. Partidos completos con menús: sin congelarse (la IA y tú eligiendo al azar)');
 { let stuck = 0, menus = 0;
