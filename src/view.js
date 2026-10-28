@@ -373,7 +373,7 @@ const UI = (() => {
   // Menús de decisión (como el Inazuma Eleven de la DS): el tiempo está parado y eliges regate, técnica, pase o tipo de chute.
   // Se maneja con toque/ratón, con las teclas 1-9 (y ↑ ↓ Intro, ← → para apuntar, Retroceso para volver) y con el mando (cruceta, A, B).
   let menuOn = null, menuSel = 0, menuS = null, gpMenuPrev = [];
-  const MENU_ICON = { regate: '🌀', normal: '⚽', poder: '💥', vaselina: '☁️', tecnica: '⚡' };
+  const MENU_ICON = { regate: '🌀', normal: '⚽', poder: '💥', vaselina: '☁️', tecnica: '⚡', atajo: '🧤', despeje: '👊', entrada: '🦶' };
   const firstOn = m => { const i = m.opts.findIndex(o => !o.off); return i < 0 ? 0 : i; };
   function menuChoose(s, i) {
     const m = s.menu; if (!m) return;
@@ -388,8 +388,9 @@ const UI = (() => {
     if (!s.menu) { if (menuOn) { el.hidden = true; el.innerHTML = ''; menuOn = null; } return; }
     if (menuOn === s.menu) { menuPad(s); return; }
     const m = menuOn = s.menu; menuSel = firstOn(m);
-    el.innerHTML = '<h4></h4><div class="dc-list"></div>';
+    el.innerHTML = '<h4></h4><p class="dc-info"></p><div class="dc-list"></div>';
     el.querySelector('h4').textContent = m.title;
+    const inf = el.querySelector('.dc-info'); inf.textContent = m.info || ''; inf.hidden = !m.info;
     const list = el.querySelector('.dc-list');
     m.opts.forEach((o, i) => {
       const b = document.createElement('button'); b.className = 'dc'; b.disabled = !!o.off;
@@ -411,7 +412,7 @@ const UI = (() => {
       }
       el.appendChild(row);
     }
-    const c = document.createElement('button'); c.className = 'dc-cancel'; c.textContent = m.kind === 'regate' ? TX('Seguir corriendo') : TX('Volver'); c.onclick = () => menuChoose(s, -1); el.appendChild(c);
+    const c = document.createElement('button'); c.className = 'dc-cancel'; c.textContent = m.kind === 'regate' ? TX('Seguir corriendo') : m.kind === 'defensa' ? TX('Dejarlo pasar') : m.kind === 'portero' ? TX('Que decida el portero') : TX('Volver'); c.onclick = () => menuChoose(s, -1); el.appendChild(c);
     el.hidden = false; el.scrollTop = 0; menuMark();
   }
   // Mando: cruceta ↑↓ elige, ←→ apunta, A confirma, B vuelve

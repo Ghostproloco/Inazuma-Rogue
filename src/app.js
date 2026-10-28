@@ -2874,7 +2874,8 @@ const App = (() => {
     { v: '0.37.0', date: '27/10/2026', items: [
       TX('🎮 Menús de decisión, como en el Inazuma Eleven de la DS: cuando un rival te sale al paso se para el tiempo y eliges entre regatear, usar una técnica o pasar a un compañero, viendo la probabilidad de que salga bien.'),
       TX('⚽ Al pulsar Tiro, con la portería cerca, eliges chutar normal, con poder o vaselina (nuevo: pasa por encima del portero si se ha adelantado). Con el rayo (Técnica) eliges la supertécnica que quieres usar.'),
-      TX('🚩 En faltas, saques y penaltis el que saca ya no se mueve: elige pasar (a quién) o chutar. Se puede quitar en Ajustes → Menús de decisión.')] },
+      TX('🚩 En faltas, saques y penaltis nadie se mueve hasta que se saca: el que saca elige pasar (a quién) o chutar. Se puede quitar en Ajustes → Menús de decisión.'),
+      TX('🧤 Cuando el rival te chuta, tu portero elige: Atajo, Despeje o una técnica de parada. Y al encontrarte al rival con el balón eliges quitárselo o usar un bloqueo, viendo qué puede hacer él.')] },
     { v: '0.36.2', date: '26/10/2026', items: [
       TX('⚡ Gacha limitado «Tormenta Celestial»: el sobre ahora cuesta 50 tickets, los 4 limitados son mucho más difíciles de conseguir (asegurado a las 200 tiradas) y entran más legendarios y muchísimos jugadores épicos al sobre.'),
       TX('🔥 Los 4 jugadores limitados tienen una nueva ilustración «modo furia».'),

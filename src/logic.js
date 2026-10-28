@@ -208,6 +208,8 @@ const Logic = (() => {
     const ast = s.lastRecv && s.lastRecv.recv === p.id && s.t - s.lastRecv.t < 12 ? s.lastRecv.passer : null;
     s.ball.shot = { team: p.team, by: p.id, ast, power: shotStrength(p, charge, tech), tech: tech || null, charged: !tech && charge >= 0.85, resolved: false, dist: d };
     s.events.push({ type: 'shot', team: p.team });
+    const gk = keeperOf(s, p);
+    if (s.settings.decide && !s.settings.allAI && !s.settings.lockId && !s.settings.mini && gk && gk.team === 'A') openMenu(s, gk, 'portero', { shot: s.ball.shot });
   }
 
   /* ---------- Vaselina ----------
@@ -228,8 +230,8 @@ const Logic = (() => {
     s.events.push({ type: 'shot', team: p.team });
   }
   // Probabilidad de que el portero pare un tiro (la usan resolveSave y los menús, para que lo que ves sea lo que pasa)
-  function saveChance(g, shot) {
-    const gt = g.gkTech && g.gkTech !== 'none' ? g.gkTech : null;
+  function saveChance(g, shot, tech) {
+    const gt = tech !== undefined ? tech : g.gkTech && g.gkTech !== 'none' ? g.gkTech : null;
     const saveStr = g.gk + (gt ? techEff(gt, g.bonus.parada) : 0);
     // Desde lejos el tiro pierde fuerza; sin técnica, el portero tiene ventaja
     const far = Math.max(0, shot.dist - 10);
@@ -275,9 +277,27 @@ const Logic = (() => {
     return mates.map(m => { const o = passOdds(s, p, m); return { act: 'pase', label: TX('Pasar a {0}', m.name), sub: o.off ? TX('¡Fuera de juego!') : TX('{0} · lo cortan: {1} %', m.role, 100 - pctOf(o.chance)), pct: o.off ? 0 : pctOf(o.chance), mate: m.id, face: m.id }; });
   }
   function buildMenu(s, p, kind, ex) {
-    const g = ex.foe, opts = []; let title = '', aimable = false;
-    if (kind === 'regate') {
+    const g = ex.foe, opts = []; let title = '', aimable = false, info = '';
+    if (kind === 'portero') {
+      const sh = ex.shot, st = sh.tech;
+      title = TX('¡El rival va a disparar! ¿Qué quieres hacer?');
+      info = st ? TX('Rival: {0} (potencia {1})', st.name, st.power) : TX('Rival: tiro normal');
+      const base = saveChance(p, sh, null).chance;
+      opts.push({ act: 'atajo', label: TX('Atajo'), sub: TX('Si la paras, te quedas el balón'), pct: pctOf(base * 0.88) });
+      opts.push({ act: 'despeje', label: TX('Despeje'), sub: TX('Más fácil de parar, el balón rebota'), pct: pctOf(Math.min(0.96, base + 0.07)) });
+      for (const t of p.techs) if (t.type === 'parada') opts.push(techOpt(s, p, t, pctOf(saveChance(p, sh, t).chance)));
+    } else if (kind === 'defensa') {
+      const h = ex.foe, rt = bestTech(h, 'regate');
+      title = TX('¡Tienes a {0} delante!', h.name);
+      info = TX('Rival: {0} · te supera {1} %', rt ? rt.name : TX('regate normal'), pctOf(dribbleOdds(h, p, rt)));
+      const front = Math.cos(angDiff(Math.atan2(p.y - h.y, p.x - h.x), h.aim)) > 0 ? 0.1 : -0.12;
+      const cd = p.tackleCd || 0;
+      opts.push({ act: 'entrada', label: TX('Quitar el balón'), sub: cd > 0 ? TX('Recargando {0} s', Math.ceil(cd)) : TX('Entrada normal'), pct: cd > 0 ? null : pctOf(clamp(0.55 + (p.defense - (h.control * 0.6 + h.body * 0.4)) / 70 + front, 0.2, 0.92)), off: cd > 0 });
+      for (const t of p.techs) if (t.type === 'bloqueo') opts.push(techOpt(s, p, t, pctOf(clamp(0.5 + (p.defense + techEff(t, p.bonus.bloqueo) * 1.2 - (h.control * 0.6 + h.body * 0.4 + (rt ? techEff(rt) * 1.2 : 0))) / 60, 0.2, 0.93))));
+    } else if (kind === 'regate') {
       title = TX('¡{0} te sale al paso!', g.name);
+      const bt = bestTech(g, 'bloqueo');
+      if (bt) info = TX('Rival: puede bloquear con {0} ({1} %)', bt.name, pctOf(clamp(0.5 + (g.defense + techEff(bt, g.bonus.bloqueo) * 1.2 - (p.control * 0.6 + p.body * 0.4)) / 60, 0.2, 0.93)));
       const cd = p.dribbleCd || 0;
       opts.push({ act: 'regate', label: TX('Regatear'), sub: cd > 0 ? TX('Recargando {0} s', Math.ceil(cd)) : TX('Sin técnica · más arriesgado'), pct: cd > 0 ? null : pctOf(dribbleOdds(p, g)), off: cd > 0 });
       for (const t of p.techs) if (t.type === 'regate') opts.push(techOpt(s, p, t, pctOf(dribbleOdds(p, g, t))));
@@ -309,7 +329,7 @@ const Logic = (() => {
         }
       }
     }
-    return { kind, pid: p.id, title, opts, aimX: ex.aimX || 0, aimable, t: 0 };
+    return { kind, pid: p.id, title, info, opts, aimX: ex.aimX || 0, aimable, t: 0 };
   }
   function openMenu(s, p, kind, ex = {}) {
     const m = buildMenu(s, p, kind, ex);
@@ -327,11 +347,18 @@ const Logic = (() => {
   function chooseMenu(s, i) {
     const m = s.menu; if (!m) return false;
     const me = s.players.find(p => p.id === m.pid);
-    if (i == null || i < 0) { s.menu = null; s.menuCd = m.kind === 'regate' ? 2.2 : 0.4; return true; }
+    if (i == null || i < 0) { s.menu = null; s.menuCd = m.kind === 'regate' || m.kind === 'defensa' ? 2.2 : 0.4; return true; }
     const o = m.opts[i]; if (!o || o.off) return false;
     s.menu = null; s.menuCd = 2.8;
     if (!me) return true;
     const say = text => s.events.push({ type: 'msg', text });
+    if (m.kind === 'portero') {   // el portero decide cómo parar el tiro que viene
+      const sh = s.ball.shot; if (!sh || sh.resolved) return true;
+      if (o.act === 'tecnica') { const t = me.techs.find(q => q.id === o.tech); if (!t || !ready(me, t)) return true; sh.gkMode = 'tech'; sh.gkPick = t; }
+      else sh.gkMode = o.act;
+      return true;
+    }
+    if (o.act === 'entrada') { startTackle(s, me); return true; }
     if (o.act === 'tecnica') {
       const t = me.techs.find(q => q.id === o.tech); if (!t || !ready(me, t)) return true;
       if (t.type === 'bloqueo') { const h = s.ball.owner; if (!h || h.team === me.team || dist(h, me) > 4.5) return say(TX('Acércate al rival que lleva el balón')), true; }
@@ -351,9 +378,9 @@ const Logic = (() => {
   function decideOwner(s, me, pr, x, y, dt) {
     const hold = s.hold && s.hold.id === me.id ? s.hold : null;
     const pen = !!(s.penalty && !s.penalty.fired && s.penalty.taker === me.id);
-    if (hold) { hold.t += dt; me.dvx = me.dvy = 0; me.vx = me.vy = 0; }   // el que saca no se mueve
+    if (hold) { me.dvx = me.dvy = 0; me.vx = me.vy = 0; }   // el que saca no se mueve
     if (pen) me.dvx = me.dvy = 0;
-    if (hold && hold.t > 14) { pass(s, me, 'strong', { x, y }); return true; }   // por si te quedas parado
+    if (hold && !hold.ai && hold.t > 14) { pass(s, me, 'strong', { x, y }); return true; }   // por si te quedas parado
     if (hold || pen) pr.has('dribble');
     if (pr.has('tech')) { openMenu(s, me, 'tecnica', { aimX: x }); return true; }
     if (pr.has('shoot')) {
@@ -656,6 +683,7 @@ const Logic = (() => {
     if (pr.has('techNext')) cycleTech(s, me);   // ⇄: cambiar de supertécnica en cualquier momento
     if (s.tech && s.tech.p === me) return;
     if (me.stun > 0 || me.recover > 0 || me.tackle || me.dash) { s.shoot.charging = false; s.pass = null; return; }
+    if (s.hold && s.hold.id !== me.id) { me.dvx = me.dvy = 0; return; }   // saca otro (el rival o un compañero): tú te quedas quieto
 
     const sprint = input.sprint || len > 0.95;
     if (len > 0.15) {
@@ -726,6 +754,8 @@ const Logic = (() => {
         if (pr.has('A') || pr.has('B')) { s.passReq = { id: me.id, t: s.t }; s.events.push({ type: 'msg', text: TX('¡Pásamela!') }); }
         return;
       }
+      if (!toMe && s.settings.decide && !s.hold && !s.penalty && (s.menuCd || 0) <= 0 && b.owner && b.owner.team !== me.team && b.owner.role !== 'POR' &&
+          me.stun <= 0 && !me.dash && !me.tackle && !s.tech && dist(b.owner, me) < 2.0 && openMenu(s, me, 'defensa', { foe: b.owner })) return;
       if (toMe) { pr.keep('A'); pr.keep('shoot'); }
       else if (b.owner && b.owner.team === me.team) pr.has('A');   // un compañero lleva el balón: no hay entrada que hacer
       else if (pr.has('A')) startTackle(s, me);
@@ -1005,6 +1035,13 @@ const Logic = (() => {
     }
     if (b.shot && !b.shot.resolved && b.shot.team !== p.team) {
       // Parada especial: el portero usa su técnica si el tiro es peligroso
+      if (!p.gkTech && b.shot.gkMode) {   // lo has elegido tú en el menú
+        if (b.shot.gkMode === 'tech' && b.shot.gkPick) {
+          p.gkTech = b.shot.gkPick; spend(p, p.gkTech);
+          s.events.push({ type: 'techStart', name: p.gkTech.name, elem: p.gkTech.elem, kind: 'parada', team: p.team, id: p.id, quick: true });
+          s.slow = Math.max(s.slow, 0.9);
+        } else p.gkTech = 'none';
+      }
       if (!p.gkTech) {
         const t = bestTech(p, 'parada');
         const vy0 = Math.abs(b.vy) > 0.1 ? b.vy : 0.1, tt = (ownGoalY(p.team) - b.y) / vy0;
@@ -1061,9 +1098,11 @@ const Logic = (() => {
       else g.stun = 0.9;
       return;
     }
-    const { chance, edge } = saveChance(g, shot);
+    let { chance, edge } = saveChance(g, shot);
+    if (shot.gkMode === 'atajo') chance *= 0.88;
+    else if (shot.gkMode === 'despeje') chance = Math.min(0.96, chance + 0.07);
     if (rnd() < chance) {
-      if (edge < -14 && !shot.tech) { take(s, g); s.events.push({ type: 'catch', team: g.team, tech: !!gt }); return; }
+      if (shot.gkMode === 'atajo' || (shot.gkMode !== 'despeje' && edge < -14 && !shot.tech)) { take(s, g); s.events.push({ type: 'catch', team: g.team, tech: !!gt }); return; }
       // Despeje a un lado, lejos del punto de penalti (antes el rechace caía flojo delante y el delantero lo cazaba siempre)
       const side = Math.abs(b.x - cx) > 0.4 ? Math.sign(b.x - cx) : (rnd() < 0.5 ? -1 : 1);
       b.vx = side * (7 + rnd() * 5); b.vy = attackDir(g.team) * (1.5 + rnd() * 2.5); b.vz = 4; b.shot = null; b.fire = null; b.lastTeam = g.team;
@@ -1211,7 +1250,7 @@ const Logic = (() => {
     if (chosenId && team !== 'A') { const c = s.players.find(p => p.id === chosenId && p.team === 'A'); if (c) s.controlledId = c.id; }   // defiendes con el que elijas
     s.ball.setPiece = cand.id;   // el primer pase de un saque no puede ser fuera de juego
     // Menús de decisión: el que saca (si lo llevas tú) se queda quieto y solo puede pasar o chutar
-    s.hold = team === 'A' && s.settings.decide && !s.settings.allAI && !s.settings.mini && cand.role !== 'POR' && s.controlledId === cand.id ? { id: cand.id, kind, t: 0 } : null;
+    s.hold = s.settings.decide && !s.settings.allAI && !s.settings.mini ? { id: cand.id, kind, t: 0, ai: !(team === 'A' && s.controlledId === cand.id && cand.role !== 'POR') } : null;
     cand.think = 0.5;
     s.pause = { t: 0.35 };
   }
@@ -1434,7 +1473,8 @@ const Logic = (() => {
     if (s.pick) return;   // esperando a que elijas jugador (balón parado)
     if (s.menu) { s.menu.t += dtRaw; return; }   // esperando a que elijas en un menú de decisión: el tiempo está parado
     s.menuCd = Math.max(0, (s.menuCd || 0) - dt);
-    if (s.hold && (!s.ball.owner || s.ball.owner.id !== s.hold.id)) s.hold = null;
+    if (s.hold && (!s.ball.owner || s.ball.owner.id !== s.hold.id || (s.hold.ai && s.hold.t > 5))) s.hold = null;
+    else if (s.hold) s.hold.t += dt;
     s.t += dt;
     s.time -= dt / GAME_SPEED;
     const pen = s.penalty && !s.penalty.fired ? s.penalty : null;
@@ -1457,6 +1497,7 @@ const Logic = (() => {
     if (!s.settings.allAI) { if (!pen) autoSwitch(s, dt); handleUser(s, input); }
     if (pen) { const me = controlled(s); if (me && me.id !== pen.taker) me.dvx = me.dvy = 0; }   // en un penalti, quieto hasta el chut
     for (const p of s.players) {
+      if (s.hold && p.id !== s.hold.id) { p.dvx = p.dvy = 0; p.vx = p.vy = 0; continue; }   // en un balón parado nadie se mueve hasta que saque
       if (pen && p.id !== pen.taker && p.role !== 'POR') { p.dvx = p.dvy = 0; continue; }
       if (pen && p.id === pen.taker && pen.auto) { p.dvx = p.dvy = 0; continue; }
       if (s.settings.allAI || p.id !== s.controlledId) ai(s, p, dt);
@@ -1494,7 +1535,7 @@ const Logic = (() => {
       if (d > 0 && d < 0.7) { const push = (0.7 - d) / 2; a.x -= dx / d * push; a.y -= dy / d * push; c.x += dx / d * push; c.y += dy / d * push; }
     }
     updateBall(s, dt);
-    if (!s.pause) checkSteals(s, dt);
+    if (!s.pause && !s.hold) checkSteals(s, dt);
   }
 
   return { FIELD: F, DRIBBLE_CD, ST, techChoices, createMatch, update, possession, controlled, contextTech, pickPlayer, chooseMenu, setMenuAim, MENU_DIST, _t: { lob, openMenu, passOdds, dribbleOdds, take, startTech, shoot, goal, foulCall, startPenalty, restart } };
