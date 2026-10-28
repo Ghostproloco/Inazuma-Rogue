@@ -1,4 +1,4 @@
-# Retratos de miedo de los 6 legendarios y del Jim épico especial de Halloween (juego/sprites/fhw.png, una fila de 64 px por jugador).
+# Retratos de miedo de los 6 legendarios y del Jim épico especial de Halloween (juego/sprites/fhw2.png, una fila de 64 px por jugador).
 # Parte de los retratos del juego (fNN.png) y les pone maquillaje/cicatrices + color apagado.
 # Uso: python3 tools/hw_faces.py
 import os, colorsys
@@ -138,7 +138,7 @@ for i, ((f, r), fx) in enumerate(zip(SRC, (tassman, nathan, destra, hebimos, bas
     im = face(f, r); fx(im); grade(im)
     if fx is jim: jim_eye(im)
     out.paste(im, (0, i * 64))
-out.save(os.path.join(SP, 'fhw.png'))
+out.save(os.path.join(SP, 'fhw2.png'))   # fhw2: nombre nuevo para saltarse la caché del navegador
 big = Image.new('RGBA', (320 * len(SRC), 320), (240, 240, 240, 255))
 for i in range(len(SRC)): big.alpha_composite(out.crop((0, i * 64, 64, i * 64 + 64)).resize((320, 320), Image.NEAREST), (i * 320, 0))
 big.save('/tmp/fhw_big.png'); print('ok')
