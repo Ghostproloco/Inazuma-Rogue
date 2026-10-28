@@ -539,3 +539,7 @@ Como en el Inazuma Eleven de la DS: el tiempo se para y eliges. Ajuste **Ajustes
 - **Rayo (Técnica)** ya abría la lista de técnicas en cualquier situación (con balón: tiro y regate; sin balón: bloqueo).
 - Tests: `test/decide.js` ampliado (secciones 9-11). Medido: parada con Atajo ≈ 83 %, con Despeje ≈ 95 %.
 - Aún no está: el menú del portero sale **al chutar el rival**, no cuando el balón ya está cerca (como en la captura de la DS, que pregunta al disparar). Si Fran lo quiere más tarde, habría que abrirlo cuando el balón entre en `reach`.
+
+### v0.37.0 · tercera tanda (28 oct 2026)
+- **El rival que saca también se queda quieto** (`aiSetPiece` en `logic.js`): en faltas, saques y córners que saca la IA (o un compañero que no llevas), el que saca no se mueve; a los 0,9 s pasa (`bestPassTarget`) o, si la portería está a < 14 m y no es saque de banda, chuta (55 %). Los porteros que sacan de puerta siguen con su IA. Test: `test/decide.js` sección 12 (20/20 sin moverse y sacando siempre).
+- **Menú abajo, como en la DS** (`shell.html`, clase `.decide`): el panel va pegado abajo, en el sitio de los botones; mientras está abierto se esconden los botones, el joystick y la barra de teclas (`body.menu-open`). Título blanco con borde negro sobre el campo, botones naranja-salmón con letras azules en 2 columnas, con el % en una pastilla verde/amarilla/roja. Sigue funcionando con toque, teclas 1-9 y mando.
