@@ -764,28 +764,33 @@ html,body,button,.act,#shell{touch-action:manipulation}
 .pick button.pk b{font-size:13px;font-weight:400;overflow-wrap:anywhere;line-height:1.1}
 .pick button.pk small{font-size:11px;color:var(--gold)}
 .pick .pk-skip{margin-top:8px;background:none;border:0;color:#cfd8ff;text-decoration:underline;font-family:var(--font-ui);font-size:13px;cursor:pointer}
-.decide{position:absolute;left:8px;right:8px;top:9%;max-height:80%;overflow:auto;z-index:16;background:rgba(24,32,65,.96);border:2px solid var(--ink);box-shadow:0 0 0 2px var(--line),0 6px 24px rgba(0,0,0,.6);padding:10px 8px;color:var(--chalk);font-family:var(--font-ui);border-radius:10px;max-width:520px;margin:0 auto}
+/* Menú de decisión: abajo, donde van los botones (como en la DS). Mientras está abierto se esconden los botones y el joystick */
+body.menu-open #pad,body.menu-open #stick,body.menu-open #keyhud{visibility:hidden}
+.decide{position:absolute;left:0;right:0;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:16;max-width:640px;margin:0 auto;padding:0 8px;max-height:62%;overflow:auto;color:#fff;font-family:var(--font-ui);pointer-events:none}
 .decide[hidden]{display:none}
-.decide h4{margin:0 0 8px;text-align:center;font-size:17px;font-weight:400;color:var(--gold)}
-.decide .dc-info{margin:-2px 0 8px;text-align:center;font-size:12px;color:#cfd8ff}
+.decide>*{pointer-events:auto}
+.decide h4{margin:0 0 4px;text-align:center;font-size:18px;font-weight:400;color:#fff;line-height:1.15;text-shadow:-2px 0 #111,2px 0 #111,0 -2px #111,0 2px #111,-1px -1px #111,1px 1px #111,-1px 1px #111,1px -1px #111}
+.decide .dc-info{margin:0 0 6px;text-align:center;font-size:13px;color:#ffe9a8;text-shadow:-1px 0 #111,1px 0 #111,0 -1px #111,0 1px #111}
 .decide .dc-info[hidden]{display:none}
-.decide .dc-list{display:flex;flex-direction:column;gap:6px}
-.decide button.dc{display:flex;align-items:center;gap:8px;text-align:left;padding:7px 10px;min-height:48px;background:var(--navy);color:var(--chalk);border:2px solid var(--ink);border-radius:8px;font-family:var(--font-ui);cursor:pointer}
-.decide button.dc.sel{box-shadow:0 0 0 2px var(--yellow)}
-.decide button.dc:disabled{opacity:.45;cursor:default}
+.decide .dc-list{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.decide .dc-list>button:last-child:nth-child(odd){grid-column:1/-1}
+.decide button.dc{position:relative;display:flex;align-items:center;gap:6px;text-align:left;padding:6px 8px;min-height:56px;color:#1f3fae;border:2px solid #fff;border-radius:6px;font-family:var(--font-ui);cursor:pointer;overflow:hidden;
+  background:linear-gradient(135deg,#d8d8d8 0 9%,transparent 9%),linear-gradient(#f0866a 0 52%,#e0644a 52%);box-shadow:0 0 0 2px #111,0 3px 0 2px #111}
+.decide button.dc.sel{outline:3px solid #ffe14a;outline-offset:1px}
+.decide button.dc:disabled{opacity:.5;filter:grayscale(.6);cursor:default}
 .decide button.dc:not(:disabled):active{transform:translateY(2px)}
-.decide .dc-ic{flex:none;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1}
-.decide .dc-ic canvas,.decide .dc-ic img{width:38px;height:38px;image-rendering:pixelated}
-.decide .dc-t{flex:1;display:flex;flex-direction:column;line-height:1.15;min-width:0}
-.decide .dc-t b{font-size:15px;font-weight:400;overflow-wrap:anywhere}
-.decide .dc-t small{font-size:11px;color:var(--gold)}
-.decide .dc-pct{flex:none;min-width:52px;text-align:center;padding:4px 6px;border-radius:6px;font-size:15px;background:#2a3566}
+.decide .dc-ic{flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:21px;line-height:1}
+.decide .dc-ic canvas,.decide .dc-ic img{width:30px;height:30px;image-rendering:pixelated;border:2px solid #fff;border-radius:4px;box-sizing:border-box}
+.decide .dc-t{flex:1;display:flex;flex-direction:column;line-height:1.1;min-width:0}
+.decide .dc-t b{font-size:16px;font-weight:700;color:#1f3fae;text-shadow:0 1px 0 #fff;overflow-wrap:anywhere}
+.decide .dc-t small{font-size:11px;color:#4a2418;text-shadow:none}
+.decide .dc-pct{flex:none;min-width:44px;text-align:center;padding:3px 4px;border-radius:5px;font-size:14px;color:#fff;border:2px solid #111;background:#2a3566}
 .decide .dc-pct.good{background:#1f7a3a}.decide .dc-pct.mid{background:#a27a12}.decide .dc-pct.bad{background:#8a2a2a}
-.decide .dc-aim{display:flex;gap:6px;margin-top:8px;align-items:center}
-.decide .dc-aim span{font-size:12px;color:#cfd8ff;flex:none}
-.decide .dc-aim button{flex:1;padding:6px 4px;background:var(--navy);color:var(--chalk);border:2px solid var(--ink);border-radius:8px;font-family:var(--font-ui);font-size:13px;cursor:pointer}
-.decide .dc-aim button[aria-pressed=true]{box-shadow:0 0 0 2px var(--yellow);background:#2a3566}
-.decide .dc-cancel{display:block;margin:8px auto 0;background:none;border:0;color:#cfd8ff;text-decoration:underline;font-family:var(--font-ui);font-size:13px;cursor:pointer}
+.decide .dc-aim{display:flex;gap:6px;margin-top:6px;align-items:center}
+.decide .dc-aim span{font-size:13px;color:#fff;flex:none;text-shadow:-1px 0 #111,1px 0 #111,0 -1px #111,0 1px #111}
+.decide .dc-aim button{flex:1;padding:6px 4px;background:linear-gradient(#f0866a 0 52%,#e0644a 52%);color:#1f3fae;font-weight:700;border:2px solid #fff;border-radius:6px;box-shadow:0 0 0 2px #111;font-family:var(--font-ui);font-size:13px;cursor:pointer}
+.decide .dc-aim button[aria-pressed=true]{outline:3px solid #ffe14a;outline-offset:1px}
+.decide .dc-cancel{display:block;margin:8px auto 0;padding:2px 8px;background:rgba(0,0,0,.45);border:0;border-radius:4px;color:#fff;text-decoration:underline;font-family:var(--font-ui);font-size:13px;cursor:pointer}
 .say{position:absolute;left:10px;right:10px;top:31%;z-index:6;pointer-events:none;display:none;justify-content:flex-start}
 .say.on{display:flex;animation:sayIn .22s ease-out both}
 .say.rival{top:auto;bottom:34%;justify-content:flex-end}
@@ -5113,6 +5118,19 @@ const Logic = (() => {
     }
   }
 
+  // Saque de la IA en un balón parado: quieto, y pasa o (si hay portería cerca) chuta
+  function aiSetPiece(s, p, kind) {
+    if (s.ball.owner !== p) return;
+    const aimX = (rnd() < 0.5 ? -1 : 1) * (0.4 + rnd() * 0.4);
+    if (kind !== 'banda' && goalDist(p) < 14 && rnd() < 0.55) {
+      p.aim = Math.atan2(oppGoalY(p.team) - p.y, cx - p.x); p.facing = snap8(p.aim);
+      shoot(s, p, 0.55 + rnd() * 0.35, aimX); return;
+    }
+    const m = bestPassTarget(s, p);
+    if (m && m.p && pass(s, p, 'strong', { x: m.p.x - p.x, y: m.p.y - p.y })) return;
+    if (!pass(s, p, 'strong', null)) shoot(s, p, 0.6, aimX);
+  }
+
   function restart(s, team, x, y, kind, chosenId) {
     const spot = { x, y };
     const chosen = chosenId && team === 'A' && kind !== 'puerta' ? s.players.find(p => p.id === chosenId && p.team === 'A' && p.role !== 'POR') : null;
@@ -5383,6 +5401,11 @@ const Logic = (() => {
     if (pen) { const me = controlled(s); if (me && me.id !== pen.taker) me.dvx = me.dvy = 0; }   // en un penalti, quieto hasta el chut
     for (const p of s.players) {
       if (s.hold && p.id !== s.hold.id) { p.dvx = p.dvy = 0; p.vx = p.vy = 0; continue; }   // en un balón parado nadie se mueve hasta que saque
+      if (s.hold && s.hold.ai && p.role !== 'POR') {   // también el que saca por la IA se queda quieto y solo pasa o chuta
+        p.dvx = p.dvy = 0; p.vx = p.vy = 0;
+        if (s.hold.t > 0.9 && !s.menu) aiSetPiece(s, p, s.hold.kind);
+        continue;
+      }
       if (pen && p.id !== pen.taker && p.role !== 'POR') { p.dvx = p.dvy = 0; continue; }
       if (pen && p.id === pen.taker && pen.auto) { p.dvx = p.dvy = 0; continue; }
       if (s.settings.allAI || p.id !== s.controlledId) ai(s, p, dt);
@@ -10123,9 +10146,9 @@ const UI = (() => {
   function menuSync(s) {
     const el = $('menu'); if (!el) return;
     menuS = s;
-    if (!s.menu) { if (menuOn) { el.hidden = true; el.innerHTML = ''; menuOn = null; } return; }
+    if (!s.menu) { if (menuOn) { el.hidden = true; el.innerHTML = ''; menuOn = null; document.body.classList.remove('menu-open'); } return; }
     if (menuOn === s.menu) { menuPad(s); return; }
-    const m = menuOn = s.menu; menuSel = firstOn(m);
+    const m = menuOn = s.menu; menuSel = firstOn(m); document.body.classList.add('menu-open');
     el.innerHTML = '<h4></h4><p class="dc-info"></p><div class="dc-list"></div>';
     el.querySelector('h4').textContent = m.title;
     const inf = el.querySelector('.dc-info'); inf.textContent = m.info || ''; inf.hidden = !m.info;
@@ -10175,7 +10198,7 @@ const UI = (() => {
     else if (e.code === 'Enter' || e.code === 'NumpadEnter') { menuChoose(s, menuSel); e.preventDefault(); }
     else if (e.code === 'Backspace') { menuChoose(s, -1); e.preventDefault(); }
   });
-  function reset() { last = {}; sayCool = 0; const d = $('say'); if (d) d.className = 'say'; pickOn = false; const k = $('pick'); if (k) { k.hidden = true; k.innerHTML = ''; } menuOn = null; menuS = null; const mn = $('menu'); if (mn) { mn.hidden = true; mn.innerHTML = ''; } }
+  function reset() { last = {}; sayCool = 0; const d = $('say'); if (d) d.className = 'say'; pickOn = false; const k = $('pick'); if (k) { k.hidden = true; k.innerHTML = ''; } menuOn = null; menuS = null; document.body.classList.remove('menu-open'); const mn = $('menu'); if (mn) { mn.hidden = true; mn.innerHTML = ''; } }
   // Globo de diálogo de un jugador (con su retrato). Sin «force» respeta una pausa entre frases para no saturar.
   function say(ref, name, text, team, force, ms = 2300) {
     const d = $('say'), now = performance.now();
