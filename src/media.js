@@ -20,8 +20,8 @@ const Sprites = (() => {
     return (teamRef[pd.id] = twin ? { file: 'c' + String(twin.cs[0]).padStart(2, '0') + '.png', row: twin.cs[1] } : { file: 'c00.png', row: 0 });
   }
   const collFile = pd => pd && pd.cs ? 'c' + String(pd.cs[0]).padStart(2, '0') + '.png' : fallbackRef(pd).file;
-  // hwFace: retrato de miedo de los legendarios de Halloween (sprites/fhw.png, hecho con tools/hw_faces.py)
-  const refOf = pd => !pd || !pd.cs ? Object.assign({}, fallbackRef(pd), pd && pd.look ? { look: pd.look } : {}) : Object.assign({ file: collFile(pd), row: pd.cs[1] }, pd.hwFace != null ? { ff: 'fhw.png', fr: pd.hwFace } : pd.xmFace != null ? { ff: 'fxm.png', fr: pd.xmFace } : pd.furFace != null ? { ff: 'ffur.png', fr: pd.furFace } : {}, pd.look ? { look: pd.look } : {});   // look: personalización del jugador creado   // xmFace: retrato navideño (sprites/fxm.png) · furFace: retrato «modo furia» de los limitados (sprites/ffur.png)
+  // hwFace: retrato de miedo de los legendarios de Halloween (sprites/fhw2.png, hecho con tools/hw_faces.py; el nombre cambió de fhw.png para que el navegador no use la copia vieja en caché)
+  const refOf = pd => !pd || !pd.cs ? Object.assign({}, fallbackRef(pd), pd && pd.look ? { look: pd.look } : {}) : Object.assign({ file: collFile(pd), row: pd.cs[1] }, pd.hwFace != null ? { ff: 'fhw2.png', fr: pd.hwFace } : pd.xmFace != null ? { ff: 'fxm.png', fr: pd.xmFace } : pd.furFace != null ? { ff: 'ffur.png', fr: pd.furFace } : {}, pd.look ? { look: pd.look } : {});   // look: personalización del jugador creado   // xmFace: retrato navideño (sprites/fxm.png) · furFace: retrato «modo furia» de los limitados (sprites/ffur.png)
   // Dibuja el primer fotograma (de frente) de un jugador en un <canvas>
   function portrait(ref, scale = 2) {
     const c = document.createElement('canvas');

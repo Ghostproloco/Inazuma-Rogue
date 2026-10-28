@@ -20,7 +20,7 @@ const HW_BOSS_AVG = 85, HW_BOSS_STAR = 93;   // media del Ocultismo jefe y de su
 const HW_DAILY = 20, HW_BOSS = 60, HW_MATCH = 5, HW_WIN = 10;
 
 // Legendarios exclusivos: versión Halloween de jugadores reales (mismo aspecto, stats de legendario)
-// Evento rehecho el 28 oct: Lancer se queda y entran 5 nuevos. face = fila de su retrato de miedo en sprites/fhw.png
+// Evento rehecho el 28 oct: Lancer se queda y entran 5 nuevos. face = fila de su retrato de miedo en sprites/fhw2.png
 const HW_LEGENDS = [
   { id: 996005, base: 32001, face: 4 },    // Bash Lancer (DL)
   { id: 996011, base: 32015, face: 7 },    // Astaroth (PT)
