@@ -1228,6 +1228,19 @@ const Logic = (() => {
     }
   }
 
+  // Saque de la IA en un balón parado: quieto, y pasa o (si hay portería cerca) chuta
+  function aiSetPiece(s, p, kind) {
+    if (s.ball.owner !== p) return;
+    const aimX = (rnd() < 0.5 ? -1 : 1) * (0.4 + rnd() * 0.4);
+    if (kind !== 'banda' && goalDist(p) < 14 && rnd() < 0.55) {
+      p.aim = Math.atan2(oppGoalY(p.team) - p.y, cx - p.x); p.facing = snap8(p.aim);
+      shoot(s, p, 0.55 + rnd() * 0.35, aimX); return;
+    }
+    const m = bestPassTarget(s, p);
+    if (m && m.p && pass(s, p, 'strong', { x: m.p.x - p.x, y: m.p.y - p.y })) return;
+    if (!pass(s, p, 'strong', null)) shoot(s, p, 0.6, aimX);
+  }
+
   function restart(s, team, x, y, kind, chosenId) {
     const spot = { x, y };
     const chosen = chosenId && team === 'A' && kind !== 'puerta' ? s.players.find(p => p.id === chosenId && p.team === 'A' && p.role !== 'POR') : null;
@@ -1498,6 +1511,11 @@ const Logic = (() => {
     if (pen) { const me = controlled(s); if (me && me.id !== pen.taker) me.dvx = me.dvy = 0; }   // en un penalti, quieto hasta el chut
     for (const p of s.players) {
       if (s.hold && p.id !== s.hold.id) { p.dvx = p.dvy = 0; p.vx = p.vy = 0; continue; }   // en un balón parado nadie se mueve hasta que saque
+      if (s.hold && s.hold.ai && p.role !== 'POR') {   // también el que saca por la IA se queda quieto y solo pasa o chuta
+        p.dvx = p.dvy = 0; p.vx = p.vy = 0;
+        if (s.hold.t > 0.9 && !s.menu) aiSetPiece(s, p, s.hold.kind);
+        continue;
+      }
       if (pen && p.id !== pen.taker && p.role !== 'POR') { p.dvx = p.dvy = 0; continue; }
       if (pen && p.id === pen.taker && pen.auto) { p.dvx = p.dvy = 0; continue; }
       if (s.settings.allAI || p.id !== s.controlledId) ai(s, p, dt);

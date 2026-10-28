@@ -385,9 +385,9 @@ const UI = (() => {
   function menuSync(s) {
     const el = $('menu'); if (!el) return;
     menuS = s;
-    if (!s.menu) { if (menuOn) { el.hidden = true; el.innerHTML = ''; menuOn = null; } return; }
+    if (!s.menu) { if (menuOn) { el.hidden = true; el.innerHTML = ''; menuOn = null; document.body.classList.remove('menu-open'); } return; }
     if (menuOn === s.menu) { menuPad(s); return; }
-    const m = menuOn = s.menu; menuSel = firstOn(m);
+    const m = menuOn = s.menu; menuSel = firstOn(m); document.body.classList.add('menu-open');
     el.innerHTML = '<h4></h4><p class="dc-info"></p><div class="dc-list"></div>';
     el.querySelector('h4').textContent = m.title;
     const inf = el.querySelector('.dc-info'); inf.textContent = m.info || ''; inf.hidden = !m.info;
@@ -437,7 +437,7 @@ const UI = (() => {
     else if (e.code === 'Enter' || e.code === 'NumpadEnter') { menuChoose(s, menuSel); e.preventDefault(); }
     else if (e.code === 'Backspace') { menuChoose(s, -1); e.preventDefault(); }
   });
-  function reset() { last = {}; sayCool = 0; const d = $('say'); if (d) d.className = 'say'; pickOn = false; const k = $('pick'); if (k) { k.hidden = true; k.innerHTML = ''; } menuOn = null; menuS = null; const mn = $('menu'); if (mn) { mn.hidden = true; mn.innerHTML = ''; } }
+  function reset() { last = {}; sayCool = 0; const d = $('say'); if (d) d.className = 'say'; pickOn = false; const k = $('pick'); if (k) { k.hidden = true; k.innerHTML = ''; } menuOn = null; menuS = null; document.body.classList.remove('menu-open'); const mn = $('menu'); if (mn) { mn.hidden = true; mn.innerHTML = ''; } }
   // Globo de diálogo de un jugador (con su retrato). Sin «force» respeta una pausa entre frases para no saturar.
   function say(ref, name, text, team, force, ms = 2300) {
     const d = $('say'), now = performance.now();
