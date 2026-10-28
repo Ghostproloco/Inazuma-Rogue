@@ -20,36 +20,57 @@ const HW_BOSS_AVG = 85, HW_BOSS_STAR = 93;   // media del Ocultismo jefe y de su
 const HW_DAILY = 20, HW_BOSS = 60, HW_MATCH = 5, HW_WIN = 10;
 
 // Legendarios exclusivos: versión Halloween de jugadores reales (mismo aspecto, stats de legendario)
+// Evento rehecho el 28 oct: Lancer se queda y entran 5 nuevos. face = fila de su retrato de miedo en sprites/fhw.png
 const HW_LEGENDS = [
-  { id: 996001, base: 30037, extra: 'Tiro fantasma' },   // Johan Tassman
-  { id: 996002, base: 36 },                              // Nathan Jones
-  { id: 996003, base: 32025 },                           // Destra
-  { id: 996004, base: 32018 },                           // Hebimos
-  { id: 996005, base: 32001 },                           // Bash Lancer
-  { id: 996006, base: 21399 },                           // Zohen (DF, añadido el 22 oct)
+  { id: 996005, base: 32001, face: 4 },    // Bash Lancer (DL)
+  { id: 996011, base: 32015, face: 7 },    // Astaroth (PT)
+  { id: 996012, base: 31995, face: 8 },    // Bump Trungus (DF)
+  { id: 996013, base: 1405, face: 9 },     // Bellatrix (MD)
+  { id: 996014, base: 31996, face: 10 },   // Oni Triumvir (MD)
+  { id: 996015, base: 32013, face: 11 },   // Gaiel (DL)
 ];
-// Épico especial (premio del día 5): Jim (Oscuro) con retrato de evento y la mejor media de los épicos
-const HW_EPIC = { id: 996007, base: 21583, mean: 86, face: 6 };
+// Los de la primera versión del evento: ya no salen en el sobre, pero se registran para que quien los consiguió los conserve
+const HW_OLD = [
+  { id: 996001, base: 30037, extra: 'Tiro fantasma', face: 0 },   // Johan Tassman
+  { id: 996002, base: 36, face: 1 },                              // Nathan Jones
+  { id: 996003, base: 32025, face: 2 },                           // Destra
+  { id: 996004, base: 32018, face: 3 },                           // Hebimos
+  { id: 996006, base: 21399, face: 5 },                           // Zohen
+];
+// Épico especial (premio del día 5): Sael con retrato de evento y la mejor media de los épicos (antes era Jim, que sigue registrado)
+const HW_EPIC = { id: 996016, base: 32014, mean: 86, face: 12 };
+const HW_EPIC_OLD = { id: 996007, base: 21583, mean: 86, face: 6 };
+// Mapa de la Noche Tenebrosa: 8 equipos de miedo, cada uno más difícil. Hay que ganar para avanzar; el premio es la primera vez que ganas
+const HW_MAP = [
+  { team: 'Occult', name: TX('Instituto Ocultismo'), avg: 68, reward: { candy: 20, tickets: 1 } },
+  { team: 'The Ogre', name: TX('Los Ogros'), avg: 72, reward: { candy: 25, tickets: 2 } },
+  { team: 'Caos', name: TX('Caos'), avg: 76, reward: { candy: 30, tickets: 2, coins: 500 } },
+  { team: 'Demons Z', name: TX('Demons Z'), avg: 80, reward: { candy: 40, tickets: 3 } },
+  { team: 'Brocken Bogue', name: TX('Fantasmas del Brocken'), avg: 84, reward: { candy: 50, tickets: 3, coins: 1000 } },
+  { team: 'Dark Angel', name: TX('Ángeles Caídos'), avg: 87, reward: { candy: 60, tickets: 4 } },
+  { team: 'Génesis', name: TX('Génesis'), avg: 90, reward: { candy: 80, tickets: 5, coins: 1500 } },
+  { team: 'Emperadores Oscuros', name: TX('Emperadores Oscuros'), avg: 93, boss: true, reward: { candy: 150, tickets: 10, coins: 3000, legend: true } },
+];
 (function registerHalloween() {
   if (typeof GAME === 'undefined') return;
   const reg = (p, list) => { if (PBY[p.id]) return; if (list) GAME.players.push(p); PBY[p.id] = p; };
   const KEYS = ['tiro', 'control', 'defensa', 'rapidez', 'fisico'];
-  HW_LEGENDS.forEach((L, i) => {
+  HW_LEGENDS.concat(HW_OLD).forEach(L => {
     const b = PLAYER(L.base); if (!b) return;
     const mean = KEYS.reduce((t, k) => t + b.ie[k], 0) / KEYS.length, f = 93 / mean, ie = {};
     for (const k in b.ie) ie[k] = Math.min(99, Math.round(b.ie[k] * f));
     const moves = (b.moves || []).map(m => m.slice());
     if (L.extra) { const t = Object.values(GAME.techniques).find(x => x.name === L.extra && x.id < 30000); if (t && !moves.some(m => m[0] === t.id)) moves.unshift([t.id, 1]); }
-    reg(Object.assign({}, b, { id: L.id, full: b.full + ' (Halloween)', rarity: 'legendaria', ie, ie0: undefined, moves, gacha: false, banner: null, halloween: true, hwFace: i, hwBase: L.base }), true);
+    reg(Object.assign({}, b, { id: L.id, full: b.full + ' (Halloween)', rarity: 'legendaria', ie, ie0: undefined, moves, gacha: false, banner: null, halloween: true, hwFace: L.face, hwBase: L.base }), true);
   });
-  { const b = PLAYER(HW_EPIC.base);
+  [HW_EPIC, HW_EPIC_OLD].forEach(E => { const b = PLAYER(E.base);
     if (b) {
-      const mean = KEYS.reduce((t, k) => t + b.ie[k], 0) / KEYS.length, f = HW_EPIC.mean / mean, ie = {};
+      const mean = KEYS.reduce((t, k) => t + b.ie[k], 0) / KEYS.length, f = E.mean / mean, ie = {};
       for (const k in b.ie) ie[k] = Math.min(99, Math.round(b.ie[k] * f));
-      reg(Object.assign({}, b, { id: HW_EPIC.id, full: b.full.replace(/ \(Oscuro\)$/, '') + ' (Halloween)', rarity: 'epica', ie, ie0: undefined, moves: (b.moves || []).map(m => m.slice()),
-        gacha: false, banner: null, halloween: true, hwFace: HW_EPIC.face, hwBase: HW_EPIC.base }), true);
+      reg(Object.assign({}, b, { id: E.id, full: b.full.replace(/ \(Oscuro\)$/, '') + ' (Halloween)', rarity: 'epica', ie, ie0: undefined, moves: (b.moves || []).map(m => m.slice()),
+        gacha: false, banner: null, halloween: true, hwFace: E.face, hwBase: E.base }), true);
     }
-  }
+  });
   // Ray Dark: solo como mánager (retrato propio: juego/ui/raydark.png); no entra en las listas de jugadores
   reg({ id: RAY_DARK, name: 'Ray Dark', full: 'Ray Dark', role: 'MED', elem: 'neutro', rarity: 'legendaria', faceImg: 'ui/raydark.png', ie: { tiro: 50, control: 50, defensa: 50, rapidez: 50, fisico: 50, aguante: 50 }, moves: [], gacha: false, halloween: true });
 })();
@@ -61,7 +82,7 @@ const Halloween = {
   daysLeft() { const end = new Date(HW_END + 'T23:59:59'); return Math.max(0, Math.ceil((end - new Date()) / 86400000)); },
   data() {
     const P = Profile.data;
-    const D = { candy: 0, pulls: 0, pity: 0, daily: null, boss: null, bossWins: 0, matches: 0, retos: {}, legends: 0, ray: false };
+    const D = { candy: 0, pulls: 0, pity: 0, daily: null, boss: null, bossWins: 0, matches: 0, retos: {}, legends: 0, ray: false, map: 0, mapWins: 0 };
     const H = P.hw = P.hw || {};
     for (const k in D) if (H[k] === undefined) H[k] = D[k];
     return H;
@@ -90,6 +111,25 @@ const Halloween = {
   bossTeam() {
     const mean = pd => ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + pd.ie[k], 0) / 5;
     return rivalTeam('Occult', pd => (pd.id === 44 ? HW_BOSS_STAR : HW_BOSS_AVG) / mean(pd), 1);
+  },
+
+  // Equipo de un nivel del mapa: el rival de siempre con la media del nivel
+  stageTeam(i) { const st = HW_MAP[i]; return rivalTeam(st.team, pd => st.avg / this.avgOf(pd), 1); },
+  // Al acabar un partido del mapa. Solo se avanza ganando; el premio se cobra la primera vez que superas el nivel
+  mapResult(i, won) {
+    const H = this.data(), P = Profile.data, st = HW_MAP[i], out = { won, first: false, reward: null, players: [] };
+    if (!won || !st) return out;
+    H.mapWins++; const T = this.dayData(); T.map = (T.map || 0) + 1;
+    if (i === H.map) {
+      H.map++; out.first = true; out.reward = st.reward;
+      H.candy += st.reward.candy || 0; P.tickets += st.reward.tickets || 0; P.coins += st.reward.coins || 0;
+      if (st.reward.legend) {   // el jefe final regala un legendario del evento (uno que no tengas, si queda alguno)
+        const all = HW_LEGENDS.map(L => L.id).filter(id => PLAYER(id)), free = all.filter(id => !P.coll[id]), list = free.length ? free : all;
+        out.players.push(this.give(list[Math.floor(Math.random() * list.length)]));
+        H.legends = HW_LEGENDS.filter(L => P.coll[L.id]).length;
+      }
+    }
+    Profile.save(); return out;
   },
 
   /* ---------- Sobre Calabaza ---------- */
@@ -145,10 +185,11 @@ const Halloween = {
     { id: 'd_win', name: TX('Victoria de ultratumba'), desc: TX('Gana 2 partidos hoy'), goal: 2, val: T => T.wins, reward: { candy: 35, tickets: 2 } },
     { id: 'd_pull', name: TX('Caramelo o susto'), desc: TX('Haz 3 tiradas del Sobre Calabaza hoy'), goal: 3, val: T => T.pulls, reward: { candy: 20, tickets: 3 } },
     { id: 'd_boss', name: TX('Exorcista del día'), desc: TX('Gana hoy al Ocultismo jefe'), goal: 1, val: T => T.boss, reward: { candy: 20, tickets: 2 } },
+    { id: 'd_map', name: TX('Explorador de la noche'), desc: TX('Gana 2 partidos del mapa hoy'), goal: 2, val: T => T.map || 0, reward: { candy: 30, tickets: 2 } },
   ],
   dayData() {
     const H = this.data(), t = this.today();
-    if (!H.day || H.day.date !== t) H.day = { date: t, matches: 0, wins: 0, pulls: 0, boss: 0, got: {} };
+    if (!H.day || H.day.date !== t) H.day = { date: t, matches: 0, wins: 0, pulls: 0, boss: 0, map: 0, got: {} };
     return H.day;
   },
   dailyState(R) { const T = this.dayData(); return T.got[R.id] ? 'got' : R.val(T) >= R.goal ? 'ready' : 'locked'; },
@@ -166,7 +207,7 @@ const Halloween = {
     { tickets: 10, label: TX('10 tickets'), icon: '🎟️' },
     { coins: 1000, label: TX('1000 monedas'), icon: '🪙' },
     { pick: true, label: TX('Elige 1 de 3 jugadores de +80'), icon: '⭐' },
-    { player: HW_EPIC.id, label: TX('Jim de Halloween (épico especial) de regalo'), icon: '🎁' },
+    { player: HW_EPIC.id, label: TX('Sael de Halloween (épico especial) de regalo'), icon: '🎁' },
   ],
   login() { const H = this.data(); H.login = H.login || { n: 0, last: null, pick: null }; return H.login; },
   loginReady() { const L = this.login(); return this.active() && L.n < this.LOGIN.length && L.last !== this.today(); },

@@ -19,7 +19,7 @@ const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><
 // Igual, con el nivel comprado en la tienda (solo para las técnicas de tu colección)
 const techLineMy = t => { const lv = Shop.techLevel(t.id); return lv > 1 ? techLine(Object.assign({}, t, { power: t.power + SHOP.LV_POWER * (lv - 1), name: t.name + ' · ' + TX('Nv.') + lv })) : techLine(t); };
 
-const VERSION = '0.37.0';
+const VERSION = '0.38.0';
 const DISCORD_URL = 'https://discord.gg/G6SyT2rZW', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 // Jugadores originales de Fran (Goggle Jr., Rosfire, Knack…: «original» en gamedata): ocultos en las versiones públicas,
@@ -126,7 +126,6 @@ const App = (() => {
       </div>
       <div class="title nm-title"><img class="logo" id="logo" src="ui/logo_gold.png" alt="Inazuma Gold"><span>${TX('5 contra 5 · roguelite')}</span></div>${wallet()}
       ${Leyenda.active() ? lyMenuBtn() : ''}
-      ${Halloween.active() ? hwMenuBtn() : ''}
       ${Navidad.active() ? xmMenuBtn() : Navidad.upcoming() ? xmSoonBtn() : ''}
       ${Limitado.active() ? lmMenuBtn() : ''}
       ${open.map(r => `<button class="cta" data-cont="${r.kind}">${TX('Continuar:')} ${esc(r.name)}<small>${TX('Partido')} ${r.index + 1}${r.kind === 'infinite' ? '' : TX(' de ') + r.schedule.length} · ${'♥'.repeat(r.lives)}</small></button>`).join('')}
@@ -195,7 +194,7 @@ const App = (() => {
     if ($('mXm')) $('mXm').onclick = renderNavidad;
     if ($('mXmSoon')) $('mXmSoon').onclick = renderNavidadSoon;
     if ($('mLm')) $('mLm').onclick = renderLimitado;
-    if (Navidad.active()) xmDecor(); else if (Halloween.active()) hwDecor();   // el menú lleva el tema del evento activo (niebla y calabazas, o nieve)
+    if (Navidad.active()) xmDecor();   // el menú lleva el tema de Navidad (nieve) cuando está activa
     if (settings.seenNews === VERSION || settings.newsShown === VERSION) setTimeout(aviso, 500);
     Sound.music('menu');
   }
@@ -394,11 +393,11 @@ const App = (() => {
       ${TX('Épica o mejor asegurada cada 10 tiradas (llevas')} ${P.pity} ${TX('de 10). Los repetidos suben una estrella (máx.')} ${MAX_STARS}${TX('); con 5 estrellas, o una técnica repetida, dan monedas.')}</p>
       <p class="note">${TX('Tickets: Historia (1 por victoria y 3 al completarla), Especiales (2), Cadenas (2 al completarlas) e Infinito (2 por oleada especial).')}</p>
       ${bottom(`<div class="grid2"><button class="cta" id="g1" ${P.tickets < 1 ? 'disabled' : ''}>${TX('Tirar ×1')}<small>${TX('1 ticket')}</small></button><button class="cta" id="g10" ${P.tickets < 10 ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${TX('10 tickets')}</small></button></div>`)}`, 'bg_green');
-    if (Selva.active()) {   // Sobre Selva (evento): tarjeta destacada arriba
-      const el = document.createElement('button'); el.className = 'banner-card svcard';
-      el.innerHTML = `${Sprites.crest(4104)}<span class="mt"><b>🍃 ${TX('Sobre Selva')}</b><small>${TX('Diseños raros y 6 legendarios de evento · hasta el miércoles')}</small><span class="legs"></span></span>`;
-      Selva.legends().forEach(p => el.querySelector('.legs').appendChild(face(Sprites.refOf(p), 32)));
-      el.onclick = () => { P.banner = SV_BANNER; Profile.save(); Sound.sfx('click'); renderGacha(); };
+    if (Halloween.active()) {   // Evento (Noche Tenebrosa): tarjeta destacada arriba; el menú ya no lleva nada de Halloween
+      const el = document.createElement('button'); el.className = 'banner-card hwcard';
+      el.innerHTML = `${Sprites.crest(3)}<span class="mt"><b>🎃 ${TX('Sobre Calabaza')}</b><small>${TX('Evento: mapa de equipos tenebrosos y 6 legendarios de miedo')}</small><span class="legs"></span></span>`;
+      HW_LEGENDS.map(L => PLAYER(L.id)).filter(Boolean).forEach(p => el.querySelector('.legs').appendChild(face(Sprites.refOf(p), 32)));
+      el.onclick = () => { Sound.sfx('click'); renderHalloween(); };
       $('bn').appendChild(el);
     }
     if (Limitado.active()) {
@@ -639,6 +638,7 @@ const App = (() => {
       <div class="hwlogin">${Halloween.LOGIN.map((R, i) => { const L = Halloween.login(), st = i < L.n ? 'got' : i === L.n && Halloween.loginReady() ? 'ready' : 'locked';
         return `<div class="hwday ${st}"><small>${TX('Día {0}', i + 1)}</small><span>${st === 'got' ? '✓' : R.icon}</span><small>${esc(R.label)}</small></div>`; }).join('')}</div>
       ${Halloween.loginReady() ? `<button class="cta" id="hwLogin">${TX('🎁 Recoger el premio del día {0}', Halloween.login().n + 1)}</button>` : Halloween.login().n < Halloween.LOGIN.length ? `<p class="note">${TX('Vuelve mañana a por el siguiente premio.')}</p>` : ''}
+      <button class="mode hwmode" id="hwMap"><span class="cicon">🗺️</span><span class="mt"><b>${TX('Noche Tenebrosa: el mapa')}</b><small>${TX('Gana a 8 equipos de miedo, uno tras otro')} · ${Math.min(H.map, HW_MAP.length)}/${HW_MAP.length}${H.map >= HW_MAP.length ? ' ✓' : ''}</small></span></button>
       <h3>${TX('Sobre Calabaza')}</h3>
       <div class="hwlegs" id="hwLegs"></div>
       <p class="note">${TX('Solo jugadores villanos y de miedo, y 6 legendarios exclusivos de Halloween.')}<br>
@@ -656,7 +656,7 @@ const App = (() => {
     legs.forEach(p => { const w = document.createElement('div'); w.className = 'hwleg' + (Profile.data.coll[p.id] ? ' own' : ''); w.appendChild(face(Sprites.refOf(p), 48)); w.insertAdjacentHTML('beforeend', `<small>${esc(p.full.replace(/ \(Halloween\)$/, ''))}</small>`); $('hwLegs').appendChild(w); });
     const go = n => { const res = Halloween.pull(n); if (!res) return UI.toast(TX('No tienes caramelos suficientes')); renderMachine(res, HW_BANNER, renderHalloween, TX('Sobre Calabaza')); };
     $('hw1').onclick = () => go(1); $('hw10').onclick = () => go(10);
-    $('hwBoss').onclick = startBoss;
+    $('hwBoss').onclick = startBoss; $('hwMap').onclick = renderHwMap;
     if ($('hwLogin')) $('hwLogin').onclick = () => {
       const R = Halloween.LOGIN[Halloween.login().n];
       if (R.pick) return renderHwPick();
@@ -703,6 +703,49 @@ const App = (() => {
       return Shop.boost(Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: mySprite(pd, F.roles[i]) }));
     }) };
     startMatch({ A, B: Halloween.bossTeam() }, false, 'niebla', 'match', 'Occult');
+  }
+  // Mapa de la Noche Tenebrosa: 8 equipos de miedo, hay que ir ganando uno tras otro
+  function renderHwMap() {
+    if (!Halloween.active()) return renderMenu();
+    const H = Halloween.data(), n = HW_MAP.length;
+    const pos = [[24, 93], [72, 81], [26, 69], [74, 57], [26, 45], [72, 33], [28, 21], [50, 8]];
+    const nodes = HW_MAP.map((st, i) => {
+      const state = i < H.map ? 'done' : i === H.map ? 'now' : 'lock', tm = TEAM(st.team), r = st.reward;
+      return `<button class="hwnode ${state}${st.boss ? ' boss' : ''}" data-i="${i}" style="left:${pos[i][0]}%;top:${pos[i][1]}%">${Sprites.crest(tm ? tm.crest : 3)}<i class="hwst">${state === 'done' ? '✓' : state === 'lock' ? '🔒' : st.boss ? '👑' : '⚔️'}</i><b>${esc(st.name)}</b><small>${TX('media')} ${st.avg} · ${r.candy} 🍬${r.legend ? ' · 🎁' : ''}</small></button>`;
+    }).join('');
+    screen(`${top('🗺️ ' + TX('Noche Tenebrosa'), 'back', TX('Volver'))}
+      <div class="runbar hwbar"><span>🍬 ${H.candy}</span><span>🎟️ ${Profile.data.tickets}</span><span>${Math.min(H.map, n)}/${n} ${TX('equipos vencidos')}</span></div>
+      <div class="hwmap"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pos.map(p => p.join(',')).join(' ')}"/></svg>
+        <span class="hwdec" style="left:4%;top:60%">🪦</span><span class="hwdec" style="right:4%;top:72%">🦇</span><span class="hwdec" style="left:6%;top:30%">🦇</span><span class="hwdec" style="right:5%;top:12%">🌕</span><span class="hwdec" style="left:42%;top:92%">🪦</span>${nodes}</div>
+      <p class="note">${TX('Gana a cada equipo para abrir el siguiente (el empate no cuenta). La primera vez que lo superas cobras su premio, y el último regala un legendario del evento. Puedes repetir los niveles: los caramelos de siempre (+5 por partido, +10 si ganas) se cobran igual.')}</p>`, 'bg_title');
+    hwDecor();
+    body.querySelectorAll('.hwnode').forEach(b => b.onclick = () => {
+      const i = +b.dataset.i; if (i > H.map) { Sound.sfx('click'); return UI.toast(TX('Antes tienes que ganar al equipo anterior')); }
+      startMapStage(i);
+    });
+    $('back').onclick = renderHalloween;
+    Sound.music('menu');
+  }
+  function startMapStage(i) {
+    const T = savedTeam(), F = FORMATIONS[T.formation], pos = layout(F.roles), L = T.ids, st = HW_MAP[i];
+    if (L.some(x => x == null)) return UI.toast(TX('Completa tu equipo en Plantilla'));
+    api.mode = 'hwmap'; api.hwStage = i;
+    const A = { name: TX('Tu equipo'), players: L.map((id, k) => {
+      const pd = PLAYER(id);
+      return Shop.boost(Object.assign(buildMatchPlayer(id, F.roles[k], q => statOf(id, Profile.owned(id), q), runMember(id).techs, [], k, pos[k]), { sprite: mySprite(pd, F.roles[k]) }));
+    }) };
+    startMatch({ A, B: Halloween.stageTeam(i) }, false, 'niebla', 'match', st.team);
+  }
+  function renderMapEnd(s, candy, out) {
+    const a = s.score.A, b = s.score.B, i = api.hwStage, st = HW_MAP[i], r = out.reward, last = i >= HW_MAP.length - 1;
+    const extra = out.first ? `<br><b>${TX('¡Nivel superado!')} +${r.candy} 🍬 · +${r.tickets} 🎟️${r.coins ? ' · +' + r.coins + ' 🪙' : ''}</b>` : a > b ? '<br>' + TX('Ya habías superado este nivel.') : a === b ? '<br>' + TX('Hay que ganar para avanzar: el empate no cuenta.') : '';
+    screen(`<img class="finimg" src="ui/fin.png" alt="${TX('Fin del partido')}"><h2>${a > b ? TX('¡Has vencido a {0}!', st.name) : a < b ? TX('{0} te ha asustado…', st.name) : TX('Empate')}</h2>
+      ${scoreLine(s)}
+      <p class="note">${candy ? '+' + candy + ' 🍬 ' + TX('por jugar') : ''}${extra}</p>
+      ${out.players.length ? `<button class="cta" id="hwRev">${TX('🎁 Ver el premio')}</button>` : ''}
+      <button class="cta" id="again">${out.first && !last ? TX('Siguiente nivel ▶') : TX('Volver al mapa')}</button><button class="ghost" id="toMenu">${TX('Menú')}</button>`, a > b ? 'ill27' : a < b ? 'ill15' : 'ill28');
+    if (out.players.length) $('hwRev').onclick = () => renderReveal(out.players, renderHwMap, TX('¡Premio del mapa!'));
+    $('again').onclick = () => out.first && !last ? startMapStage(i + 1) : renderHwMap(); $('toMenu').onclick = renderMenu;
   }
   function renderBossEnd(s, candy, bonus) {
     const a = s.score.A, b = s.score.B;
@@ -1237,7 +1280,7 @@ const App = (() => {
         else if (['career', 'wc', 'pcareer', 'pwc', 'pduel'].includes(api.mode)) { const m = api.match; m.over = true; m.score.A = 0; m.score.B = Math.max(3, m.score.B); m.result = 'loss'; api.matchEnded(m); }
         else if (api.mode === 'techview') { api.match.over = true; api.techDemo = null; renderDevTechs(); }
         else if (api.mode === 'blockview') { api.match.over = true; api.blockDemo = null; renderDevBlocks(); }
-        else { api.match.over = true; Sound.stop(0.3); api.mode === 'hwboss' ? renderHalloween() : api.mode === 'xmboss' ? renderNavidad() : renderMenu(); }
+        else { api.match.over = true; Sound.stop(0.3); api.mode === 'hwmap' ? renderHwMap() : api.mode === 'hwboss' ? renderHalloween() : api.mode === 'xmboss' ? renderNavidad() : renderMenu(); }
       };
       show('pause');
     } else { show(null); api.running = true; }
@@ -1249,11 +1292,12 @@ const App = (() => {
       setTimeout(() => { try { Cloud.flushOld(); } catch (_) {} }, 2000);   // al acabar el partido se sube lo pendiente si hace rato de la última subida
       // Halloween: caramelos por jugar en cualquier modo (+5, +10 más si ganas)
       const candy = s.quit ? 0 : Halloween.matchPlayed(s.score.A > s.score.B);
-      if (candy && api.mode !== 'hwboss') setTimeout(() => UI.toast('+' + candy + ' 🍬 ' + TX('caramelos de Halloween'), 2200), 500);
+      if (candy && api.mode !== 'hwboss' && api.mode !== 'hwmap') setTimeout(() => UI.toast('+' + candy + ' 🍬 ' + TX('caramelos de Halloween'), 2200), 500);
       // Navidad: copos por jugar en cualquier modo (+5, +10 más si ganas)
       const snow = s.quit ? 0 : Navidad.matchPlayed(s.score.A > s.score.B);
       if (snow && api.mode !== 'xmboss') setTimeout(() => UI.toast('+' + snow + ' ❄️ ' + TX('copos de Navidad'), 2200), candy ? 2900 : 500);
       if (api.mode === 'xmboss') { const won = s.score.A > s.score.B, bonus = Navidad.bossResult(won); Sound.jingle(won ? 'win' : s.score.A < s.score.B ? 'lose' : null); renderXmBossEnd(s, snow, bonus); return; }
+      if (api.mode === 'hwmap') { const won = s.score.A > s.score.B, out = Halloween.mapResult(api.hwStage, won); Sound.jingle(won ? 'win' : s.score.A < s.score.B ? 'lose' : null); renderMapEnd(s, candy, out); return; }
       if (api.mode === 'hwboss') { const won = s.score.A > s.score.B, bonus = Halloween.bossResult(won); Sound.jingle(won ? 'win' : s.score.A < s.score.B ? 'lose' : null); renderBossEnd(s, candy, bonus); return; }
       if (api.mode === 'pduel') { const r = PC.duelResult(s.score.A, s.score.B); Sound.jingle(r.win ? 'win' : r.draw ? null : 'lose'); renderPCDuelEnd(r); return; }
       if (api.mode === 'pcareer') { const M = api.pcMatch; const out = PC.playedResult(s, M.lockId, M.part, M.base); jingleFor(out); renderPCResult(out); return; }
@@ -2871,6 +2915,10 @@ const App = (() => {
   }
   /* ---------- Novedades: notas de cada actualización (las más nuevas arriba) ---------- */
   const NEWS = [
+    { v: '0.38.0', date: '28/10/2026', items: [
+      TX('👻 El evento de miedo cambia por completo: nuevo mapa «Noche Tenebrosa» con 8 equipos tenebrosos, cada uno más difícil. Gana para abrir el siguiente, cobra premios y, al vencer al último, llévate un legendario del evento.'),
+      TX('🎃 El Sobre Calabaza trae 5 legendarios nuevos con retrato de miedo (Astaroth, Bump Trungus, Bellatrix, Oni Triumvir y Gaiel) además de Lancer, y el épico del día 5 ahora es Sael. Ahora se entra desde el Gacha.'),
+      TX('🧹 Se quitan el Sobre Selva, la intro al abrir el juego y lo de Halloween del menú principal.')] },
     { v: '0.37.0', date: '27/10/2026', items: [
       TX('🎮 Menús de decisión, como en el Inazuma Eleven de la DS: cuando un rival te sale al paso se para el tiempo y eliges entre regatear, usar una técnica o pasar a un compañero, viendo la probabilidad de que salga bien.'),
       TX('⚽ Al pulsar Tiro, con la portería cerca, eliges chutar normal, con poder o vaselina (nuevo: pasa por encima del portero si se ha adelantado). Con el rayo (Técnica) eliges la supertécnica que quieres usar.'),
@@ -3216,11 +3264,9 @@ const App = (() => {
       <div class="mixer"><label>${TX('🎵 Música')} <b id="mvT">${Math.round((c.music ? c.mv ?? 1 : 0) * 100)} %</b><input type="range" id="mvR" min="0" max="100" step="5" value="${Math.round((c.music ? c.mv ?? 1 : 0) * 100)}"></label>
         <label>${TX('🔊 Efectos')} <b id="svT">${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)} %</b><input type="range" id="svR" min="0" max="100" step="5" value="${Math.round((c.sfx ? c.sv ?? 1 : 0) * 100)}"></label></div>
       <p class="note">${TX('La música sale de tus archivos del Inazuma 1 y 2, reconstruida desde las partituras del juego. Los nombres son los de la colección de música del Inazuma 2.')}</p>
-      ${opts(TX('Intro al abrir el juego'), 'intro', [[1, TX('Sí')], [0, TX('No')]])}
-      <button class="ghost" id="seeIntro">${TX('▶ Ver la intro')}</button>
       <div class="group"><label>${TX('Rivales con tema propio')}</label><div class="opts"><button id="tt1" aria-pressed="${c.teamThemes !== false}">${TX('Su música')}</button><button id="tt0" aria-pressed="${c.teamThemes === false}">${TX('La de la etapa')}</button></div></div>
       <details class="roles"><summary>${TX('Elegir música de cada momento')}</summary>
-      ${sel('menu', false)}${sel('intro', false)}${sel('match', false, rnd)}${['match_easy', 'match_mid', 'match_hard', 'match_final', 's2_easy', 's2_mid', 's2_hard', 's2_final', 'match_special'].map(r => sel(r, false, rnd)).join('')}
+      ${sel('menu', false)}${sel('match', false, rnd)}${['match_easy', 'match_mid', 'match_hard', 'match_final', 's2_easy', 's2_mid', 's2_hard', 's2_final', 'match_special'].map(r => sel(r, false, rnd)).join('')}
       ${sel('goal', true, none)}${sel('win', true, none)}${sel('lose', true, none)}
       <button class="ghost" id="resetRoles">${TX('Volver a la música de serie')}</button></details>
       <h3>${TX('Escuchar')} <small>${TX('toca para oír cada pista')}</small></h3>
@@ -3241,7 +3287,6 @@ const App = (() => {
     $('svR').oninput = e => { const v = +e.target.value / 100; Sound.setVol('sfx', v); $('svT').textContent = e.target.value + ' %'; };
     $('svR').onchange = () => Sound.sfx('click');
     body.querySelectorAll('select[data-role]').forEach(s => { s.value = c.roles[s.dataset.role] ?? ''; s.onchange = () => Sound.setRole(s.dataset.role, s.value); });
-    $('seeIntro').onclick = () => { Sound.stop(0.2); playIntro(renderSettings); };
     $('sGuide').onclick = () => renderControlsGuide(renderSettings);
     bindKeyMap();
     $('tt1').onclick = () => { Sound.setTeamThemes(true); renderSettings(); };
@@ -3732,7 +3777,7 @@ $('dReset').onclick = () => {
     Career.load(); PlayerCareer.load();
     const pend = hashCode();
     const first = pend ? () => renderTransfer(renderMenu, pend) : renderMenu;
-    const start = () => { if (settings.intro !== 0 && !pend) playIntro(first); else first(); };
+    const start = () => first();   // ya no hay intro al abrir el juego
     if (!Cloud.enabled() || (!(Cloud.loggedIn() && !Cloud.expired()) && !Cloud.pendingRedirect())) return start();
     // Con cuenta: mira la nube antes de empezar (máximo unos segundos; si no hay internet, se juega igual)
     screen(`<div class="title"><img class="logo" src="ui/logo_gold.png" alt="Inazuma Gold"><span>${TX('Comprobando tu partida…')}</span></div>`, 'bg_title');

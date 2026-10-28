@@ -60,7 +60,7 @@ const SV_ROLE_KEYS = { POR: ['defensa', 'fisico'], DEF: ['defensa', 'fisico'], M
 const Selva = {
   get forced() { return typeof Halloween !== 'undefined' && Halloween.forced; },   // la beta lo enseña siempre
   today() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); },
-  active() { if (this.forced) return true; const t = this.today(); return t >= SV_START && t <= SV_END; },
+  active() { return false; },   // el Sobre Selva se quitó (28 oct): no sale más; los legendarios que ya tengas siguen siendo tuyos
   daysLeft() { const end = new Date(SV_END + 'T23:59:59'); return Math.max(0, Math.ceil((end - new Date()) / 86400000)); },
   data() { const P = Profile.data, S = P.sv = P.sv || {}; if (S.pity == null) S.pity = 0; if (S.pulls == null) S.pulls = 0; return S; },
   legends() { return SV_LEGENDS.map(L => PLAYER(L.id)).filter(Boolean); },
