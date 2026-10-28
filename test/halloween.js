@@ -11,8 +11,8 @@ ctx.GAME = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'juego', 'gamed
 ctx.Sprites = { refOf: () => ({ file: 'c00.png', row: 0 }) };
 vm.createContext(ctx);
 vm.runInContext(['logic.js', 'run.js', 'career.js', 'event.js'].map(f => fs.readFileSync(S + f, 'utf8')).join('\n') +
-  '\nProfile.load();Profile.data.firstDone=true;this.Profile=Profile;this.Halloween=Halloween;this.PLAYER=PLAYER;this.Career=Career;this.Gacha=Gacha;this.Logic=Logic;this.HW_LEGENDS=HW_LEGENDS;this.HW_EPIC=HW_EPIC;this.RAY_DARK=RAY_DARK;this.MANAGERS=MANAGERS;', ctx);
-const { Profile, Halloween, PLAYER, Career, Gacha, Logic, HW_LEGENDS, HW_EPIC, RAY_DARK } = ctx;
+  '\nProfile.load();Profile.data.firstDone=true;this.Profile=Profile;this.Halloween=Halloween;this.HW_MAP=HW_MAP;this.TEAM=TEAM;this.PLAYER=PLAYER;this.Career=Career;this.Gacha=Gacha;this.Logic=Logic;this.HW_LEGENDS=HW_LEGENDS;this.HW_EPIC=HW_EPIC;this.RAY_DARK=RAY_DARK;this.MANAGERS=MANAGERS;', ctx);
+const { Profile, Halloween, PLAYER, Career, Gacha, Logic, HW_LEGENDS, HW_EPIC, RAY_DARK, HW_MAP, TEAM } = ctx;
 const setDay = d => { NOW = new Date(d + 'T12:00:00'); };
 
 console.log('1. Fechas: del 22 de octubre al 3 de noviembre (incluidos)');
@@ -25,7 +25,8 @@ for (const L of HW_LEGENDS) {
   const p = PLAYER(L.id), b = PLAYER(L.base), avg = ['tiro', 'control', 'defensa', 'rapidez', 'fisico'].reduce((t, k) => t + p.ie[k], 0) / 5;
   ok(p && p.rarity === 'legendaria' && p.gacha === false && p.cs[0] === b.cs[0] && avg > 88 && avg < 96, p.full + ' · media ' + avg.toFixed(1));
 }
-ok(HW_LEGENDS.every((L, i) => PLAYER(L.id).hwFace === i) && PLAYER(996001).moves.some(m => ctx.GAME.techniques[m[0]].name === 'Tiro fantasma'), 'Johan Tassman tiene Tiro fantasma');
+ok(HW_LEGENDS.every(L => PLAYER(L.id).hwFace === L.face) && HW_LEGENDS.length === 6 && HW_LEGENDS.some(L => L.id === 996005), 'Lancer se queda y hay 6 legendarios, cada uno con su retrato de miedo');
+ok(PLAYER(996001).moves.some(m => ctx.GAME.techniques[m[0]].name === 'Tiro fantasma') && PLAYER(996007) && !HW_LEGENDS.some(L => L.id === 996001), 'los de la primera versión (Tassman con Tiro fantasma, Jim…) siguen registrados pero ya no salen en el sobre');
 ok(PLAYER(996006) && PLAYER(996006).role === 'DEF' && PLAYER(996006).hwFace === 5, 'Zohen (Halloween) es el DF legendario nuevo');
 ok(PLAYER(RAY_DARK) && !ctx.GAME.players.some(p => p.id === RAY_DARK), 'Ray Dark existe solo como mánager (no sale en listas ni gachas)');
 ok(!Gacha.pull(50, {}).some(r => r.id >= 996000), 'el gacha normal no da jugadores de Halloween');
@@ -70,7 +71,7 @@ const pc = t => (cnt[t] / 30).toFixed(1);
 ok(Math.abs(cnt.comun / 30 - 50) < 4 && Math.abs(cnt.rara / 30 - 32) < 4 && Math.abs(cnt.epica / 30 - 15) < 3 && cnt.legendaria / 30 > 2.5 && cnt.legendaria / 30 < 5.5,
   `probabilidades: ${pc('comun')} % común · ${pc('rara')} % rara · ${pc('epica')} % épica · ${pc('legendaria')} % legendaria`);
 ok(maxGap <= 39, 'legendario asegurado: nunca más de 39 tiradas seguidas sin uno (máx. ' + maxGap + ')');
-ok(HW_LEGENDS.every(L => Profile.data.coll[L.id]), 'tras 3000 tiradas tienes los 5 legendarios');
+ok(HW_LEGENDS.every(L => Profile.data.coll[L.id]), 'tras 3000 tiradas tienes los 6 legendarios');
 ok(Object.values(Profile.data.coll).every(o => o.stars <= 5), 'las estrellas no pasan de 5');
 
 console.log('6. Retos y Ray Dark');
@@ -100,8 +101,8 @@ const notIn = Halloween.pickPool().find(id => !opts.includes(id));
 ok(Halloween.claimLogin(notIn) === null, 'no vale elegir uno que no está entre los 3');
 const d4 = Halloween.claimLogin(opts[1]); ok(d4 && d4.day === 4 && Profile.data.coll[opts[1]], 'eliges uno y es tuyo');
 setDay('2026-10-28'); const hadJim = !!Profile.data.coll[HW_EPIC.id]; const d5 = Halloween.claimLogin();
-ok(d5 && d5.day === 5 && Profile.data.coll[HW_EPIC.id] && d5.players[0].id === HW_EPIC.id, 'día 5: Jim de Halloween (épico especial, media 86) de regalo' + (hadJim ? ' (ya lo tenía: +1 ★ o monedas)' : ''));
-ok(PLAYER(HW_EPIC.id).rarity === 'epica' && PLAYER(HW_EPIC.id).halloween && PLAYER(HW_EPIC.id).hwFace === 6, 'Jim de Halloween: épico con retrato de evento');
+ok(d5 && d5.day === 5 && Profile.data.coll[HW_EPIC.id] && d5.players[0].id === HW_EPIC.id, 'día 5: Sael de Halloween (épico especial, media 86) de regalo' + (hadJim ? ' (ya lo tenía: +1 ★ o monedas)' : ''));
+ok(PLAYER(HW_EPIC.id).rarity === 'epica' && PLAYER(HW_EPIC.id).halloween && PLAYER(HW_EPIC.id).hwFace === 12, 'Sael de Halloween: épico con retrato de evento');
 setDay('2026-10-29'); ok(!Halloween.loginReady() && Halloween.daily() === 20, 'tras los 5 días no hay más, pero el regalo diario de 20 sigue');
 setDay('2026-11-05'); H2.login = null; ok(!Halloween.loginReady(), 'fuera del evento no hay premios');
 
@@ -119,6 +120,30 @@ Halloween.bossResult(true); ok(st('d_boss') === 'ready', 'ganar al jefe: listo')
 ok(Halloween.pending() >= 3, 'el menú avisa de los retos pendientes');
 setDay('2026-10-31'); ok(Halloween.DAILY.every(R => Halloween.dailyState(R) === 'locked') && Halloween.claimDaily('d_win') === null, 'al día siguiente se renuevan (y lo de ayer ya no vale)');
 setDay('2026-11-05'); ok(Halloween.claimDaily('d_play') === null, 'fuera del evento no dan premio');
+
+console.log('10. Mapa de la Noche Tenebrosa');
+setDay('2026-10-29');
+{ const H = Halloween.data(); H.map = 0; H.mapWins = 0; H.candy = 0; const P = Profile.data;
+  ok(HW_MAP.length === 8 && HW_MAP.every(s => TEAM(s.team)) && HW_MAP[7].boss && HW_MAP[7].reward.legend, '8 niveles con equipos que existen; el último es el jefe y regala un legendario');
+  ok(HW_MAP.every((s, i) => i === 0 || s.avg > HW_MAP[i - 1].avg), 'cada nivel es más difícil que el anterior (' + HW_MAP.map(s => s.avg).join(' < ') + ')');
+  for (const i of [0, 3, 7]) { const T = Halloween.stageTeam(i), m = T.players.reduce((t, p) => t + (p.kick + p.control + p.defense + p.body) / 4, 0) / T.players.length;
+    ok(T.players.length === 5 && m > 40, 'nivel ' + (i + 1) + ': equipo de 5 (' + HW_MAP[i].name + ', stats medias ' + m.toFixed(0) + ')'); }
+  const t0 = P.tickets, c0 = P.coins;
+  ok(Halloween.mapResult(0, false).first === false && H.map === 0, 'perder no avanza');
+  const r = Halloween.mapResult(0, true);
+  ok(r.first && H.map === 1 && H.candy === 20 && P.tickets === t0 + 1, 'ganar el nivel 1: avanza y da +20 🍬 +1 🎟️');
+  ok(Halloween.mapResult(0, true).first === false && H.candy === 20 && H.map === 1, 'repetir el nivel no vuelve a dar premio ni avanza');
+  ok(Halloween.mapResult(5, true).first === false && H.map === 1, 'no se puede saltar niveles');
+  Halloween.mapResult(1, true); Halloween.mapResult(2, true);
+  ok(H.map === 3 && P.coins === c0 + 500, 'el nivel 3 da además 500 monedas');
+  ok(Halloween.dayData().map === 5, 'los retos del día cuentan las victorias del mapa');
+  for (let i = 3; i < 7; i++) Halloween.mapResult(i, true);
+  ok(H.map === 7, 'llegas al jefe final');
+  const fin = Halloween.mapResult(7, true);
+  ok(fin.first && H.map === 8 && fin.players.length === 1 && HW_LEGENDS.some(L => L.id === fin.players[0].id), 'el jefe final regala un legendario del evento (' + (fin.players[0] && PLAYER(fin.players[0].id).full) + ')');
+  ok(H.candy === 20 + 25 + 30 + 40 + 50 + 60 + 80 + 150, 'los premios suman lo esperado (' + H.candy + ' 🍬)');
+  const d2 = Halloween.DAILY.find(R => R.id === 'd_map'); ok(Halloween.dailyState(d2) === 'ready', 'el reto del día «gana 2 partidos del mapa» se completa');
+  ok(JSON.parse(store['inazuma-perfil']).hw.map === 8, 'el avance del mapa se guarda en el perfil'); }
 
 console.log(fails ? '\n✗ ' + fails + ' fallos' : '\n✓ Todo bien');
 process.exit(fails ? 1 : 0);
