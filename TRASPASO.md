@@ -530,3 +530,12 @@ Como en el Inazuma Eleven de la DS: el tiempo se para y eliges. Ajuste **Ajustes
 - `pass()` admite un 6.º parámetro (receptor forzado). `Logic.chooseMenu(s, i)` / `setMenuAim(s, v)`; `i = null` cancela.
 - Tests: `node test/decide.js` (nuevo) y `node test/i18n.js`. `solo.js` y `sig_methods.js` fallan igual en el código original (ya estaba anotado).
 - Pendiente: probarlo en el navegador con Phaser real (aquí se probó el panel con un arnés sin Phaser) y ajustar a gusto: distancia a la que salta el menú del regate (2,1 m), % de la vaselina y pausas entre menús.
+
+### v0.37.0 · segunda tanda (27 oct 2026, con captura de la DS «¡El rival va a disparar! ¿Qué quieres hacer?»)
+- **Balón parado, todos quietos** (`s.hold`, en `restart`): mientras el que saca no chuta ni pasa, **ningún otro jugador se mueve** (bucle de `update`) y `checkSteals` no actúa, así que no te quitan el balón. También cuando saca el rival (`hold.ai`; tu jugador no se mueve ni hace entradas; si la IA no saca en 5 s se suelta). Solo con «Menús de decisión» activado.
+- **Menú del portero** (`kind: 'portero'`, se abre en `shoot()` cuando el rival chuta contra tu portero): **Atajo** (si la paras te quedas el balón; −12 % de probabilidad), **Despeje** (+7 %, el balón rebota) y tus técnicas de parada listas. Lo elegido va en `shot.gkMode` (`atajo` / `despeje` / `tech` + `gkPick`); la IA del portero lo respeta y `resolveSave` lo aplica. «Que decida el portero» = como antes. Con Carrera Jugador (`lockId`), minicampo o todo-IA no sale.
+- **Menú de defensa** (`kind: 'defensa'`, en `handleUser`): si tu jugador sin balón queda a < 2 m del rival que lo lleva, sale **Quitar el balón** (misma fórmula que `updateTackle`) y tus bloqueos. Pausa de 2,2 s si lo cancelas.
+- **Qué puede hacer el rival** (`menu.info`): en el menú de defensa sale «Rival: regate normal / <técnica> · te supera X %» (`dribbleOdds` del rival contra ti); en el de regate, si el rival tiene un bloqueo listo, «puede bloquear con X (Y %)»; en el del portero, «Rival: tiro normal / <técnica> (potencia N)».
+- **Rayo (Técnica)** ya abría la lista de técnicas en cualquier situación (con balón: tiro y regate; sin balón: bloqueo).
+- Tests: `test/decide.js` ampliado (secciones 9-11). Medido: parada con Atajo ≈ 83 %, con Despeje ≈ 95 %.
+- Aún no está: el menú del portero sale **al chutar el rival**, no cuando el balón ya está cerca (como en la captura de la DS, que pregunta al disparar). Si Fran lo quiere más tarde, habría que abrirlo cuando el balón entre en `reach`.
