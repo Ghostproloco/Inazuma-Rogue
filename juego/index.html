@@ -767,6 +767,8 @@ html,body,button,.act,#shell{touch-action:manipulation}
 .decide{position:absolute;left:8px;right:8px;top:9%;max-height:80%;overflow:auto;z-index:16;background:rgba(24,32,65,.96);border:2px solid var(--ink);box-shadow:0 0 0 2px var(--line),0 6px 24px rgba(0,0,0,.6);padding:10px 8px;color:var(--chalk);font-family:var(--font-ui);border-radius:10px;max-width:520px;margin:0 auto}
 .decide[hidden]{display:none}
 .decide h4{margin:0 0 8px;text-align:center;font-size:17px;font-weight:400;color:var(--gold)}
+.decide .dc-info{margin:-2px 0 8px;text-align:center;font-size:12px;color:#cfd8ff}
+.decide .dc-info[hidden]{display:none}
 .decide .dc-list{display:flex;flex-direction:column;gap:6px}
 .decide button.dc{display:flex;align-items:center;gap:8px;text-align:left;padding:7px 10px;min-height:48px;background:var(--navy);color:var(--chalk);border:2px solid var(--ink);border-radius:8px;font-family:var(--font-ui);cursor:pointer}
 .decide button.dc.sel{box-shadow:0 0 0 2px var(--yellow)}
@@ -1154,6 +1156,7 @@ const EN_TEXT = {
   'Ascensos y descensos': 'Promotions and relegations',
   'Aspecto': 'Look',
   'Así la portería se quedaría sin portero': 'The goal would be left without a goalkeeper',
+  'Atajo': 'Catch',
   'Ataque relámpago': 'Lightning Attack',
   'Ataque total': 'All-Out Attack',
   'Ataque+': 'Attack+',
@@ -1398,6 +1401,7 @@ const EN_TEXT = {
   'Defensiva': 'Defensive',
   'Dejar ir': 'Let go',
   'Dejarlo caer…': 'Drop a hint…',
+  'Dejarlo pasar': 'Let it go',
   'Del Fútbol Frontier a la Academia Alius… y al Mundial': 'From the Football Frontier to the Alius Academy… and the World Cup',
   'Del Inazuma 1, 2 y 3, cada uno con su cara y sus técnicas': 'From Inazuma 1, 2 and 3, each with their own face and techniques',
   'Del gacha': 'From the gacha',
@@ -1557,6 +1561,7 @@ const EN_TEXT = {
   'Entra con la misma forma que usaste al crear la cuenta.': 'Log in the same way you did when you created the account.',
   'Entrada': 'Tackle',
   'Entrada fallida': 'Tackle missed',
+  'Entrada normal': 'Normal tackle',
   'Entrando…': 'Logging in…',
   'Entrar': 'Log in',
   'Entrenamiento al amanecer': 'Training at dawn',
@@ -1996,6 +2001,7 @@ const EN_TEXT = {
   'Máquina de gachapón': 'Gachapon machine',
   'Más de': 'More than',
   'Más fuerte, menos puntería': 'Harder, less accurate',
+  'Más fácil de parar, el balón rebota': 'Easier to stop, the ball rebounds',
   'Más goles a favor… y en contra': 'More goals for… and against',
   'Más joyas al ojear y de mejor nivel': 'More and better gems when scouting',
   'Más ligero y más rápido. +1 en rapidez.': 'Lighter and faster. +1 speed.',
@@ -2247,12 +2253,14 @@ const EN_TEXT = {
   'Puesto:': 'Position:',
   'Pulsa Pase o Tiro un poco antes de que te llegue el balón: pasarás o chutarás al primer toque.': 'Press Pass or Shoot just before the ball reaches you: you\'ll pass or shoot first-time.',
   'Pulsa una tecla…': 'Press a key…',
+  'Que decida el portero': 'Let the keeper decide',
   'Queda {0} día': '{0} day left',
   'Queda {0} hora': '{0} hour left',
   'Quedan': 'Ends in',
   'Quedan {0} días': '{0} days left',
   'Quedan {0} horas': '{0} hours left',
   'Quedarse en casa': 'Stay at home',
+  'Quitar el balón': 'Win the ball',
   'Quitar filtros': 'Clear filters',
   'R. A. Redux - Supertécnicas milagrosas': 'R. A. Redux - Miraculous Special Moves',
   'Raimon en todas sus versiones, Inazuma Japón, los Veteranos y los amigos de Ciudad Inazuma': 'Raimon in all its versions, Inazuma Japan, the Veterans and friends from Inazuma Town',
@@ -2310,6 +2318,10 @@ const EN_TEXT = {
   'Ritmo rápido': 'Fast Pace',
   'Rival': 'Rival',
   'Rival · ': 'Rival · ',
+  'Rival: puede bloquear con {0} ({1} %)': 'Rival: can block with {0} ({1} %)',
+  'Rival: tiro normal': 'Rival: normal shot',
+  'Rival: {0} (potencia {1})': 'Rival: {0} (power {1})',
+  'Rival: {0} · te supera {1} %': 'Rival: {0} · beats you {1} %',
   'Rivales': 'Rivals',
   'Rivales cada vez más duros': 'Ever tougher rivals',
   'Rivales cada vez más fuertes y 2 vidas. Cada 5 partidos, una oleada especial con premio extra.': 'Ever stronger rivals and 2 lives. Every 5 matches, a special wave with an extra prize.',
@@ -2374,6 +2386,7 @@ const EN_TEXT = {
   'Shift dcho.': 'Right Shift',
   'Si jugabas en la': 'If you used to play on the',
   'Si la nube está saturada, tu partida sigue a salvo en tu dispositivo y se sube más tarde sola.': 'If the cloud is overloaded, your save stays safe on your device and uploads later on its own.',
+  'Si la paras, te quedas el balón': 'If you stop it, you keep the ball',
   'Si no eliges ahora, la tienes en 🎁 Código de regalo.': 'If you don\'t choose now, you\'ll find it in 🎁 Gift code.',
   'Si sales sin elegir, lo tienes en 🎁 Código de regalo.': 'If you leave without choosing, it waits in 🎁 Gift code.',
   'Siempre': 'Always',
@@ -2871,6 +2884,7 @@ const EN_TEXT = {
   'rechaza la oferta: es demasiado poco.': 'turns down the offer: it\'s far too little.',
   'recorte rápido sin técnica': 'quick cut without a special move',
   'regate': 'dribble',
+  'regate normal': 'normal dribble',
   'regate ·': 'dribble ·',
   'regates': 'dribbles',
   'robar el balón': 'win the ball',
@@ -3021,6 +3035,7 @@ const EN_TEXT = {
   '¡El entrenador te llama! Sales a jugar los últimos minutos.': 'The coach calls you! You go on for the last few minutes.',
   '¡El míster te da el brazalete!': 'The coach gives you the armband!',
   '¡El portero te la quita!': 'The keeper takes it off you!',
+  '¡El rival va a disparar! ¿Qué quieres hacer?': 'The rival is about to shoot! What do you want to do?',
   '¡El tiro sigue, pero más flojo!': 'The shot goes on, but weaker!',
   '¡Enséñeme, por favor!': 'Please, teach me!',
   '¡Entendido!': 'Got it!',
@@ -3087,6 +3102,7 @@ const EN_TEXT = {
   '¡Te graduas!': 'You graduate!',
   '¡Te retan!': 'You\'ve been challenged!',
   '¡Terminas 3º y te graduas!': 'You finish 3rd year and graduate!',
+  '¡Tienes a {0} delante!': '{0} is right in front of you!',
   '¡Tu portero se la queda!': 'Your keeper grabs it!',
   '¡TÉCNICA NUEVA!': 'NEW TECHNIQUE!',
   '¡Vamos allá!': 'Let\'s go!',
@@ -3358,7 +3374,7 @@ const EN_TEXT = {
   '🔧 Arreglado: los retos 1 contra 1 de la Carrera Jugador se podían quedar congelados en un saque (sobre todo si tu jugador es portero).': '🔧 Fixed: Player Career 1v1 challenges could freeze on a restart (especially if your player is a goalkeeper).',
   '🔴 Cuando Franmen está en directo en Twitch, sale un botón arriba en el menú para ir a verlo.': '🔴 When Franmen is live on Twitch, a button appears at the top of the menu to go watch.',
   '🔺 Supertécnicas de varios jugadores (Triángulo letal, Fuego cruzado, Empuje trillizo…): tus compañeros más cercanos aparecen a hacerla contigo y luego vuelven corriendo a su sitio. Si en el campo están los compañeros que también saben esa técnica, tiene un +5 % de potencia.': '🔺 Multi-player super techniques (Death Zone, Crossfire, Triple Boost…): your nearest teammates appear to do it with you and then sprint back to their spot. If the teammates who also know that technique are on the pitch, it gets +5% power.',
-  '🚩 En faltas, saques y penaltis el que saca ya no se mueve: elige pasar (a quién) o chutar. Se puede quitar en Ajustes → Menús de decisión.': '🚩 On free kicks, throw-ins and penalties the taker no longer moves: choose to pass (and to whom) or shoot. You can turn this off in Settings → Decision menus.',
+  '🚩 En faltas, saques y penaltis nadie se mueve hasta que se saca: el que saca elige pasar (a quién) o chutar. Se puede quitar en Ajustes → Menús de decisión.': '🚩 On free kicks, throw-ins and penalties nobody moves until the ball is put in play: the taker chooses to pass (and to whom) or shoot. You can turn this off in Settings → Decision menus.',
   '🚫 Al repetirla (cuando ya tienes a Willy): sin legendarios en tu equipo.': '🚫 When repeating it (once you have Willy): no legendaries in your team.',
   '🛒 Sin las mejoras de supertécnicas de la tienda.': '🛒 No shop special-move upgrades.',
   '🛒 Tienda': '🛒 Shop',
@@ -3373,6 +3389,7 @@ const EN_TEXT = {
   '🟨🟥 Doble amarilla: expulsado': '🟨🟥 Second yellow: sent off',
   '🤝 Amigos y rivales': '🤝 Friends and rivals',
   '🥉 1 vez · 🥈 3 veces · 🥇 5 veces (15 🎟️ y otro Rayo).': '🥉 1 time · 🥈 3 times · 🥇 5 times (15 🎟️ and another Bolt).',
+  '🧤 Cuando el rival te chuta, tu portero elige: Atajo, Despeje o una técnica de parada. Y al encontrarte al rival con el balón eliges quitárselo o usar un bloqueo, viendo qué puede hacer él.': '🧤 When the rival shoots at you, your keeper chooses: Catch, Clear or a saving technique. And when you meet the rival with the ball you choose to win it or use a block, seeing what he can do.',
   '🧤 En los retos 1 contra 1 los porteros ya no sacan de punta a punta del minicampo: sacan corto o a media distancia.': '🧤 In 1v1 challenges goalkeepers no longer kick the ball end to end across the mini pitch: they play it short or to midfield.',
   '🧤 Parada de': '🧤 Save by',
   '🧤 Porteros más listos: si hay otro atacante libre para el pase, no salen a lo loco, y cuando el rival pasa vuelven corriendo a tapar la portería.': '🧤 Smarter goalkeepers: if another attacker is free for the pass, they don\'t rush out blindly, and when the opponent passes they sprint back to cover the goal.',
@@ -4076,6 +4093,8 @@ const Logic = (() => {
     const ast = s.lastRecv && s.lastRecv.recv === p.id && s.t - s.lastRecv.t < 12 ? s.lastRecv.passer : null;
     s.ball.shot = { team: p.team, by: p.id, ast, power: shotStrength(p, charge, tech), tech: tech || null, charged: !tech && charge >= 0.85, resolved: false, dist: d };
     s.events.push({ type: 'shot', team: p.team });
+    const gk = keeperOf(s, p);
+    if (s.settings.decide && !s.settings.allAI && !s.settings.lockId && !s.settings.mini && gk && gk.team === 'A') openMenu(s, gk, 'portero', { shot: s.ball.shot });
   }
 
   /* ---------- Vaselina ----------
@@ -4096,8 +4115,8 @@ const Logic = (() => {
     s.events.push({ type: 'shot', team: p.team });
   }
   // Probabilidad de que el portero pare un tiro (la usan resolveSave y los menús, para que lo que ves sea lo que pasa)
-  function saveChance(g, shot) {
-    const gt = g.gkTech && g.gkTech !== 'none' ? g.gkTech : null;
+  function saveChance(g, shot, tech) {
+    const gt = tech !== undefined ? tech : g.gkTech && g.gkTech !== 'none' ? g.gkTech : null;
     const saveStr = g.gk + (gt ? techEff(gt, g.bonus.parada) : 0);
     // Desde lejos el tiro pierde fuerza; sin técnica, el portero tiene ventaja
     const far = Math.max(0, shot.dist - 10);
@@ -4143,9 +4162,27 @@ const Logic = (() => {
     return mates.map(m => { const o = passOdds(s, p, m); return { act: 'pase', label: TX('Pasar a {0}', m.name), sub: o.off ? TX('¡Fuera de juego!') : TX('{0} · lo cortan: {1} %', m.role, 100 - pctOf(o.chance)), pct: o.off ? 0 : pctOf(o.chance), mate: m.id, face: m.id }; });
   }
   function buildMenu(s, p, kind, ex) {
-    const g = ex.foe, opts = []; let title = '', aimable = false;
-    if (kind === 'regate') {
+    const g = ex.foe, opts = []; let title = '', aimable = false, info = '';
+    if (kind === 'portero') {
+      const sh = ex.shot, st = sh.tech;
+      title = TX('¡El rival va a disparar! ¿Qué quieres hacer?');
+      info = st ? TX('Rival: {0} (potencia {1})', st.name, st.power) : TX('Rival: tiro normal');
+      const base = saveChance(p, sh, null).chance;
+      opts.push({ act: 'atajo', label: TX('Atajo'), sub: TX('Si la paras, te quedas el balón'), pct: pctOf(base * 0.88) });
+      opts.push({ act: 'despeje', label: TX('Despeje'), sub: TX('Más fácil de parar, el balón rebota'), pct: pctOf(Math.min(0.96, base + 0.07)) });
+      for (const t of p.techs) if (t.type === 'parada') opts.push(techOpt(s, p, t, pctOf(saveChance(p, sh, t).chance)));
+    } else if (kind === 'defensa') {
+      const h = ex.foe, rt = bestTech(h, 'regate');
+      title = TX('¡Tienes a {0} delante!', h.name);
+      info = TX('Rival: {0} · te supera {1} %', rt ? rt.name : TX('regate normal'), pctOf(dribbleOdds(h, p, rt)));
+      const front = Math.cos(angDiff(Math.atan2(p.y - h.y, p.x - h.x), h.aim)) > 0 ? 0.1 : -0.12;
+      const cd = p.tackleCd || 0;
+      opts.push({ act: 'entrada', label: TX('Quitar el balón'), sub: cd > 0 ? TX('Recargando {0} s', Math.ceil(cd)) : TX('Entrada normal'), pct: cd > 0 ? null : pctOf(clamp(0.55 + (p.defense - (h.control * 0.6 + h.body * 0.4)) / 70 + front, 0.2, 0.92)), off: cd > 0 });
+      for (const t of p.techs) if (t.type === 'bloqueo') opts.push(techOpt(s, p, t, pctOf(clamp(0.5 + (p.defense + techEff(t, p.bonus.bloqueo) * 1.2 - (h.control * 0.6 + h.body * 0.4 + (rt ? techEff(rt) * 1.2 : 0))) / 60, 0.2, 0.93))));
+    } else if (kind === 'regate') {
       title = TX('¡{0} te sale al paso!', g.name);
+      const bt = bestTech(g, 'bloqueo');
+      if (bt) info = TX('Rival: puede bloquear con {0} ({1} %)', bt.name, pctOf(clamp(0.5 + (g.defense + techEff(bt, g.bonus.bloqueo) * 1.2 - (p.control * 0.6 + p.body * 0.4)) / 60, 0.2, 0.93)));
       const cd = p.dribbleCd || 0;
       opts.push({ act: 'regate', label: TX('Regatear'), sub: cd > 0 ? TX('Recargando {0} s', Math.ceil(cd)) : TX('Sin técnica · más arriesgado'), pct: cd > 0 ? null : pctOf(dribbleOdds(p, g)), off: cd > 0 });
       for (const t of p.techs) if (t.type === 'regate') opts.push(techOpt(s, p, t, pctOf(dribbleOdds(p, g, t))));
@@ -4177,7 +4214,7 @@ const Logic = (() => {
         }
       }
     }
-    return { kind, pid: p.id, title, opts, aimX: ex.aimX || 0, aimable, t: 0 };
+    return { kind, pid: p.id, title, info, opts, aimX: ex.aimX || 0, aimable, t: 0 };
   }
   function openMenu(s, p, kind, ex = {}) {
     const m = buildMenu(s, p, kind, ex);
@@ -4195,11 +4232,18 @@ const Logic = (() => {
   function chooseMenu(s, i) {
     const m = s.menu; if (!m) return false;
     const me = s.players.find(p => p.id === m.pid);
-    if (i == null || i < 0) { s.menu = null; s.menuCd = m.kind === 'regate' ? 2.2 : 0.4; return true; }
+    if (i == null || i < 0) { s.menu = null; s.menuCd = m.kind === 'regate' || m.kind === 'defensa' ? 2.2 : 0.4; return true; }
     const o = m.opts[i]; if (!o || o.off) return false;
     s.menu = null; s.menuCd = 2.8;
     if (!me) return true;
     const say = text => s.events.push({ type: 'msg', text });
+    if (m.kind === 'portero') {   // el portero decide cómo parar el tiro que viene
+      const sh = s.ball.shot; if (!sh || sh.resolved) return true;
+      if (o.act === 'tecnica') { const t = me.techs.find(q => q.id === o.tech); if (!t || !ready(me, t)) return true; sh.gkMode = 'tech'; sh.gkPick = t; }
+      else sh.gkMode = o.act;
+      return true;
+    }
+    if (o.act === 'entrada') { startTackle(s, me); return true; }
     if (o.act === 'tecnica') {
       const t = me.techs.find(q => q.id === o.tech); if (!t || !ready(me, t)) return true;
       if (t.type === 'bloqueo') { const h = s.ball.owner; if (!h || h.team === me.team || dist(h, me) > 4.5) return say(TX('Acércate al rival que lleva el balón')), true; }
@@ -4219,9 +4263,9 @@ const Logic = (() => {
   function decideOwner(s, me, pr, x, y, dt) {
     const hold = s.hold && s.hold.id === me.id ? s.hold : null;
     const pen = !!(s.penalty && !s.penalty.fired && s.penalty.taker === me.id);
-    if (hold) { hold.t += dt; me.dvx = me.dvy = 0; me.vx = me.vy = 0; }   // el que saca no se mueve
+    if (hold) { me.dvx = me.dvy = 0; me.vx = me.vy = 0; }   // el que saca no se mueve
     if (pen) me.dvx = me.dvy = 0;
-    if (hold && hold.t > 14) { pass(s, me, 'strong', { x, y }); return true; }   // por si te quedas parado
+    if (hold && !hold.ai && hold.t > 14) { pass(s, me, 'strong', { x, y }); return true; }   // por si te quedas parado
     if (hold || pen) pr.has('dribble');
     if (pr.has('tech')) { openMenu(s, me, 'tecnica', { aimX: x }); return true; }
     if (pr.has('shoot')) {
@@ -4524,6 +4568,7 @@ const Logic = (() => {
     if (pr.has('techNext')) cycleTech(s, me);   // ⇄: cambiar de supertécnica en cualquier momento
     if (s.tech && s.tech.p === me) return;
     if (me.stun > 0 || me.recover > 0 || me.tackle || me.dash) { s.shoot.charging = false; s.pass = null; return; }
+    if (s.hold && s.hold.id !== me.id) { me.dvx = me.dvy = 0; return; }   // saca otro (el rival o un compañero): tú te quedas quieto
 
     const sprint = input.sprint || len > 0.95;
     if (len > 0.15) {
@@ -4594,6 +4639,8 @@ const Logic = (() => {
         if (pr.has('A') || pr.has('B')) { s.passReq = { id: me.id, t: s.t }; s.events.push({ type: 'msg', text: TX('¡Pásamela!') }); }
         return;
       }
+      if (!toMe && s.settings.decide && !s.hold && !s.penalty && (s.menuCd || 0) <= 0 && b.owner && b.owner.team !== me.team && b.owner.role !== 'POR' &&
+          me.stun <= 0 && !me.dash && !me.tackle && !s.tech && dist(b.owner, me) < 2.0 && openMenu(s, me, 'defensa', { foe: b.owner })) return;
       if (toMe) { pr.keep('A'); pr.keep('shoot'); }
       else if (b.owner && b.owner.team === me.team) pr.has('A');   // un compañero lleva el balón: no hay entrada que hacer
       else if (pr.has('A')) startTackle(s, me);
@@ -4873,6 +4920,13 @@ const Logic = (() => {
     }
     if (b.shot && !b.shot.resolved && b.shot.team !== p.team) {
       // Parada especial: el portero usa su técnica si el tiro es peligroso
+      if (!p.gkTech && b.shot.gkMode) {   // lo has elegido tú en el menú
+        if (b.shot.gkMode === 'tech' && b.shot.gkPick) {
+          p.gkTech = b.shot.gkPick; spend(p, p.gkTech);
+          s.events.push({ type: 'techStart', name: p.gkTech.name, elem: p.gkTech.elem, kind: 'parada', team: p.team, id: p.id, quick: true });
+          s.slow = Math.max(s.slow, 0.9);
+        } else p.gkTech = 'none';
+      }
       if (!p.gkTech) {
         const t = bestTech(p, 'parada');
         const vy0 = Math.abs(b.vy) > 0.1 ? b.vy : 0.1, tt = (ownGoalY(p.team) - b.y) / vy0;
@@ -4929,9 +4983,11 @@ const Logic = (() => {
       else g.stun = 0.9;
       return;
     }
-    const { chance, edge } = saveChance(g, shot);
+    let { chance, edge } = saveChance(g, shot);
+    if (shot.gkMode === 'atajo') chance *= 0.88;
+    else if (shot.gkMode === 'despeje') chance = Math.min(0.96, chance + 0.07);
     if (rnd() < chance) {
-      if (edge < -14 && !shot.tech) { take(s, g); s.events.push({ type: 'catch', team: g.team, tech: !!gt }); return; }
+      if (shot.gkMode === 'atajo' || (shot.gkMode !== 'despeje' && edge < -14 && !shot.tech)) { take(s, g); s.events.push({ type: 'catch', team: g.team, tech: !!gt }); return; }
       // Despeje a un lado, lejos del punto de penalti (antes el rechace caía flojo delante y el delantero lo cazaba siempre)
       const side = Math.abs(b.x - cx) > 0.4 ? Math.sign(b.x - cx) : (rnd() < 0.5 ? -1 : 1);
       b.vx = side * (7 + rnd() * 5); b.vy = attackDir(g.team) * (1.5 + rnd() * 2.5); b.vz = 4; b.shot = null; b.fire = null; b.lastTeam = g.team;
@@ -5079,7 +5135,7 @@ const Logic = (() => {
     if (chosenId && team !== 'A') { const c = s.players.find(p => p.id === chosenId && p.team === 'A'); if (c) s.controlledId = c.id; }   // defiendes con el que elijas
     s.ball.setPiece = cand.id;   // el primer pase de un saque no puede ser fuera de juego
     // Menús de decisión: el que saca (si lo llevas tú) se queda quieto y solo puede pasar o chutar
-    s.hold = team === 'A' && s.settings.decide && !s.settings.allAI && !s.settings.mini && cand.role !== 'POR' && s.controlledId === cand.id ? { id: cand.id, kind, t: 0 } : null;
+    s.hold = s.settings.decide && !s.settings.allAI && !s.settings.mini ? { id: cand.id, kind, t: 0, ai: !(team === 'A' && s.controlledId === cand.id && cand.role !== 'POR') } : null;
     cand.think = 0.5;
     s.pause = { t: 0.35 };
   }
@@ -5302,7 +5358,8 @@ const Logic = (() => {
     if (s.pick) return;   // esperando a que elijas jugador (balón parado)
     if (s.menu) { s.menu.t += dtRaw; return; }   // esperando a que elijas en un menú de decisión: el tiempo está parado
     s.menuCd = Math.max(0, (s.menuCd || 0) - dt);
-    if (s.hold && (!s.ball.owner || s.ball.owner.id !== s.hold.id)) s.hold = null;
+    if (s.hold && (!s.ball.owner || s.ball.owner.id !== s.hold.id || (s.hold.ai && s.hold.t > 5))) s.hold = null;
+    else if (s.hold) s.hold.t += dt;
     s.t += dt;
     s.time -= dt / GAME_SPEED;
     const pen = s.penalty && !s.penalty.fired ? s.penalty : null;
@@ -5325,6 +5382,7 @@ const Logic = (() => {
     if (!s.settings.allAI) { if (!pen) autoSwitch(s, dt); handleUser(s, input); }
     if (pen) { const me = controlled(s); if (me && me.id !== pen.taker) me.dvx = me.dvy = 0; }   // en un penalti, quieto hasta el chut
     for (const p of s.players) {
+      if (s.hold && p.id !== s.hold.id) { p.dvx = p.dvy = 0; p.vx = p.vy = 0; continue; }   // en un balón parado nadie se mueve hasta que saque
       if (pen && p.id !== pen.taker && p.role !== 'POR') { p.dvx = p.dvy = 0; continue; }
       if (pen && p.id === pen.taker && pen.auto) { p.dvx = p.dvy = 0; continue; }
       if (s.settings.allAI || p.id !== s.controlledId) ai(s, p, dt);
@@ -5362,7 +5420,7 @@ const Logic = (() => {
       if (d > 0 && d < 0.7) { const push = (0.7 - d) / 2; a.x -= dx / d * push; a.y -= dy / d * push; c.x += dx / d * push; c.y += dy / d * push; }
     }
     updateBall(s, dt);
-    if (!s.pause) checkSteals(s, dt);
+    if (!s.pause && !s.hold) checkSteals(s, dt);
   }
 
   return { FIELD: F, DRIBBLE_CD, ST, techChoices, createMatch, update, possession, controlled, contextTech, pickPlayer, chooseMenu, setMenuAim, MENU_DIST, _t: { lob, openMenu, passOdds, dribbleOdds, take, startTech, shoot, goal, foulCall, startPenalty, restart } };
@@ -10053,7 +10111,7 @@ const UI = (() => {
   // Menús de decisión (como el Inazuma Eleven de la DS): el tiempo está parado y eliges regate, técnica, pase o tipo de chute.
   // Se maneja con toque/ratón, con las teclas 1-9 (y ↑ ↓ Intro, ← → para apuntar, Retroceso para volver) y con el mando (cruceta, A, B).
   let menuOn = null, menuSel = 0, menuS = null, gpMenuPrev = [];
-  const MENU_ICON = { regate: '🌀', normal: '⚽', poder: '💥', vaselina: '☁️', tecnica: '⚡' };
+  const MENU_ICON = { regate: '🌀', normal: '⚽', poder: '💥', vaselina: '☁️', tecnica: '⚡', atajo: '🧤', despeje: '👊', entrada: '🦶' };
   const firstOn = m => { const i = m.opts.findIndex(o => !o.off); return i < 0 ? 0 : i; };
   function menuChoose(s, i) {
     const m = s.menu; if (!m) return;
@@ -10068,8 +10126,9 @@ const UI = (() => {
     if (!s.menu) { if (menuOn) { el.hidden = true; el.innerHTML = ''; menuOn = null; } return; }
     if (menuOn === s.menu) { menuPad(s); return; }
     const m = menuOn = s.menu; menuSel = firstOn(m);
-    el.innerHTML = '<h4></h4><div class="dc-list"></div>';
+    el.innerHTML = '<h4></h4><p class="dc-info"></p><div class="dc-list"></div>';
     el.querySelector('h4').textContent = m.title;
+    const inf = el.querySelector('.dc-info'); inf.textContent = m.info || ''; inf.hidden = !m.info;
     const list = el.querySelector('.dc-list');
     m.opts.forEach((o, i) => {
       const b = document.createElement('button'); b.className = 'dc'; b.disabled = !!o.off;
@@ -10091,7 +10150,7 @@ const UI = (() => {
       }
       el.appendChild(row);
     }
-    const c = document.createElement('button'); c.className = 'dc-cancel'; c.textContent = m.kind === 'regate' ? TX('Seguir corriendo') : TX('Volver'); c.onclick = () => menuChoose(s, -1); el.appendChild(c);
+    const c = document.createElement('button'); c.className = 'dc-cancel'; c.textContent = m.kind === 'regate' ? TX('Seguir corriendo') : m.kind === 'defensa' ? TX('Dejarlo pasar') : m.kind === 'portero' ? TX('Que decida el portero') : TX('Volver'); c.onclick = () => menuChoose(s, -1); el.appendChild(c);
     el.hidden = false; el.scrollTop = 0; menuMark();
   }
   // Mando: cruceta ↑↓ elige, ←→ apunta, A confirma, B vuelve
@@ -14844,7 +14903,8 @@ const App = (() => {
     { v: '0.37.0', date: '27/10/2026', items: [
       TX('🎮 Menús de decisión, como en el Inazuma Eleven de la DS: cuando un rival te sale al paso se para el tiempo y eliges entre regatear, usar una técnica o pasar a un compañero, viendo la probabilidad de que salga bien.'),
       TX('⚽ Al pulsar Tiro, con la portería cerca, eliges chutar normal, con poder o vaselina (nuevo: pasa por encima del portero si se ha adelantado). Con el rayo (Técnica) eliges la supertécnica que quieres usar.'),
-      TX('🚩 En faltas, saques y penaltis el que saca ya no se mueve: elige pasar (a quién) o chutar. Se puede quitar en Ajustes → Menús de decisión.')] },
+      TX('🚩 En faltas, saques y penaltis nadie se mueve hasta que se saca: el que saca elige pasar (a quién) o chutar. Se puede quitar en Ajustes → Menús de decisión.'),
+      TX('🧤 Cuando el rival te chuta, tu portero elige: Atajo, Despeje o una técnica de parada. Y al encontrarte al rival con el balón eliges quitárselo o usar un bloqueo, viendo qué puede hacer él.')] },
     { v: '0.36.2', date: '26/10/2026', items: [
       TX('⚡ Gacha limitado «Tormenta Celestial»: el sobre ahora cuesta 50 tickets, los 4 limitados son mucho más difíciles de conseguir (asegurado a las 200 tiradas) y entran más legendarios y muchísimos jugadores épicos al sobre.'),
       TX('🔥 Los 4 jugadores limitados tienen una nueva ilustración «modo furia».'),
