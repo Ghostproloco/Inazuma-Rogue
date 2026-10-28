@@ -6,6 +6,8 @@ from PIL import Image, ImageDraw
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 SP = os.path.join(ROOT, 'juego', 'sprites')
 SRC = [(112, 12), (1, 7), (136, 10), (136, 3), (135, 2), (76, 15), (82, 10)]   # Tassman, Nathan Jones, Destra, Hebimos, Bash Lancer, Zohen, Jim (Oscuro, épico especial)
+# Filas 7-12 (evento rehecho el 28 oct): Astaroth, Bump Trungus, Bellatrix, Oni Triumvir, Gaiel y Sael (épico especial). Las filas 0-6 siguen para quien ya las tenga.
+SRC += [(136, 0), (134, 12), (64, 11), (134, 13), (135, 14), (135, 15)]
 
 def face(f, r): return Image.open(os.path.join(SP, 'f%02d.png' % f)).convert('RGBA').crop((0, r * 64, 64, r * 64 + 64))
 def remap(im, m):
@@ -75,6 +77,52 @@ def jim_eye(im):   # después del color apagado, para que brille: ojo almendrado
     put(im, [(29, 35), (36, 35), (32, 33), (33, 33), (32, 37), (33, 37)], (36, 90, 44))
     put(im, glow, (90, 200, 80)); put(im, [(31, 35), (32, 35), (33, 35), (34, 35)], (190, 255, 150)); put(im, [(32, 35)], (20, 30, 20))
 
+
+def tint(im, col, k=0.85):   # tiñe solo la piel (tonos naranja/rosa) hacia un color, conservando las luces y sombras
+    px = im.load()
+    for x in range(64):
+        for y in range(64):
+            r, g, b, a = px[x, y]
+            if not a: continue
+            h, l, s = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
+            if 0.0 <= h <= 0.12 and s > 0.18 and 0.3 < l < 0.9:
+                f = l / 0.62
+                px[x, y] = tuple(int(max(0, min(255, c * f * k + v * (1 - k)))) for c, v in zip(col, (r, g, b))) + (a,)
+def eyes(im, col):   # el blanco de los ojos brilla
+    px = im.load()
+    for x in range(18, 48):
+        for y in range(25, 38):
+            q = px[x, y]
+            if q[3] and sum(q[:3]) > 600 and max(q[:3]) - min(q[:3]) < 36: px[x, y] = col + (255,)   # solo el blanco (neutro), no la piel clara
+def drips(im, xs, col, col2):
+    for x0, n in xs:
+        put(im, [(x0, 40 + k) for k in range(n)], col); put(im, [(x0, 40 + n)], col2)
+def astaroth(im):   # demonio: piel roja oscura, ojos amarillos y grietas de brasa
+    eyes(im, (255, 214, 40)); tint(im, (150, 36, 40))
+    put(im, line((22, 38), (25, 44)) + line((41, 38), (39, 45)), (255, 120, 30)); put(im, [(30, 49), (31, 49), (32, 49), (33, 49)], (60, 10, 16))
+def bump(im):       # ogro zombi: piel verde, puntos de sutura en la frente y colmillo
+    eyes(im, (230, 240, 120)); tint(im, (110, 150, 80))
+    put(im, line((22, 20), (40, 18)), STITCH)
+    for x in (25, 29, 33, 37): put(im, [(x, 18), (x, 21)], STITCH)
+    put(im, [(27, 50), (27, 51), (36, 50), (36, 51)], (236, 232, 200))
+def bellatrix(im):  # vampira: piel de cera, ojos rojos y sangre en los labios
+    eyes(im, (255, 50, 60)); tint(im, (214, 200, 214), 0.9)
+    put(im, [(29, 47), (30, 47), (31, 47), (32, 47), (33, 47), (34, 47)], BLOOD); drips(im, [(31, 3)], BLOOD, BLOOD2)
+    put(im, line((38, 36), (39, 44)), (120, 20, 40))
+def oni(im):        # máscara oni: piel azul, lágrimas de sangre y grietas blancas
+    eyes(im, (255, 255, 255)); tint(im, (96, 120, 190))
+    drips(im, [(24, 6), (40, 8)], BLOOD, BLOOD2)
+    put(im, line((32, 24), (30, 30)) + line((30, 30), (33, 34)), (230, 230, 240)); put(im, [(28, 49), (28, 50), (35, 49), (35, 50)], (236, 232, 200))
+def gaiel(im):      # espectro: piel azul hielo, ojos cian que brillan y venas oscuras
+    eyes(im, (110, 255, 250)); tint(im, (150, 200, 220))
+    for s in (-1, 1): put(im, line((32 + s * 6, 40), (32 + s * 9, 47)) + line((32 + s * 9, 47), (32 + s * 7, 52)), (50, 80, 120))
+    put(im, [(30, 49), (31, 49), (32, 49), (33, 49)], (30, 40, 70))
+def sael(im):       # maldito: piel morada con calavera pintada y ojos verdes
+    eyes(im, (120, 255, 100)); tint(im, (140, 100, 180))
+    put(im, [(26, 37), (27, 38), (28, 39), (26, 39), (27, 37), (28, 37)], (30, 20, 40)); put(im, [(37, 37), (36, 38), (35, 39), (37, 39), (36, 37), (35, 37)], (30, 20, 40))   # cuencas
+    for x in range(27, 38, 2): put(im, [(x, 48), (x, 49), (x, 50)], (240, 236, 224))   # dientes pintados
+    put(im, line((27, 48), (37, 48)) + line((27, 51), (37, 51)), (30, 20, 40))
+
 def grade(im):     # color apagado: menos saturación, algo más oscuro y un toque morado
     px = im.load()
     for x in range(64):
@@ -86,11 +134,11 @@ def grade(im):     # color apagado: menos saturación, algo más oscuro y un toq
             px[x, y] = (int(min(255, r2 * 255 * 0.95 + 10)), int(g2 * 255 * 0.92), int(min(255, b2 * 255 * 1.0 + 16)), a)
 
 out = Image.new('RGBA', (64, 64 * len(SRC)), (0, 0, 0, 0))
-for i, ((f, r), fx) in enumerate(zip(SRC, (tassman, nathan, destra, hebimos, bash, zohen, jim))):
+for i, ((f, r), fx) in enumerate(zip(SRC, (tassman, nathan, destra, hebimos, bash, zohen, jim, astaroth, bump, bellatrix, oni, gaiel, sael))):
     im = face(f, r); fx(im); grade(im)
     if fx is jim: jim_eye(im)
     out.paste(im, (0, i * 64))
 out.save(os.path.join(SP, 'fhw.png'))
 big = Image.new('RGBA', (320 * len(SRC), 320), (240, 240, 240, 255))
 for i in range(len(SRC)): big.alpha_composite(out.crop((0, i * 64, 64, i * 64 + 64)).resize((320, 320), Image.NEAREST), (i * 320, 0))
-big.save('/tmp/claude-0/fhw_big.png'); print('ok')
+big.save('/tmp/fhw_big.png'); print('ok')
