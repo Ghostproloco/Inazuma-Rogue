@@ -56,7 +56,7 @@ const Logic = (() => {
   function createMatch(settings, teams) {
     Object.assign(F, settings.mini ? F_MINI : F_NORMAL); cx = F.w / 2;
     const diff = DIFF[settings.difficulty] || DIFF.medio;
-    const s = { field: F, settings, diff, teams, players: [], score: { A: 0, B: 0 }, time: settings.minutes * 60, t: 0,
+    const s = { tactic: { A: ['of', 'def'].includes(settings.tactic) ? settings.tactic : 'eq', B: 'eq' }, subs: 0, field: F, settings, diff, teams, players: [], score: { A: 0, B: 0 }, time: settings.minutes * 60, t: 0,
       pause: null, hitstop: 0, over: false, result: null, golden: false, controlledId: null, events: [], slow: 0, tech: null, effects: [],
       shoot: { charging: false, charge: 0, aimX: 0 },
       ball: { x: cx, y: F.l / 2, z: 0, vx: 0, vy: 0, vz: 0, owner: null, lastTeam: 'A', intended: null, shot: null, fire: null, ang: 0, phase: 0 } };
@@ -79,6 +79,27 @@ const Logic = (() => {
     }
     kickoff(s, 'A');
     return s;
+  }
+
+  // Táctica de un equipo: 'of' ofensiva · 'eq' equilibrada · 'def' defensiva
+  function setTactic(s, team, t) { if (['of', 'eq', 'def'].includes(t)) s.tactic[team] = t; }
+  // Cambio de jugador: `d` es el jugador de partido (buildMatchPlayer + sprite + row) que entra en el puesto del jugador `id`.
+  // Conserva puesto, posición en el campo, balón y control; entra con la energía llena. No se puede en mitad de una supertécnica.
+  function substitute(s, id, d) {
+    const i = s.players.findIndex(p => p.id === id), old = s.players[i];
+    if (!old || (s.tech && s.tech.p === old)) return false;
+    const ai = old.team === 'B', span = s.settings.minutes * 60 * GAME_SPEED / 3;
+    const np = Object.assign({}, d, { id: old.id, team: old.team, num: old.num, role: old.role, home: old.home, ko: old.ko, speed: d.speed * (ai ? s.diff.aiSpeed : 1),
+      cd: {}, x: old.x, y: old.y, z: 0, vx: 0, vy: 0, dvx: 0, dvy: 0, facing: old.facing, aim: old.aim, moving: false,
+      stamina: 1, tired: false, sprint: false, stun: 0, kickLock: 0, kickT: 0, tackle: null, tackleCd: 0, windup: null, tkWind: 0,
+      dash: null, think: 0, holdT: 0, react: 0, diving: false, gkTech: null, invuln: 0 });
+    np.techs = np.techs.map(t => Object.assign({}, t, { cd: +(span * (0.75 + t.power / 240) * (np.bonus.cdMul || 1)).toFixed(1) }));
+    for (const t of np.techs) np.cd[t.id] = t.cd * 0.5;
+    s.players[i] = np;
+    if (s.ball.owner === old) s.ball.owner = np;
+    delete s._stars; s.subs = (s.subs || 0) + (old.team === 'A' ? 1 : 0);
+    s.events.push({ type: 'sub', team: old.team, id: np.id });
+    return true;
   }
 
   // Delantero que saca de centro (o el jugador más adelantado)
@@ -773,7 +794,8 @@ const Logic = (() => {
   function homeTarget(s, p) {
     const [ox, oy] = p.home || BASE[p.role], b = s.ball;
     const att = possession(s) === p.team;
-    let depth = oy + (depthOf(p.team, b.y) - F.l / 2) * 0.45 + (att ? (p.role === 'DEF' ? 2 : 6) : -2);
+    const tac = (s.tactic && s.tactic[p.team]) || 'eq';   // táctica: ofensiva (+5 m hacia delante), defensiva (−5 m) o equilibrada
+    let depth = oy + (depthOf(p.team, b.y) - F.l / 2) * 0.45 + (att ? (p.role === 'DEF' ? 2 : 6) : -2) + (p.role === 'POR' ? 0 : tac === 'of' ? 5 : tac === 'def' ? -5 : 0);
     depth = clamp(depth, p.role === 'DEF' ? 5 : 8, F.l - 3);
     const bRel = (b.x - cx) * (p.team === 'A' ? 1 : -1);
     const a = toAbs(p.team, ox + bRel * 0.35, depth);
@@ -854,7 +876,7 @@ const Logic = (() => {
     for (const q of s.players) if (q.team === team && q.role === 'DEL' && q.id !== s.controlledId && (!best || (q.home || BASE.DEL)[1] > (best.home || BASE.DEL)[1])) best = q;
     return best;
   }
-  const holdsUp = (s, p) => p.role === 'DEL' && !s.settings.mini && p.id !== s.controlledId && depthOf(p.team, s.ball.y) < HOLD_DEPTH;
+  const holdsUp = (s, p) => p.role === 'DEL' && !s.settings.mini && p.id !== s.controlledId && !(s.tactic && s.tactic[p.team] === 'def') && depthOf(p.team, s.ball.y) < HOLD_DEPTH + (s.tactic && s.tactic[p.team] === 'of' ? 6 : 0);
   function defendAI(s, p, dt) {
     const h = s.ball.owner, gy = ownGoalY(p.team);
     if (holdsUp(s, p) && h.role !== 'POR') {   // se queda en el medio campo rival (sin caer en fuera de juego), listo para la contra
@@ -1556,5 +1578,5 @@ const Logic = (() => {
     if (!s.pause && !s.hold) checkSteals(s, dt);
   }
 
-  return { FIELD: F, DRIBBLE_CD, ST, techChoices, createMatch, update, possession, controlled, contextTech, pickPlayer, chooseMenu, setMenuAim, MENU_DIST, _t: { lob, openMenu, passOdds, dribbleOdds, take, startTech, shoot, goal, foulCall, startPenalty, restart } };
+  return { FIELD: F, DRIBBLE_CD, ST, techChoices, createMatch, setTactic, substitute, update, possession, controlled, contextTech, pickPlayer, chooseMenu, setMenuAim, MENU_DIST, _t: { lob, openMenu, passOdds, dribbleOdds, take, startTech, shoot, goal, foulCall, startPenalty, restart } };
 })();

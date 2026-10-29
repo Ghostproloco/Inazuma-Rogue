@@ -84,7 +84,7 @@ const FACILITIES = {
 const KIT_COLORS = ['#e8c21a', '#f2f2f2', '#d8361a', '#1f4fc0', '#2f9a3a', '#ff7a1a', '#7a3ad8', '#222222', '#3fb6e8', '#ff8ac0', '#8a5a2a', '#0e2a6a'];
 const CREST_SHAPES = ['escudo', 'circulo', 'rombo'];
 const CREST_SYMBOLS = { rayo: '⚡', estrella: '★', balon: '⚽', llama: '🔥', hoja: '🍃', montana: '⛰', ola: '🌊', corona: '♛' };
-const RARITY_MUL = { comun: 1, rara: 1.3, epica: 1.8, legendaria: 2.6, limitada: 3.2 };
+const RARITY_MUL = { comun: 1, rara: 1.3, epica: 1.8, legendaria: 2.6, limitada: 3.2, pase: 3.2 };
 const WINTER_WEEK = 9;     // al llegar a esta semana abre el mercado de invierno (los clubes fichan entre ellos)
 const BID_CHANCE = 0.18;   // probabilidad semanal de que un club pida a uno de tus jugadores
 

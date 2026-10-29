@@ -758,6 +758,7 @@ class MatchScene extends Phaser.Scene {
       const v = this.views.get(p.id);
       v.root.setPosition(p.x * PX, p.y * PX).setDepth(p.y * PX);
       v.arrow.rotation = p.aim;
+      if (v.nm !== p.name) { v.nm = p.name; v.tag.setText(p.name.split(' ')[0]); }   // tras un cambio de jugador
       paintControl(v, p.id === s.controlledId);
       const [di, flip] = dirOf(p.facing);
       let f = ANIM.stand[di];

@@ -87,7 +87,8 @@ const RARITY = {
   rara:       { label: TX('Rara'),       rate: 28, dupCoins: 25 },
   epica:      { label: TX('Épica'),      rate: 10, dupCoins: 60 },
   legendaria: { label: TX('Legendaria'), rate: 2,  dupCoins: 150 },
-  limitada:   { label: TX('Limitada'),   rate: 0,  dupCoins: 300 },   // solo en el Gacha limitado (src/limited.js)
+  limitada:   { label: TX('Limitada'),   rate: 0,  dupCoins: 300 },
+  pase:       { label: TX('Pase de batalla'), rate: 0, dupCoins: 300 },   // solo en el Pase de batalla (src/pase.js)   // solo en el Gacha limitado (src/limited.js)
 };
 const MAX_STARS = 5;
 const TECH_SLOTS = 2;   // técnicas equipadas por jugador
@@ -125,7 +126,7 @@ const PASSIVES = {
 /* ---------- Estadísticas ---------- */
 // Valor de una estadística de un jugador de tu colección (permanente)
 // Los legendarios empiezan ya al máximo (media de 90 o más); el resto empieza al 82 % y se entrena
-const startMul = pd => pd.rarity === 'legendaria' || pd.rarity === 'limitada' ? 1 : 0.82;   // los limitados también empiezan con todas sus estadísticas
+const startMul = pd => pd.rarity === 'legendaria' || pd.rarity === 'limitada' || pd.rarity === 'pase' ? 1 : 0.82;   // los limitados también empiezan con todas sus estadísticas
 function statOf(id, owned, k) {
   const pd = PLAYER(id), ie = pd.ie[k], stars = owned ? owned.stars : 1, up = owned ? (owned.up[k] || 0) : 0;
   return Math.min(ie + 2 * (stars - 1), Math.round(ie * startMul(pd)) + up * 3 + (stars - 1) * 2);
@@ -251,7 +252,7 @@ const GIFT_CODES = {
   // Bianchi Christmas ya NO se consigue con código: solo en el Gacha limitado (src/limited.js)
   DOBLELEYENDA:      { leg: 2, desc: TX('Dos tiradas legendarias aseguradas') },
 };
-const PICK_TIERS = { comun: 0, rara: 1, epica: 2, legendaria: 3, limitada: 4 };
+const PICK_TIERS = { comun: 0, rara: 1, epica: 2, legendaria: 3, limitada: 4, pase: 4 };
 // Las 3 opciones de un "elige 1 de 3": jugadores del gacha (sin versiones de evento ni originales)
 function giftPickOptions(f, n = 3) {
   if (f.inf) return infPickOptions(f.n || n);

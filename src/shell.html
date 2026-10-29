@@ -900,6 +900,83 @@ body.menu-open #pad,body.menu-open #stick,body.menu-open #keyhud{visibility:hidd
 .cutin.rival.lim .ci-in{background:linear-gradient(270deg,#06143a,#1f5fe0 45%,#ffe14a)}
 @media (prefers-reduced-motion:reduce){.cutin .ci-fx,.cutin.big .ci-face canvas{animation:none!important}}
 @media (prefers-reduced-motion:reduce){.lb,.lmhero::after,.npk,.rar.limitada,.gcard.limitada .pix,.npface,.cap.t-limitada .ct{animation:none!important}}
+
+/* ===== Gacha rediseñado + Pase de batalla ===== */
+.gxh{margin:6px 0 0!important;font-size:16px!important;letter-spacing:.04em}
+.gxfeat{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 10px;margin:0 -4px;-webkit-overflow-scrolling:touch}
+.gxfeat::-webkit-scrollbar{display:none}
+.gxcard{position:relative;overflow:hidden;flex:0 0 78%;max-width:300px;min-height:132px;scroll-snap-align:center;text-align:left;font-family:var(--font-ui);color:var(--chalk);cursor:pointer;
+  border:2px solid var(--ink);padding:10px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;box-shadow:0 0 0 2px var(--c1,#8fb4e8),0 0 16px var(--c2,rgba(120,160,255,.5));background:var(--bg,#1b2a66);transition:transform .15s}
+.gxcard:active{transform:scale(.97)}
+.gxcard .gxbg{position:absolute;inset:0;z-index:0;background:var(--bgi,none);opacity:.95}
+.gxcard>*:not(.gxbg):not(.lmbolts){position:relative;z-index:2}
+.gxcard::after{content:"";position:absolute;top:-50%;left:-60%;width:40%;height:200%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);transform:rotate(18deg);animation:gxSweep 4.5s ease-in-out infinite;z-index:3;pointer-events:none}
+@keyframes gxSweep{0%,55%{left:-60%}100%{left:130%}}
+.gxtag{align-self:flex-start;font-size:11px;padding:1px 7px;background:var(--c1,#ffd23a);color:#10183a;border:2px solid var(--ink);letter-spacing:.05em}
+.gxico{position:absolute!important;right:10px;top:6px;font-size:44px;opacity:.9;filter:drop-shadow(0 2px 0 rgba(0,0,0,.5))}
+.gxt{display:flex;flex-direction:column;gap:2px}.gxt b{font-size:24px;color:#fff3b0;font-weight:400;text-shadow:0 2px 0 rgba(0,0,0,.6)}.gxt small{font-size:12px;opacity:.9}
+.gxf{display:flex;gap:3px}.gxf canvas{border:1px solid var(--c1,#ffd23a);background:rgba(0,0,0,.35)}
+.gxcard.pb{--c1:#ff4fd8;--c2:rgba(255,79,216,.55);--bg:#2a0a3a;--bgi:radial-gradient(circle at 85% 20%,rgba(255,79,216,.55),transparent 55%),linear-gradient(135deg,#3a0f55,#14082e 70%)}
+.gxcard.lim{--c1:#35d6ff;--c2:rgba(60,200,255,.6);--bg:#06143a;--bgi:linear-gradient(90deg,rgba(6,14,50,.9) 30%,rgba(6,14,50,0) 80%),url(ui/tormenta.jpg) 0 40%/160% auto no-repeat}
+.gxcard.xm{--c1:#ffd23a;--c2:rgba(255,210,58,.45);--bg:#0f4a2a;--bgi:radial-gradient(circle at 80% 15%,rgba(255,255,255,.35) 0 2px,transparent 3px),radial-gradient(circle at 60% 40%,rgba(255,255,255,.3) 0 2px,transparent 3px),linear-gradient(135deg,#0f5a30,#7a1626)}
+.gxcard.hw{--c1:#ff8a1a;--c2:rgba(150,60,200,.55);--bg:#2a0f38;--bgi:linear-gradient(135deg,#2a0f38,#6a3412)}
+.gxcard.soon{filter:saturate(.55) brightness(.85)}
+.gxtabs{display:flex;gap:6px}
+.gxtab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;font:15px var(--font-ui);color:var(--chalk);background:var(--navy-d);border:2px solid var(--ink);box-shadow:0 0 0 2px #5a7ab8;cursor:pointer}
+.gxtab img{width:34px;height:34px}
+.gxtab.sel{background:linear-gradient(#3a5aa0,#27407a);box-shadow:0 0 0 3px var(--yellow),0 0 14px rgba(255,232,26,.45);color:#fff}
+.gxpanel{background:linear-gradient(#1e2d66,#141c44);border:2px solid var(--ink);box-shadow:0 0 0 2px var(--panel-line);padding:10px;display:flex;flex-direction:column;gap:8px}
+.gxhead{display:flex;gap:10px;align-items:center}.gxhead img{width:44px;height:44px}.gxhead b{font-size:22px;color:var(--gold);display:block}.gxhead small{font-size:12px;opacity:.85}
+.gxlegs{display:flex;flex-wrap:wrap;gap:4px}.gxlegs canvas{border:1px solid #ffd23a;background:linear-gradient(#ffd23a,#ee7300);box-shadow:0 0 8px rgba(255,190,58,.55)}
+.gxrates{display:flex;height:12px;border:2px solid var(--ink);overflow:hidden}
+.gxrates i.comun,.gxrl .comun{--r:#b8bcc8}.gxrates i.rara,.gxrl .rara{--r:#3f8fff}.gxrates i.epica,.gxrl .epica{--r:#a24cff}.gxrates i.legendaria,.gxrl .legendaria{--r:#ffcc22}
+.gxrates i{background:var(--r)}.gxrl{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:12px}.gxrl span{color:var(--r)}
+.gxpity{display:flex;align-items:center;gap:8px;font-size:12px}.gxpity span{flex:0 0 auto;color:var(--sky-t)}.gxpity b{color:var(--yellow)}
+.gxbar{flex:1;height:10px;background:var(--navy-d);border:2px solid var(--ink);overflow:hidden}.gxbar i{display:block;height:100%;background:linear-gradient(90deg,#ee7300,#ffd23a);transition:width .4s}
+.gxbar.big{height:16px}
+.gxgo{position:relative;overflow:hidden}
+.gxgo.ten{background:linear-gradient(#ff4fd8 0 62%,#8a1a78 62%);color:#fff}
+.gxgo:not(:disabled)::after{content:"";position:absolute;top:0;left:-60%;width:30%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);transform:skewX(-20deg);animation:gxSweep 3.2s ease-in-out infinite}
+.gcard{animation:gcIn .45s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes gcIn{from{transform:scale(.5) rotate(-6deg);opacity:0}to{transform:none;opacity:1}}
+.gcard.legendaria,.gcard.epica{position:relative;overflow:hidden}
+.gcard.legendaria::after,.gcard.epica::after,.gcard.pase::after{content:"";position:absolute;top:-30%;left:-70%;width:40%;height:160%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:rotate(20deg);animation:gxSweep 2.6s ease-in-out infinite;pointer-events:none}
+/* Rareza «Pase de batalla» */
+.rar.pase{background:linear-gradient(90deg,#ff4fd8,#ffe27a,#ff4fd8);background-size:200% 100%;color:#2a0a3a;animation:limShine 2.2s linear infinite}
+.gcard.pase{position:relative;overflow:hidden;box-shadow:0 0 0 2px #ff4fd8,0 0 0 4px #ffe27a,0 0 22px rgba(255,79,216,.9)}
+.gcard.pase .pix,.ptile.pase .pix,.pbface .pix{background:linear-gradient(#ff8ae8,#7a1a9a 60%,#ffe27a);background-size:100% 200%;animation:limPix 3s ease-in-out infinite alternate}
+.pcard.pase,.ptile.pase,.pcard.pb,.ptile.pb{box-shadow:0 0 0 2px #ff4fd8,0 0 0 4px #ffe27a,0 0 10px rgba(255,79,216,.8)}
+.pslot.pase .pf{box-shadow:0 0 0 2px #ff4fd8,0 0 8px rgba(255,79,216,.8);background:linear-gradient(#ff8ae8,#7a1a9a)}
+.cap.t-pase{--cc:linear-gradient(90deg,#ff4fd8,#ffffff,#ffe27a,#ff4fd8);filter:drop-shadow(0 0 10px #ff4fd8)}
+/* Pantalla del Pase */
+.mode.pbmode{background:linear-gradient(90deg,#3a0f55,#a01a88);box-shadow:0 0 0 2px #ffe27a,0 0 14px rgba(255,79,216,.55)}.mode.pbmode b{color:#ffe27a}
+.pbhero{display:flex;gap:12px;align-items:center;padding:10px;background:radial-gradient(circle at 20% 50%,rgba(255,79,216,.45),transparent 60%),linear-gradient(135deg,#3a0f55,#14082e);border:2px solid var(--ink);box-shadow:0 0 0 2px #ff4fd8,0 0 18px rgba(255,79,216,.6)}
+.pbface{flex:0 0 auto;line-height:0;border:2px solid #ffe27a}
+.pbinfo{display:flex;flex-direction:column;gap:3px}.pbinfo>small:first-child{color:#ff8ae8;letter-spacing:.1em}.pbinfo b{font-size:26px;color:#ffe27a}.pbinfo small{font-size:12px}
+.pblv{display:flex;align-items:center;gap:8px}.pblv b{color:var(--yellow);font-size:20px}.pblv small{font-size:12px;white-space:nowrap}
+.pbown{display:flex;align-items:center;justify-content:center;background:var(--navy-d);border:2px solid #ffe27a;color:#ffe27a;font-size:18px}
+.cta.pbgold{background:linear-gradient(#ffd23a 0 62%,#b07a10 62%);color:#3a2300}
+.pbhead{display:grid;grid-template-columns:34px 1fr 1fr;gap:6px;text-align:center;font-size:13px;position:sticky;top:0;z-index:5;background:var(--night);padding:3px 0}
+.pbhead b:last-child{color:#ffe27a}
+.pblist{display:flex;flex-direction:column;gap:6px}
+.pbrow{display:grid;grid-template-columns:34px 1fr 1fr;gap:6px;align-items:stretch;opacity:.6}.pbrow.open,.pbrow.next{opacity:1}
+.pbrow.next .pbl{background:var(--orange);color:#fff}
+.pbl{display:flex;align-items:center;justify-content:center;background:var(--navy-d);border:2px solid var(--ink);font-size:16px;color:var(--gold)}.pbrow.open .pbl{background:var(--navy);color:var(--yellow)}
+.pbcell{position:relative;display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;padding:4px 6px;min-height:46px;font-family:var(--font-ui);color:var(--chalk);background:var(--navy);border:2px solid var(--ink);box-shadow:0 0 0 1px #5a7ab8}
+.pbcell small{font-size:9px;opacity:.7;letter-spacing:.08em}.pbcell span{font-size:13px;line-height:1.15}
+.pbcell.gold{background:linear-gradient(135deg,#3a2a08,#5a1a58);box-shadow:0 0 0 1px #ffe27a}
+.pbcell em{position:absolute;right:4px;top:3px;font-style:normal;font-size:13px}.pbcell em.go{background:var(--orange);padding:0 5px;font-size:11px;border:1px solid var(--ink)}
+.pbcell.ready{cursor:pointer;box-shadow:0 0 0 2px var(--yellow),0 0 10px rgba(255,232,26,.6);animation:achglow 1.4s infinite}
+.pbcell.got{opacity:.55}.pbcell.premium,.pbcell.locked{filter:saturate(.5)}
+@media (prefers-reduced-motion:reduce){.gxcard::after,.gxgo::after,.gcard,.gcard::after,.rar.pase,.gcard.pase .pix,.pbcell.ready{animation:none!important}}
+
+/* Pausa: táctica y cambios */
+.subrow{display:flex;flex-wrap:wrap;gap:4px}
+.subbtn{flex:1 1 30%;min-width:84px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 2px;font:14px var(--font-ui);color:var(--chalk);background:var(--navy);border:2px solid var(--ink);box-shadow:0 0 0 1px #5a7ab8;cursor:pointer}
+.subbtn small{font-size:10px;opacity:.85}.subbtn b{font-size:14px;color:var(--chalk);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.subbtn.sel{background:var(--orange);box-shadow:0 0 0 2px var(--yellow)}
+.subbtn.in{background:#1d4a2a}.subbtn.in:disabled{opacity:.35;cursor:default}.subbtn.used{text-decoration:line-through}
+.subarr{display:block;text-align:center;margin:3px 0;color:var(--sky-t);font-size:12px}
 </style>
 
 <div id="shell">

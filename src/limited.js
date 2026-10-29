@@ -44,7 +44,7 @@ const LM_POOL_IDS = {
   comun: [277],
 };
 // Jugadores nuevos: se enseñan al abrir el juego la primera vez (settings.seenPlayers)
-const NEW_PLAYERS = LM_PLAYERS.map(l => ({ id: l.id, v: '0.36.1' }));
+const NEW_PLAYERS = [];   // sin avisos de jugador nuevo de momento (antes: LM_PLAYERS.map(l => ({ id: l.id, v: '0.36.1' })))
 
 (function registerLimited() {
   if (typeof GAME === 'undefined') return;
