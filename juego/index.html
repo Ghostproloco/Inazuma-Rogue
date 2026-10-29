@@ -545,6 +545,28 @@ details.tgroup .tracks{margin-top:8px}
 .cutin.bosque{--c1:#e2ffa8;--c2:#46ad35;--c3:#174212}
 .cutin.montana{--c1:#ffe6b0;--c2:#b07434;--c3:#432a0e}
 .cutin.neutro{--c1:#ffffff;--c2:#6a7a9a;--c3:#1d2752}
+/* Técnica contra técnica: pantallita de enfrentamiento */
+.clash{position:absolute;left:50%;top:33%;transform:translateX(-50%);width:min(94%,380px);z-index:8;pointer-events:none;display:none}
+.clash.on{display:block;animation:clIn .25s cubic-bezier(.2,.9,.3,1.25) both}
+.clash.out{animation:clOut .25s ease-in both}
+@keyframes clIn{from{opacity:0;transform:translateX(-50%) scale(.7)}to{opacity:1;transform:translateX(-50%) scale(1)}}
+@keyframes clOut{to{opacity:0;transform:translateX(-50%) scale(.85)}}
+.clash .cl-in{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;gap:6px;padding:8px;border-radius:12px;background:rgba(8,12,28,.9);border:2px solid #fff;box-shadow:0 0 0 3px #0b1030,0 10px 28px rgba(0,0,0,.55)}
+.clash .cl-side{--c1:#fff;--c2:#6a7a9a;--c3:#1d2752;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border-radius:8px;text-align:center;min-width:0;
+  background:linear-gradient(180deg,var(--c2),var(--c3));border:2px solid var(--c1);transition:transform .3s,opacity .3s,filter .3s}
+.clash .cl-side.fuego{--c1:#ffd23a;--c2:#ff6a10;--c3:#7a1404}.clash .cl-side.viento{--c1:#d2f7ff;--c2:#2fa6e0;--c3:#0b2f5e}
+.clash .cl-side.bosque{--c1:#e2ffa8;--c2:#46ad35;--c3:#174212}.clash .cl-side.montana{--c1:#ffe6b0;--c2:#b07434;--c3:#432a0e}
+.clash .cl-side small{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#fff;opacity:.85}
+.clash .cl-side b{font-size:13px;line-height:1.1;color:#fff;text-shadow:0 1px 0 #000;overflow-wrap:anywhere}
+.clash .cl-face{height:56px;display:flex;align-items:center;justify-content:center}
+.clash .cl-bar{width:92%;height:7px;border-radius:4px;background:rgba(0,0,0,.45);overflow:hidden}
+.clash .cl-bar i{display:block;height:100%;background:#fff;border-radius:4px;width:0;transition:width .6s .15s ease-out}
+.clash .cl-side em{font-style:normal;font-weight:900;font-size:15px;color:#fff}
+.clash .cl-vs{align-self:center;font-weight:900;font-size:20px;color:#ffd23a;text-shadow:0 2px 0 #7a1404,0 0 12px #ff6a10;font-style:italic}
+.clash .cl-side.lose{filter:grayscale(.75) brightness(.7);transform:scale(.93);opacity:.8}
+.clash .cl-side.win{transform:scale(1.05);box-shadow:0 0 16px var(--c1)}
+.clash .cl-res{grid-column:1/-1;text-align:center;font-weight:900;font-size:15px;color:#fff;padding-top:2px;text-shadow:0 1px 0 #000}
+.clash .cl-res.mine{color:#9dffb0}.clash .cl-res.rival{color:#ff9d9d}
 /* Pizarra de alineación */
 .edbar{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .edbar .ghost{padding:6px 10px}
@@ -920,6 +942,7 @@ body.menu-open #pad,body.menu-open #stick,body.menu-open #keyhud{visibility:hidd
   <div id="pad" hidden></div>
   <div id="cine"><i class="lb t"></i><i class="lb b"></i></div>
   <div class="cine-dim" id="cineDim"></div><div class="cutin" id="cutin"><i class="ci-fx"></i><div class="ci-in"><div class="ci-face"></div><div class="ci-txt"><small></small><b></b></div></div></div>
+  <div class="clash" id="clash"></div>
   <div class="say" id="say"><div class="sy-in"><div class="sy-face"></div><div class="sy-txt"><small></small><span></span></div></div></div>
   <div class="pick" id="pick" hidden></div>
   <div class="decide" id="menu" hidden></div>
@@ -1071,6 +1094,7 @@ const EN_TEXT = {
   '+300 copos': '+300 snowflakes',
   '+4 de tiro y control': '+4 shot and control',
   '+400 🪙. Te toca grabar el anuncio en la playa.': '+400 🪙. You have to film the advert on the beach.',
+  '+500 XP en el pase': '+500 pass XP',
   '+6 % de velocidad': '+6% speed',
   '+6 de defensa': '+6 defence',
   '+6 de portero': '+6 goalkeeping',
@@ -1204,6 +1228,7 @@ const EN_TEXT = {
   'Banquillo': 'Bench',
   'Bianchi Christmas (nota 105): solo {0} % por tirada, aparte de las demás. Asegurado a las {1} tiradas sin él (llevas {2}).': 'Bianchi Christmas (rating 105): only {0} % per pull, separate from the others. Guaranteed after {1} pulls without him ({2} so far).',
   'Bloq Mayús': 'Caps Lock',
+  'Bloquea {0} tiros con tus defensas': 'Block {0} shots with your defenders',
   'Bloqueo': 'Block',
   'Bloqueos': 'Blocks',
   'Borrar': 'Delete',
@@ -1311,6 +1336,7 @@ const EN_TEXT = {
   'Clasificación': 'Standings',
   'Club': 'Club',
   'Clásicas (L tiro)': 'Classic (L shoots)',
+  'Cofre de la semana': 'Weekly chest',
   'Coges un club que ya existe: juegas en su división, con su nombre, su escudo, su equipación y sus jugadores. Cuanto más arriba, más difícil.': 'You take over a club that already exists: you play in its division, with its name, crest, kit and players. The higher up, the harder.',
   'Coleccionista': 'Collector',
   'Coleccionista de sustos': 'Fright Collector',
@@ -1330,11 +1356,13 @@ const EN_TEXT = {
   'Completa la Etapa 3 entera': 'Complete the whole of Stage 3',
   'Completa la Fase 1 de la Etapa 3': 'Complete Phase 1 of Stage 3',
   'Completa la fase 1 de la Etapa 3': 'Complete phase 1 of Stage 3',
+  'Completa las 5 misiones': 'Complete all 5 missions',
   'Completa los 3 retos y': 'Complete the 3 challenges and',
   'Completa los 3 retos y recibirás de regalo a': 'Complete the 3 challenges and you\'ll receive a free',
   'Completa todas las cadenas': 'Complete every chain',
   'Completa tu equipo en Plantilla': 'Complete your team in Squad',
   'Completa una cadena': 'Complete a chain',
+  'Completa {0} pases': 'Complete {0} passes',
   'Completada ✓ · puedes repetirla': 'Completed ✓ · you can replay it',
   'Completar el álbum': 'Complete the album',
   'Completar las cadenas': 'Complete the chains',
@@ -1411,6 +1439,7 @@ const EN_TEXT = {
   'Código de regalo': 'Gift code',
   'Cómo se activa': 'How it triggers',
   'Córner': 'Corner',
+  'Da {0} asistencias': 'Make {0} assists',
   'Dar la razón a {0}': 'Side with {0}',
   'Darlo todo': 'Give it everything',
   'Das el salto al fútbol profesional. Elige tu primer club de la Liga Pro: equipos de todo el mundo con las estrellas del Inazuma 3.': 'You\'re turning professional. Choose your first Pro League club: teams from all over the world with the stars of Inazuma 3.',
@@ -1752,6 +1781,9 @@ const EN_TEXT = {
   'Gana hoy al Ocultismo jefe': 'Beat the Occult boss today',
   'Gana la Copa Inazuma como mánager': 'Win the Inazuma Cup as manager',
   'Gana la liga de Primera como mánager': 'Win the First Division as manager',
+  'Gana {0} choques de técnica contra técnica': 'Win {0} technique clashes',
+  'Gana {0} partidos': 'Win {0} matches',
+  'Gana {0} partidos sin encajar gol': 'Win {0} matches without conceding',
   'Ganador nato': 'Born winner',
   'Ganar ligas, la Copa o ascender da tickets para el gacha.': 'Winning leagues, the Cup or promotion gives gacha tickets.',
   'Ganas a los 15 mejores equipos del juego seguidos y Willy Glass LEYENDA es tuyo para siempre.': 'Beat the 15 best teams in the game in a row and Willy Glass LEGEND is yours forever.',
@@ -1859,6 +1891,7 @@ const EN_TEXT = {
   'Joystick': 'Joystick',
   'Juega 3 partidos hoy': 'Play 3 matches today',
   'Juega tu rival {0}: sales con más ganas': 'Your rival {0} is playing: you\'re extra fired up',
+  'Juega {0} partidos': 'Play {0} matches',
   'Juega · ': 'Play · ',
   'Juegan:': 'Playing:',
   'Juegas de titular todo el partido.': 'You start and play the whole match.',
@@ -1986,6 +2019,9 @@ const EN_TEXT = {
   'Mangas y pantalón': 'Sleeves and shorts',
   'Manivela caliente': 'Hot crank',
   'Marca 50 goles en una Carrera Jugador': 'Score 50 goals in a Player Career',
+  'Marca {0} goles': 'Score {0} goals',
+  'Marca {0} goles con técnicas': 'Score {0} goals with techniques',
+  'Marca {0} goles de vaselina': 'Score {0} lob goals',
   'Mañana': 'Tomorrow',
   'Me quedo en {0}': 'I\'m staying at {0}',
   'Medalla de': 'Medal:',
@@ -2008,6 +2044,11 @@ const EN_TEXT = {
   'Mercado entre clubes': 'Club transfer market',
   'Mercury (versión del Infinito)': 'Mercury (Infinite version)',
   'Mi equipo': 'My team',
+  'Misiones de la semana completadas': 'Weekly missions completed',
+  'Misiones de la semana pasada recogidas:': 'Last week\'s missions collected:',
+  'Misiones hechas': 'Missions done',
+  'Misiones y Pase': 'Missions & Pass',
+  'Misión completada:': 'Mission complete:',
   'Mitades': 'Halves',
   'Modo Carrera': 'Career Mode',
   'Modo Carrera: las supertécnicas se desbloquean cuando el jugador las aprende (todos empiezan con la primera), y entrenar está más equilibrado: cada jugador puede subir +1 con suerte.': 'Career Mode: special moves unlock when the player learns them (everyone starts with their first one), and training is more balanced: each player can go up +1 with luck.',
@@ -2058,6 +2099,8 @@ const EN_TEXT = {
   'Ningún jugador coincide con la búsqueda.': 'No player matches the search.',
   'Ningún jugador coincide. Prueba con otro nombre o quita filtros (✕).': 'No player matches. Try another name or clear the filters (✕).',
   'Nivel': 'Level',
+  'Nivel {0}': 'Level {0}',
+  'Nivel {0} de {1}': 'Level {0} of {1}',
   'Niños a la salida': 'Kids at the exit',
   'No': 'No',
   'No aceptas. {0} dice por ahí que te dio miedo.': 'You turn it down. {0} tells everyone you were scared.',
@@ -2164,6 +2207,7 @@ const EN_TEXT = {
   'PJ ·': 'GP ·',
   'PRÓXIMAMENTE': 'COMING SOON',
   'Para llevar tu partida a otro dispositivo usa tu': 'To take your save to another device, use your',
+  'Para {0} tiros con tu portero': 'Save {0} shots with your keeper',
   'Parada': 'Save',
   'Parados {0} · Frenados {1} · Sin bloquear {2}': 'Stopped {0} · Slowed {1} · Not blocked {2}',
   'Parar': 'Stop',
@@ -2189,7 +2233,10 @@ const EN_TEXT = {
   'Pasar del reto': 'Skip the challenge',
   'Pasar la semana': 'Skip the week',
   'Pase': 'Pass',
+  'Pase +500 XP': 'Pass +500 XP',
   'Pase / entrada': 'Pass / tackle',
+  'Pase de la temporada anterior recogido:': 'Last season\'s pass collected:',
+  'Pase de temporada {0} · nivel {1}': 'Season {0} pass · level {1}',
   'Pase ya no hace entradas a tus propios compañeros.': 'Pass no longer tackles your own teammates.',
   'Pausa': 'Pause',
   'Pedirlo para ti': 'Ask to take them',
@@ -2232,6 +2279,7 @@ const EN_TEXT = {
   'Portero con balón: J pase · K saque largo · L despeje.': 'Keeper with the ball: J pass · K long kick · L clearance.',
   'Portero con balón: J pase · L saque largo · K despeje.': 'Keeper with the ball: J pass · L long kick · K clearance.',
   'Portero con balón: {0} pase · {1} saque largo · {2} despeje.': 'Goalkeeper with the ball: {0} pass · {1} long kick · {2} clearance.',
+  'Portero rival: {0} ({1})': 'Rival keeper: {0} ({1})',
   'Portero+': 'Keeper+',
   'Porteros: salen a por el que entra con el balón en el área, y ya no se puede entrar andando con el balón en la portería. Para marcar, hay que chutar.': 'Goalkeepers: they now rush whoever enters the box with the ball, and you can no longer walk the ball into the net. To score, you have to shoot.',
   'Potencia {0}': 'Power {0}',
@@ -2323,6 +2371,7 @@ const EN_TEXT = {
   'Regalo de la comunidad': 'Community gift',
   'Regate': 'Dribble',
   'Regate / Cambiar': 'Dribble / Switch',
+  'Regatea a {0} rivales': 'Dribble past {0} rivals',
   'Regatear': 'Dribble',
   'Reiniciar el Sobre Selva': 'Reset the Jungle Pack',
   'Reiniciar el evento': 'Reset the event',
@@ -2361,6 +2410,7 @@ const EN_TEXT = {
   'Rivales · Inazuma Eleven 2': 'Rivals · Inazuma Eleven 2',
   'Rivalidad nivel {0}': 'Rivalry level {0}',
   'Roba arriba, cansa más': 'Win it high, tires more',
+  'Roba {0} balones con entradas': 'Win the ball with {0} tackles',
   'Roguelite: el partido se acaba si un equipo gana por 5 goles de diferencia.': 'Roguelite: the match ends when a team leads by 5 goals.',
   'Rombo': 'Diamond',
   'Rompecadenas': 'Chain breaker',
@@ -2374,6 +2424,7 @@ const EN_TEXT = {
   'Récord: {0} de 15 · intentos: {1}': 'Record: {0} of 15 · attempts: {1}',
   'Sael de Halloween (épico especial) de regalo': 'Halloween Sael (special epic) as a gift',
   'Sale en el marcador de tus partidos (Historia, Equipos especiales, Cadenas e Infinito)': 'Shown on the scoreboard of your matches (Story, Special teams, Chains and Infinite)',
+  'Sale mucho: ¡ideal!': 'Rushes out: perfect!',
   'Salir al menú': 'Back to menu',
   'Salir del modo': 'Leave the mode',
   'Salir igualmente': 'Leave anyway',
@@ -2392,7 +2443,10 @@ const EN_TEXT = {
   'Se abre al completar la Etapa 2': 'Unlocks when you complete Stage 2',
   'Se abrirá el 12 de diciembre': 'Opens on December 12',
   'Se guardará tu partida en la nube y este móvil quedará vacío para que pueda entrar otra cuenta. Toca otra vez para confirmar.': 'Your save will be uploaded to the cloud and this device will be left empty so another account can log in. Tap again to confirm.',
+  'Se queda en la línea: difícil': 'Stays on his line: hard',
   'Se quita el pase al hueco (móvil, teclado y mando): estorbaba. El portero sigue sacando en largo.': 'The through ball is gone (mobile, keyboard and gamepad): it got in the way. The goalkeeper can still kick long.',
+  'Se renuevan en {0} día': 'Renews in {0} day',
+  'Se renuevan en {0} días': 'Renews in {0} days',
   'Seguir': 'Continue',
   'Seguir con el de siempre': 'Keep the usual one',
   'Seguir corriendo': 'Keep running',
@@ -2465,6 +2519,7 @@ const EN_TEXT = {
   'Subcampeones': 'Runners-up',
   'Subcampeones del mundo': 'World Cup runners-up',
   'Sube a ': 'Goes up to ',
+  'Sube de nivel jugando: ganas XP en cada partido (más si ganas y marcas) y con las misiones. Lo que no recojas se recoge solo al acabar la temporada.': 'Level up by playing: you earn XP every match (more if you win and score) and from missions. Anything you don\'t collect is collected automatically when the season ends.',
   'Sube de nivel las supertécnicas de tus jugadores: cada nivel, +{0} de potencia en todos los modos menos en las Carreras. Al nivel 3, algunas pueden evolucionar.': 'Level up your players\' special moves: each level gives +{0} power in every mode except the Careers. At level 3, some can evolve.',
   'Sube la estadística que elijas': 'Raise the stat of your choice',
   'Sube un jugador a 5 ★': 'Take a player to 5 ★',
@@ -2670,6 +2725,7 @@ const EN_TEXT = {
   'Una marca de refrescos te ofrece un contrato de publicidad.': 'A soft-drink brand offers you a sponsorship deal.',
   'Una tirada legendaria asegurada': 'One guaranteed legendary pull',
   'Usa solo letras sin tildes, números y guion bajo (_). Sin espacios ni ñ.': 'Use only letters without accents, numbers and underscores (_). No spaces or ñ.',
+  'Usa {0} técnicas': 'Use {0} techniques',
   'Usar el escudo de siempre': 'Use the original crest',
   'Usar mi escudo': 'Use my crest',
   'Usuario': 'Username',
@@ -2782,6 +2838,7 @@ const EN_TEXT = {
   'deja el club.': 'leaves the club.',
   'del juego (o en otro móvil sin cuenta), sigue estos pasos para traer tu partida aquí.': 'of the game (or on another device without an account), follow these steps to bring your save here.',
   'del juego, con un': 'from the game, with a',
+  'del pase': 'from the pass',
   'desbloquea a Ray Dark': 'unlocks Ray Dark',
   'descenso': 'relegation',
   'despeje': 'clearance',
@@ -2818,6 +2875,7 @@ const EN_TEXT = {
   'entrada': 'tackle',
   'entrada ·': 'tackle ·',
   'entrar, pero la plantilla está llena: ahora eliges si haces hueco.': 'join, but the squad is full: now you choose whether to make room.',
+  'equilibrado': 'balanced',
   'equipos': 'teams',
   'equipos rivales': 'rival teams',
   'equipos vencidos': 'teams beaten',
@@ -2858,6 +2916,7 @@ const EN_TEXT = {
   'las {0}, en acción': 'all {0}, in action',
   'legendarias) ·': 'legendary) ·',
   'legendarios ·': 'legendary ·',
+  'listas para recoger': 'ready to collect',
   'listos para recoger': 'ready to collect',
   'llena': 'full',
   'lo ves desde la grada': 'you watch from the stands',
@@ -2927,11 +2986,13 @@ const EN_TEXT = {
   'robar el balón': 'win the ball',
   'robos': 'steals',
   'roguelite': 'roguelite',
+  'sale a por todas': 'rushes out',
   'sales en la 2.ª parte': 'you come on in the 2nd half',
   'saque largo': 'long kick',
   'saque largo ·': 'long kick ·',
   'se cansa y cierra la negociación hasta la semana que viene.': 'gets fed up and closes the negotiation until next week.',
   'se podrá elegir como mánager en el Modo Carrera, con': 'can be picked as manager in Career Mode, with',
+  'se queda en la línea': 'stays on his line',
   'se renuevan cada medianoche': 'they reset every midnight',
   'se va al': 'moves to',
   'se vaya a otro instituto': 'go to another school',
@@ -2949,6 +3010,7 @@ const EN_TEXT = {
   'stats de tu jugador': 'your player\'s stats',
   'stick o cruceta para moverte · RT esprint · A pase (mantén = fuerte) / entrada · X tiro (mantén) · B saque largo (portero) · Y supertécnica · LT cambiar técnica · RB regate · LB cambiar jugador · Start pausa.': 'stick or D-pad to move · RT sprint · A pass (hold = strong) / tackle · X shoot (hold) · B long kick (goalkeeper) · Y special move · LT change technique · RB dribble · LB switch player · Start pause.',
   'su estrella se une a tu plantilla': 'their star joins your squad',
+  'sube niveles': 'levels you up',
   'suben o bajan': 'go up or down',
   'supertécnica': 'special move',
   'supertécnica de bloqueo': 'block special move',
@@ -2960,6 +3022,8 @@ const EN_TEXT = {
   'temas del Inazuma 1 y 2': 'themes from Inazuma 1 and 2',
   'temporadas · mejor división:': 'seasons · best division:',
   'temporal': 'temp',
+  'termina en {0} día': 'ends in {0} day',
+  'termina en {0} días': 'ends in {0} days',
   'ticket': 'ticket',
   'tickets': 'tickets',
   'tickets del día y sobre legendario': 'daily tickets and legendary pack',
@@ -3010,6 +3074,7 @@ const EN_TEXT = {
   'ya ha aprendido': 'has already learned',
   'ya lo tienes (+1 ★)': 'you already have him (+1 ★)',
   '{0} de {1}': '{0} of {1}',
+  '{0} de {1} XP para el nivel {2}': '{0} of {1} XP to level {2}',
   '{0} de {1} conseguidos': '{0} of {1} unlocked',
   '{0} de {1} equipos completos': '{0} of {1} teams complete',
   '{0} entra en tu colección con todo lo que ha mejorado. Búscalo en Plantilla.': '{0} joins your collection with everything they\'ve improved. Find them in Squad.',
@@ -3023,6 +3088,8 @@ const EN_TEXT = {
   '{0} no lo olvidará: ahora sois amigos.': '{0} won\'t forget it: you\'re friends now.',
   '{0} no se atreve con los mayores y te pide ayuda.': '{0} is nervous around the seniors and asks for your help.',
   '{0} no se lo esperaba. Ahora es tu rival.': '{0} didn\'t see that coming. He\'s your rival now.',
+  '{0} premio': '{0} reward',
+  '{0} premios': '{0} rewards',
   '{0} punto para repartir': '{0} point to spend',
   '{0} puntos para repartir': '{0} points to spend',
   '{0} quiere a {1}': '{0} wants {1}',
@@ -3055,6 +3122,7 @@ const EN_TEXT = {
   '¡A la final!': 'Into the final!',
   '¡Aprobado! Te lo has ganado.': 'Passed! You earned it.',
   '¡Balón recuperado!': 'Ball won back!',
+  '¡Barrera rival de {0}!': 'Rival wall of {0}!',
   '¡Bienvenido!': 'Welcome!',
   '¡Bloqueo!': 'Block!',
   '¡Bloquéalo! Pulsa Técnica': 'Block it! Press Technique',
@@ -3093,6 +3161,7 @@ const EN_TEXT = {
   '¡Has vencido a {0}!': 'You beat {0}!',
   '¡Has vencido al Alpino!': 'You beat Alpine!',
   '¡Has vencido al Ocultismo!': 'You beat Occult!',
+  '¡Hito!': 'Milestone!',
   '¡Hola, ': 'Hi, ',
   '¡La técnica supera al portero!': 'The technique beats the goalkeeper!',
   '¡Le ganas a {0}! La rivalidad sube de nivel.': 'You beat {0}! The rivalry goes up a level.',
@@ -3119,6 +3188,7 @@ const EN_TEXT = {
   '¡Partida traída!': 'Save brought over!',
   '¡Partida traída! Cargando…': 'Save brought over! Loading…',
   '¡Partida traída! Crea una cuenta en 👤 Cuenta para tenerla siempre a salvo': 'Save brought over! Create an account in 👤 Account to keep it safe forever',
+  '¡Pase completado!': 'Pass complete!',
   '¡Pasáis a semifinales!': 'Through to the semi-finals!',
   '¡Penalti!': 'Penalty!',
   '¡Premio del día {0}!': 'Day {0} prize!',
@@ -3144,6 +3214,7 @@ const EN_TEXT = {
   '¡Te retan!': 'You\'ve been challenged!',
   '¡Terminas 3º y te graduas!': 'You finish 3rd year and graduate!',
   '¡Tienes a {0} delante!': '{0} is right in front of you!',
+  '¡Tu barrera de {0} se coloca!': 'Your wall of {0} lines up!',
   '¡Tu portero se la queda!': 'Your keeper grabs it!',
   '¡TÉCNICA NUEVA!': 'NEW TECHNIQUE!',
   '¡Vamos allá!': 'Let\'s go!',
@@ -3153,11 +3224,14 @@ const EN_TEXT = {
   '¡pasáis!': 'you\'re through!',
   '¡premio del jefe!': 'boss prize!',
   '¡tu club!': 'your club!',
+  '¡{0} lo bloquea!': '{0} blocks it!',
+  '¡{0} lo detiene!': '{0} stops it!',
   '¡{0} logros conseguidos!': '{0} achievements unlocked!',
   '¡{0} para el tiro!': '{0} stops the shot!',
   '¡{0} por recoger!': '{0} to collect!',
   '¡{0} premio por recoger!': '{0} reward to collect!',
   '¡{0} premios por recoger!': '{0} rewards to collect!',
+  '¡{0} se impone!': '{0} wins out!',
   '¡{0} te sale al paso!': '{0} comes at you!',
   '¡{0} ya es tuyo!': '{0} is yours now!',
   '¡Último día!': 'Last day!',
@@ -3307,6 +3381,7 @@ const EN_TEXT = {
   '🍃 Legendarios del Sobre Selva': '🍃 Jungle Pack legendaries',
   '🎁 Código de regalo': '🎁 Gift code',
   '🎁 Recoger el premio del día {0}': '🎁 Claim the day {0} prize',
+  '🎁 Recoger niveles': '🎁 Collect levels',
   '🎁 Recoger todo': '🎁 Collect all',
   '🎁 Regalo diario:': '🎁 Daily gift:',
   '🎁 Ver el premio': '🎁 See the prize',
@@ -3319,6 +3394,7 @@ const EN_TEXT = {
   '🎄 Evento forzado: NO': '🎄 Event forced: NO',
   '🎄 Evento forzado: SÍ': '🎄 Event forced: YES',
   '🎓 Se gradúan ({0}):': '🎓 Graduating ({0}):',
+  '🎟️ Pase de temporada {0} · gratis': '🎟️ Season {0} pass · free',
   '🎟️ Sobres': '🎟️ Packs',
   '🎟️ para el gacha': '🎟️ for the gacha',
   '🎨 Muñecos del Inazuma 3 arreglados: todos llevan su muñeco de verdad, sacado del juego original (peinado, colores y tono de piel), y ahora cambian a los colores de su equipo.': '🎨 Inazuma Eleven 3 sprites fixed: every player now has their real sprite from the original game (hairstyle, colours and skin tone), and they now change to their team\'s colours.',
@@ -3330,6 +3406,8 @@ const EN_TEXT = {
   '🎮 Menús de decisión, como en el Inazuma Eleven de la DS: cuando un rival te sale al paso se para el tiempo y eliges entre regatear, usar una técnica o pasar a un compañero, viendo la probabilidad de que salga bien.': '🎮 Decision menus, like in Inazuma Eleven on the DS: when a rival comes at you, time stops and you choose between dribbling, using a technique or passing to a teammate, with the odds of success shown.',
   '🎮 También puedes jugar con mando': '🎮 You can also play with a controller',
   '🎮 ¿Tienes mando? Conéctalo y juega: Xbox, PlayStation o genérico.': '🎮 Got a controller? Plug it in and play: Xbox, PlayStation or generic.',
+  '🎯 Misiones de la semana': '🎯 Weekly missions',
+  '🎯 Misiones y Pase': '🎯 Missions & Pass',
   '🎵 Música': '🎵 Music',
   '🏅 Logros': '🏅 Achievements',
   '🏅 Logros con premios.': '🏅 Achievements with rewards.',
@@ -3980,6 +4058,33 @@ const Logic = (() => {
   const onside = (s, p, y) => { const lim = offLine(s, p.team) - 0.6; return depthOf(p.team, y) > lim ? toAbs(p.team, 0, lim).y : y; };
 
   const BASE = { POR: [0, 1.2], DEF: [-4, 11], MED: [6, 19], DEL: [-2, 27] };
+
+  /* ---------- Porteros con personalidad ----------
+     sale: se lanza a por el que llega con el balón y adelanta posiciones (la vaselina le funciona mucho).
+     linea: se queda en su línea (la vaselina casi nunca entra, pero es más fácil regatearlo por los lados).
+     mixto: lo de siempre. Cada portero tiene siempre la misma (sale de su clave), o `gkStyle` en los datos si algún día se quiere forzar. */
+  const GK_STYLES = {
+    sale:  { out: 3,   chase: 7,   chaseMate: 3.2, lob: -0.12 },
+    linea: { out: 0.1, chase: 3,   chaseMate: 1.6, lob: 0.06 },
+    mixto: { out: 1,   chase: 5,   chaseMate: 2.2, lob: 0 },
+  };
+  const GK_STYLE_TX = { sale: () => TX('sale a por todas'), linea: () => TX('se queda en la línea'), mixto: () => TX('equilibrado') };
+  function gkStyleOf(p) {
+    if (p.gkStyle && GK_STYLES[p.gkStyle]) return p.gkStyle;
+    let h = 7; const k = String(p.key != null ? p.key : (p.name || p.id));
+    for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0;
+    const r = h % 10; return r < 4 ? 'sale' : r < 7 ? 'linea' : 'mixto';
+  }
+  // Contadores del partido por equipo (para las misiones semanales y el pase de temporada)
+  const MS = (s, team, k, n = 1) => { const m = s.mstat || (s.mstat = { A: {}, B: {} }); m[team][k] = (m[team][k] || 0) + n; };
+  // Técnica contra técnica: pantallita de enfrentamiento (quién ataca, quién defiende, fuerzas y quién gana)
+  function clash(s, kind, atk, atkTech, atkPow, def, defTech, defPow, defWins) {
+    const side = (pl, t, pow) => ({ id: pl.id, team: pl.team, name: pl.name, tech: t.name, elem: t.elem, pow: Math.round(pow) });
+    const A = side(atk, atkTech, atkPow), D = side(def, defTech, defPow);
+    const win = defWins ? D : A;
+    MS(s, win.team, 'clashW');
+    s.events.push({ type: 'clash', kind, atk: A, def: D, win: defWins ? 'def' : 'atk', winTeam: win.team });
+  }
   const KO = { POR: [0, 1.2], DEF: [-5, 9], MED: [6, 15] };
 
   /* ---------- Creación ---------- */
@@ -4001,6 +4106,7 @@ const Logic = (() => {
           dash: null, think: 0, holdT: 0, react: 0, diving: false, gkTech: null, invuln: 0 }));
       });
     }
+    for (const p of s.players) if (p.role === 'POR') p.gkStyle = gkStyleOf(p);
     // Recarga: unas 3 veces por partido; las técnicas fuertes tardan más
     const span = settings.minutes * 60 * GAME_SPEED / 3;
     for (const p of s.players) {
@@ -4008,6 +4114,9 @@ const Logic = (() => {
       for (const t of p.techs) p.cd[t.id] = t.cd * 0.5;   // al empezar, a mitad de recarga
     }
     kickoff(s, 'A');
+    // Aviso del portero rival: así sabes si te conviene la vaselina
+    const rg = s.players.find(p => p.team === 'B' && p.role === 'POR');
+    if (rg && !settings.mini && !settings.allAI) s.events.push({ type: 'msg', text: TX('Portero rival: {0} ({1})', rg.name, GK_STYLE_TX[rg.gkStyle]()) });
     return s;
   }
 
@@ -4017,7 +4126,7 @@ const Logic = (() => {
     return s.players.filter(p => p.team === team).sort((a, b) => order[a.role] - order[b.role] || b.ko[1] - a.ko[1])[0];
   }
   function kickoff(s, team) {
-    s.hold = null;
+    s.hold = null; s.fk = null;
     const tk = striker(s, team);
     for (const p of s.players) {
       const o = p === tk ? [0, F.l / 2 - 0.6] : [p.ko[0], Math.min(p.ko[1], F.l / 2 - (p.team === team ? 1.5 : 6))];
@@ -4156,7 +4265,8 @@ const Logic = (() => {
     kick(s, p, dx / d * v0, dy / d * v0, vz);
     ST(s, p).sh++;
     const ast = s.lastRecv && s.lastRecv.recv === p.id && s.t - s.lastRecv.t < 12 ? s.lastRecv.passer : null;
-    s.ball.shot = { team: p.team, by: p.id, ast, power: shotStrength(p, 0.6, null), tech: null, charged: false, lob: true, resolved: false, dist: d };
+    const kg = keeperOf(s, p);   // cuánto había salido el portero cuando chutas: en el vuelo del balón no le da tiempo a volver del todo
+    s.ball.shot = { team: p.team, by: p.id, ast, power: shotStrength(p, 0.6, null), tech: null, charged: false, lob: true, resolved: false, dist: d, gkDep: kg ? Math.abs(kg.y - goalY) : 0 };
     s.events.push({ type: 'shot', team: p.team });
   }
   // Probabilidad de que el portero pare un tiro (la usan resolveSave y los menús, para que lo que ves sea lo que pasa)
@@ -4169,8 +4279,9 @@ const Logic = (() => {
     return { edge, chance: clamp(1 / (1 + Math.exp(edge / 14)), 0.04, 0.96) };
   }
   function lobSave(g, shot) {
-    const dep = Math.abs(g.y - oppGoalY(shot.team));   // cuánto ha salido el portero de su línea
-    return clamp(0.95 - (dep - 1) * 0.3 - (shot.power - g.gk) / 220, 0.06, 0.95);
+    const dep = Math.max(Math.abs(g.y - oppGoalY(shot.team)), (shot.gkDep || 0) * 0.85);   // cuánto ha salido el portero de su línea (al chutar o ahora)
+    const st = GK_STYLES[g.gkStyle || 'mixto'];
+    return clamp(0.95 - (dep - 1) * 0.3 - (shot.power - g.gk) / 220 + st.lob, 0.06, 0.95);
   }
 
   /* ---------- Menús de decisión (settings.decide) ----------
@@ -4180,6 +4291,7 @@ const Logic = (() => {
      s.menu = { kind, pid, title, opts: [{ act, label, sub, pct, off, tech, mate, face }], aimX, aimable } */
   const MENU_DIST = 24;   // a partir de aquí hay portería «cerca»: salen las opciones de chute
   const keeperOf = (s, p) => s.players.find(q => q.role === 'POR' && q.team !== p.team);
+  const lobHint = g => !g ? TX('Por encima del portero') : g.gkStyle === 'sale' ? TX('Sale mucho: ¡ideal!') : g.gkStyle === 'linea' ? TX('Se queda en la línea: difícil') : TX('Por encima del portero');
   function passOdds(s, p, m) {
     const blockers = laneBlock(s, p, m.x, m.y, 1.0, true);
     let near = 99; for (const o of s.players) if (o.team !== p.team && o.stun <= 0) near = Math.min(near, dist(o, m));
@@ -4236,7 +4348,7 @@ const Logic = (() => {
       title = TX('¿Cómo chutas?'); aimable = true;
       opts.push({ act: 'normal', label: TX('Chutar'), sub: TX('Tiro normal'), pct: pctOf(shotOdds(s, p, 'normal')) });
       opts.push({ act: 'poder', label: TX('Chute con poder'), sub: TX('Más fuerte, menos puntería'), pct: pctOf(shotOdds(s, p, 'poder')) });
-      opts.push({ act: 'vaselina', label: TX('Vaselina'), sub: TX('Por encima del portero'), pct: pctOf(shotOdds(s, p, 'vaselina')) });
+      opts.push({ act: 'vaselina', label: TX('Vaselina'), sub: lobHint(keeperOf(s, p)), pct: pctOf(shotOdds(s, p, 'vaselina')) });
       for (const t of p.techs) if (t.type === 'tiro') opts.push(techOpt(s, p, t, pctOf(shotOdds(s, p, 'tecnica', t))));
     } else if (kind === 'pase') {
       title = ex.title || TX('¿A quién se la pasas?');
@@ -4386,6 +4498,7 @@ const Logic = (() => {
     const dur = tech.type === 'tiro' ? 0.55 : tech.type === 'regate' ? 0.3 : 0.25;
     s.tech = { p, tech, t: 0, dur, aimX, target: tech.type === 'bloqueo' ? holder : null, combo: comboOf(s, p, tech) };
     p.invuln = dur + 0.4;
+    MS(s, p.team, 'tech');
     s.events.push({ type: 'techStart', name: tech.name, elem: tech.elem, kind: tech.type, team: p.team, id: p.id, combo: s.tech.combo });
     if (s.tech.combo) s.events.push({ type: 'msg', text: TX('¡Combinación perfecta! Potencia +5 %') });
     return true;
@@ -5003,7 +5116,8 @@ const Logic = (() => {
     if (carrier && inOwnBox(p.team, carrier)) {
       const mate = s.players.some(q => q.team === carrier.team && q !== carrier && q.role !== 'POR' && depthOf(p.team, q.y) < 12 &&
         dist(q, carrier) < 12 && laneBlock(s, carrier, q.x, q.y, 0.9, true) === 0);
-      if (dist(p, carrier) < (mate ? 2.2 : 5)) { moveTo(s, p, carrier.x, carrier.y, true); return; }
+      const gs = GK_STYLES[p.gkStyle || 'mixto'];
+      if (dist(p, carrier) < (mate ? gs.chaseMate : gs.chase)) { moveTo(s, p, carrier.x, carrier.y, true); return; }
     }
     // Pase del rival cerca del área: vuelve a toda prisa a tapar la portería mirando a donde va el balón
     const sp = Math.hypot(b.vx, b.vy);
@@ -5014,7 +5128,8 @@ const Logic = (() => {
       return;
     }
     // Cubre el ángulo: se pone entre el balón y el centro de la portería y sale un poco si el balón se acerca
-    const bd = depthOf(p.team, b.y), out = clamp((14 - bd) * 0.12, 0, 1.4);
+    const gso = GK_STYLES[p.gkStyle || 'mixto'].out;
+    const bd = depthOf(p.team, b.y), out = clamp((14 - bd) * 0.12 * gso, 0, 1.4 * gso);
     moveTo(s, p, cx + clamp((b.x - cx) * 0.42, -half + 0.3, half - 0.3), homeY + attackDir(p.team) * out, false);
   }
 
@@ -5024,14 +5139,18 @@ const Logic = (() => {
     shot.resolved = true;
     const gt = g.gkTech && g.gkTech !== 'none' ? g.gkTech : null;
     if (shot.lob) {   // vaselina: solo la caza si se ha quedado en su línea
-      if (rnd() < lobSave(g, shot)) { take(s, g); s.events.push({ type: 'catch', team: g.team, tech: false }); }
+      if (rnd() < lobSave(g, shot)) { take(s, g); MS(s, g.team, 'saves'); s.events.push({ type: 'catch', team: g.team, tech: false }); }
       else g.stun = 0.9;
       return;
     }
     let { chance, edge } = saveChance(g, shot);
     if (shot.gkMode === 'atajo') chance *= 0.88;
     else if (shot.gkMode === 'despeje') chance = Math.min(0.96, chance + 0.07);
-    if (rnd() < chance) {
+    const saved = rnd() < chance;
+    const shooter = shot.by != null && s.players.find(q => q.id === shot.by);
+    if (shot.tech && gt && shooter) clash(s, 'parada', shooter, shot.tech, shot.power, g, gt, g.gk + techEff(gt, g.bonus.parada), saved);
+    if (saved) {
+      MS(s, g.team, 'saves');
       if (shot.gkMode === 'atajo' || (shot.gkMode !== 'despeje' && edge < -14 && !shot.tech)) { take(s, g); s.events.push({ type: 'catch', team: g.team, tech: !!gt }); return; }
       // Despeje a un lado, lejos del punto de penalti (antes el rechace caía flojo delante y el delantero lo cazaba siempre)
       const side = Math.abs(b.x - cx) > 0.4 ? Math.sign(b.x - cx) : (rnd() < 0.5 ? -1 : 1);
@@ -5124,7 +5243,7 @@ const Logic = (() => {
 
   // Penalti: el que lo tira con el balón en el punto, el portero en su línea y todos los demás fuera del área, quietos hasta el disparo
   function startPenalty(s, team, chosenId) {
-    s.hold = null;
+    s.hold = null; s.fk = null;
     const opp = team === 'A' ? 'B' : 'A';
     const field = s.players.filter(q => q.team === team && q.role !== 'POR');
     const taker = (team === 'A' && chosenId && field.find(q => q.id === chosenId)) || field.slice().sort((a, q) => q.kick - a.kick)[0];
@@ -5171,7 +5290,97 @@ const Logic = (() => {
     if (!pass(s, p, 'strong', null)) shoot(s, p, 0.6, aimX);
   }
 
+
+  /* ---------- Balones parados bien colocados (faltas y córners) ----------
+     Falta cerca de la portería: barrera de 2-3 rivales a 6 m en la línea del balón a la portería, el portero tapando el palo contrario,
+     los demás marcando a tus atacantes del área; los tuyos: uno cerca del balón (pase corto) y el resto en el borde del área para el rechace.
+     Falta lejos: cada uno en su sitio de la formación (adelantados los que atacan, replegados los que defienden).
+     Córner: los atacantes en el área y cada defensa marcando a uno, con uno en el primer palo.
+     Todos quietos hasta que se saca (s.fk); el jugador que llevas tú sí se puede mover. */
+  function layoutSetPiece(s, T, spot, cand, kind) {
+    const D = T === 'A' ? 'B' : 'A', dirT = attackDir(T), gy = oppGoalY(T);
+    const att = s.players.filter(q => q.team === T && q.role !== 'POR' && q !== cand);
+    const defs = s.players.filter(q => q.team === D && q.role !== 'POR');
+    const gk = s.players.find(q => q.team === D && q.role === 'POR');
+    const hold = {}, MX = 1.5;
+    const put = (q, x, y, tx, ty) => {
+      q.x = clamp(x, MX, F.w - MX); q.y = clamp(y, MX, F.l - MX);
+      q.vx = q.vy = q.dvx = q.dvy = 0; q.stun = 0; q.recover = 0; q.tackle = null; q.dash = null; q.windup = null; q.tkWind = 0;
+      q.aim = Math.atan2(ty - q.y, tx - q.x); q.facing = snap8(q.aim); hold[q.id] = true;
+    };
+    const gd = Math.hypot(cx - spot.x, gy - spot.y);
+    const wall = [];
+    if (kind === 'falta' && gd <= 27 && defs.length) {
+      // Barrera
+      const n = Math.max(1, Math.min(gd < 16 ? 3 : 2, defs.length - (defs.length > 2 ? 1 : 0)));
+      const ux = (cx - spot.x) / (gd || 1), uy = (gy - spot.y) / (gd || 1), wd = Math.min(6, Math.max(3.2, gd - 2.5));
+      const wx = spot.x + ux * wd, wy = spot.y + uy * wd, px = -uy, py = ux;
+      const byD = defs.slice().sort((a, q) => Math.hypot(a.x - wx, a.y - wy) - Math.hypot(q.x - wx, q.y - wy));
+      byD.slice(0, n).forEach((q, i) => { const o = (i - (n - 1) / 2) * 1.15; put(q, wx + px * o, wy + py * o, spot.x, spot.y); wall.push(q.id); });
+      // Portero: tapa el palo contrario a la barrera
+      if (gk) { const side = Math.abs(spot.x - cx) > 0.5 ? -Math.sign(spot.x - cx) : 0; put(gk, cx + side * Math.min(0.9, F.goalW / 2 - 0.9), ownGoalY(D) + attackDir(D) * 1.2, spot.x, spot.y); }
+      // Atacantes: uno cerca del balón (pase corto) y el resto en el borde del área, abiertos
+      const sp = att.slice().sort((a, q) => Math.hypot(a.x - spot.x, a.y - spot.y) - Math.hypot(q.x - spot.x, q.y - spot.y));
+      const lat = spot.x > cx ? -1 : 1, edgeY = gy - dirT * (F.boxD + 1.6);
+      sp.forEach((q, i) => {
+        if (i === 0) { const ox = spot.x + lat * 3.2, oy = spot.y - dirT * 1.0; put(q, ox, oy, cx, gy); return; }
+        const k = i - 1, m = sp.length - 1, x = cx + (k - (m - 1) / 2) * 4.6 - lat * 0.8;
+        put(q, x, edgeY + (k % 2 ? dirT * -1.2 : 0), cx, gy);
+      });
+      // Los demás rivales: marcan a los atacantes, un paso por detrás hacia su portería
+      const rest = defs.filter(q => !wall.includes(q.id)), free = sp.slice();
+      rest.forEach(q => {
+        let bi = -1, bd = 1e9; free.forEach((a, i) => { const d = Math.hypot(a.x - q.x, a.y - q.y); if (d < bd) { bd = d; bi = i; } });
+        const a = bi >= 0 ? free.splice(bi, 1)[0] : null;
+        if (a) put(q, a.x + (cx - a.x) * 0.12, a.y + dirT * 1.3, spot.x, spot.y);
+        else put(q, cx + (spot.x > cx ? 1 : -1) * 3, gy - dirT * (F.boxD * 0.5), spot.x, spot.y);
+      });
+    } else if (kind === 'corner' && defs.length) {
+      const near = spot.x > cx ? 1 : -1;
+      const slots = [[near * -1.5, 4.2], [near * 2.8, 5.6], [near * -4.2, 6.2], [near * 0.5, 3.2]];
+      att.forEach((q, i) => { const sl = slots[i % slots.length]; put(q, cx + sl[0], gy - dirT * sl[1], cx, gy); });
+      const free = att.slice();
+      defs.forEach((q, i) => {
+        let bi = -1, bd = 1e9; free.forEach((a, j) => { const d = Math.hypot(a.x - q.x, a.y - q.y); if (d < bd) { bd = d; bi = j; } });
+        const a = bi >= 0 ? free.splice(bi, 1)[0] : null;
+        if (a) put(q, a.x + (cx - a.x) * 0.25, a.y + dirT * 1.0, a.x, a.y);
+        else put(q, cx + near * (F.goalW / 2 + 0.4), gy - dirT * 1.1, spot.x, spot.y);   // primer palo
+      });
+    } else {
+      // Falta lejos de la portería: cada uno a su puesto de la formación, sin pisar el balón
+      const shiftT = clamp(depthOf(T, spot.y) - 19, -4, 8), shiftD = clamp(depthOf(D, spot.y) - 22, -6, 6) * 0.6;
+      att.forEach(q => { const a = toAbs(T, q.home[0], clamp(q.home[1] + shiftT, 4, F.l - 5)); put(q, a.x, a.y, cx, gy); });
+      defs.forEach(q => { const a = toAbs(D, q.home[0], clamp(q.home[1] + shiftD, 4, F.l - 6)); put(q, a.x, a.y, spot.x, spot.y); });
+    }
+    // Nadie a menos de 6 m del balón si no es de los que sacan (y separados entre sí)
+    const room = kind === 'corner' || kind === 'falta' ? 6 : 4;
+    for (const q of s.players) {
+      if (q === cand || q.role === 'POR' && q.team === T) continue;
+      if (q.team === D && !wall.includes(q.id) || q.team === T && q.role !== 'POR') {
+        const d = Math.hypot(q.x - spot.x, q.y - spot.y);
+        const r = q.team === T ? 3 : room;
+        if (d < r) { const ux = (q.x - spot.x) / (d || 1), uy = (q.y - spot.y) / (d || 1) || 1; q.x = clamp(spot.x + ux * r, MX, F.w - MX); q.y = clamp(spot.y + (d ? uy : dirT) * r, MX, F.l - MX); }
+      }
+    }
+    const all = s.players.filter(q => q !== cand);
+    for (let it = 0; it < 3; it++) for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
+      const a = all[i], b = all[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+      if (d < 1.0 && !(wall.includes(a.id) && wall.includes(b.id))) { const k = (1.0 - d) / 2 / (d || 1), ox = d ? dx * k : 0.5, oy = d ? dy * k : 0;
+        if (hold[a.id]) { a.x = clamp(a.x - ox, MX, F.w - MX); a.y = clamp(a.y - oy, MX, F.l - MX); } if (hold[b.id]) { b.x = clamp(b.x + ox, MX, F.w - MX); b.y = clamp(b.y + oy, MX, F.l - MX); } }
+    }
+    s.fk = { team: T, taker: cand.id, kind, spot: { x: spot.x, y: spot.y }, t: 0, hold, wall };
+    s.events.push({ type: 'setpiece', kind, team: T, wall: wall.length });
+  }
+  // Se suelta a todos cuando el balón sale del que saca (o se aleja del punto, o pasa mucho rato)
+  function setPieceStep(s, dt) {
+    const f = s.fk; if (!f) return;
+    const tk = s.players.find(q => q.id === f.taker);
+    f.t += dt / GAME_SPEED;
+    if (!tk || s.ball.owner !== tk || s.ball.shot || f.t > 12 || Math.hypot(tk.x - f.spot.x, tk.y - f.spot.y) > 3) s.fk = null;
+  }
+
   function restart(s, team, x, y, kind, chosenId) {
+    s.fk = null;
     const spot = { x, y };
     const chosen = chosenId && team === 'A' && kind !== 'puerta' ? s.players.find(p => p.id === chosenId && p.team === 'A' && p.role !== 'POR') : null;
     let cand = chosen || (kind === 'puerta' ? s.players.find(p => p.team === team && p.role === 'POR')
@@ -5184,7 +5393,8 @@ const Logic = (() => {
     cand.aim = kind === 'corner' ? Math.atan2(oppGoalY(team) + attackDir(team) * -6 - y, cx - x) : Math.atan2(F.l / 2 - y, cx - x);
     cand.facing = snap8(cand.aim);
     const room = kind === 'corner' || kind === 'falta' ? 6 : 4;
-    for (const o of s.players) {
+    if ((kind === 'falta' || kind === 'corner') && !s.settings.mini && s.players.filter(q => q.role !== 'POR').length >= 4) layoutSetPiece(s, team, spot, cand, kind);
+    else for (const o of s.players) {
       if (o.team === team || o === cand) continue;
       const d = dist(o, spot);
       if (d < room) { const ux = (o.x - x) / (d || 1), uy = (o.y - y) / (d || 1); o.x = clamp(x + ux * room, 0.5, F.w - 0.5); o.y = clamp(y + uy * room, 0.5, F.l - 0.5); }
@@ -5205,6 +5415,7 @@ const Logic = (() => {
     const scorer = s.ball.shot && s.players.find(q => q.id === s.ball.shot.by && q.team === team);
     if (scorer) { ST(s, scorer).gl++; const a = s.players.find(q => q.id === s.ball.shot.ast && q.team === team && q !== scorer); if (a) ST(s, a).as++; }
     (s.goalLog = s.goalLog || []).push({ team, key: scorer ? scorer.key : null });
+    MS(s, team, 'goals'); if (s.ball.shot && s.ball.shot.lob) MS(s, team, 'lobGoals'); if (s.ball.shot && s.ball.shot.tech) MS(s, team, 'techGoals');
     s.events.push({ type: 'goal', team, x: s.ball.x, y: s.ball.y, tech: s.ball.shot && s.ball.shot.tech ? s.ball.shot.tech.elem : null });
     if (s.ball.shot && s.ball.shot.tech) s.hitstop = 0.3;
     // Golden goal, reto 1v1 (gana quien llega a goalLimit) o «paliza»: con settings.mercy (roguelite = 5) el partido acaba al llegar a esa diferencia de goles
@@ -5348,8 +5559,11 @@ const Logic = (() => {
     const edge = shotStr - blockStr, stop = clamp(1 / (1 + Math.exp(edge / 9)), 0.06, 0.95);
     s.events.push({ type: 'blockOk', name: t.name, elem: t.elem, x: p.x, y: p.y, team: p.team });
     s.hitstop = 0.18;
-    if (rnd() < stop) {
-      take(s, p); p.kickLock = 0; p.invuln = 0.6;
+    const stopped = rnd() < stop;
+    const shooter = sh.by != null && s.players.find(q => q.id === sh.by);
+    if (sh.tech && shooter) clash(s, 'bloqueo', shooter, sh.tech, shotStr, p, t, blockStr, stopped);
+    if (stopped) {
+      take(s, p); p.kickLock = 0; p.invuln = 0.6; MS(s, p.team, 'blocks');
       ST(s, p).blk = (ST(s, p).blk || 0) + 1;
       s.events.push({ type: 'msg', text: TX('¡{0} para el tiro!', p.name) });
     } else {
@@ -5421,6 +5635,7 @@ const Logic = (() => {
     s.t += dt;
     s.time -= dt / GAME_SPEED;
     const pen = s.penalty && !s.penalty.fired ? s.penalty : null;
+    setPieceStep(s, dt);
     if (s.time <= 0 && pen) { s.time = 0.2; pen.held = true; }   // un penalti pendiente se tira aunque se acabe el tiempo
     if (s.time <= 0) {
       s.time = 0;
@@ -5447,6 +5662,7 @@ const Logic = (() => {
         continue;
       }
       if (pen && p.id !== pen.taker && p.role !== 'POR') { p.dvx = p.dvy = 0; continue; }
+      if (s.fk && s.fk.hold[p.id] && p.id !== s.controlledId && p.id !== s.fk.taker) { p.dvx = p.dvy = 0; p.vx = p.vy = 0; continue; }   // balón parado: quietos en su sitio hasta que se saca
       if (pen && p.id === pen.taker && pen.auto) { p.dvx = p.dvy = 0; continue; }
       if (s.settings.allAI || p.id !== s.controlledId) ai(s, p, dt);
     }
@@ -8332,6 +8548,175 @@ const Ach = (() => {
 })();
 
 /* =====================================================================
+   MISIONES SEMANALES + PASE DE TEMPORADA (gratis)
+   - Cada lunes salen 5 misiones nuevas (2 fáciles, 2 medias, 1 difícil). Se
+     eligen con la fecha, así que son las mismas en todos los dispositivos.
+     Al completarlas se recogen; las 5 juntas dan un cofre extra.
+   - El pase es gratis: se sube de nivel jugando (XP por partido, por victoria,
+     por goles y por misiones). 30 niveles de 100 XP; las temporadas duran 6 semanas.
+   - Lo que no recojas al acabar la semana / la temporada se recoge solo.
+   - Se guarda en Profile.data.pase (y por tanto también en la nube).
+   ===================================================================== */
+const PASE_LV = 30, PASE_XP = 100;
+const PASE_EPOCH = new Date(2026, 9, 26).getTime();   // lunes 26 oct 2026: empieza la temporada 1
+const PASE_DAYS = 42, DAY_MS = 86400000;
+const MISSION_BONUS = { tickets: 10, epica: 1, xp: 150 };
+const MISSION_TIERS = {
+  1: { name: TX('Fácil'), icon: '🟢', reward: { coins: 150, xp: 40 } },
+  2: { name: TX('Media'), icon: '🟡', reward: { tickets: 3, coins: 250, xp: 60 } },
+  3: { name: TX('Difícil'), icon: '🔴', reward: { tickets: 6, coins: 400, rayos: 1, xp: 90 } },
+};
+// Premios del pase, nivel a nivel (los hitos son el 10, el 20 y el 30)
+const PASE_REWARDS = [
+  { coins: 200 }, { tickets: 2 }, { coins: 300 }, { tickets: 3 }, { rayos: 1 },
+  { coins: 400 }, { tickets: 3 }, { coins: 500 }, { tickets: 4 }, { epica: 1, tickets: 5 },
+  { coins: 500 }, { tickets: 4 }, { coins: 600 }, { tickets: 5 }, { rayos: 1, tickets: 3 },
+  { coins: 700 }, { tickets: 5 }, { coins: 800 }, { tickets: 6 }, { epica: 2 },
+  { coins: 900 }, { tickets: 6 }, { coins: 1000 }, { tickets: 8 }, { rayos: 2 },
+  { coins: 1000 }, { tickets: 8 }, { coins: 1200 }, { tickets: 10 }, { epica: 3, tickets: 20, rayos: 2 },
+];
+
+const Pase = (() => {
+  const P = () => Profile.data;
+  // ---------- Fechas ----------
+  const midnight = (t = Date.now()) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d; };
+  const ymd = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  function weekInfo(t = Date.now()) {
+    const d = midnight(t), mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
+    const end = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 7);
+    return { key: ymd(mon), end: end.getTime() };
+  }
+  function seasonInfo(t = Date.now()) {
+    const n = Math.max(0, Math.floor((midnight(t).getTime() - PASE_EPOCH) / (PASE_DAYS * DAY_MS)));
+    const s = new Date(PASE_EPOCH); const start = new Date(s.getFullYear(), s.getMonth(), s.getDate() + n * PASE_DAYS);
+    const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + PASE_DAYS);
+    return { n: n + 1, key: 's' + (n + 1), end: end.getTime() };
+  }
+  const daysLeft = end => Math.max(0, Math.ceil((end - Date.now()) / DAY_MS));
+
+  // ---------- Misiones ----------
+  // [id, nivel, icono, texto, objetivo, estadística del partido]
+  const POOL = [
+    ['win3', 1, '🏆', TX('Gana {0} partidos'), 3, 'win'], ['play5', 1, '⚽', TX('Juega {0} partidos'), 5, 'played'],
+    ['goals10', 1, '🥅', TX('Marca {0} goles'), 10, 'goals'], ['tech5', 1, '⚡', TX('Usa {0} técnicas'), 5, 'techs'],
+    ['tackle8', 1, '🦵', TX('Roba {0} balones con entradas'), 8, 'tackles'], ['pass20', 1, '🎯', TX('Completa {0} pases'), 20, 'passes'],
+    ['win6', 2, '🏆', TX('Gana {0} partidos'), 6, 'win'], ['goals20', 2, '🥅', TX('Marca {0} goles'), 20, 'goals'],
+    ['techgoal3', 2, '💥', TX('Marca {0} goles con técnicas'), 3, 'techGoals'], ['save10', 2, '🧤', TX('Para {0} tiros con tu portero'), 10, 'saves'],
+    ['block3', 2, '🛡️', TX('Bloquea {0} tiros con tus defensas'), 3, 'blocks'], ['assist5', 2, '🤝', TX('Da {0} asistencias'), 5, 'assists'],
+    ['clash3', 2, '⚔️', TX('Gana {0} choques de técnica contra técnica'), 3, 'clashW'], ['dribble6', 2, '🌀', TX('Regatea a {0} rivales'), 6, 'dribbles'],
+    ['clean2', 3, '🔒', TX('Gana {0} partidos sin encajar gol'), 2, 'clean'], ['lob2', 3, '🪂', TX('Marca {0} goles de vaselina'), 2, 'lobGoals'],
+    ['win10', 3, '🏆', TX('Gana {0} partidos'), 10, 'win'], ['clash6', 3, '⚔️', TX('Gana {0} choques de técnica contra técnica'), 6, 'clashW'],
+  ].map(([id, tier, icon, txt, goal, stat]) => ({ id, tier, icon, txt, goal, stat, name: txt.replace('{0}', goal) }));
+  const mulberry = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  function pick(weekKey) {
+    let h = 2166136261; for (const c of weekKey) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+    const r = mulberry(h), out = [], stats = new Set();
+    for (const tier of [1, 1, 2, 2, 3]) {
+      const c = POOL.filter(m => m.tier === tier && !out.includes(m) && !stats.has(m.stat));
+      const m = c[Math.floor(r() * c.length)] || POOL.find(x => x.tier === tier && !out.includes(x));
+      out.push(m); stats.add(m.stat);
+    }
+    return out;
+  }
+  const missions = () => pick(weekInfo().key);
+
+  // ---------- Datos guardados ----------
+  const fresh = () => ({ season: null, xp: 0, got: {}, week: null, prog: {}, claimed: {}, bonus: false, news: [] });
+  const rewardTx = R => [R.tickets && '+' + R.tickets + ' 🎟️', R.coins && '+' + R.coins + ' 🪙', R.rayos && '+' + R.rayos + ' ⚡',
+    R.epica && TXn(R.epica, '{0} tirada épica', '{0} tiradas épicas'), R.xp && '+' + R.xp + ' XP'].filter(Boolean).join(' · ');
+  function give(R, p) {
+    p.tickets += R.tickets || 0; p.coins += R.coins || 0; p.rayos += R.rayos || 0;
+    if (R.epica) p.giftEpic = (p.giftEpic || 0) + R.epica;
+  }
+  const level = xp => Math.min(PASE_LV, Math.floor(xp / PASE_XP));
+  // Cambio de semana / temporada: lo que quedó sin recoger se recoge solo
+  function data() {
+    const prof = P(); if (!prof) return fresh();
+    const d = prof.pase = Object.assign(fresh(), prof.pase || {});
+    const W = weekInfo(), S = seasonInfo(); let changed = false;
+    if (d.week !== W.key) {
+      if (d.week) {   // semana anterior: recoger lo hecho
+        const old = pick(d.week), got = { coins: 0, tickets: 0, rayos: 0, epica: 0 }; let n = 0, xp = 0, all = true;
+        for (const m of old) { if ((d.prog[m.id] || 0) >= m.goal) { if (!d.claimed[m.id]) { const R = MISSION_TIERS[m.tier].reward; give(R, prof); xp += R.xp; n++; for (const k in got) got[k] += R[k] || 0; } } else all = false; }
+        if (all && !d.bonus) { give(MISSION_BONUS, prof); xp += MISSION_BONUS.xp; n++; for (const k in got) got[k] += MISSION_BONUS[k] || 0; }
+        if (n) { if (d.season === S.key) d.xp += xp; d.news.push(TX('Misiones de la semana pasada recogidas:') + ' ' + rewardTx(Object.assign(got, { xp }))); }
+      }
+      d.week = W.key; d.prog = {}; d.claimed = {}; d.bonus = false; changed = true;
+    }
+    if (d.season !== S.key) {
+      if (d.season) {   // temporada anterior: los niveles alcanzados se recogen solos
+        const got = { coins: 0, tickets: 0, rayos: 0, epica: 0 }; let n = 0;
+        for (let lv = 1; lv <= level(d.xp); lv++) if (!d.got[lv]) { const R = PASE_REWARDS[lv - 1]; give(R, prof); n++; for (const k in got) got[k] += R[k] || 0; }
+        if (n) d.news.push(TX('Pase de la temporada anterior recogido:') + ' ' + rewardTx(got));
+      }
+      d.season = S.key; d.xp = 0; d.got = {}; changed = true;
+    }
+    if (changed) Profile.save();
+    return d;
+  }
+
+  // ---------- Partidos ----------
+  function matchStats(s) {
+    const A = (s.mstat && s.mstat.A) || {}; let tk = 0, dr = 0, as = 0, pok = 0;
+    for (const id in (s.pstats || {})) if (id[0] === 'A') { const q = s.pstats[id]; tk += q.tk || 0; dr += q.dr || 0; as += q.as || 0; pok += q.pok || 0; }
+    const win = s.score.A > s.score.B ? 1 : 0;
+    return { played: 1, win, goals: s.score.A, techs: A.tech || 0, techGoals: A.techGoals || 0, lobGoals: A.lobGoals || 0, saves: A.saves || 0,
+      blocks: A.blocks || 0, clashW: A.clashW || 0, tackles: tk, dribbles: dr, assists: as, passes: pok, clean: win && s.score.B === 0 ? 1 : 0 };
+  }
+  // Al acabar un partido: suma XP y avanza las misiones. Devuelve { xp, lv (si sube), done: [nombres de misiones completadas] }
+  function matchPlayed(s) {
+    if (!P() || !s || s.quit || s.settings.allAI || s.settings.mini) return null;
+    const d = data(), st = matchStats(s), before = level(d.xp), done = [];
+    for (const m of missions()) {
+      const was = d.prog[m.id] || 0; if (was >= m.goal) continue;
+      d.prog[m.id] = Math.min(m.goal, was + (st[m.stat] || 0));
+      if (d.prog[m.id] >= m.goal) done.push(m.name);
+    }
+    const xp = 12 + (st.win ? 8 : 0) + Math.min(10, st.goals * 2);
+    d.xp = Math.min(PASE_LV * PASE_XP, d.xp + xp); Profile.save();
+    return { xp, lv: level(d.xp) > before ? level(d.xp) : 0, done };
+  }
+
+  // ---------- Recoger ----------
+  const mState = m => { const d = data(); return d.claimed[m.id] ? 'got' : (d.prog[m.id] || 0) >= m.goal ? 'ready' : 'locked'; };
+  function claimMission(id) {
+    const m = missions().find(x => x.id === id), d = data(); if (!m || mState(m) !== 'ready') return null;
+    const R = MISSION_TIERS[m.tier].reward; give(R, P()); d.claimed[m.id] = 1; addXp(R.xp); Profile.save(); return R;
+  }
+  const bonusReady = () => { const d = data(); return !d.bonus && missions().every(m => (d.prog[m.id] || 0) >= m.goal); };
+  function claimBonus() { if (!bonusReady()) return null; const d = data(); give(MISSION_BONUS, P()); d.bonus = true; addXp(MISSION_BONUS.xp); Profile.save(); return MISSION_BONUS; }
+  function addXp(n) { const d = data(); d.xp = Math.min(PASE_LV * PASE_XP, d.xp + (n || 0)); }
+  const lvState = lv => { const d = data(); return d.got[lv] ? 'got' : level(d.xp) >= lv ? 'ready' : 'locked'; };
+  function claimLevel(lv) { if (lvState(lv) !== 'ready') return null; const R = PASE_REWARDS[lv - 1]; give(R, P()); data().got[lv] = 1; Profile.save(); return R; }
+  function claimAllLevels() {
+    const tot = { coins: 0, tickets: 0, rayos: 0, epica: 0, n: 0 };
+    for (let lv = 1; lv <= PASE_LV; lv++) { const R = claimLevel(lv); if (R) { for (const k in tot) if (k !== 'n') tot[k] += R[k] || 0; tot.n++; } }
+    return tot;
+  }
+  function claimAllMissions() {
+    const tot = { coins: 0, tickets: 0, rayos: 0, epica: 0, xp: 0, n: 0 };
+    for (const m of missions()) { const R = claimMission(m.id); if (R) { for (const k in tot) if (k !== 'n') tot[k] += R[k] || 0; tot.n++; } }
+    const B = claimBonus(); if (B) { for (const k in tot) if (k !== 'n') tot[k] += B[k] || 0; tot.n++; }
+    return tot;
+  }
+  // Cuántas cosas hay listas para recoger (punto del menú)
+  function pending() {
+    if (!P()) return 0; data();
+    let n = missions().filter(m => mState(m) === 'ready').length + (bonusReady() ? 1 : 0);
+    for (let lv = 1; lv <= PASE_LV; lv++) if (lvState(lv) === 'ready') n++;
+    return n;
+  }
+  const takeNews = () => { const d = data(), n = d.news.slice(); if (n.length) { d.news = []; Profile.save(); } return n; };
+  // (desarrollador)
+  function devXp(n) { const d = data(); d.xp = Math.min(PASE_LV * PASE_XP, d.xp + n); Profile.save(); }
+  function devMissions() { const d = data(); missions().forEach(m => { d.prog[m.id] = m.goal; }); Profile.save(); }
+  function devReset() { P().pase = fresh(); data(); }
+  return { weekInfo, seasonInfo, daysLeft, missions, data, level, mState, progress: m => Math.min(m.goal, data().prog[m.id] || 0),
+    matchPlayed, claimMission, claimBonus, bonusReady, lvState, claimLevel, claimAllLevels, claimAllMissions, pending, takeNews, rewardTx,
+    devXp, devMissions, devReset, _pick: pick, _stats: matchStats };
+})();
+
+/* =====================================================================
    EVENTO DE HALLOWEEN (22 oct – 3 nov): todo fuera de los modos.
    - Moneda 🍬 caramelos (perfil: Profile.data.hw): +5 por partido en
      cualquier modo (+10 si ganas), +20 de regalo diario, +60 al ganar al
@@ -10279,7 +10664,7 @@ const UI = (() => {
     else if (e.code === 'Enter' || e.code === 'NumpadEnter') { menuChoose(s, menuSel); e.preventDefault(); }
     else if (e.code === 'Backspace') { menuChoose(s, -1); e.preventDefault(); }
   });
-  function reset() { last = {}; sayCool = 0; const d = $('say'); if (d) d.className = 'say'; pickOn = false; const k = $('pick'); if (k) { k.hidden = true; k.innerHTML = ''; } menuOn = null; menuS = null; document.body.classList.remove('menu-open'); const mn = $('menu'); if (mn) { mn.hidden = true; mn.innerHTML = ''; } }
+  function reset() { last = {}; sayCool = 0; { const cl = $('clash'); if (cl) cl.className = 'clash'; } const d = $('say'); if (d) d.className = 'say'; pickOn = false; const k = $('pick'); if (k) { k.hidden = true; k.innerHTML = ''; } menuOn = null; menuS = null; document.body.classList.remove('menu-open'); const mn = $('menu'); if (mn) { mn.hidden = true; mn.innerHTML = ''; } }
   // Globo de diálogo de un jugador (con su retrato). Sin «force» respeta una pausa entre frases para no saturar.
   function say(ref, name, text, team, force, ms = 2300) {
     const d = $('say'), now = performance.now();
@@ -10310,7 +10695,33 @@ const UI = (() => {
     clearTimeout(cutT);
     cutT = setTimeout(() => { c.classList.add('out'); if (dim) dim.classList.remove('on'); cutT = setTimeout(() => { c.className = 'cutin'; }, 240); }, ms);
   }
-  return { toast, banner, update, reset, cutin, say, pickSync, menuSync };
+
+  // Técnica contra técnica: a la izquierda quien ataca, a la derecha quien defiende (parada o bloqueo); gana la fuerza mayor... con algo de suerte
+  let clashT;
+  function clash(e, s) {
+    const c = $('clash'); if (!c) return;
+    const P = id => s.players.find(q => q.id === id);
+    const el = (tag, cls, txt) => { const x = document.createElement(tag); if (cls) x.className = cls; if (txt != null) x.textContent = txt; return x; };
+    const side = (o, role, win, other) => {
+      const pl = P(o.id), d = el('div', 'cl-side ' + (EL(o.elem).css || 'neutro') + (win ? ' win' : ' lose'));
+      const f = el('div', 'cl-face'); if (pl) { try { f.appendChild(Sprites.face(pl.sprite, 52)); } catch (_) {} }
+      const bar = el('div', 'cl-bar'), fill = el('i'); bar.appendChild(fill);
+      d.append(f, el('small', '', (o.team === 'B' ? TX('Rival · ') : '') + role), el('b', '', o.tech), bar, el('em', '', String(o.pow)));
+      setTimeout(() => { fill.style.width = Math.max(8, Math.round(o.pow / Math.max(o.pow, other.pow, 1) * 100)) + '%'; }, 30);
+      return d;
+    };
+    const roleDef = e.kind === 'bloqueo' ? TX('Bloqueo') : TX('Parada');
+    const res = el('div', 'cl-res ' + (e.winTeam === 'A' ? 'mine' : 'rival'));
+    const w = e.win === 'atk' ? e.atk : e.def;
+    res.textContent = e.win === 'atk' ? TX('¡{0} se impone!', w.tech) : e.kind === 'bloqueo' ? TX('¡{0} lo bloquea!', w.tech) : TX('¡{0} lo detiene!', w.tech);
+    const inn = el('div', 'cl-in');
+    inn.append(side(e.atk, TX('Tiro'), e.win === 'atk', e.def), el('div', 'cl-vs', 'VS'), side(e.def, roleDef, e.win === 'def', e.atk), res);
+    c.innerHTML = ''; c.appendChild(inn);
+    c.className = 'clash'; void c.offsetWidth; c.className = 'clash on';
+    clearTimeout(clashT);
+    clashT = setTimeout(() => { c.classList.add('out'); clashT = setTimeout(() => { c.className = 'clash'; }, 260); }, 2100);
+  }
+  return { toast, banner, update, reset, cutin, say, clash, pickSync, menuSync };
 })();
 
 /* =====================================================================
@@ -10849,6 +11260,8 @@ class MatchScene extends Phaser.Scene {
           if (e.team === 'A') UI.toast(TX('¡Bloqueo!'));
           break;
         case 'dodgeFail': UI.toast(TX('¡') + e.name + TX(' lee el regate!')); break;
+        case 'clash': UI.clash(e, s); Sound.sfx('tech'); break;
+        case 'setpiece': if (e.wall && e.team === 'A') UI.toast(TX('¡Barrera rival de {0}!', e.wall), 1600); else if (e.wall) UI.toast(TX('¡Tu barrera de {0} se coloca!', e.wall), 1600); break;
         case 'msg': UI.toast(e.text); break;
         case 'end': Sound.sfx('whistleEnd'); App.matchEnded(s); break;
       }
@@ -12250,7 +12663,8 @@ const App = (() => {
     if (traida) { setTimeout(() => UI.toast(Cloud.enabled() && !Cloud.loggedIn() ? TX('¡Partida traída! Crea una cuenta en 👤 Cuenta para tenerla siempre a salvo') : TX('¡Partida traída!'), 3500), 300); }
     const P = Profile.data, runs = Run.all(), RUN_ORDER = ['leyenda', 'story', 'special', 'chain', 'infinite'], open = RUN_ORDER.filter(k => runs[k]).map(k => runs[k]);
     const done = P.story.s1.done; hub = renderMenu;
-    achToast(); const achN = Ach.pending();
+    achToast(); const achN = Ach.pending(), paseN = Pase.pending();
+    { const nw = Pase.takeNews(); if (nw.length) setTimeout(() => UI.toast('🎯 ' + nw.join(' · '), 4200), 900); }
     screen(`<div class="nm"><div class="nm-tools">
         <button class="nm-ico" id="mGift" title="${TX('🎁 Código de regalo')}" aria-label="${TX('🎁 Código de regalo')}">🎁</button>
         <button class="nm-ico" id="mSaves" title="${TX('👤 Cuenta')}${Cloud.loggedIn() ? ' · ' + esc(Cloud.user()) : ''}" aria-label="${TX('👤 Cuenta')}">👤${Cloud.loggedIn() ? '<span class="nm-on"></span>' : ''}</button>
@@ -12272,6 +12686,7 @@ const App = (() => {
         <button class="mode nm-tile ${done ? '' : 'locked'}" id="mInf">${Sprites.crest(15)}<span class="mt"><b>${TX('Infinito')}</b><small>${done ? TX('Por oleadas · récord: ') + P.infBest : TX('🔒 Completa la Etapa 1')}</small></span></button>
         <button class="mode nm-tile${Shop.albumPending() ? ' glow' : ''}" id="mAlbum"><span class="cicon">📖</span><span class="mt"><b>${TX('📖 Álbum')}</b><small>${Shop.albumPending() ? TXn(Shop.albumPending(), '¡{0} premio por recoger!', '¡{0} premios por recoger!') : TX('Completa equipos')}</small></span></button>
         <button class="mode nm-tile${achN ? ' glow' : ''}" id="mAch"><span class="cicon">🏅</span><span class="mt"><b>${TX('🏅 Logros')}</b><small>${achN ? TXn(achN, '¡{0} por recoger!', '¡{0} por recoger!') : TX('{0} de {1}', Ach.LIST.filter(a => Ach.state(a) !== 'locked').length, Ach.LIST.length)}</small></span></button>
+        <button class="mode nm-tile${paseN ? ' glow' : ''}" id="mPase"><span class="cicon">🎯</span><span class="mt"><b>${TX('🎯 Misiones y Pase')}</b><small>${paseN ? TXn(paseN, '¡{0} por recoger!', '¡{0} por recoger!') : TX('Pase de temporada {0} · nivel {1}', Pase.seasonInfo().n, Pase.level(Pase.data().xp))}</small></span></button>
         </div>
       </div>
       <div data-cloudline>${cloudLine()}</div>
@@ -12304,6 +12719,7 @@ const App = (() => {
     $('mPlayer').onclick = () => renderSlots('pc');
     $('mShop').onclick = () => renderShop('sobres'); $('mAlbum').onclick = () => renderShop('album');
     $('mAch').onclick = () => renderAch(renderMenu);
+    $('mPase').onclick = () => renderPase(renderMenu);
     $('mSpecial').onclick = () => { if (!resume('special')) renderSpecials(); };
     $('mChain').onclick = () => { if (!done) return UI.toast(TX('Completa la Etapa 1 de la Historia')); if (!resume('chain')) renderChains(); };
     $('mInf').onclick = () => { if (!done) return UI.toast(TX('Completa la Etapa 1 de la Historia')); if (!resume('infinite')) { newDraft('infinite', {}); tutorial('infinite'); } };
@@ -12353,6 +12769,45 @@ const App = (() => {
       ${Object.entries(ACH_CATS).map(([k, name]) => `<h3>${name}</h3><div class="csquad">${L.filter(a => a.cat === k).sort((a, b) => ({ ready: 0, locked: 1, got: 2 }[Ach.state(a)] - { ready: 0, locked: 1, got: 2 }[Ach.state(b)])).map(row).join('')}</div>`).join('')}`, 'bg_title');
     body.querySelectorAll('[data-ach]').forEach(b => b.onclick = () => { const R = Ach.claim(b.dataset.ach); if (R) { Sound.sfx('reveal'); UI.toast(TX('¡Premio recogido!') + ' ' + Ach.rewardTx(R), 2200); } renderAch(back); });
     if ($('achAll')) $('achAll').onclick = () => { const t = Ach.claimAll(); Sound.jingle('win'); UI.toast(TX('¡Premios recogidos!') + ' ' + Ach.rewardTx(t), 3000); renderAch(back); };
+    $('back').onclick = back;
+  }
+
+  /* ---------- Misiones semanales y Pase de temporada ---------- */
+  function renderPase(back) {
+    const d = Pase.data(), W = Pase.weekInfo(), S = Pase.seasonInfo(), lv = Pase.level(d.xp), M = Pase.missions();
+    const into = lv >= PASE_LV ? PASE_XP : d.xp % PASE_XP, lvReady = Array.from({ length: PASE_LV }, (_, i) => i + 1).filter(n => Pase.lvState(n) === 'ready').length;
+    const mReady = M.filter(m => Pase.mState(m) === 'ready').length + (Pase.bonusReady() ? 1 : 0);
+    const mrow = m => {
+      const st = Pase.mState(m), T = MISSION_TIERS[m.tier], cur = Pase.progress(m);
+      return `<div class="cpl ach ${st}"><span class="achi">${m.icon}</span><div class="cplb"><b>${esc(m.name)}</b><span class="cst">${T.icon} ${T.name} · ${Pase.rewardTx(T.reward)}</span>
+        ${st === 'locked' ? `<span class="cst">${cur}/${m.goal}</span>${bar(Math.round(cur / m.goal * 100), '')}` : ''}</div>
+        ${st === 'ready' ? `<button class="cta mini" data-pm="${m.id}">${TX('Recoger')}</button>` : st === 'got' ? '<b class="achok">✓</b>' : ''}</div>`;
+    };
+    const done5 = M.filter(m => (d.prog[m.id] || 0) >= m.goal).length, bst = d.bonus ? 'got' : Pase.bonusReady() ? 'ready' : 'locked';
+    const brow = `<div class="cpl ach ${bst}"><span class="achi">🎁</span><div class="cplb"><b>${TX('Cofre de la semana')}</b><span class="cst">${TX('Completa las 5 misiones')} · ${Pase.rewardTx(MISSION_BONUS)}</span>
+        ${bst === 'locked' ? `<span class="cst">${done5}/5</span>${bar(Math.round(done5 / 5 * 100), '')}` : ''}</div>
+        ${bst === 'ready' ? `<button class="cta mini" data-pb="1">${TX('Recoger')}</button>` : bst === 'got' ? '<b class="achok">✓</b>' : ''}</div>`;
+    const lrow = n => {
+      const st = Pase.lvState(n), R = PASE_REWARDS[n - 1], hito = n % 10 === 0;
+      return `<div class="cpl ach ${st}"><span class="achi">${st === 'locked' ? '🔒' : hito ? '👑' : '⭐'}</span><div class="cplb"><b>${TX('Nivel {0}', n)}${hito ? ' · ' + TX('¡Hito!') : ''}</b><span class="cst">${Pase.rewardTx(R)}</span></div>
+        ${st === 'ready' ? `<button class="cta mini" data-pl="${n}">${TX('Recoger')}</button>` : st === 'got' ? '<b class="achok">✓</b>' : ''}</div>`;
+    };
+    screen(`${top(TX('Misiones y Pase'))}
+      <h3>${TX('🎯 Misiones de la semana')}</h3>
+      <p class="cweek">${TXn(Pase.daysLeft(W.end), 'Se renuevan en {0} día', 'Se renuevan en {0} días')}</p>
+      ${mReady ? `<button class="cta" id="pmAll">${TX('🎁 Recoger todo')}<small>${TXn(mReady, '{0} premio', '{0} premios')}</small></button>` : ''}
+      <div class="csquad">${M.map(mrow).join('')}${brow}</div>
+      <h3>${TX('🎟️ Pase de temporada {0} · gratis', S.n)}</h3>
+      <p class="cweek">${TX('Nivel {0} de {1}', lv, PASE_LV)} · ${TXn(Pase.daysLeft(S.end), 'termina en {0} día', 'termina en {0} días')}</p>
+      ${bar(Math.round(into / PASE_XP * 100), '')}<p class="note">${lv >= PASE_LV ? TX('¡Pase completado!') : TX('{0} de {1} XP para el nivel {2}', into, PASE_XP, lv + 1)}</p>
+      ${lvReady ? `<button class="cta" id="plAll">${TX('🎁 Recoger niveles')}<small>${TXn(lvReady, '{0} premio', '{0} premios')}</small></button>` : `<p class="note">${TX('Sube de nivel jugando: ganas XP en cada partido (más si ganas y marcas) y con las misiones. Lo que no recojas se recoge solo al acabar la temporada.')}</p>`}
+      <div class="csquad">${Array.from({ length: PASE_LV }, (_, i) => lrow(i + 1)).join('')}</div>`, 'bg_title');
+    const redo = () => renderPase(back), say = R => { Sound.sfx('reveal'); UI.toast(TX('¡Premio recogido!') + ' ' + Pase.rewardTx(R), 2400); };
+    body.querySelectorAll('[data-pm]').forEach(b => b.onclick = () => { const R = Pase.claimMission(b.dataset.pm); if (R) say(R); redo(); });
+    body.querySelectorAll('[data-pl]').forEach(b => b.onclick = () => { const R = Pase.claimLevel(+b.dataset.pl); if (R) say(R); redo(); });
+    body.querySelectorAll('[data-pb]').forEach(b => b.onclick = () => { const R = Pase.claimBonus(); if (R) say(R); redo(); });
+    if ($('pmAll')) $('pmAll').onclick = () => { const t = Pase.claimAllMissions(); Sound.jingle('win'); UI.toast(TX('¡Premios recogidos!') + ' ' + Pase.rewardTx(t), 3000); redo(); };
+    if ($('plAll')) $('plAll').onclick = () => { const t = Pase.claimAllLevels(); Sound.jingle('win'); UI.toast(TX('¡Premios recogidos!') + ' ' + Pase.rewardTx(t), 3000); redo(); };
     $('back').onclick = back;
   }
   /* ---------- Ranuras de guardado: 3 para cada carrera ---------- */
@@ -13428,6 +13883,8 @@ const App = (() => {
       if (candy && api.mode !== 'hwboss' && api.mode !== 'hwmap') setTimeout(() => UI.toast('+' + candy + ' 🍬 ' + TX('caramelos de Halloween'), 2200), 500);
       // Navidad: copos por jugar en cualquier modo (+5, +10 más si ganas)
       const snow = s.quit ? 0 : Navidad.matchPlayed(s.score.A > s.score.B);
+      // Pase de temporada y misiones semanales: XP por jugar y avance de las misiones
+      try { const ps = Pase.matchPlayed(s); if (ps) setTimeout(() => { UI.toast('🎯 +' + ps.xp + ' XP ' + TX('del pase') + (ps.lv ? ' · ' + TX('¡Nivel {0}!', ps.lv) : ''), 2200); if (ps.done.length) setTimeout(() => UI.toast('✅ ' + TX('Misión completada:') + ' ' + ps.done.join(' · '), 2800), 2400); }, candy || snow ? 3600 : 1000); } catch (_) {}
       if (snow && api.mode !== 'xmboss') setTimeout(() => UI.toast('+' + snow + ' ❄️ ' + TX('copos de Navidad'), 2200), candy ? 2900 : 500);
       if (api.mode === 'xmboss') { const won = s.score.A > s.score.B, bonus = Navidad.bossResult(won); Sound.jingle(won ? 'win' : s.score.A < s.score.B ? 'lose' : null); renderXmBossEnd(s, snow, bonus); return; }
       if (api.mode === 'hwmap') { const won = s.score.A > s.score.B, out = Halloween.mapResult(api.hwStage, won); Sound.jingle(won ? 'win' : s.score.A < s.score.B ? 'lose' : null); renderMapEnd(s, candy, out); return; }
@@ -15629,6 +16086,7 @@ const App = (() => {
       <div class="grid2">${b('dMkt', TX('Mercado entre clubes'), TX('5 fichajes ahora (Carrera y Jugador)'))}${b('dBid', TX('Oferta por un jugador'), TX('Carrera mánager'))}</div>
       <h3>${TX('Logros')}</h3>
       <div class="grid2">${b('dAchAll', TX('Conseguir todos'), TX('listos para recoger'))}${b('dAchReset', TX('Reiniciar logros'), TX('se vuelven a comprobar'))}</div>
+      <div class="grid2">${b('dPaseXp', TX('Pase +500 XP'), TX('sube niveles'))}${b('dPaseM', TX('Misiones hechas'), TX('listas para recoger'))}</div>
       <h3>${TX('Halloween')}</h3>
       <div class="grid2">${b('dHwOn', settings.hwForce ? TX('🎃 Evento forzado: SÍ') : TX('🎃 Evento forzado: NO'), TX('verlo fuera de fechas'))}${b('dHwCandy', TX('+300 caramelos'))}
         ${b('dHwRetos', TX('Completar los retos'), TX('desbloquea a Ray Dark'))}${b('dHwReset', TX('Reiniciar el evento'), TX('caramelos, retos y regalo'))}</div>
@@ -15689,6 +16147,8 @@ const App = (() => {
     $('dBlocks').onclick = () => renderDevBlocks();
     $('dAchAll').onclick = () => { Ach.devAll(); done(TX('Todos los logros listos para recoger')); };
     $('dAchReset').onclick = () => { Ach.devReset(); done(TX('Logros reiniciados')); };
+    $('dPaseXp').onclick = () => { Pase.devXp(500); done(TX('+500 XP en el pase')); };
+    $('dPaseM').onclick = () => { Pase.devMissions(); done(TX('Misiones de la semana completadas')); };
     $('dMkt').onclick = () => {
       let n = 0;
       if (Career.data) { n += Career.aiTransfers(5).length; Career.save(); }
