@@ -20,6 +20,16 @@ faltas/tarjetas/penaltis y «elegir jugador con el balón parado» (ver abajo), 
 - `test/solo.js` (de ellos) falla a veces por azar, también en su versión original.
 
 
+## v0.39.0 · Pase de batalla, gacha nuevo, cambios y tácticas (29 oct 2026)
+
+- **Menú**: ya no salen Navidad ni Tormenta Celestial; se entra desde **Gacha → ⭐ Destacados** (tarjetas que se deslizan: Pase de batalla, Tormenta Celestial, Navidad —«PRÓXIMAMENTE» hasta el 12 dic— y Halloween si está activo). El menú ahora lleva el botón **🎫 Pase de batalla**.
+- **Novedades fuera**: `NEWS = []` (app.js). El botón 📰 y la ventana automática solo salen si `NEWS.length`. `AVISO` vacío y `NEW_PLAYERS = []` (limited.js): sin popups. Para volver a usarlos, rellénalos.
+- **Gacha rediseñado** (`renderGacha`, CSS `.gx*` en shell.html): destacados, pestañas de sobres con barra de probabilidades, barra de garantía, botones ×1/×10 con brillo y cartas del reveal con animación y destello.
+- **Pase de batalla** (`src/pase.js`, `renderPase` en app.js): 40 niveles, 100 XP por nivel (+20 por partido, +30 si ganas, en cualquier modo; `Pase.matchPlayed` se llama en `api.matchEnded`), camino gratis y **Pase Oro** (1500 🪙), misiones diarias, subir nivel por 5 🎟️, «Recoger todo». Premios en `Pase.rewardOf`. Nivel 40 de oro = **Xene (Pase de batalla)** (id 993001, base 21406, nota 99, aura rosa y dorada); su rareza es `pase` con etiqueta **«Pase de batalla»** (en vez de Legendaria). La versión normal de Xene deja de salir en el gacha.
+- **Pausa en el partido**: **Táctica** (defensivo/equilibrado/ofensivo; `Logic.setTactic`, desplaza ±5 m la posición de la IA, y los delanteros bajan o no a defender; se recuerda en `settings.tactic`) y **Cambios** (`Logic.substitute`, `api.makeSub`, `benchFor`): máx. 3 por partido (`MAX_SUBS`), entra con energía llena en el mismo puesto y posición y se queda con el balón. Banquillo: Historia/Cadenas/Especiales/Infinito (suplentes + mejores de la colección) y Partido rápido. En Carrera, Mundial, Carrera Jugador y eventos solo hay táctica.
+- Tests: `node test/pase.js` (nuevo) y `test/limited.js` ajustado. `test/sig_methods.js` ya fallaba antes (no es de esta versión).
+- `index.html` compilado sin comprimir (sin red).
+
 ---
 
 # PARTE A · Lo nuestro (Inazuma Gold)
