@@ -100,8 +100,8 @@ const r8 = Limitado.pull(); const dup = r8.filter(x => x.id === 994001 && x.coin
 chk(Profile.data.coll[994001].stars === 5 && (r8[0].id !== 994001 || Profile.data.coins >= c0 + RARITY.limitada.dupCoins), 'un limitado repetido con 5★ da monedas');
 
 // 9. Aviso de jugadores nuevos: uno por limitado
-chk(NEW_PLAYERS.length === 4 && NEW_PLAYERS.every(n => WANT[n.id]), 'NEW_PLAYERS debe tener los 4 limitados');
-chk(Limitado.pendingNew([]).length === 4 && Limitado.pendingNew([994001]).length === 3 && Limitado.pendingNew(NEW_PLAYERS.map(n => n.id)).length === 0, 'pendingNew');
+chk(NEW_PLAYERS.length === 0, 'NEW_PLAYERS vacío (sin avisos de jugador nuevo)');
+chk(Limitado.pendingNew([]).length === 0, 'pendingNew vacío');
 chk(Limitado.active() === true, 'el gacha limitado debe estar activo');
 
 // 10. Bianchi Christmas: solo en el Sobre Navideño (súper difícil) y el evento se abre el 12 de diciembre
