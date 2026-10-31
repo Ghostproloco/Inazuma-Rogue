@@ -745,7 +745,7 @@ const Logic = (() => {
         else { const c = s.pass.charge, d = s.pass.dir; s.pass = null; pass(s, me, 'strong', d, c > 0.18 ? c : 0); return; }
       }
       if (pr.has('dribble')) { dribble(s, me, { x, y }); return; }
-      pr.has('B');   // el pase al hueco se quitó del juego (22 oct, Fran): la tecla/botón ya no hace nada con balón (el portero sí saca en largo)
+      pr.has('B');   // el pase al hueco se quitó del juego (22 oct): la tecla/botón ya no hace nada con balón (el portero sí saca en largo)
       if (pr.has('tech')) { tryTech(s, me, x); return; }
       if (auto && !s.shoot.charging) {
         const t = bestTech(me, 'regate');
@@ -1401,7 +1401,7 @@ const Logic = (() => {
     const b = s.ball, sh = b.shot, v2 = b.vx * b.vx + b.vy * b.vy;
     if (b.z > 2.2 || v2 < 4) return;
     sh.tried = sh.tried || {};
-    // Tu equipo solo bloquea a mano: tu jugador, pulsando Técnica (Fran, 24 oct); tus compañeros no bloquean solos. Los rivales (IA), según la dificultad
+    // Tu equipo solo bloquea a mano: tu jugador, pulsando Técnica (24 oct); tus compañeros no bloquean solos. Los rivales (IA), según la dificultad
     const human = s.settings.allAI ? null : s.controlledId;
     for (const p of s.players) {
       if (p.team === sh.team || p.role === 'POR' || p.stun > 0 || p.dash || p.tackle || sh.tried[p.id]) continue;

@@ -21,8 +21,8 @@ const techLineMy = t => { const lv = Shop.techLevel(t.id); return lv > 1 ? techL
 
 const VERSION = '0.39.0';
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
-// Jugadores originales de Fran (Goggle Jr., Rosfire, Knack…: «original» en gamedata): ocultos en las versiones públicas,
-// solo salen en la beta. Fran decide cuándo (y cómo) se publican: NO meterlos directamente al sacar versiones.
+// Jugadores originales (Goggle Jr., Rosfire, Knack…: «original» en gamedata): ocultos en las versiones públicas,
+// solo salen en la beta. NO meterlos directamente al sacar versiones.
 if (!BETA && typeof GAME !== 'undefined') GAME.players.forEach(p => { if (p.original) p.gacha = false; });
 const App = (() => {
   const $ = id => document.getElementById(id);
@@ -86,29 +86,6 @@ const App = (() => {
   document.addEventListener('pointerdown', () => Sound.unlock(), { capture: true });
 
   /* ---------- Menú principal: modos ---------- */
-  // Botón «en directo»: DecAPI (servicio público, sin claves) dice si el canal de Twitch de Fran está emitiendo.
-  // Se mira al abrir el menú (como mucho cada ~3 min) y cada 3 min con la página a la vista. Si falla, simplemente no sale.
-  const TWITCH = 'franmen_';
-  const Live = { on: false, at: 0, busy: false,
-    async check(force) {
-      if (this.busy || typeof fetch === 'undefined' || (!force && Date.now() - this.at < 170000)) return;
-      this.busy = true; this.at = Date.now();
-      let tm = null;
-      try {
-        const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-        if (ctl) tm = setTimeout(() => ctl.abort(), 6000);
-        const r = await fetch('https://decapi.me/twitch/uptime/' + TWITCH + '?t=' + Date.now(), { cache: 'no-store', signal: ctl ? ctl.signal : undefined });
-        const t = r.ok ? (await r.text()).trim() : '';
-        const on = !!t && t.length < 120 && /\d/.test(t) && !/offline|error|not found|no user|invalid/i.test(t);   // en directo: «1 hour, 5 minutes»
-        if (on !== this.on) { this.on = on; this.paint(); }
-      } catch (_) {} finally { clearTimeout(tm); this.busy = false; }
-    },
-    paint() {
-      const el = $('liveSlot'); if (!el) return;
-      el.innerHTML = this.on ? `<a class="livebtn" href="https://www.twitch.tv/${TWITCH}" target="_blank" rel="noopener"><i class="livedot"></i><span class="mt"><b>${TX('Franmen está en directo')}</b><small>${TX('Toca para verlo en Twitch')}</small></span><span class="livego">▶</span></a>` : '';
-    },
-  };
-  setInterval(() => { if (!document.hidden && $('liveSlot')) Live.check(); }, 180000);
   function renderMenu() {
     if (!Profile.data.firstDone) return renderWelcome();
     if (Cloud.state.conflict) return renderConflict(renderMenu);
@@ -3573,7 +3550,7 @@ const App = (() => {
         ${b('dHwRetos', TX('Completar los retos'), TX('desbloquea a Ray Dark'))}${b('dHwReset', TX('Reiniciar el evento'), TX('caramelos, retos y regalo'))}</div>
       <h3>${TX('Jugadores especiales')}</h3>
       <div class="grid2">${b('dAddHw', TX('🎃 Legendarios de Halloween'), TX('los {0} + Jim épico', HW_LEGENDS.length))}${b('dAddSv', TX('🍃 Legendarios del Sobre Selva'), TX('los {0}', SV_LEGENDS.length))}
-        ${b('dAddInf', TX('∞ Versiones del Infinito'), TX('las {0}', GAME.players.filter(p => p.inf).length))}${b('dAddOrig', TX('⭐ Originales de Fran'), TX('Goggle Jr., Rosfire y Knack'))}</div>
+        ${b('dAddInf', TX('∞ Versiones del Infinito'), TX('las {0}', GAME.players.filter(p => p.inf).length))}${b('dAddOrig', TX('⭐ Jugadores originales'), TX('Goggle Jr., Rosfire y Knack'))}</div>
       <h3>${TX('Sobre Selva')}</h3>
       <div class="grid2">${b('dLyWin', TX('Cadena Leyenda: al partido 15'), TX('empieza o salta al último partido'))}${b('dLyReset', TX('Reiniciar la Cadena Leyenda'), TX('premios, récord y Willy'))}</div>
       <div class="grid2">${b('dSvLeg', TX('Legendario en la próxima tirada'), TX('asegurado del Sobre Selva'))}${b('dSvReset', TX('Reiniciar el Sobre Selva'), TX('tiradas y asegurado'))}</div>
@@ -3829,14 +3806,15 @@ $('dReset').onclick = () => {
   addEventListener('error', e => { if (e && (e.error || e.message) && !(e.target && e.target !== window && (e.target.src || e.target.href))) onCrash(e.message || (e.error && e.error.message)); });
   addEventListener('unhandledrejection', e => { const r = e && e.reason; if (r && !/fetch|network|load|firebase|firestore|auth/i.test(String(r.message || r))) onCrash(r.message || String(r)); });
   // Solo arranca en la web oficial (o en la beta y en las pruebas). Las direcciones van como números para que no se cambien con un simple «buscar y reemplazar».
-  const OFFICIAL = String.fromCharCode(104,116,116,112,115,58,47,47,102,114,97,110,109,110,100,101,122,122,122,122,46,103,105,116,104,117,98,46,105,111,47,73,110,97,122,117,109,97,45,82,111,103,117,101,47,106,117,101,103,111) + '/';
+  const OFFICIAL = String.fromCharCode(104,116,116,112,115,58,47,47,103,111,108,100,45,101,108,101,118,101,110,46,111,110,114,101,110,100,101,114,46,99,111,109) + '/';
   function hostOk() {
     const h = (location.hostname || '').toLowerCase();
     if (BETA) return true;
-    const ok = [[102,114,97,110,109,110,100,101,122,122,122,122,46,103,105,116,104,117,98,46,105,111], [103,104,111,115,116,112,114,111,108,111,99,111,46,103,105,116,104,117,98,46,105,111], [108,111,99,97,108,104,111,115,116], [49,50,55,46,48,46,48,46,49]].map(a => String.fromCharCode(...a));
+    const ok = [[103,111,108,100,45,101,108,101,118,101,110,46,111,110,114,101,110,100,101,114,46,99,111,109], [108,111,99,97,108,104,111,115,116], [49,50,55,46,48,46,48,46,49]].map(a => String.fromCharCode(...a));
     return ok.includes(h) || h.endsWith('.test');
   }
   function renderCopy() {
+    try { setTimeout(() => { location.replace(OFFICIAL); }, 1500); } catch (_) {}   // quien abre una copia acaba en la web oficial
     screen(`<div class="title"><img class="logo" src="ui/logo_gold.png" alt="Inazuma Gold" onerror="this.remove()">
       <h2>${TX('Esta copia del juego no es oficial')}</h2>
       <p class="note">${TX('Inazuma Gold es gratis y solo se juega en su web oficial, donde tienes tu partida guardada, las novedades y los eventos.')}</p>

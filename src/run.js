@@ -247,7 +247,6 @@ const GIFT_CODES = {
   SELVALEYENDA:      { pick: { selva: true }, desc: TX('Elige 1 de 3 legendarios del evento Selva') },
   INFINITO10:        { pick: { inf: true, n: 10 }, uses: 2, desc: TX('Elige 1 de 10 versiones del Infinito (con las probabilidades del gacha)') },
   FUEGOSAGRADO:      { pick: { rarity: 'epica', elem: 'fuego' }, tickets: 5, desc: TX('Elige 1 de 3 jugadores de fuego épicos o mejores') },
-  DISCORDINAZUMA:    { tickets: 15, rayos: 2, desc: TX('Regalo de la comunidad') },
   TICKETAZO:         { tickets: 50, desc: TX('Lluvia de tickets') },
   // Bianchi Christmas ya NO se consigue con código: solo en el Gacha limitado (src/limited.js)
   DOBLELEYENDA:      { leg: 2, desc: TX('Dos tiradas legendarias aseguradas') },

@@ -21,7 +21,7 @@ const DEVICE_KEYS = ['inazuma-ajustes', 'inazuma-sonido', 'inazuma-ranuras'];   
 
 const Cloud = (() => {
   const META_KEY = 'inazuma-cuenta';
-  const EMAIL_DOMAIN = 'jugadores.inazumarogue.app';   // el usuario «fran» se guarda como fran@jugadores… (no se envía ningún correo)
+  const EMAIL_DOMAIN = 'jugadores.inazumarogue.app';   // el usuario «ana» se guarda como ana@jugadores… (no se envía ningún correo)
   const FB_VERSION = '10.12.2';
   const CFG = (typeof CLOUD_CONFIG !== 'undefined' && CLOUD_CONFIG) || {};
   // Cada subida gasta cuota de Firebase (plan gratis: ~20.000 escrituras al día para todos los jugadores).
