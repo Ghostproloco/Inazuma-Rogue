@@ -20,7 +20,6 @@ const techLine = t => `<span class="tline">${chip(t.elem)}<b>${esc(t.name)}</b><
 const techLineMy = t => { const lv = Shop.techLevel(t.id); return lv > 1 ? techLine(Object.assign({}, t, { power: t.power + SHOP.LV_POWER * (lv - 1), name: t.name + ' · ' + TX('Nv.') + lv })) : techLine(t); };
 
 const VERSION = '0.39.0';
-const DISCORD_URL = 'https://discord.gg/G6SyT2rZW', DISCORD_GIFT = 10;   // servidor de la comunidad (lo hizo un colega de Fran)
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
 // Jugadores originales de Fran (Goggle Jr., Rosfire, Knack…: «original» en gamedata): ocultos en las versiones públicas,
 // solo salen en la beta. Fran decide cuándo (y cómo) se publican: NO meterlos directamente al sacar versiones.
@@ -115,29 +114,32 @@ const App = (() => {
     if (Cloud.state.conflict) return renderConflict(renderMenu);
     let traida = false; try { traida = !!localStorage.getItem('inazuma-traida'); if (traida) localStorage.removeItem('inazuma-traida'); } catch (_) {}
     if (traida) { setTimeout(() => UI.toast(Cloud.enabled() && !Cloud.loggedIn() ? TX('¡Partida traída! Crea una cuenta en 👤 Cuenta para tenerla siempre a salvo') : TX('¡Partida traída!'), 3500), 300); }
-    const P = Profile.data, runs = Run.all(), RUN_ORDER = ['leyenda', 'story', 'special', 'chain', 'infinite'], open = RUN_ORDER.filter(k => runs[k]).map(k => runs[k]);
+    const P = Profile.data, runs = Run.all(), RUN_ORDER = ['leyenda', 'story', 'special'], open = RUN_ORDER.filter(k => runs[k]).map(k => runs[k]);
     const done = P.story.s1.done; hub = renderMenu;
     achToast(); const achN = Ach.pending();
-    screen(`<div class="nm"><div class="nm-tools">
-        <button class="nm-ico" id="mGift" title="${TX('🎁 Código de regalo')}" aria-label="${TX('🎁 Código de regalo')}">🎁</button>
-        <button class="nm-ico" id="mSaves" title="${TX('👤 Cuenta')}${Cloud.loggedIn() ? ' · ' + esc(Cloud.user()) : ''}" aria-label="${TX('👤 Cuenta')}">👤${Cloud.loggedIn() ? '<span class="nm-on"></span>' : ''}</button>
-        ${NEWS.length ? `<button class="nm-ico" id="mNews" title="${TX('📰 Novedades')} · v${VERSION}" aria-label="${TX('📰 Novedades')}">📰${settings.seenNews !== VERSION ? '<i class="newdot"></i>' : ''}</button>` : ''}
-        <button class="nm-ico discord" id="mDiscord" title="${P.discordGift ? TX('💬 Únete al Discord de la comunidad') : TX('💬 Únete al Discord · +10 tickets 🎟️')}" aria-label="Discord">💬${P.discordGift ? '' : '<span class="nm-badge">+10 🎟️</span>'}</button>
+    const sparks = Array.from({ length: 14 }, (_, k) => `<i style="--x:${(k * 7.3 + 4) % 98}%;--t:${(6 + (k * 1.7) % 6).toFixed(1)}s;--dl:${(-(k * 0.9) % 7).toFixed(1)}s;--dx:${((k % 5) - 2) * 18}px"></i>`).join('');
+    screen(`<div class="nm"><div class="nm-sparks">${sparks}</div>
+      <div class="nm-stage" id="nmStage"><canvas class="nm-cv" id="nmCv"></canvas>
+        <div class="nm-tools">
+          <button class="nm-ico" id="mGift" title="${TX('🎁 Código de regalo')}" aria-label="${TX('🎁 Código de regalo')}">🎁</button>
+          <button class="nm-ico" id="mSaves" title="${TX('👤 Cuenta')}${Cloud.loggedIn() ? ' · ' + esc(Cloud.user()) : ''}" aria-label="${TX('👤 Cuenta')}">👤${Cloud.loggedIn() ? '<span class="nm-on"></span>' : ''}</button>
+          ${NEWS.length ? `<button class="nm-ico" id="mNews" title="${TX('📰 Novedades')} · v${VERSION}" aria-label="${TX('📰 Novedades')}">📰${settings.seenNews !== VERSION ? '<i class="newdot"></i>' : ''}</button>` : ''}
+        </div>
+        <div class="title nm-title"><img class="logo" id="logo" src="ui/logo_gold.png" alt="Inazuma Gold"><span>${TX('5 contra 5 · roguelite')}</span></div>
+        <div class="nm-tap">${TX('Toca el estadio ⚡')}</div>
       </div>
-      <div class="title nm-title"><img class="logo" id="logo" src="ui/logo_gold.png" alt="Inazuma Gold"><span>${TX('5 contra 5 · roguelite')}</span></div>${wallet()}
+      ${wallet()}
       ${Leyenda.active() ? lyMenuBtn() : ''}
       ${Pase.active() ? pbMenuBtn() : ''}
       ${open.map(r => `<button class="cta" data-cont="${r.kind}">${TX('Continuar:')} ${esc(r.name)}<small>${TX('Partido')} ${r.index + 1}${r.kind === 'infinite' ? '' : TX(' de ') + r.schedule.length} · ${'♥'.repeat(r.lives)}</small></button>`).join('')}
       <div class="modes">
-        <button class="mode nm-hero" id="mCareer"><span class="cicon">🏆</span><span class="mt"><b>${TX('Modo Carrera')}</b><small>${Career.data && !Career.data.over ? TX('Temporada ') + Career.data.season + ' · ' + DIV_NAME[Career.myDiv()] + TX(' · semana ') + Career.data.week : TX('Eres el mánager: 3 divisiones y ascensos')}</small></span></button>
-        <button class="mode nm-hero" id="mPlayer"><span class="cicon">⭐</span><span class="mt"><b>${TX('Carrera Jugador')}</b><small>${pcSummary()}</small></span></button>
+        <button class="mode nm-hero nm-rise" style="--i:1" id="mCareer"><i class="nm-shine"></i><span class="cicon">🏆</span><span class="mt"><b>${TX('Modo Carrera')}</b><small>${Career.data && !Career.data.over ? TX('Temporada ') + Career.data.season + ' · ' + DIV_NAME[Career.myDiv()] + TX(' · semana ') + Career.data.week : TX('Eres el mánager: 3 divisiones y ascensos')}</small></span></button>
+        <button class="mode nm-hero nm-rise" style="--i:2" id="mPlayer"><i class="nm-shine" style="--sd:1.4s"></i><span class="cicon">⭐</span><span class="mt"><b>${TX('Carrera Jugador')}</b><small>${pcSummary()}</small></span></button>
         <div class="nm-tiles">
-        <button class="mode nm-tile" id="mStory">${Sprites.crest(1)}<span class="mt"><b>${TX('Historia')}</b><small>${P.story.s4.done ? TX('Etapas 1, 2 y 3 completadas ✓') : P.story.s3.done ? TX('Etapa 3 · Fase 2 abierta (mejor: ') + P.story.s4.best + ')' : P.story.s2.done ? TX('Etapa 3 abierta: el Inazuma 3') : done ? TX('Etapa 1 ✓ · Etapa 2 abierta (mejor: ') + P.story.s2.best + ')' : TX('Etapa 1 · mejor: ') + P.story.s1.best + TX(' victorias')}</small></span></button>
-        <button class="mode nm-tile" id="mSpecial">${Sprites.crest(588)}<span class="mt"><b>${TX('Equipos especiales')}</b><small>${SPECIALS.filter(x => Profile.unlocked({ special: x })).length} ${TX('de')} ${SPECIALS.length} ${TX('abiertos')}</small></span></button>
-        <button class="mode nm-tile ${done ? '' : 'locked'}" id="mChain">${Sprites.crest(599)}<span class="mt"><b>${TX('Cadenas')}</b><small>${done ? TX('Desafíos cortos · premio: Rayo Raimon') : TX('🔒 Completa la Etapa 1')}</small></span></button>
-        <button class="mode nm-tile ${done ? '' : 'locked'}" id="mInf">${Sprites.crest(15)}<span class="mt"><b>${TX('Infinito')}</b><small>${done ? TX('Por oleadas · récord: ') + P.infBest : TX('🔒 Completa la Etapa 1')}</small></span></button>
-        <button class="mode nm-tile${Shop.albumPending() ? ' glow' : ''}" id="mAlbum"><span class="cicon">📖</span><span class="mt"><b>${TX('📖 Álbum')}</b><small>${Shop.albumPending() ? TXn(Shop.albumPending(), '¡{0} premio por recoger!', '¡{0} premios por recoger!') : TX('Completa equipos')}</small></span></button>
-        <button class="mode nm-tile${achN ? ' glow' : ''}" id="mAch"><span class="cicon">🏅</span><span class="mt"><b>${TX('🏅 Logros')}</b><small>${achN ? TXn(achN, '¡{0} por recoger!', '¡{0} por recoger!') : TX('{0} de {1}', Ach.LIST.filter(a => Ach.state(a) !== 'locked').length, Ach.LIST.length)}</small></span></button>
+        <button class="mode nm-tile nm-rise" style="--i:3" id="mStory">${Sprites.crest(1)}<span class="mt"><b>${TX('Historia')}</b><small>${P.story.s4.done ? TX('Etapas 1, 2 y 3 completadas ✓') : P.story.s3.done ? TX('Etapa 3 · Fase 2 abierta (mejor: ') + P.story.s4.best + ')' : P.story.s2.done ? TX('Etapa 3 abierta: el Inazuma 3') : done ? TX('Etapa 1 ✓ · Etapa 2 abierta (mejor: ') + P.story.s2.best + ')' : TX('Etapa 1 · mejor: ') + P.story.s1.best + TX(' victorias')}</small></span></button>
+        <button class="mode nm-tile nm-rise" style="--i:4" id="mSpecial">${Sprites.crest(588)}<span class="mt"><b>${TX('Equipos especiales')}</b><small>${SPECIALS.filter(x => Profile.unlocked({ special: x })).length} ${TX('de')} ${SPECIALS.length} ${TX('abiertos')}</small></span></button>
+        <button class="mode nm-tile nm-rise${Shop.albumPending() ? ' glow' : ''}" style="--i:5" id="mAlbum"><span class="cicon">📖</span><span class="mt"><b>${TX('📖 Álbum')}</b><small>${Shop.albumPending() ? TXn(Shop.albumPending(), '¡{0} premio por recoger!', '¡{0} premios por recoger!') : TX('Completa equipos')}</small></span></button>
+        <button class="mode nm-tile nm-rise${achN ? ' glow' : ''}" style="--i:6" id="mAch"><span class="cicon">🏅</span><span class="mt"><b>${TX('🏅 Logros')}</b><small>${achN ? TXn(achN, '¡{0} por recoger!', '¡{0} por recoger!') : TX('{0} de {1}', Ach.LIST.filter(a => Ach.state(a) !== 'locked').length, Ach.LIST.length)}</small></span></button>
         </div>
       </div>
       <div data-cloudline>${cloudLine()}</div>
@@ -147,8 +149,8 @@ const App = (() => {
       <nav class="nm-dock">
         <button class="nm-dk main" id="mGacha"><i>🎰</i><span>${TX('Gacha')}</span><em class="nm-badge">${P.tickets} 🎟️</em></button>
         <button class="nm-dk${Shop.albumPending() ? ' glow' : ''}" id="mShop"><i>🛒</i><span>${TX('Tienda')}</span></button>
+        <button class="nm-dk play" id="mQuick"><i>⚽</i><span>${TX('Partido rápido')}</span></button>
         <button class="nm-dk" id="mTeam"><i>👥</i><span>${TX('Plantilla')}</span></button>
-        <button class="nm-dk" id="mQuick"><i>⚽</i><span>${TX('Partido rápido')}</span></button>
         <button class="nm-dk" id="mSound"><i>⚙️</i><span>${TX('Ajustes')}</span></button>
       </nav></div>`, 'bg_title_hw');
     let vt = 0, vtT = 0;   // 20 toques seguidos en la versión: modo desarrollador
@@ -171,26 +173,24 @@ const App = (() => {
     $('mShop').onclick = () => renderShop('sobres'); $('mAlbum').onclick = () => renderShop('album');
     $('mAch').onclick = () => renderAch(renderMenu);
     $('mSpecial').onclick = () => { if (!resume('special')) renderSpecials(); };
-    $('mChain').onclick = () => { if (!done) return UI.toast(TX('Completa la Etapa 1 de la Historia')); if (!resume('chain')) renderChains(); };
-    $('mInf').onclick = () => { if (!done) return UI.toast(TX('Completa la Etapa 1 de la Historia')); if (!resume('infinite')) { newDraft('infinite', {}); tutorial('infinite'); } };
     $('mGacha').onclick = renderGacha; $('mTeam').onclick = () => renderTeam();
     $('mGift').onclick = renderGift;
     if ($('mNews')) $('mNews').onclick = () => renderPatchNotes(renderMenu);
-    $('mDiscord').onclick = () => {
-      Sound.sfx('click');
-      // Regalo de bienvenida: 10 tickets la primera vez que se pulsa (una sola vez por perfil)
-      if (!P.discordGift) { P.discordGift = Date.now(); P.tickets += DISCORD_GIFT; Profile.save(); setTimeout(() => { renderMenu(); UI.toast(TX('¡Gracias por unirte! +10 tickets 🎟️'), 2600); }, 400); }
-      try { window.open(DISCORD_URL, '_blank', 'noopener'); } catch (_) { location.href = DISCORD_URL; }
-    };
     const newPl = Limitado.pendingNew(settings.seenPlayers);   // jugadores nuevos: sale su pantalla al abrir el juego (y luego las Novedades)
     if (newPl.length) setTimeout(() => { if ($('mNews')) showNewPlayers(newPl, 0, renderMenu); }, 450);
     else if (NEWS.length && settings.seenNews !== VERSION && settings.newsShown !== VERSION) { settings.newsShown = VERSION; saveSettings(); setTimeout(() => { if ($('mNews')) renderPatchNotes(renderMenu); }, 400); }   // la primera vez tras actualizar
     $('mSaves').onclick = () => renderAccount(renderMenu);
     body.querySelector('[data-cloudline]').onclick = () => renderAccount(renderMenu);
-    $('mQuick').onclick = startQuick; $('mSound').onclick = renderSettings;
+    $('mQuick').onclick = () => { Sound.sfx('click'); renderQuick(); }; $('mSound').onclick = renderSettings;
     if ($('mHw')) $('mHw').onclick = renderHalloween;
     if ($('mPb')) $('mPb').onclick = () => renderPase();
     if ($('mLy')) $('mLy').onclick = () => { if (!resume('leyenda')) renderLeyenda(); };
+    // Estadio animado: tu equipo corriendo con el balón (si tienes 5 jugadores); tocarlo lanza un pase y un rayo
+    try {
+      const T0 = savedTeam(), roles = FORMATIONS[T0.formation].roles, mine = T0.ids.map((id, i) => id == null ? null : mySprite(PLAYER(id), roles[i])).filter(Boolean);
+      const fx = mine.length ? MenuFX.scene($('nmCv'), { mode: 'team', mine }) : null;
+      $('nmStage').onclick = e => { if (e.target.closest('.nm-ico')) return; Sound.sfx('click'); if (fx) fx.poke(); };
+    } catch (_) {}
     Sound.music('menu');
   }
 
@@ -1335,7 +1335,8 @@ const App = (() => {
     Sound.music(musicRole || 'match', rival);
     if (field && field !== 'normal') UI.toast(FIELD_LABEL[field] || '', 1600);
   }
-  function startQuick() {
+  let lastQuick = null, lastQuickTab = null;
+  function startQuick(key) {
     api.mode = 'quick';
     const T = savedTeam(), F = FORMATIONS[T.formation], pos = layout(F.roles), L = T.ids;
     if (L.some(x => x == null)) return UI.toast(TX('Completa tu equipo en Plantilla'));
@@ -1343,8 +1344,59 @@ const App = (() => {
       const pd = PLAYER(id);
       return Shop.boost(Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: mySprite(pd, F.roles[i]) }));
     }) };
-    const key = RIVAL_ORDER[Math.floor(Math.random() * RIVAL_ORDER.length)];
-    startMatch({ A, B: rivalTeam(key, 0.9, 0.5) }, false, TEAM_FIELD[key], 'match', key);
+    if (typeof key !== 'string' || !TEAM(key)) key = RIVAL_ORDER[Math.floor(Math.random() * RIVAL_ORDER.length)];
+    lastQuick = key;
+    startMatch({ A, B: rivalTeam(key, 0.9, 0.5) }, false, TEAM_FIELD[key] || 'normal', 'match', key);
+  }
+  // Partido rápido: eliges contra qué equipo jugar (con tus 5 de Plantilla corriendo y el rival entrando al campo)
+  function renderQuick(key) {
+    const T = savedTeam(), F = FORMATIONS[T.formation];
+    if (T.ids.some(x => x == null)) return UI.toast(TX('Completa tu equipo en Plantilla'));
+    const GROUPS = [['s1', TX('Etapa 1'), t => t.kind === 'story'], ['s2', TX('Etapa 2'), t => t.kind === 'story2'], ['s3', TX('Etapa 3'), t => t.kind === 'story3' || t.kind === 'story4'], ['sp', TX('Especiales'), t => t.kind === 'special' || t.kind === 'dark']];
+    const all = GAME.teams.filter(t => GROUPS.some(g => g[2](t))), avgs = all.map(t => t.avg || 0), lo = Math.min(...avgs), hi = Math.max(...avgs);
+    const power = t => Math.max(1, Math.min(5, Math.ceil(5 * ((t.avg || 0) - lo) / (hi - lo + 1e-9))));
+    const groupOf = k => (GROUPS.find(g => g[2](TEAM(k))) || GROUPS[0])[0];
+    if (!key || !TEAM(key) || !all.some(t => t.key === key)) key = lastQuick && all.some(t => t.key === lastQuick) ? lastQuick : all[Math.floor(Math.random() * all.length)].key;
+    let sel = key, tab = groupOf(key), busy = false;
+    const mine = T.ids.map((id, i) => mySprite(PLAYER(id), F.roles[i]));
+    const crest = k => `ui/crest${crestOf(k)}.png`;
+    screen(`${top(TX('Partido rápido'))}
+      <div class="qm-stage"><canvas id="qmCv"></canvas>
+        <div class="qm-side me"><img src="ui/crest1.png" alt=""><b>${TX('Tu equipo')}</b></div>
+        <div class="qm-side rv" id="qmRv"></div><div class="qm-vs">VS</div></div>
+      <div class="qm-tabs" id="qmTabs">${GROUPS.map(g => `<button class="qm-tab" data-g="${g[0]}">${g[1]}</button>`).join('')}</div>
+      <div class="qm-grid" id="qmGrid"></div>
+      ${bottom(`<div class="qm-bar"><button class="ghost" id="qmRand">${TX('🎲 Al azar')}</button><button class="cta" id="qmGo">${TX('⚽ ¡A jugar!')}</button></div>`)}`, 'bg_title');
+    const fx = MenuFX.scene($('qmCv'), { mode: 'vs', mine, rival: MenuFX.rivalRefs(sel) });
+    function paintLabel() {
+      const t = TEAM(sel), el = $('qmRv'); if (!el) return;
+      el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+      el.innerHTML = `<img src="${crest(sel)}" alt=""><b>${esc(t.name)}</b>`;
+    }
+    function paintGrid() {
+      $('qmTabs').querySelectorAll('.qm-tab').forEach(b => b.setAttribute('aria-pressed', b.dataset.g === tab));
+      const g = GROUPS.find(x => x[0] === tab), list = all.filter(g[2]);
+      $('qmGrid').innerHTML = list.map((t, i) => `<button class="qm-card${t.key === sel ? ' sel' : ''}" style="--i:${i}" data-k="${esc(t.key)}"><img src="${crest(t.key)}" alt=""><b>${esc(t.name)}</b><span class="qm-pw">${[1, 2, 3, 4, 5].map(n => `<i${n <= power(t) ? ' class="on"' : ''}></i>`).join('')}</span></button>`).join('');
+      $('qmGrid').querySelectorAll('.qm-card').forEach(c => c.onclick = () => { if (busy) return; Sound.sfx('click'); pick(c.dataset.k); });
+    }
+    function pick(k, quiet) {
+      sel = k; tab = groupOf(k); paintLabel(); paintGrid();
+      if (!quiet) fx.setRival(MenuFX.rivalRefs(k));
+    }
+    $('qmTabs').querySelectorAll('.qm-tab').forEach(b => b.onclick = () => { Sound.sfx('click'); tab = b.dataset.g; paintGrid(); });
+    $('qmRand').onclick = () => {   // dado: pasa por varios equipos y se queda en uno
+      if (busy) return; busy = true; Sound.sfx('click');
+      let n = 0; const iv = setInterval(() => {
+        if (!$('qmGrid')) return clearInterval(iv);
+        const k = all[Math.floor(Math.random() * all.length)].key; n++;
+        pick(k, n < 12); Sound.sfx('click');
+        if (n >= 12) { clearInterval(iv); busy = false; fx.poke(); }
+      }, 75);
+    };
+    $('qmGo').onclick = () => { if (busy) return; fx.destroy(); startQuick(sel); };
+    $('back').onclick = () => { fx.destroy(); renderMenu(); };
+    paintLabel(); paintGrid();
+    Sound.music('menu');
   }
   const TACTICS = [['def', TX('🛡️ Defensivo')], ['eq', TX('⚖️ Equilibrado')], ['of', TX('⚔️ Ofensivo')]];
   let subOut = null;   // jugador de campo elegido para salir
@@ -1595,7 +1647,7 @@ const App = (() => {
       ${scoreLine(s)}
       <p class="note">${TX('El partido rápido no da monedas ni tickets, pero las victorias cuentan para el Rayo Raimon.')}${rayo ? '<br><b>' + TX('⚡ ¡Has ganado un Rayo Raimon!') + '</b>' : ''}</p>
       <button class="cta" id="again">${TX('Otro partido rápido')}</button><button class="ghost" id="toMenu">${TX('Menú')}</button>`, a > b ? 'ill27' : a < b ? 'ill15' : 'ill28');
-    $('again').onclick = startQuick; $('toMenu').onclick = renderMenu;
+    $('again').onclick = () => renderQuick(lastQuick); $('toMenu').onclick = renderMenu;
   }
 
   /* =====================================================================
