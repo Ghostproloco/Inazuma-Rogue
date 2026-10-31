@@ -4,7 +4,7 @@ Fan game gratuito y no comercial de **Inazuma Eleven** (Level-5): fútbol 5 cont
 Para navegador (móvil en vertical y PC).
 
 ## 🎮 Jugar ahora
-**https://franmndezzzz.github.io/Inazuma-Rogue/juego/**
+**https://gold-eleven.onrender.com/**
 
 > Inazuma Eleven es propiedad de Level-5. Este proyecto no está afiliado a Level-5 ni a Nintendo.
 > La carpeta `juego/` contiene recursos sacados de los juegos originales: **mantén este repositorio privado**.
@@ -25,7 +25,7 @@ Se puede entrar con **Google** o con **usuario y contraseña**. Para activarlo, 
 
 1. https://console.firebase.google.com → **Crear un proyecto** (`inazuma-rogue`, sin Google Analytics).
 2. **Authentication → Comenzar → Método de inicio de sesión**: activa **Correo electrónico/contraseña** y **Google**.
-   En **Configuración → Dominios autorizados**, añade `franmndezzzz.github.io`.
+   En **Configuración → Dominios autorizados**, añade `gold-eleven.onrender.com`.
 3. **Firestore Database → Crear base de datos** (ubicación en Europa, modo producción).
    En la pestaña **Reglas**, pega el contenido de `firestore.rules` y pulsa **Publicar**.
 4. **⚙️ Configuración del proyecto → Tus apps → Web (`</>`)**: registra la app y copia `apiKey`, `authDomain`, `projectId` y `appId` en `src/cloud-config.js`.
@@ -33,7 +33,7 @@ Se puede entrar con **Google** o con **usuario y contraseña**. Para activarlo, 
 
 Notas:
 - Esos datos son públicos por diseño; lo que protege las partidas son las reglas de `firestore.rules` (cada uno solo ve la suya).
-- Usuario y contraseña no tiene «he olvidado mi contraseña». Si alguien la pierde, puedes cambiarla en **Authentication → Usuarios** (el usuario `fran` aparece como `fran@jugadores.inazumarogue.app`). Con Google no hay contraseña que olvidar.
+- Usuario y contraseña no tiene «he olvidado mi contraseña». Si alguien la pierde, puedes cambiarla en **Authentication → Usuarios** (un usuario `ana` aparece como `ana@jugadores.inazumarogue.app`). Con Google no hay contraseña que olvidar.
 - Si dejas `src/cloud-config.js` vacío, el juego funciona igual que antes, sin cuentas (y no descarga Firebase).
 - Si dos dispositivos tienen partidas distintas, el juego pregunta cuál conservar y guarda la otra como copia en el móvil.
 
@@ -45,3 +45,9 @@ En la pantalla de bienvenida (y en 👤 Cuenta) está **«¿Jugabas en la versi�
 - En el código, los textos se escriben en español dentro de `TX('…')` (huecos `{0}`, `{1}`… para números o nombres) y su traducción va en `src/en.js`.
 - Técnicas y equipos llevan su nombre en inglés en `gamedata.json` (`name_en`), puesto con `python3 tools/i18n_data.py` a partir de `tools/tech_en.txt`.
 - Para textos nuevos: escríbelos con `TX('…')`, ejecuta `node tools/i18n_sync.js missing` para ver los que faltan y añádelos con `node tools/i18n_sync.js add archivo.txt` (líneas `"clave"|traducción`). `test/i18n.js` avisa si falta alguno y juega una partida en inglés.
+
+## Copias no oficiales
+Si alguien abre el juego desde otra dirección que no sea `gold-eleven.onrender.com` (ni localhost), sale el aviso «Esta copia del juego no es oficial» y a los pocos segundos lo lleva solo a la web oficial. La comprobación está en `hostOk()` y `renderCopy()` de `src/app.js`; la lista de direcciones permitidas va escrita en números a propósito.
+
+## Publicar en Render
+Sirve la carpeta `juego/` como sitio estático (Publish directory: `juego`). Cada vez que cambies `src/`, ejecuta `python3 build.py` y sube el `juego/index.html` nuevo.
