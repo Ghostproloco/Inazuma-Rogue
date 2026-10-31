@@ -2773,20 +2773,23 @@ const App = (() => {
   function renderLogin(back = renderMenu, mode = 'in') {
     const up = mode === 'up', first = !Profile.data.firstDone, expired = Cloud.loggedIn() && Cloud.expired();
     screen(`${top(up ? TX('Crear cuenta') : TX('Iniciar sesión'))}
-      <div class="grid2 tabs"><button class="ghost" id="tIn" aria-pressed="${!up}">${TX('Ya tengo cuenta')}</button><button class="ghost" id="tUp" aria-pressed="${up}">${TX('Crear cuenta')}</button></div>
-      ${up ? `<p class="note">${TX('Con una cuenta tu partida se guarda en la nube y la recuperas en cualquier móvil u ordenador.')}${Profile.data.firstDone ? ' <b>' + TX('Tu progreso actual se pasará a la cuenta.') + '</b>' : ''}</p>`
-        : `<p class="note">${expired ? TX('Tu sesión se ha cerrado. Entra otra vez para seguir guardando en la nube.') : TX('Entra con la misma forma que usaste al crear la cuenta.')}</p>`}
-      <button class="gbtn" id="aGoogle" type="button"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.2C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.6 28.5c-.5-1.4-.8-2.9-.8-4.5s.3-3.1.8-4.5l-7.9-6.2C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.2 1.5-5 2.3-8.2 2.3-6.2 0-11.5-4.1-13.4-9.8l-7.9 6.2C6.6 42.6 14.6 48 24 48z"/></svg>${TX('Continuar con Google')}</button>
-      <p class="gsep"><span>${TX('o con usuario y contraseña')}</span></p>
-      <form class="aform" id="aForm" autocomplete="on">
-        <label>${TX('Usuario')}<input id="aUser" name="username" type="text" maxlength="16" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="${TX('ej.: fran_10')}" value="${expired ? esc(Cloud.user() || '') : ''}"></label>
-        <label>${TX('Contraseña')}<input id="aPass" name="password" type="password" maxlength="72" autocomplete="${up ? 'new-password' : 'current-password'}" placeholder="${TX('mínimo 6 caracteres')}"></label>
-        ${up ? '<label>' + TX('Repite la contraseña') + '<input id="aPass2" type="password" maxlength="72" autocomplete="new-password"></label>' : ''}
-        <label class="showpw"><input type="checkbox" id="aShow"> ${TX('Mostrar contraseña')}</label>
-        <button class="cta" id="aGo" type="submit">${up ? TX('Crear cuenta') : TX('Entrar')}</button>
-      </form>
-      <p class="giftmsg" id="aMsg"></p>
-      ${up ? '<p class="note">' + TX('Con usuario y contraseña, apúntala: como no usamos correo,') + ' <b>' + TX('no se puede recuperar') + '</b> ' + TX('si la olvidas. Con Google no hay contraseña que recordar.') + '</p>' : ''}
+      <div class="title alogo"><img class="logo" src="ui/logo_gold.png" alt="Inazuma Gold" onerror="this.remove()"><span>${up ? TX('Crea tu cuenta y no pierdas tu equipo') : expired ? TX('Tu sesión se ha cerrado') : TX('¡Vuelve al campo!')}</span></div>
+      <div class="acard">
+        <div class="seg" role="tablist"><button id="tIn" type="button" aria-pressed="${!up}">${TX('Entrar')}</button><button id="tUp" type="button" aria-pressed="${up}">${TX('Crear cuenta')}</button></div>
+        ${up ? `<div class="perks"><span>☁️ ${TX('Guardado automático')}</span><span>📱 ${TX('En cualquier dispositivo')}</span><span>🎁 ${TX('Gratis')}</span></div>${Profile.data.firstDone ? '<p class="note">' + TX('Tu progreso actual se pasará a la cuenta.') + '</p>' : ''}`
+          : `<p class="note c">${expired ? TX('Tu sesión se ha cerrado. Entra otra vez para seguir guardando en la nube.') : TX('Entra con la misma forma que usaste al crear la cuenta.')}</p>`}
+        <button class="gbtn" id="aGoogle" type="button"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.2C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.6 28.5c-.5-1.4-.8-2.9-.8-4.5s.3-3.1.8-4.5l-7.9-6.2C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.2 1.5-5 2.3-8.2 2.3-6.2 0-11.5-4.1-13.4-9.8l-7.9 6.2C6.6 42.6 14.6 48 24 48z"/></svg>${TX('Continuar con Google')}</button>
+        <p class="gsep"><span>${TX('o con usuario y contraseña')}</span></p>
+        <form class="aform" id="aForm" autocomplete="on">
+          <label class="fld"><span class="fl">${TX('Usuario')}</span><span class="fw"><i aria-hidden="true">👤</i><input id="aUser" name="username" type="text" maxlength="16" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="${up ? TX('Elige tu nombre de usuario') : TX('Tu nombre de usuario')}" value="${expired ? esc(Cloud.user() || '') : ''}"></span></label>
+          <label class="fld"><span class="fl">${TX('Contraseña')}</span><span class="fw"><i aria-hidden="true">🔒</i><input id="aPass" name="password" type="password" maxlength="72" autocomplete="${up ? 'new-password' : 'current-password'}" placeholder="${up ? TX('mínimo 6 caracteres') : TX('Tu contraseña')}"></span></label>
+          ${up ? '<label class="fld"><span class="fl">' + TX('Repite la contraseña') + '</span><span class="fw"><i aria-hidden="true">🔒</i><input id="aPass2" type="password" maxlength="72" autocomplete="new-password"></span></label>' : ''}
+          <label class="showpw"><input type="checkbox" id="aShow"> ${TX('Mostrar contraseña')}</label>
+          <button class="cta" id="aGo" type="submit">${up ? TX('Crear cuenta') : TX('Entrar')}</button>
+        </form>
+        <p class="giftmsg" id="aMsg"></p>
+        ${up ? '<p class="note c">' + TX('Con usuario y contraseña, apúntala: como no usamos correo,') + ' <b>' + TX('no se puede recuperar') + '</b> ' + TX('si la olvidas. Con Google no hay contraseña que recordar.') + '</p>' : ''}
+      </div>
       <button class="ghost" id="aOld">${TX('📦 ¿Jugabas en la versión antigua? Trae tu partida')}</button>
       ${first ? '<button class="ghost big" id="aGuest">' + TX('Jugar como invitado') + '<small>' + TX('Tu partida solo se guardará en este móvil') + '</small></button>' : ''}`, 'bg_green');
     const form = $('aForm'), m = $('aMsg'), go = $('aGo');
