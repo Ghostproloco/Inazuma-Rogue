@@ -325,9 +325,6 @@ select option{color:#111;font-family:system-ui}
 .cmgr small{font-size:10px;color:#ffb44a}.cmgr.ray{background:rgba(40,10,40,.75)}.cmgr img.mgrcrest{width:64px;height:64px;image-rendering:pixelated}
 .chead img.mgrcrest{width:40px;height:40px}
 /* ---------- Halloween ---------- */
-.livebtn{display:flex;align-items:center;gap:12px;margin:0 0 10px;padding:10px 14px;border-radius:10px;text-decoration:none;color:#fff;background:linear-gradient(90deg,#6b2bd9,#9146ff);box-shadow:0 0 0 2px #c9a8ff,0 0 16px rgba(145,70,255,.55);animation:livepulse 2.4s ease-in-out infinite}
-.livebtn .mt{flex:1;display:flex;flex-direction:column;text-align:left}.livebtn b{font-size:17px;color:#fff}.livebtn small{opacity:.85}
-.livebtn .livego{font-size:20px}.livedot{width:12px;height:12px;border-radius:50%;background:#ff3b3b;box-shadow:0 0 8px #ff3b3b;animation:liveblink 1.2s steps(2) infinite;flex:none}
 @keyframes liveblink{50%{opacity:.25}}@keyframes livepulse{50%{box-shadow:0 0 0 2px #e2d1ff,0 0 26px rgba(145,70,255,.8)}}
 .mode.hwmode{background:linear-gradient(90deg,#3a1458,#5a1f2a);box-shadow:0 0 0 2px #ff8a1a,0 0 14px rgba(255,138,26,.35)}
 .mode.hwmode b{color:#ffa23a}
@@ -1851,7 +1848,6 @@ const EN_TEXT = {
   'Formación': 'Formation',
   'Formas especiales': 'Special shapes',
   'Franja': 'Stripe',
-  'Franmen está en directo': 'Franmen is live',
   'Fuego': 'Fire',
   'Fuego y hielo': 'Fire and Ice',
   'Fuera': 'Away',
@@ -2690,7 +2686,6 @@ const EN_TEXT = {
   'Toca la cápsula para abrirla': 'Tap the capsule to open it',
   'Toca para continuar': 'Tap to continue',
   'Toca para empezar': 'Tap to start',
-  'Toca para verlo en Twitch': 'Tap to watch on Twitch',
   'Toca una acción y pulsa la tecla que quieras (Esc cancela).': 'Tap an action and press the key you want (Esc cancels).',
   'Toca una y la verás en acción en un minicampo, una y otra vez. Para volver, pausa y «Salir».': 'Tap one to see it in action on a mini pitch, over and over. To go back, pause and choose "Quit".',
   'Toca una y te sale ahora mismo en la Carrera Jugador. Las marcadas con ✓ ya te han salido hace poco.': 'Tap one and it appears right away in your Player Career. Those marked ✓ have come up recently.',
@@ -3426,7 +3421,7 @@ const EN_TEXT = {
   '⭐ Destacados': '⭐ Featured',
   '⭐ Jugador del partido: +1 🎟️ y +50 🪙': '⭐ Man of the match: +1 🎟️ and +50 🪙',
   '⭐ Oportunidad de la semana': '⭐ Opportunity of the week',
-  '⭐ Originales de Fran': '⭐ Fran\'s originals',
+  '⭐ Jugadores originales': '⭐ Original players',
   '🌍 El Mundial': '🌍 The World Cup',
   '🌍 Empezar el Mundial': '🌍 Start the World Cup',
   '🌍 Fuera': '🌍 Abroad',
@@ -3494,8 +3489,6 @@ const EN_TEXT = {
   '💎 ¡Cadena perfecta sin perder vidas! +5 🎟️': '💎 Perfect chain without losing a life! +5 🎟️',
   '💬 Decisión ahora': '💬 Decision now',
   '💬 Probar decisiones': '💬 Test decisions',
-  '💬 Únete al Discord de la comunidad': '💬 Join the community Discord',
-  '💬 Únete al Discord · +10 tickets 🎟️': '💬 Join the Discord · +10 tickets 🎟️',
   '💰 Dinero infinito: NO': '💰 Infinite money: NO',
   '💰 Dinero infinito: SÍ': '💰 Infinite money: YES',
   '💰 para tu club · +': '💰 for your club · +',
@@ -4784,7 +4777,7 @@ const Logic = (() => {
         else { const c = s.pass.charge, d = s.pass.dir; s.pass = null; pass(s, me, 'strong', d, c > 0.18 ? c : 0); return; }
       }
       if (pr.has('dribble')) { dribble(s, me, { x, y }); return; }
-      pr.has('B');   // el pase al hueco se quitó del juego (22 oct, Fran): la tecla/botón ya no hace nada con balón (el portero sí saca en largo)
+      pr.has('B');   // el pase al hueco se quitó del juego (22 oct): la tecla/botón ya no hace nada con balón (el portero sí saca en largo)
       if (pr.has('tech')) { tryTech(s, me, x); return; }
       if (auto && !s.shoot.charging) {
         const t = bestTech(me, 'regate');
@@ -5440,7 +5433,7 @@ const Logic = (() => {
     const b = s.ball, sh = b.shot, v2 = b.vx * b.vx + b.vy * b.vy;
     if (b.z > 2.2 || v2 < 4) return;
     sh.tried = sh.tried || {};
-    // Tu equipo solo bloquea a mano: tu jugador, pulsando Técnica (Fran, 24 oct); tus compañeros no bloquean solos. Los rivales (IA), según la dificultad
+    // Tu equipo solo bloquea a mano: tu jugador, pulsando Técnica (24 oct); tus compañeros no bloquean solos. Los rivales (IA), según la dificultad
     const human = s.settings.allAI ? null : s.controlledId;
     for (const p of s.players) {
       if (p.team === sh.team || p.role === 'POR' || p.stun > 0 || p.dash || p.tackle || sh.tried[p.id]) continue;
@@ -5869,7 +5862,6 @@ const GIFT_CODES = {
   SELVALEYENDA:      { pick: { selva: true }, desc: TX('Elige 1 de 3 legendarios del evento Selva') },
   INFINITO10:        { pick: { inf: true, n: 10 }, uses: 2, desc: TX('Elige 1 de 10 versiones del Infinito (con las probabilidades del gacha)') },
   FUEGOSAGRADO:      { pick: { rarity: 'epica', elem: 'fuego' }, tickets: 5, desc: TX('Elige 1 de 3 jugadores de fuego épicos o mejores') },
-  DISCORDINAZUMA:    { tickets: 15, rayos: 2, desc: TX('Regalo de la comunidad') },
   TICKETAZO:         { tickets: 50, desc: TX('Lluvia de tickets') },
   // Bianchi Christmas ya NO se consigue con código: solo en el Gacha limitado (src/limited.js)
   DOBLELEYENDA:      { leg: 2, desc: TX('Dos tiradas legendarias aseguradas') },
@@ -9635,7 +9627,7 @@ const DEVICE_KEYS = ['inazuma-ajustes', 'inazuma-sonido', 'inazuma-ranuras'];   
 
 const Cloud = (() => {
   const META_KEY = 'inazuma-cuenta';
-  const EMAIL_DOMAIN = 'jugadores.inazumarogue.app';   // el usuario «fran» se guarda como fran@jugadores… (no se envía ningún correo)
+  const EMAIL_DOMAIN = 'jugadores.inazumarogue.app';   // el usuario «ana» se guarda como ana@jugadores… (no se envía ningún correo)
   const FB_VERSION = '10.12.2';
   const CFG = (typeof CLOUD_CONFIG !== 'undefined' && CLOUD_CONFIG) || {};
   // Cada subida gasta cuota de Firebase (plan gratis: ~20.000 escrituras al día para todos los jugadores).
@@ -12684,8 +12676,8 @@ const techLineMy = t => { const lv = Shop.techLevel(t.id); return lv > 1 ? techL
 
 const VERSION = '0.39.0';
 const BETA = false;   // solo la beta privada (artefacto) lo pone a true: ahí está el modo desarrollador
-// Jugadores originales de Fran (Goggle Jr., Rosfire, Knack…: «original» en gamedata): ocultos en las versiones públicas,
-// solo salen en la beta. Fran decide cuándo (y cómo) se publican: NO meterlos directamente al sacar versiones.
+// Jugadores originales (Goggle Jr., Rosfire, Knack…: «original» en gamedata): ocultos en las versiones públicas,
+// solo salen en la beta. NO meterlos directamente al sacar versiones.
 if (!BETA && typeof GAME !== 'undefined') GAME.players.forEach(p => { if (p.original) p.gacha = false; });
 const App = (() => {
   const $ = id => document.getElementById(id);
@@ -12749,29 +12741,6 @@ const App = (() => {
   document.addEventListener('pointerdown', () => Sound.unlock(), { capture: true });
 
   /* ---------- Menú principal: modos ---------- */
-  // Botón «en directo»: DecAPI (servicio público, sin claves) dice si el canal de Twitch de Fran está emitiendo.
-  // Se mira al abrir el menú (como mucho cada ~3 min) y cada 3 min con la página a la vista. Si falla, simplemente no sale.
-  const TWITCH = 'franmen_';
-  const Live = { on: false, at: 0, busy: false,
-    async check(force) {
-      if (this.busy || typeof fetch === 'undefined' || (!force && Date.now() - this.at < 170000)) return;
-      this.busy = true; this.at = Date.now();
-      let tm = null;
-      try {
-        const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-        if (ctl) tm = setTimeout(() => ctl.abort(), 6000);
-        const r = await fetch('https://decapi.me/twitch/uptime/' + TWITCH + '?t=' + Date.now(), { cache: 'no-store', signal: ctl ? ctl.signal : undefined });
-        const t = r.ok ? (await r.text()).trim() : '';
-        const on = !!t && t.length < 120 && /\d/.test(t) && !/offline|error|not found|no user|invalid/i.test(t);   // en directo: «1 hour, 5 minutes»
-        if (on !== this.on) { this.on = on; this.paint(); }
-      } catch (_) {} finally { clearTimeout(tm); this.busy = false; }
-    },
-    paint() {
-      const el = $('liveSlot'); if (!el) return;
-      el.innerHTML = this.on ? `<a class="livebtn" href="https://www.twitch.tv/${TWITCH}" target="_blank" rel="noopener"><i class="livedot"></i><span class="mt"><b>${TX('Franmen está en directo')}</b><small>${TX('Toca para verlo en Twitch')}</small></span><span class="livego">▶</span></a>` : '';
-    },
-  };
-  setInterval(() => { if (!document.hidden && $('liveSlot')) Live.check(); }, 180000);
   function renderMenu() {
     if (!Profile.data.firstDone) return renderWelcome();
     if (Cloud.state.conflict) return renderConflict(renderMenu);
@@ -16236,7 +16205,7 @@ const App = (() => {
         ${b('dHwRetos', TX('Completar los retos'), TX('desbloquea a Ray Dark'))}${b('dHwReset', TX('Reiniciar el evento'), TX('caramelos, retos y regalo'))}</div>
       <h3>${TX('Jugadores especiales')}</h3>
       <div class="grid2">${b('dAddHw', TX('🎃 Legendarios de Halloween'), TX('los {0} + Jim épico', HW_LEGENDS.length))}${b('dAddSv', TX('🍃 Legendarios del Sobre Selva'), TX('los {0}', SV_LEGENDS.length))}
-        ${b('dAddInf', TX('∞ Versiones del Infinito'), TX('las {0}', GAME.players.filter(p => p.inf).length))}${b('dAddOrig', TX('⭐ Originales de Fran'), TX('Goggle Jr., Rosfire y Knack'))}</div>
+        ${b('dAddInf', TX('∞ Versiones del Infinito'), TX('las {0}', GAME.players.filter(p => p.inf).length))}${b('dAddOrig', TX('⭐ Jugadores originales'), TX('Goggle Jr., Rosfire y Knack'))}</div>
       <h3>${TX('Sobre Selva')}</h3>
       <div class="grid2">${b('dLyWin', TX('Cadena Leyenda: al partido 15'), TX('empieza o salta al último partido'))}${b('dLyReset', TX('Reiniciar la Cadena Leyenda'), TX('premios, récord y Willy'))}</div>
       <div class="grid2">${b('dSvLeg', TX('Legendario en la próxima tirada'), TX('asegurado del Sobre Selva'))}${b('dSvReset', TX('Reiniciar el Sobre Selva'), TX('tiradas y asegurado'))}</div>
@@ -16492,14 +16461,15 @@ $('dReset').onclick = () => {
   addEventListener('error', e => { if (e && (e.error || e.message) && !(e.target && e.target !== window && (e.target.src || e.target.href))) onCrash(e.message || (e.error && e.error.message)); });
   addEventListener('unhandledrejection', e => { const r = e && e.reason; if (r && !/fetch|network|load|firebase|firestore|auth/i.test(String(r.message || r))) onCrash(r.message || String(r)); });
   // Solo arranca en la web oficial (o en la beta y en las pruebas). Las direcciones van como números para que no se cambien con un simple «buscar y reemplazar».
-  const OFFICIAL = String.fromCharCode(104,116,116,112,115,58,47,47,102,114,97,110,109,110,100,101,122,122,122,122,46,103,105,116,104,117,98,46,105,111,47,73,110,97,122,117,109,97,45,82,111,103,117,101,47,106,117,101,103,111) + '/';
+  const OFFICIAL = String.fromCharCode(104,116,116,112,115,58,47,47,103,111,108,100,45,101,108,101,118,101,110,46,111,110,114,101,110,100,101,114,46,99,111,109) + '/';
   function hostOk() {
     const h = (location.hostname || '').toLowerCase();
     if (BETA) return true;
-    const ok = [[102,114,97,110,109,110,100,101,122,122,122,122,46,103,105,116,104,117,98,46,105,111], [103,104,111,115,116,112,114,111,108,111,99,111,46,103,105,116,104,117,98,46,105,111], [108,111,99,97,108,104,111,115,116], [49,50,55,46,48,46,48,46,49]].map(a => String.fromCharCode(...a));
+    const ok = [[103,111,108,100,45,101,108,101,118,101,110,46,111,110,114,101,110,100,101,114,46,99,111,109], [108,111,99,97,108,104,111,115,116], [49,50,55,46,48,46,48,46,49]].map(a => String.fromCharCode(...a));
     return ok.includes(h) || h.endsWith('.test');
   }
   function renderCopy() {
+    try { setTimeout(() => { location.replace(OFFICIAL); }, 1500); } catch (_) {}   // quien abre una copia acaba en la web oficial
     screen(`<div class="title"><img class="logo" src="ui/logo_gold.png" alt="Inazuma Gold" onerror="this.remove()">
       <h2>${TX('Esta copia del juego no es oficial')}</h2>
       <p class="note">${TX('Inazuma Gold es gratis y solo se juega en su web oficial, donde tienes tu partida guardada, las novedades y los eventos.')}</p>
