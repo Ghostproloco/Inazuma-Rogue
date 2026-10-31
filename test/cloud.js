@@ -4,7 +4,7 @@ const fs = require('fs'), vm = require('vm'), path = require('path');
 const code = fs.readFileSync(path.join(__dirname, '..', 'src', 'cloud.js'), 'utf8');
 
 /* ---------- Servidor falso: cuentas + Firestore (con las mismas reglas que firestore.rules) ---------- */
-const server = { users: {}, saves: {}, n: 0, down: false, writes: 0, quota: false, google: { uid: 'g-fran', email: 'fran@gmail.com', displayName: 'Fran Méndez' } };
+const server = { users: {}, saves: {}, n: 0, down: false, writes: 0, quota: false, google: { uid: 'g-user', email: 'user@gmail.com', displayName: 'Ana Pérez' } };
 const fail = c => { const e = new Error(c); e.code = c; throw e; };
 const TS = { __ts: true };
 function makeFirebase() {
@@ -170,15 +170,15 @@ const cloudTickets = d => JSON.parse(cloudOf(d).data['inazuma-perfil']).tickets;
   let G = device();
   G.play({ coll: { 7: { stars: 1 } }, tickets: 11 });
   const g = await G.C.signInGoogle();
-  ok(g.ok && G.C.user() === 'Fran Méndez' && G.C.via() === 'google', 'entra con su nombre de Google');
-  ok(await G.C.sync() === 'uploaded' && cloudOf(G).username === 'Fran Méndez', 'sube su partida');
+  ok(g.ok && G.C.user() === 'Ana Pérez' && G.C.via() === 'google', 'entra con su nombre de Google');
+  ok(await G.C.sync() === 'uploaded' && cloudOf(G).username === 'Ana Pérez', 'sube su partida');
   let H = device(); server.popupBlocked = true;
   const h = await H.C.signInGoogle();
   ok(h.redirect && H.C.pendingRedirect(), 'ventana bloqueada → va a Google por redirección');
   server.popupBlocked = false;
   // Vuelve de Google: la página arranca de cero con el mismo almacenamiento
   device.keep = makeFirebase(); H = device(H.ls._);
-  ok(await H.C.sync() === 'downloaded' && H.prof().tickets === 11 && H.C.user() === 'Fran Méndez', 'al volver: sesión iniciada y partida bajada');
+  ok(await H.C.sync() === 'downloaded' && H.prof().tickets === 11 && H.C.user() === 'Ana Pérez', 'al volver: sesión iniciada y partida bajada');
 
   console.log('13. Una cuenta no ve la partida de otra');
   ok(Object.keys(server.saves).length === 3, 'tres partidas separadas');
