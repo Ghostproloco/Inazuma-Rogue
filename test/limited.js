@@ -10,7 +10,7 @@ vm.createContext(ctx);
 const src = ['logic.js', 'run.js', 'career.js', 'christmas.js', 'limited.js'].map(f => fs.readFileSync(S + f, 'utf8')).join('\n');
 // partida guardada «vieja»: con los jugadores retirados en la colección
 store['inazuma-perfil'] = JSON.stringify({ coll: { 998001: { stars: 3, up: {} }, 998002: { stars: 1, up: {} }, 998003: { stars: 2, up: {} }, 998004: { stars: 5, up: {} }, 1: { stars: 1, up: {} } }, coins: 10, tickets: 5 });
-vm.runInContext(src + '\nProfile.load();Object.assign(this,{Navidad,XM_BIANCHI,XM_BIANCHI_PITY,XM_START,Profile,Run,PLAYER,TECH,Limitado,LM_N_LEG,LM_N_EPIC,LM_PRICE,LM_N,LM_PITY,LM_RATES,NEW_PLAYERS,LM_PLAYERS,RARITY,LEG_TECHS,Gacha,GIFT_CODES,giftPickOptions,signatureTech,startingTechs,statOf,LM_POOL_IDS,REMOVED_PLAYERS,runMember});', ctx);
+vm.runInContext(src + '\nProfile.load();Object.assign(this,{Navidad,XM_START,Profile,Run,PLAYER,TECH,Limitado,LM_N_LEG,LM_N_EPIC,LM_PRICE,LM_N,LM_PITY,LM_RATES,NEW_PLAYERS,LM_PLAYERS,RARITY,LEG_TECHS,Gacha,GIFT_CODES,giftPickOptions,signatureTech,startingTechs,statOf,LM_POOL_IDS,REMOVED_PLAYERS,runMember});', ctx);
 const { Profile, Run, PLAYER, TECH, Limitado, LM_PRICE, LM_N, LM_PITY, LM_RATES, NEW_PLAYERS, LM_PLAYERS, RARITY, GIFT_CODES, giftPickOptions, signatureTech, startingTechs, statOf, LM_POOL_IDS, REMOVED_PLAYERS, runMember } = ctx;
 let ok = true;
 const chk = (c, m) => { if (!c) { ok = false; console.log('FALLA:', m); } };
@@ -104,17 +104,7 @@ chk(NEW_PLAYERS.length === 0, 'NEW_PLAYERS vacío (sin avisos de jugador nuevo)'
 chk(Limitado.pendingNew([]).length === 0, 'pendingNew vacío');
 chk(Limitado.active() === true, 'el gacha limitado debe estar activo');
 
-// 10. Bianchi Christmas: solo en el Sobre Navideño (súper difícil) y el evento se abre el 12 de diciembre
+// 10. La Navidad se abre el 12 de diciembre y Bianchi Christmas ya no existe
 chk(ctx.XM_START === '2026-12-12', 'la Navidad debe empezar el 12 de diciembre: ' + ctx.XM_START);
-{ const N = ctx.Navidad, H = N.data(); const BID = ctx.XM_BIANCHI.id;
-  chk(PLAYER(BID) && PLAYER(BID).xmas && PLAYER(BID).gacha === false, 'Bianchi Christmas registrado como jugador de Navidad');
-  let seen = 0; const rnd2 = Math.random;
-  H.snow = 1e9; H.bpity = 0; for (let i = 0; i < 20000; i++) { const r = N.pull(1); if (r[0].id === BID) seen++; }
-  console.log('Bianchi en 20000 tiradas de Navidad:', seen, '(esperado ≈ 40 + garantía)');
-  chk(seen > 10 && seen < 150, 'Bianchi sale fuera de lo esperado: ' + seen);
-  Math.random = () => 0.999; H.snow = 1e9; H.bpity = 0; H.pity = 0; let first = 0;
-  for (let i = 1; i <= ctx.XM_BIANCHI_PITY + 5 && !first; i++) { if (N.pull(1)[0].id === BID) first = i; }
-  Math.random = rnd2;
-  chk(first === ctx.XM_BIANCHI_PITY, 'Bianchi asegurado a las ' + ctx.XM_BIANCHI_PITY + ' tiradas: salió en ' + first);
-}
+chk(!PLAYER(997008), 'Bianchi Christmas ya no debe existir en el juego');
 console.log(ok ? '✓ Todo bien' : 'HAY FALLOS');
