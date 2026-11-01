@@ -810,6 +810,62 @@ html,body,button,.act,#shell{touch-action:manipulation}
 .tmx .ptile.epica,.tmx.pgrid .ptile.epica{box-shadow:0 0 0 2px #b07cff,0 4px 12px rgba(176,124,255,.45)}
 .tmx .ptile.legendaria,.tmx.pgrid .ptile.legendaria{box-shadow:0 0 0 2px #ffd23a,0 4px 14px rgba(255,210,58,.55);background:linear-gradient(#6a4d1c,#2a1a08)}
 .tmx .ptile.sel,.tmx.pgrid .ptile.sel{background:linear-gradient(#ffb23a,#c85a00);box-shadow:0 0 0 2px #fff3c4,0 0 16px 3px rgba(255,170,50,.8)}
+.limcine{position:absolute;inset:0;width:100%;height:100%;z-index:35;pointer-events:none;image-rendering:pixelated}
+/* ===== Objetos 🎒 y Tienda nueva ===== */
+.itx-grid,.itx-row,.shx-deals{display:grid;gap:9px;grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
+.itx-row{display:flex;flex-wrap:wrap;justify-content:center;margin:10px 0}
+.itx{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 6px 8px;text-align:center;color:#fff;cursor:pointer;
+  border-radius:14px;border:2px solid var(--rc);background:linear-gradient(160deg,color-mix(in srgb,var(--rc) 35%,#0e1738),#0b1230 70%);box-shadow:0 0 0 2px rgba(0,0,0,.55),0 4px 10px rgba(0,0,0,.4);font-family:var(--font-ui);transition:transform .15s}
+.itx:active{transform:scale(.96)}
+.itx-ic{display:flex;align-items:center;justify-content:center;width:48px;height:48px;font-size:28px;border-radius:50%;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--rc) 60%,#fff),color-mix(in srgb,var(--rc) 45%,#101a40) 70%);box-shadow:0 0 0 2px rgba(0,0,0,.55),0 0 12px color-mix(in srgb,var(--rc) 70%,transparent);filter:drop-shadow(0 2px 0 rgba(0,0,0,.4))}
+.itx b{font:400 12px/1.1 var(--font-ui);min-height:26px;display:flex;align-items:center}
+.itx em{font:10px var(--font-ui);font-style:normal;color:var(--rc);letter-spacing:.5px;text-transform:uppercase}
+.itx small{font-size:10px;line-height:1.15;color:#cfd8ff}
+.itx .cta.mini{margin-top:4px;width:100%;padding:5px 2px}
+.itx-n{position:absolute;top:5px;right:6px;text-decoration:none;padding:0 6px;font:11px/16px var(--font-ui);color:#fff;background:rgba(0,0,0,.65);border-radius:8px}
+.itx.used{opacity:.55}
+.itx-shine{position:absolute;top:-10%;bottom:-10%;left:-70%;width:35%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);animation:nmShine 4.5s ease-in-out infinite;pointer-events:none;display:none}
+.itx.r-epica .itx-shine,.itx.r-legendaria .itx-shine{display:block}
+.itx.r-legendaria{animation:nmPulse 1.8s ease-in-out infinite}
+.itx.pop{animation:pkDeal .5s cubic-bezier(.2,1.4,.4,1) both;animation-delay:var(--d,0s)}
+.itx-pop{text-align:center}.itx-pop h2{margin:0;font-size:22px;font-weight:400;color:var(--yellow);text-shadow:2px 2px 0 #c8102e}
+.itx-pop .itx{width:112px}
+.itx-old{font-size:11px;color:#9aa4d0}.itx-off{position:absolute;top:6px;left:-22px;width:80px;transform:rotate(-35deg);font:12px/16px var(--font-ui);background:#c8102e;color:#fff;text-align:center}
+.itx-sum{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.itx-sum span{padding:4px 10px;font:12px var(--font-ui);color:var(--gold);background:rgba(8,14,40,.75);border:2px solid var(--ink);border-radius:12px}
+.itx-list{display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto}
+.itx-prow{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:12px;background:rgba(27,42,92,.8);border:2px solid var(--ink);box-shadow:0 0 0 1px var(--line)}
+.itx-prow.inteam{box-shadow:0 0 0 2px #4ed06a}
+.itx-prow .cplb{flex:1;min-width:0}
+.shx .cpl.fac,.shx .albp,.shx .shopit{border-radius:14px;background:linear-gradient(#32508f,#17244f);border:2px solid var(--ink);box-shadow:0 0 0 2px rgba(255,255,255,.14),0 4px 8px rgba(0,0,0,.35)}
+.shx h3{margin:14px 0 8px;font-size:18px;font-weight:400;color:var(--gold);text-shadow:1px 1px 0 #000}
+.shoptabs{display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;padding:5px;border-radius:14px;background:rgba(8,14,40,.75);border:2px solid var(--ink);box-shadow:0 0 0 2px var(--line);scrollbar-width:none}
+.shoptabs::-webkit-scrollbar{display:none}
+.shoptabs button{flex:none;border-radius:10px;padding:7px 11px;white-space:nowrap;transition:transform .15s}
+.shoptabs button[aria-pressed="true"]{background:linear-gradient(#ffb23a,#e0680a);box-shadow:0 0 14px rgba(255,170,50,.7),inset 0 -3px 0 rgba(0,0,0,.22);transform:translateY(-1px)}
+.shx-hero{position:relative;overflow:hidden;margin:10px 0 4px;padding:12px 10px 14px;border-radius:18px;border:3px solid var(--ink);box-shadow:0 0 0 2px #ffe08a,0 0 22px rgba(255,190,60,.45);background:linear-gradient(135deg,#7a2bd6,#c8102e 55%,#f08a00)}
+.shx-ht{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px;position:relative;z-index:1}
+.shx-ht b{font:400 24px var(--font-ui);color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.55)}.shx-ht span{font-size:12px;color:#ffe9b0}
+.shx-deals{grid-template-columns:repeat(3,minmax(0,1fr));position:relative;z-index:1}
+.shx-deals .itx{padding-top:12px}
+.shx-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.shx-tile{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px;border-radius:16px;border:3px solid var(--ink);box-shadow:0 0 0 2px rgba(255,255,255,.2),0 5px 12px rgba(0,0,0,.4);text-align:left;color:#fff;font-family:var(--font-ui);cursor:pointer;transition:transform .15s}
+.shx-tile:active{transform:scale(.96)}
+.shx-tile span{font-size:30px;filter:drop-shadow(0 3px 0 rgba(0,0,0,.4));animation:nmFloat 3.4s ease-in-out infinite}
+.shx-tile b{font:400 18px var(--font-ui);text-shadow:1px 1px 0 rgba(0,0,0,.5)}.shx-tile small{font-size:11px;color:#fff;opacity:.85}
+.shx-tile.t1{background:linear-gradient(135deg,#2a6fd6,#173a8a)}.shx-tile.t2{background:linear-gradient(135deg,#f2b01a,#b8650a)}.shx-tile.t3{background:linear-gradient(135deg,#1f9a52,#0b5a2c)}.shx-tile.t4{background:linear-gradient(135deg,#a24cff,#5a1fa0)}
+.shpks{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.shpk{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 8px;border-radius:16px;text-align:center;background:linear-gradient(#26407e,#131d45);border:2px solid var(--ink);box-shadow:0 0 0 2px rgba(255,255,255,.14),0 4px 10px rgba(0,0,0,.4)}
+.shpk small{font-size:11px;color:#cfd8ff;min-height:28px}
+.shpk-art{position:relative;overflow:hidden;width:92px;height:122px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:3px solid var(--ink);border-top:0;
+  background:linear-gradient(160deg,var(--pc,#3f8fff),#0e1738 60%,var(--pc,#3f8fff));animation:pkFloat 3s ease-in-out infinite;
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 6px),92% 100%,84% calc(100% - 6px),76% 100%,68% calc(100% - 6px),60% 100%,52% calc(100% - 6px),44% 100%,36% calc(100% - 6px),28% 100%,20% calc(100% - 6px),12% 100%,4% calc(100% - 6px),0 100%)}
+.shpk-art span{font-size:30px}.shpk-art b{font:400 12px/1.1 var(--font-ui);color:#fff;text-shadow:1px 1px 0 #000;padding:0 6px}
+.shpk-top{position:absolute;left:0;right:0;top:0;height:14px;background:repeating-linear-gradient(90deg,rgba(0,0,0,.25) 0 3px,rgba(255,255,255,.15) 3px 8px)}
+.shpk-shine{position:absolute;top:-20%;bottom:-20%;left:-60%;width:40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);animation:nmShine 3s ease-in-out infinite}
+.shpk.rara{--pc:#3f8fff}.shpk.epica{--pc:#a24cff}.shpk.puesto{--pc:#2fc46a}.shpk.legendaria{--pc:#ffcc22}
+.shpk .cta.mini{width:100%}
+@media (prefers-reduced-motion:reduce){.itx,.itx-shine,.shx-tile span,.shpk-art,.shpk-shine{animation:none!important}}
 /* ===== Gacha: apertura de sobre ===== */
 .pkstage{position:relative;height:250px;margin:4px 0 6px;display:flex;align-items:center;justify-content:center;touch-action:pan-y;cursor:grab;perspective:700px;overflow:visible}
 .pkglow{position:absolute;left:50%;top:50%;width:260px;height:260px;margin:-130px;background:radial-gradient(circle,var(--c2) 0,transparent 62%);opacity:.35;animation:pkGlow 2.4s ease-in-out infinite}
@@ -1541,6 +1597,63 @@ const EN_TEXT = {
   'Cambio automático de jugador': 'Automatic player switching',
   'Cambio: entra {0}': 'Substitution: {0} comes on',
   'Cambios': 'Substitutions',
+  "ESCARCHA ETERNA": "ETERNAL FROST",
+  "CADENAS DORADAS": "GOLDEN CHAINS",
+  "TORNADO ESMERALDA": "EMERALD TORNADO",
+  "TORMENTA ELÉCTRICA": "ELECTRIC STORM",
+  "ESTRELLA FUGAZ": "SHOOTING STAR",
+  "🎁 ¡Objetos conseguidos!": "🎁 Items obtained!",
+  "Equípalos en Plantilla › Objetos: cada jugador lleva uno.": "Equip them in Squad › Items: each player wears one.",
+  "¡Genial!": "Great!",
+  "Elige a quién se lo pones (si ya lleva otro, se cambia).": "Choose who wears it (if they already wear another, it is swapped).",
+  "Equipar": "Equip",
+  "objetos en el gacha": "items in the gacha",
+  "Cada jugador lleva un objeto y sus estadísticas suben en tus partidos (Partido rápido, 11 contra 11, Historia y Equipos especiales). Los consigues en el gacha y en la Tienda.": "Each player wears one item and their stats go up in your matches (Quick match, 11 vs 11, Story and Special teams). Get them in the gacha and in the Shop.",
+  "Mochila": "Backpack",
+  "Aún no tienes objetos. Salen al abrir sobres en el gacha y se compran en la Tienda.": "You have no items yet. They drop when opening packs in the gacha and can be bought in the Shop.",
+  "🛒 Ir a la Tienda": "🛒 Go to the Shop",
+  "Equipados": "Equipped",
+  "Nadie lleva ningún objeto todavía.": "Nobody is wearing an item yet.",
+  "Todos los que tienes ya están puestos. Quita uno abajo.": "All of the ones you have are already in use. Remove one below.",
+  "Quitar": "Remove",
+  "Objetos": "Items",
+  "⭐ Destacado": "⭐ Featured",
+  "🎒 Objetos": "🎒 Items",
+  "Ofertas del día": "Daily deals",
+  "se renuevan en {0} h {1} min": "refresh in {0} h {1} min",
+  "✓ Comprado": "✓ Bought",
+  "Para ti hoy": "For you today",
+  "te quedan {0} hoy": "{0} left today",
+  "¡Disponible esta semana!": "Available this week!",
+  "{0} en tu mochila": "{0} in your backpack",
+  "Álbum": "Album",
+  "¡Premio por recoger!": "Reward to collect!",
+  "Los objetos suben las estadísticas de tus jugadores y también caen al abrir sobres en el gacha.": "Items boost your players' stats and also drop when opening packs in the gacha.",
+  "Cada jugador lleva un objeto. Equípalos en Plantilla › Objetos. Los comprados se suman a los que consigues en el gacha.": "Each player wears one item. Equip them in Squad › Items. Bought ones add to the ones you get from the gacha.",
+  "Raro": "Rare",
+  "Épico": "Epic",
+  "Legendario": "Legendary",
+  "Botas de entrenamiento": "Training boots",
+  "Espinilleras reforzadas": "Reinforced shin guards",
+  "Balón de práctica": "Practice ball",
+  "Guantes de goma": "Rubber gloves",
+  "Botas Relámpago": "Lightning Boots",
+  "Cinta de capitán": "Captain's armband",
+  "Guantes de acero": "Steel gloves",
+  "Imán de monedas": "Coin magnet",
+  "+20 % de monedas al ganar partidos": "+20% coins when you win matches",
+  "Botas Huracán": "Hurricane Boots",
+  "Balón de oro": "Golden ball",
+  "Coraza de titanio": "Titanium armour",
+  "Trébol de la suerte": "Lucky clover",
+  "+50 % de objetos en el gacha": "+50% items in the gacha",
+  "Guantes del Dios": "Gloves of the God",
+  "Estrella Inazuma": "Inazuma Star",
+  "Corona del campeón": "Champion's crown",
+  "Ese objeto no existe": "That item does not exist",
+  "No te quedan de ese objeto sin usar": "You have none of that item left unused",
+  "Esa oferta ya no está": "That deal is gone",
+  "Ya has comprado esta oferta hoy": "You already bought this deal today",
   '11 contra 11': '11 vs 11',
   'Campo grande · partido de verdad': 'Big pitch · a proper match',
   'Te faltan {0} jugadores para el once: el club te presta refuerzos básicos.': 'You are {0} players short of a full eleven: the club lends you basic reinforcements.',
@@ -6120,12 +6233,13 @@ const normCode = c => String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 
 // Jugadores retirados del juego (Arion Sherwind, Victor Blade, Riccardo Di Rigo y Bai Long) y su puesto: se quitan de las partidas guardadas
 const REMOVED_PLAYERS = { 998001: 'MED', 998002: 'MED', 998003: 'DEF', 998004: 'DEL', 997008: 'DEL' };   // 997008 = Bianchi Christmas (retirado)
+const START_COINS = 500, START_TICKETS = 10;   // lo que recibe una cuenta o un invitado nuevo
 const Profile = {
   data: null,
   load() {
     let d = null;
     try { d = JSON.parse(localStorage.getItem('inazuma-perfil') || 'null'); } catch (_) {}
-    this.data = Object.assign({ coll: {}, coins: 99999, tickets: 99999, pity: 0, firstDone: false, pulls: 0,
+    this.data = Object.assign({ coll: {}, coins: START_COINS, tickets: START_TICKETS, pity: 0, firstDone: false, pulls: 0,
       rayos: 0, wins: 0, story: { s1: { best: 0, done: false } }, specials: {}, chains: {}, infBest: 0, techs: {}, banner: 1 }, d || {});
     this.data.techs = this.data.techs || {};
     (this.data.custom || []).forEach(registerCustom);   // tus jugadores creados (Modo Carrera Jugador)
@@ -6454,6 +6568,7 @@ const Run = {
       if (run.lives <= 0) { out.done = true; run.state = 'over'; }
       else run.state = 'map';
     }
+    if (out.coins > 0 && typeof Items !== 'undefined' && Items.coinPct()) out.coins = Math.round(out.coins * (1 + Items.coinPct() / 100));   // 🧲 Imán de monedas
     P.coins += out.coins; P.tickets += out.tickets; Profile.save();
     run.coinsEarned += out.coins; run.ticketsEarned += out.tickets;
     run.last = out;
@@ -6594,9 +6709,15 @@ function rivalTeamBig(teamKey, factor, progress) {
     const sig = signatureTech(pd); if (sig != null && !techs.includes(sig)) techs[0] = sig;
     const gkt = keeperTech(pd, techs); if (gkt != null) techs.unshift(gkt);
     techs = techs.slice(0, TECH_SLOTS);
-    const kit = star ? t.kit : null;
-    return Object.assign(buildMatchPlayer(m.id, roles[i], k => Math.round(pd.ie[k] * f), techs, [], n + i, pos[i]),
-      { sprite: Object.assign(m.file ? { file: m.file, row: m.row } : pd.cs ? { file: 'c' + String(pd.cs[0]).padStart(2, '0') + '.png', row: pd.cs[1] } : { file: 'c00.png', row: 0 }, kit && roles[i] !== 'POR' ? { kit } : {}) });
+    // Titulares: su muñeco propio. Refuerzos: muñeco base recoloreado con la equipación del equipo (si no, saldrían con camisas de otros equipos)
+    const base = pd.cs ? { file: 'c' + String(pd.cs[0]).padStart(2, '0') + '.png', row: pd.cs[1] } : { file: 'c00.png', row: 0 };
+    let sprite;
+    if (star) sprite = Object.assign(m.file ? { file: m.file, row: m.row } : base, t.kit && roles[i] !== 'POR' ? { kit: t.kit } : {});
+    else {
+      const col = t.kit || t.kitAuto;
+      sprite = Object.assign(base, col && roles[i] !== 'POR' ? { kit: Object.assign({ a: col.a, b: col.b }, pd.role === 'POR' ? { gk: true } : {}) } : {});
+    }
+    return Object.assign(buildMatchPlayer(m.id, roles[i], k => Math.round(pd.ie[k] * f), techs, [], n + i, pos[i]), { sprite });
   }) };
 }
 
@@ -9592,6 +9713,7 @@ const Shop = {
   // Aplica los niveles a las técnicas de un jugador de partido de tu equipo
   boost(m) {
     if (!m || !m.techs) return m;
+    if (typeof Items !== 'undefined') Items.apply(m);   // 🎒 el objeto que lleva puesto
     m.techs = m.techs.map(t => { const lv = this.techLevel(t.id); return lv > 1 ? Object.assign({}, t, { power: t.power + SHOP.LV_POWER * (lv - 1), lv }) : t; });
     return m;
   },
@@ -9638,6 +9760,121 @@ const Shop = {
     if (!this.pay(this.priceOf(id))) return this.noCoins();
     Profile.data.coll[id] = { stars: 1, up: {} }; Profile.save();
     return { ok: true, id, isNew: true, tier: pd.rarity };
+  },
+};
+
+/* =====================================================================
+   OBJETOS 🎒: equipo que se pone a un jugador (1 por jugador) y mejora sus estadísticas en los partidos de tu equipo
+   (Partido rápido, 11 contra 11, Historia, Equipos especiales; no en las Carreras).
+   Salen en el gacha (con cada tirada puede caer uno; la de ×10 asegura al menos uno) y se compran en la Tienda
+   (ofertas del día con descuento). Dos objetos hacen algo más que subir estadísticas:
+   · 🧲 Imán de monedas: +20 % de monedas al ganar partidos (acumulable por cada imán equipado)
+   · 🍀 Trébol de la suerte: +50 % de probabilidad de que el gacha te dé objetos (acumulable)
+   Se guarda en el perfil: P.items = { own: { idObjeto: cantidad }, eq: { idJugador: idObjeto }, deal: { day, bought: [] } }
+   ===================================================================== */
+const ITEM_RAR = { comun: { name: TX('Común'), price: 400, w: 55, c: '#b8bcc8' }, rara: { name: TX('Raro'), price: 1500, w: 30, c: '#3f8fff' }, epica: { name: TX('Épico'), price: 5000, w: 12, c: '#a24cff' }, legendaria: { name: TX('Legendario'), price: 15000, w: 3, c: '#ffcc22' } };
+const ITEM_STAT = { tiro: TX('Tiro'), control: TX('Control'), defensa: TX('Defensa'), rapidez: TX('Rapidez'), fisico: TX('Físico') };
+const ITEMS = {
+  botas_entreno:  { icon: '👟', rar: 'comun',      name: TX('Botas de entrenamiento'), st: { rapidez: 3 } },
+  espinilleras:   { icon: '🦵', rar: 'comun',      name: TX('Espinilleras reforzadas'), st: { fisico: 3 } },
+  balon_practica: { icon: '⚽', rar: 'comun',      name: TX('Balón de práctica'), st: { tiro: 3 } },
+  guantes_goma:   { icon: '🧤', rar: 'comun',      name: TX('Guantes de goma'), st: { defensa: 3 } },
+  botas_rayo:     { icon: '🥾', rar: 'rara',       name: TX('Botas Relámpago'), st: { rapidez: 6, control: 2 } },
+  cinta_capitan:  { icon: '🎗️', rar: 'rara',       name: TX('Cinta de capitán'), st: { control: 5, tiro: 3 } },
+  guantes_acero:  { icon: '🥊', rar: 'rara',       name: TX('Guantes de acero'), st: { defensa: 7 } },
+  iman:           { icon: '🧲', rar: 'rara',       name: TX('Imán de monedas'), st: { control: 2 }, coin: 20, extra: TX('+20 % de monedas al ganar partidos') },
+  botas_huracan:  { icon: '🌪️', rar: 'epica',      name: TX('Botas Huracán'), st: { rapidez: 10, tiro: 4 } },
+  balon_oro:      { icon: '🥇', rar: 'epica',      name: TX('Balón de oro'), st: { tiro: 9, control: 3 } },
+  coraza:         { icon: '🛡️', rar: 'epica',      name: TX('Coraza de titanio'), st: { fisico: 9, defensa: 4 } },
+  trebol:         { icon: '🍀', rar: 'epica',      name: TX('Trébol de la suerte'), st: { control: 3 }, luck: 50, extra: TX('+50 % de objetos en el gacha') },
+  guantes_dios:   { icon: '🖐️', rar: 'legendaria', name: TX('Guantes del Dios'), st: { defensa: 14, fisico: 6 } },
+  estrella:       { icon: '🌟', rar: 'legendaria', name: TX('Estrella Inazuma'), st: { tiro: 12, rapidez: 8, control: 6 } },
+  corona:         { icon: '👑', rar: 'legendaria', name: TX('Corona del campeón'), st: { tiro: 6, control: 6, defensa: 6, rapidez: 6, fisico: 6 } },
+};
+const ITEM_IDS = Object.keys(ITEMS);
+const Items = {
+  DROP: 0.12,   // probabilidad de objeto por tirada de gacha (la de ×10 asegura al menos uno)
+  st() {
+    const P = Profile.data, I = P.items = P.items || {};
+    I.own = I.own || {}; I.eq = I.eq || {}; I.deal = I.deal || { day: '', bought: [] };
+    return I;
+  },
+  def: id => ITEMS[id],
+  count(id) { return this.st().own[id] || 0; },
+  worn(id) { return Object.values(this.st().eq).filter(x => x === id).length; },
+  free(id) { return this.count(id) - this.worn(id); },
+  of(pid) { return this.st().eq[pid] || null; },
+  add(id, n = 1) { if (!ITEMS[id]) return; const I = this.st(); I.own[id] = (I.own[id] || 0) + n; Profile.save(); },
+  equip(pid, id) {
+    const I = this.st();
+    if (!ITEMS[id]) return { ok: false, msg: TX('Ese objeto no existe') };
+    if (I.eq[pid] === id) return { ok: true };
+    if (this.free(id) <= 0) return { ok: false, msg: TX('No te quedan de ese objeto sin usar') };
+    I.eq[pid] = id; Profile.save(); return { ok: true };
+  },
+  unequip(pid) { const I = this.st(); delete I.eq[pid]; Profile.save(); },
+  // Estadística extra que da el objeto de un jugador
+  bonus(pid, k) { const it = ITEMS[this.of(pid)]; return it && it.st[k] || 0; },
+  // Aplica el objeto a un jugador ya construido para el partido (m.key = id del jugador)
+  apply(m) {
+    const it = m && ITEMS[this.of(m.key)]; if (!it) return m;
+    const s = it.st;
+    if (s.tiro) m.kick += s.tiro;
+    if (s.control) m.control += s.control;
+    if (s.defensa) m.defense += s.defensa;
+    if (s.fisico) m.body += s.fisico;
+    if (s.rapidez) m.speed = +(m.speed + s.rapidez * 0.05).toFixed(2);
+    m.gk += Math.round(((s.defensa || 0) + (s.fisico || 0)) / 2);
+    m.item = m.item || this.of(m.key);
+    return m;
+  },
+  // Bonos de los objetos que llevas puestos en alguien de tu club
+  total(field) { return Object.values(this.st().eq).reduce((a, id) => a + ((ITEMS[id] && ITEMS[id][field]) || 0), 0); },
+  coinPct() { return this.total('coin'); },
+  luck() { return this.total('luck'); },
+  bonusText(id) {
+    const it = ITEMS[id]; if (!it) return '';
+    return Object.entries(it.st).map(([k, v]) => '+' + v + ' ' + ITEM_STAT[k]).join(' · ') + (it.extra ? ' · ' + it.extra : '');
+  },
+  pickRar(rnd = Math.random) {
+    let r = rnd() * Object.values(ITEM_RAR).reduce((a, x) => a + x.w, 0);
+    for (const k in ITEM_RAR) { r -= ITEM_RAR[k].w; if (r < 0) return k; }
+    return 'comun';
+  },
+  // Objetos que caen al abrir un sobre de n jugadores. Los guarda en la mochila
+  rollDrops(n, rnd = Math.random) {
+    const p = Math.min(0.9, this.DROP * (1 + this.luck() / 100)), out = [];
+    for (let i = 0; i < n; i++) if (rnd() < p) out.push(this.randomOf(this.pickRar(rnd), rnd));
+    if (n >= 10 && !out.length) out.push(this.randomOf(this.pickRar(rnd), rnd));
+    out.forEach(id => this.add(id));
+    return out;
+  },
+  randomOf(rar, rnd = Math.random) { const l = ITEM_IDS.filter(id => ITEMS[id].rar === rar); return l[Math.floor(rnd() * l.length)]; },
+  /* ---- Tienda ---- */
+  price: id => ITEM_RAR[ITEMS[id].rar].price,
+  buy(id) {
+    if (!ITEMS[id]) return { ok: false, msg: TX('Ese objeto no existe') };
+    const c = this.price(id), P = Profile.data;
+    if (P.coins < c) return { ok: false, msg: TX('No tienes monedas suficientes') };
+    P.coins -= c; this.add(id); return { ok: true, id, msg: '+1 ' + ITEMS[id].name };
+  },
+  // Ofertas del día: 3 objetos fijos para toda la jornada, con un 25 % de descuento (1 de cada uno)
+  dealDay(now = Date.now()) { return Shop.today(now); },
+  deals(now = Date.now()) {
+    const day = this.dealDay(now), I = this.st();
+    if (I.deal.day !== day) { I.deal.day = day; I.deal.bought = []; }
+    let seed = 0; for (const ch of day) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+    const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+    const pool = ITEM_IDS.filter(id => ITEMS[id].rar !== 'legendaria'), ids = [];
+    while (ids.length < 3) { const id = pool[Math.floor(rnd() * pool.length)]; if (!ids.includes(id)) ids.push(id); }
+    return ids.map(id => ({ id, price: Math.round(this.price(id) * 0.75), bought: I.deal.bought.includes(id) }));
+  },
+  buyDeal(id, now = Date.now()) {
+    const d = this.deals(now).find(x => x.id === id);
+    if (!d) return { ok: false, msg: TX('Esa oferta ya no está') };
+    if (d.bought) return { ok: false, msg: TX('Ya has comprado esta oferta hoy') };
+    const P = Profile.data; if (P.coins < d.price) return { ok: false, msg: TX('No tienes monedas suficientes') };
+    P.coins -= d.price; this.st().deal.bought.push(id); this.add(id); return { ok: true, id, msg: '+1 ' + ITEMS[id].name };
   },
 };
 
@@ -11243,16 +11480,9 @@ class MatchScene extends Phaser.Scene {
       const fx = typeof LM_FX !== 'undefined' && LM_FX[p.key]; if (!fx) continue;
       const v = this.views.get(p.id); if (!v || !v.root.visible) continue;
       const x = p.x * PX, y = p.y * PX - p.z * PX, spd = Math.hypot(p.vx, p.vy), k = 0.5 + 0.5 * Math.sin(time / 130 + p.row);
-      g.fillStyle(fx.a, 0.1 + 0.07 * k).fillEllipse(x, y - 26, 44 + 8 * k, 74 + 10 * k);
-      g.lineStyle(2, fx.b, 0.35 + 0.25 * k).strokeEllipse(x, y + 8, 40 + 6 * k, 14);
-      const seed = Math.floor(time / 90) * 7 + p.row * 13, rn = i => { const t = Math.sin(seed * 12.9898 + i * 78.233) * 43758.5453; return t - Math.floor(t); };
-      for (let b = 0, nb = spd > 0.6 ? 4 : 2; b < nb; b++) {   // rayos en zigzag
-        let bx = x + (rn(b * 9) - 0.5) * 38, by = y - 62 + rn(b * 9 + 1) * 10;
-        g.lineStyle(2, b % 2 ? fx.b : fx.a, 0.9).beginPath().moveTo(bx, by);
-        for (let i = 1; i <= 4; i++) { bx += (rn(b * 9 + i * 2) - 0.5) * 18; by += 12 + rn(b * 9 + i * 2 + 1) * 6; g.lineTo(bx, by); }
-        g.strokePath();
-      }
-      if (spd > 0.6) {   // al correr: rayo por el suelo detrás y chispas
+      LimFX.aura(g, x, y, fx, LimFX.styleOf(p.key), time, spd, p.row);   // aura propia de cada limitado (limfx.js)
+      if (spd > 0.6) {   // al correr: estela del color de su estilo detrás y chispas
+        const seed = Math.floor(time / 90) * 7 + p.row * 13, rn = i => { const t = Math.sin(seed * 12.9898 + i * 78.233) * 43758.5453; return t - Math.floor(t); };
         const bx = -p.vx / spd, by = -p.vy / spd; let cx = x, cy = y + 2;
         g.lineStyle(3, fx.a, 0.8).beginPath().moveTo(cx, cy);
         for (let i = 1; i <= 5; i++) { cx += bx * 8 + (rn(40 + i) - 0.5) * 8; cy += by * 4 + (rn(50 + i) - 0.5) * 6; g.lineTo(cx, cy); }
@@ -11521,7 +11751,10 @@ class TechFX {
     switch (e.type) {
       case 'techStart': {
         const p = P(e.id), t = p && p.techs.find(x => x.name === e.name);
-        UI.cutin(e.name, e.elem, e.team, e.kind, p && p.sprite, e.kind === 'tiro' || e.kind === 'parada' ? 1250 : 800, { lim: !!(t && t.lim) || !!(p && typeof LM_FX !== 'undefined' && LM_FX[p.key]), small: !!e.quick });
+        const lfx = p && typeof LM_FX !== 'undefined' && LM_FX[p.key];
+        if (lfx && (e.kind === 'tiro' || e.kind === 'parada')) {   // jugador limitado: escena de cámara propia (limfx.js)
+          LimFX.cine({ ref: p.sprite, style: LimFX.styleOf(p.key), name: e.name, a: lfx.a, b: lfx.b, team: e.team, ms: e.quick ? 950 : 1550 });
+        } else UI.cutin(e.name, e.elem, e.team, e.kind, p && p.sprite, e.kind === 'tiro' || e.kind === 'parada' ? 1250 : 800, { lim: !!(t && t.lim) || !!lfx, small: !!e.quick });
         if (p) UI.say(p.sprite, p.name, Dialog.shout(e.elem, e.kind), e.team, false, 1500);
         this.crewStart(s, p, e);
         if (t && (e.kind === 'tiro' || e.kind === 'parada')) { this.zoomBack = false; this.sc.cameras.main.zoomTo(1.3, 220, 'Sine.easeOut', true); }
@@ -12643,6 +12876,183 @@ class TechFX {
 }
 
 /* =====================================================================
+   JUGADORES LIMITADOS: cada uno con su propio estilo visual
+   - Aura en el campo (LimFX.aura): se dibuja con la API de Graphics de Phaser (view.js › drawLimited)
+   - Escena de cámara al lanzar una supertécnica (LimFX.cine): capa 2D a pantalla completa con barras de cine,
+     el jugador en pose de chute, su efecto propio y el nombre de la técnica
+   Estilos:  hielo (Samford) · oro/cadenas (Da Silva) · esmeralda/tornado (Almeida) · tormenta/relámpagos (Trick) · estelar (Pase)
+   ===================================================================== */
+const LIM_STYLE = { 994001: 'hielo', 994002: 'oro', 994003: 'esmeralda', 994004: 'tormenta' };
+const LIM_NAME = { hielo: TX('ESCARCHA ETERNA'), oro: TX('CADENAS DORADAS'), esmeralda: TX('TORNADO ESMERALDA'), tormenta: TX('TORMENTA ELÉCTRICA'), estelar: TX('ESTRELLA FUGAZ') };
+const LimFX = (() => {
+  const hex = n => '#' + (n & 0xffffff).toString(16).padStart(6, '0');
+  const rgba = (n, a) => `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  const rn = (seed, i) => { const t = Math.sin(seed * 12.9898 + i * 78.233) * 43758.5453; return t - Math.floor(t); };
+  const styleOf = key => LIM_STYLE[key] || (typeof PB_PLAYER !== 'undefined' && key === PB_PLAYER ? 'estelar' : 'tormenta');
+
+  /* ---------------- Aura en el campo (API de Phaser Graphics) ---------------- */
+  // g: Graphics · x,y: pies del jugador (px) · fx: {a,b} colores · time: ms · spd: velocidad · row: semilla
+  function aura(g, x, y, fx, style, time, spd, row) {
+    const k = 0.5 + 0.5 * Math.sin(time / 130 + row), seed = Math.floor(time / 90) * 7 + row * 13, r = i => rn(seed, i);
+    if (style === 'hielo') {
+      // Cristales de hielo en el suelo y copos que giran alrededor
+      for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3 + time / 900, l = 13 + 5 * k, cx = x + Math.cos(a) * 17, cy = y + 5 + Math.sin(a) * 6;
+        g.fillStyle(fx.b, 0.75).fillTriangle(cx - 3, cy, cx + 3, cy, cx, cy - l); g.fillStyle(fx.a, 0.5).fillTriangle(cx - 2, cy, cx + 2, cy, cx + 1, cy - l * 0.6); }
+      for (let i = 0; i < 7; i++) { const a = time / 700 + i * 0.9, fy = y - 8 - ((time / 40 + i * 17) % 62), fx2 = x + Math.cos(a) * (14 + (i % 3) * 5);
+        g.lineStyle(1.5, 0xffffff, 0.85).lineBetween(fx2 - 2.5, fy, fx2 + 2.5, fy).lineBetween(fx2, fy - 2.5, fx2, fy + 2.5); }
+      g.lineStyle(2, fx.a, 0.5 + 0.3 * k).strokeEllipse(x, y + 5, 46 + 8 * k, 16);
+    } else if (style === 'oro') {
+      // Cadenas doradas que giran alrededor del cuerpo (dos aros inclinados de eslabones)
+      for (let c = 0; c < 2; c++) {
+        const n = 16, cy0 = y - (c ? 16 : 40);
+        for (let i = 0; i < n; i++) {
+          const a = time / (c ? -520 : 460) + i * Math.PI * 2 / n, lx = x + Math.cos(a) * 24, ly = cy0 + Math.sin(a) * 7, front = Math.sin(a) > 0, w = i % 2 ? 3.5 : 8, h = i % 2 ? 8 : 3.5;
+          g.lineStyle(front ? 2.5 : 1.5, front ? fx.a : fx.b, front ? 1 : 0.45).strokeEllipse(lx, ly, w, h);
+        }
+      }
+      g.fillStyle(fx.a, 0.1 + 0.07 * k).fillEllipse(x, y - 26, 44 + 8 * k, 74 + 10 * k);
+      for (let i = 0; i < 3; i++) { const px = x + (r(i) - 0.5) * 36, py = y - 10 - r(i + 9) * 52; g.fillStyle(0xffffff, 0.8 * r(i + 4)).fillCircle(px, py, 1.5 + r(i + 2) * 1.5); }
+    } else if (style === 'esmeralda') {
+      // Hélice de hojas y viento verde que sube por el cuerpo
+      for (let h = 0; h < 2; h++) {
+        g.lineStyle(2.5, h ? fx.b : fx.a, 0.85).beginPath();
+        for (let i = 0; i <= 16; i++) { const t = i / 16, a = time / 260 + t * 9 + h * Math.PI, px = x + Math.cos(a) * (18 - 6 * t), py = y + 4 - t * 62; i ? g.lineTo(px, py) : g.moveTo(px, py); }
+        g.strokePath();
+      }
+      for (let i = 0; i < 5; i++) { const t = ((time / 700 + i * 0.21) % 1), a = time / 300 + i * 1.7, px = x + Math.cos(a) * (20 - 8 * t), py = y + 2 - t * 64;
+        g.fillStyle(i % 2 ? fx.a : fx.b, 0.9 * (1 - t * 0.5)).fillTriangle(px - 3, py, px + 3, py, px, py - 6); }
+      g.fillStyle(fx.a, 0.09 + 0.06 * k).fillEllipse(x, y - 26, 44 + 8 * k, 74 + 10 * k);
+    } else if (style === 'estelar') {
+      for (let i = 0; i < 6; i++) { const a = time / 520 + i * Math.PI / 3, px = x + Math.cos(a) * 20, py = y - 28 + Math.sin(a) * 26;
+        g.fillStyle(i % 2 ? fx.a : fx.b, 0.9).fillTriangle(px - 3, py, px + 3, py, px, py - 7).fillTriangle(px - 3, py - 4, px + 3, py - 4, px, py + 3); }
+      g.fillStyle(fx.a, 0.1 + 0.07 * k).fillEllipse(x, y - 26, 44 + 8 * k, 74 + 10 * k);
+    } else {
+      // Tormenta: relámpagos en zigzag (el clásico) y rayo por el suelo al correr
+      g.fillStyle(fx.a, 0.1 + 0.07 * k).fillEllipse(x, y - 26, 44 + 8 * k, 74 + 10 * k);
+      for (let b = 0, nb = spd > 0.6 ? 4 : 2; b < nb; b++) {
+        let bx = x + (r(b * 9) - 0.5) * 38, by = y - 62 + r(b * 9 + 1) * 10;
+        g.lineStyle(2, b % 2 ? fx.b : fx.a, 0.9).beginPath().moveTo(bx, by);
+        for (let i = 1; i <= 4; i++) { bx += (r(b * 9 + i * 2) - 0.5) * 18; by += 12 + r(b * 9 + i * 2 + 1) * 6; g.lineTo(bx, by); }
+        g.strokePath();
+      }
+    }
+    g.lineStyle(2, fx.b, 0.35 + 0.25 * k).strokeEllipse(x, y + 8, 40 + 6 * k, 14);
+  }
+
+  /* ---------------- Escena de cámara (canvas 2D a pantalla completa) ---------------- */
+  // Efecto de fondo de cada estilo: t = 0..1 de la escena, (cx,cy) = centro del jugador, S = tamaño de referencia
+  const BG = {
+    hielo(g, t, cx, cy, S, W, H, c) {
+      for (let i = 0; i < 26; i++) {   // esquirlas de hielo que salen disparadas
+        const a = i / 26 * Math.PI * 2 + rn(i, 1), d = S * (0.35 + 1.6 * Math.min(1, t * 1.6) * (0.5 + rn(i, 2))), l = S * (0.14 + rn(i, 3) * 0.2);
+        const x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d;
+        g.fillStyle = rgba(i % 2 ? 0xffffff : c.a, 0.85 - t * 0.5); g.beginPath(); g.moveTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.lineTo(x + Math.cos(a + 2.5) * l * 0.28, y + Math.sin(a + 2.5) * l * 0.28); g.lineTo(x + Math.cos(a - 2.5) * l * 0.28, y + Math.sin(a - 2.5) * l * 0.28); g.fill();
+      }
+      for (let i = 0; i < 40; i++) { const x = (rn(i, 5) * W + t * 60 * (rn(i, 6) - 0.5)) % W, y = ((rn(i, 7) * H + t * H * (0.5 + rn(i, 8))) % H); g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(x - 4, y); g.lineTo(x + 4, y); g.moveTo(x, y - 4); g.lineTo(x, y + 4); g.stroke(); }
+      g.font = (S * 0.34) + 'px serif'; g.textAlign = 'center'; g.globalAlpha = 0.95;   // pingüinos que se deslizan
+      for (let i = 0; i < 3; i++) { const p = (t * 1.5 - i * 0.18); if (p < 0 || p > 1) continue; g.save(); g.translate(W * p - S * 0.2, H * (0.78 + 0.05 * i) + Math.sin(p * 20 + i) * 6); g.rotate(Math.PI / 2 * 0.0 + Math.sin(p * 14) * 0.15); g.fillText('🐧', 0, 0); g.restore(); }
+      g.globalAlpha = 1;
+      const fr = g.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.75); fr.addColorStop(0, 'rgba(160,230,255,0)'); fr.addColorStop(1, 'rgba(190,240,255,.55)'); g.fillStyle = fr; g.fillRect(0, 0, W, H);
+    },
+    oro(g, t, cx, cy, S, W, H, c) {
+      // Cadenas que se enroscan al cuerpo, se tensan y estallan en eslabones al final
+      const tight = Math.min(1, t * 1.8), burst = Math.max(0, (t - 0.72) / 0.28);
+      for (let ch = 0; ch < 3; ch++) {
+        const n = 34;
+        for (let i = 0; i < n; i++) {
+          const u = i / (n - 1), a = u * 10 + ch * 2.1 + t * 3 * (ch % 2 ? -1 : 1), rad = S * (1.35 - 0.8 * tight + 0.18 * Math.sin(u * 6)) + burst * S * (0.8 + rn(i + ch * 50, 3) * 2.2);
+          const x = cx + Math.cos(a) * rad + burst * (rn(i + ch * 50, 4) - 0.5) * S * 2, y = cy + S * 0.95 - u * S * 1.9 + Math.sin(a) * rad * 0.16 + burst * S * (rn(i + ch * 50, 5) - 0.3) * 1.5, front = Math.sin(a) > -0.1;
+          g.save(); g.translate(x, y); g.rotate(Math.PI * 0.5 * (i % 2) + a * 0.3 + burst * i);
+          g.strokeStyle = rgba(front ? c.a : 0x8a6a10, (front ? 1 : 0.5) * (1 - burst * 0.85)); g.lineWidth = S * (front ? 0.05 : 0.03);
+          g.beginPath(); g.ellipse(0, 0, S * (i % 2 ? 0.045 : 0.1), S * (i % 2 ? 0.1 : 0.045), 0, 0, 7); g.stroke(); g.restore();
+        }
+      }
+      for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2 + t * 2, d = S * (0.5 + 1.3 * t); g.fillStyle = rgba(0xffffff, 0.85 * (1 - t)); g.beginPath(); g.arc(cx + Math.cos(a) * d, cy + Math.sin(a) * d * 0.7, 2 + rn(i, 4) * 3, 0, 7); g.fill(); }
+      const lg = g.createRadialGradient(cx, cy, 0, cx, cy, S * 2.2); lg.addColorStop(0, rgba(c.a, 0.35 + burst * 0.3)); lg.addColorStop(1, rgba(c.a, 0)); g.fillStyle = lg; g.fillRect(0, 0, W, H);
+    },
+    esmeralda(g, t, cx, cy, S, W, H, c) {
+      // Tornado de viento y hojas + constelación de la Cruz del Sur
+      for (let h = 0; h < 3; h++) {
+        g.strokeStyle = rgba(h % 2 ? c.b : c.a, 0.7); g.lineWidth = S * 0.05; g.beginPath();
+        for (let i = 0; i <= 40; i++) { const u = i / 40, a = t * 9 + u * 14 + h * 2.1, rad = S * (0.25 + 1.4 * u), x = cx + Math.cos(a) * rad, y = cy + S * 1.1 - u * S * 2.8 + Math.sin(a) * rad * 0.18; i ? g.lineTo(x, y) : g.moveTo(x, y); }
+        g.stroke();
+      }
+      for (let i = 0; i < 30; i++) { const u = (t * 1.2 + i / 30) % 1, a = t * 12 + i * 1.9, rad = S * (0.2 + 1.5 * u), x = cx + Math.cos(a) * rad, y = cy + S * 1.1 - u * S * 2.8; g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = rgba(i % 2 ? c.a : 0xb8ff9a, 0.9 * (1 - u * 0.6)); g.beginPath(); g.ellipse(0, 0, S * 0.07, S * 0.03, 0, 0, 7); g.fill(); g.restore(); }
+      const stars = [[0.5, 0.18], [0.5, 0.52], [0.36, 0.34], [0.64, 0.36]];   // Cruz del Sur
+      g.strokeStyle = rgba(0xffffff, Math.min(1, t * 2) * 0.7); g.lineWidth = 2; g.beginPath(); g.moveTo(W * stars[0][0], H * stars[0][1]); g.lineTo(W * stars[1][0], H * stars[1][1]); g.moveTo(W * stars[2][0], H * stars[2][1]); g.lineTo(W * stars[3][0], H * stars[3][1]); g.stroke();
+      stars.forEach(([sx, sy], i) => { const a = Math.min(1, Math.max(0, t * 2.4 - i * 0.2)); g.fillStyle = rgba(0xffffff, a); g.beginPath(); for (let k = 0; k < 8; k++) { const rr = k % 2 ? S * 0.04 : S * 0.13 * (0.8 + 0.2 * Math.sin(t * 20 + i)); g.lineTo(W * sx + Math.cos(k * Math.PI / 4) * rr, H * sy + Math.sin(k * Math.PI / 4) * rr); } g.closePath(); g.fill(); });
+    },
+    tormenta(g, t, cx, cy, S, W, H, c) {
+      // Relámpagos desde arriba y haces cruzados en X (Cañón X)
+      const seed = Math.floor(t * 18);
+      for (let b = 0; b < 5; b++) {
+        let x = rn(seed + b, 1) * W, y = 0; const tx = cx + (rn(seed + b, 2) - 0.5) * S * 2, ty = cy + (rn(seed + b, 3) - 0.5) * S;
+        const pts = [[x, y]]; for (let i = 1; i <= 8; i++) { const u = i / 8; pts.push([x + (tx - x) * u + (rn(seed + b, 10 + i) - 0.5) * S * 0.5, ty * u]); }
+        g.save(); g.lineJoin = g.lineCap = 'round'; g.shadowColor = hex(c.a); g.shadowBlur = 18;
+        [[c.a, S * 0.07], [c.b, S * 0.035], [0xffffff, S * 0.012]].forEach(([col, lw]) => { g.strokeStyle = hex(col); g.lineWidth = lw; g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.stroke(); }); g.restore();
+      }
+      const grow = Math.min(1, Math.max(0, (t - 0.25) * 2.2)); g.save(); g.translate(cx, cy); g.globalCompositeOperation = 'lighter';
+      [Math.PI / 4, -Math.PI / 4].forEach((a, i) => { g.save(); g.rotate(a); const L = Math.max(W, H) * grow; const gr = g.createLinearGradient(-L, 0, L, 0); gr.addColorStop(0, rgba(i ? c.b : c.a, 0)); gr.addColorStop(0.5, rgba(i ? c.b : c.a, 0.9)); gr.addColorStop(1, rgba(i ? c.b : c.a, 0)); g.fillStyle = gr; g.fillRect(-L, -S * 0.09, L * 2, S * 0.18); g.restore(); });
+      g.restore();
+    },
+    estelar(g, t, cx, cy, S, W, H, c) {
+      for (let i = 0; i < 36; i++) { const a = i / 36 * Math.PI * 2 + t * 3, d = S * (0.4 + 1.5 * t * (0.4 + rn(i, 2))), x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d; g.fillStyle = rgba(i % 2 ? c.a : c.b, 0.9 * (1 - t * 0.6)); g.beginPath(); for (let k = 0; k < 8; k++) { const rr = k % 2 ? S * 0.025 : S * 0.09; g.lineTo(x + Math.cos(k * Math.PI / 4) * rr, y + Math.sin(k * Math.PI / 4) * rr); } g.closePath(); g.fill(); }
+    },
+  };
+
+  let overlay = null, stopFn = null;
+  // opts: { ref: sprite del jugador, style, name: técnica, tag: texto pequeño, a, b: colores, ms, kind }
+  function cine(opts) {
+    stop();
+    const shell = document.getElementById('shell') || document.body, o = opts || {}, style = o.style || 'tormenta';
+    const cv = document.createElement('canvas'); cv.className = 'limcine'; shell.appendChild(cv); overlay = cv;
+    const W = cv.width = Math.max(2, shell.clientWidth), H = cv.height = Math.max(2, shell.clientHeight), g = cv.getContext('2d'), c = { a: o.a != null ? o.a : 0x35d6ff, b: o.b != null ? o.b : 0xffffff };
+    const ms = o.ms || 1500; let sheet = null, alive = true, t0 = 0;
+    const frame = typeof FR !== 'undefined' && ANIM && ANIM.kick ? FR[ANIM.kick[2][1]] : 50;
+    if (o.ref && typeof Sprites !== 'undefined') Sprites.matchSheet([o.ref]).then(s => { sheet = s; }).catch(() => {});
+    const done = () => { alive = false; if (cv.parentNode) cv.remove(); if (overlay === cv) overlay = null; if (stopFn === done) stopFn = null; o.onDone && o.onDone(); };
+    stopFn = done;
+    const draw = now => {
+      if (!alive) return; if (!t0) t0 = now;
+      const el = now - t0, t = Math.min(1, el / ms), S = Math.min(W, H * 0.62) * 0.46, cx = W / 2, cy = H * 0.5;
+      g.clearRect(0, 0, W, H);
+      const inT = Math.min(1, el / 160), outT = t > 0.86 ? (t - 0.86) / 0.14 : 0, a = Math.min(inT, 1 - outT);
+      g.globalAlpha = a;
+      // fondo oscuro con viñeta y líneas de velocidad hacia el centro
+      g.fillStyle = 'rgba(2,4,18,.72)'; g.fillRect(0, 0, W, H);
+      const rg = g.createRadialGradient(cx, cy, S * 0.2, cx, cy, Math.max(W, H) * 0.7); rg.addColorStop(0, rgba(c.a, 0.38)); rg.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = rg; g.fillRect(0, 0, W, H);
+      g.save(); g.translate(cx, cy); g.strokeStyle = rgba(c.b, 0.35); g.lineWidth = 2;
+      for (let i = 0; i < 46; i++) { const an = i / 46 * Math.PI * 2 + rn(i, 9) * 0.1, r0 = S * (0.9 + rn(i, 3) * 0.5 + t * 0.4), r1 = r0 + S * (0.5 + rn(i, 4) * 1.2); g.beginPath(); g.moveTo(Math.cos(an) * r0, Math.sin(an) * r0); g.lineTo(Math.cos(an) * r1, Math.sin(an) * r1); g.stroke(); }
+      g.restore();
+      (BG[style] || BG.tormenta)(g, t, cx, cy, S, W, H, c);
+      // jugador en pose de chute: entra con zoom, vibra y se agranda un poco
+      if (sheet) {
+        const zoom = 0.55 + 0.45 * (1 - Math.pow(1 - Math.min(1, el / 320), 3)) + t * 0.12, sz = S * 2.25 * zoom, sh = (Math.random() - 0.5) * 3 * (t > 0.2 && t < 0.8 ? 1 : 0);
+        g.imageSmoothingEnabled = false; g.save(); g.translate(cx + sh, cy + S * 0.15 + sh);
+        if (!(o.team === 'B')) g.scale(-1, 1);   // el muñeco base mira a la izquierda
+        g.shadowColor = hex(c.a); g.shadowBlur = 30; g.drawImage(sheet, frame * 48, 0, 48, 48, -sz / 2, -sz * 0.72, sz, sz); g.restore();
+      }
+      // barras de cine, nombre y etiqueta
+      const bar = H * 0.13 * Math.min(1, el / 220); g.fillStyle = '#000'; g.fillRect(0, 0, W, bar); g.fillRect(0, H - bar, W, bar);
+      g.fillStyle = hex(c.a); g.fillRect(0, bar - 3, W * Math.min(1, el / 400), 3); g.fillRect(W - W * Math.min(1, el / 400), H - bar, W * Math.min(1, el / 400), 3);
+      g.textAlign = 'center'; g.save(); g.translate(cx, H - bar - S * 0.12); const sc = 0.6 + 0.4 * Math.min(1, el / 240); g.scale(sc, sc);
+      g.font = `${Math.round(S * 0.3)}px 'Press Start 2P','VT323',monospace`; g.lineWidth = 6; g.strokeStyle = '#000'; g.shadowColor = hex(c.a); g.shadowBlur = 16; g.strokeText(o.name || '', 0, 0); g.fillStyle = '#fff'; g.fillText(o.name || '', 0, 0);
+      g.shadowBlur = 0; g.font = `${Math.round(S * 0.14)}px 'Press Start 2P','VT323',monospace`; g.fillStyle = hex(c.b); g.strokeText('★ ' + (o.tag || LIM_NAME[style]) + ' ★', 0, -S * 0.34); g.fillText('★ ' + (o.tag || LIM_NAME[style]) + ' ★', 0, -S * 0.34); g.restore();
+      // destello blanco al principio y al final
+      const fl = Math.max(0, 1 - el / 180) * 0.8 + outT * 0.9; if (fl > 0) { g.globalAlpha = 1; g.fillStyle = `rgba(255,255,255,${Math.min(1, fl)})`; g.fillRect(0, 0, W, H); }
+      g.globalAlpha = 1;
+      if (el >= ms) return done();
+      requestAnimationFrame(draw);
+    };
+    requestAnimationFrame(draw);
+    // para pruebas: dibujar el fotograma en un instante concreto sin esperar a la animación
+    return { stop: done, at(ms2) { t0 = performance.now() - ms2; } };
+  }
+  function stop() { if (stopFn) stopFn(); }
+  return { styleOf, aura, cine, stop, STYLES: ['hielo', 'oro', 'esmeralda', 'tormenta', 'estelar'] };
+})();
+
+/* =====================================================================
    MENÚ ANIMADO (canvas): tu equipo corriendo con el balón, con rayos,
    polvo, focos de estadio y público. Se usa en el menú principal
    (modo 'team') y en la pantalla de Partido rápido (modo 'vs').
@@ -13050,7 +13460,7 @@ const App = (() => {
     $('mStory').onclick = () => Loading.go(TX('Historia'), () => { if (!resume('story')) renderStory(); });
     $('mCareer').onclick = () => Loading.go(TX('Modo Carrera'), () => renderSlots('car'));
     $('mPlayer').onclick = () => Loading.go(TX('Carrera Jugador'), () => renderSlots('pc'));
-    $('mShop').onclick = () => renderShop('sobres'); $('mAlbum').onclick = () => renderShop('album');
+    $('mShop').onclick = () => renderShop('destacado'); $('mAlbum').onclick = () => renderShop('album');
     $('mAch').onclick = () => renderAch(renderMenu);
     $('mSpecial').onclick = () => Loading.go(TX('Equipos especiales'), () => { if (!resume('special')) renderSpecials(); });
     $('mGacha').onclick = renderGacha; $('mTeam').onclick = () => renderTeam();
@@ -13444,9 +13854,10 @@ const App = (() => {
       ${bottom('<div class="grid2"><button class="ghost" id="mSkip">' + TX('Saltar') + '</button><button class="cta" id="mAll" hidden>' + TX('Girar todas') + '</button></div><button class="cta" id="mOk" hidden>' + TX('Continuar') + '</button>')}`, 'bg_whistle');
     const stage = $('pkStage'), pack = $('pkPack'), caps = $('caps');
     // Cartas: a veces una legendaria llega disfrazada de épica y sube al girarla
+    const drops = Items.rollDrops(res.length);   // 🎁 objetos que caen con el sobre
     const items = res.map(r => ({ r, shown: (r.tier === 'legendaria' || r.tier === 'limitada') && Math.random() < 0.5 ? 'epica' : r.tier, opened: false }));
     let left = items.length, opened = false, prog = 0, drag = null, alive = true;
-    const finish = () => { $('mHint').textContent = TX('¡Ya están todas abiertas!'); $('mAll').hidden = true; $('mSkip').hidden = true; $('mOk').hidden = false; };
+    const finish = () => { $('mHint').textContent = TX('¡Ya están todas abiertas!'); $('mAll').hidden = true; $('mSkip').hidden = true; $('mOk').hidden = false; setTimeout(() => showDrops(drops), 500); };
     function flash(col) { const f = document.createElement('div'); f.className = 'gflash'; f.style.background = col; document.body.appendChild(f); setTimeout(() => f.remove(), 450); }
     function paintTear() {
       const top = pack.querySelector('.pktop');
@@ -13497,7 +13908,7 @@ const App = (() => {
     addEventListener('keydown', key);
     $('mAll').onclick = async () => { $('mAll').hidden = true; for (const el of [...caps.querySelectorAll('.pkc')]) { const it = items[[...caps.children].indexOf(el)]; await flip(it, el); await new Promise(r => setTimeout(r, 90)); } };
     const leave = fn => { alive = false; removeEventListener('keydown', key); fn(); };
-    $('mSkip').onclick = () => leave(() => renderReveal(res, done, title || TX('¡Nuevos jugadores!')));
+    $('mSkip').onclick = () => leave(() => { renderReveal(res, done, title || TX('¡Nuevos jugadores!')); setTimeout(() => showDrops(drops), 400); });
     $('mOk').onclick = () => leave(done);
   }
 
@@ -13897,6 +14308,61 @@ const App = (() => {
     return el;
   }
   let teamFilter = '', teamSort = 'rareza', teamTab = 'equipo';
+  /* ---------- Objetos 🎒: tarjetas, mochila (Plantilla), objetos conseguidos y elegir a quién equipar ---------- */
+  const itemCard = (id, extra = '', cls = '', sty = '') => { const it = ITEMS[id], r = ITEM_RAR[it.rar];
+    return `<div class="itx r-${it.rar} ${cls}" style="--rc:${r.c};${sty}" data-item="${id}"><i class="itx-shine"></i><span class="itx-ic">${it.icon}</span><b>${esc(it.name)}</b><em>${r.name}</em><small>${esc(Items.bonusText(id))}</small>${extra}</div>`; };
+  function showDrops(ids) {
+    if (!ids || !ids.length) return;
+    const ov = document.createElement('div'); ov.className = 'sbx itx-drop'; $('shell').appendChild(ov);
+    ov.innerHTML = `<div class="sbx-card itx-pop"><h2>${TX('🎁 ¡Objetos conseguidos!')}</h2><div class="itx-row">${ids.map((id, i) => itemCard(id, '', 'pop', '--d:' + (i * 0.12) + 's')).join('')}</div>
+      <p class="note">${TX('Equípalos en Plantilla › Objetos: cada jugador lleva uno.')}</p><button class="cta" id="itxOk">${TX('¡Genial!')}</button></div>`;
+    Sound.sfx(ids.some(id => ITEMS[id].rar === 'legendaria') ? 'reveal' : 'pass');
+    $('itxOk').onclick = () => { Sound.sfx('click'); ov.remove(); };
+  }
+  // ¿A quién se lo pongo? Lista de tus jugadores (primero los de tu once)
+  function pickWearer(itemId, after) {
+    const ov = document.createElement('div'); ov.className = 'sbx'; $('shell').appendChild(ov);
+    const team = (api.myTeam || savedTeam()).ids.filter(x => x != null), mine = Profile.ids();
+    const ids = [...new Set([...team, ...sortedIds('')])];
+    ov.innerHTML = `<div class="sbx-card"><div class="sbx-top"><b>${ITEMS[itemId].icon} ${esc(ITEMS[itemId].name)}</b><span class="sbx-left">${esc(Items.bonusText(itemId))}</span><button class="sbx-x" id="pwX">✕</button></div>
+      <p class="note">${TX('Elige a quién se lo pones (si ya lleva otro, se cambia).')}</p><div class="itx-list" id="pwL"></div></div>`;
+    $('pwX').onclick = () => ov.remove();
+    ids.forEach(id => {
+      const pd = PLAYER(id), cur = Items.of(id), row = document.createElement('div'); row.className = 'itx-prow' + (team.includes(id) ? ' inteam' : '');
+      row.appendChild(face(Sprites.refOf(pd), 40));
+      row.insertAdjacentHTML('beforeend', `<div class="cplb"><b>${esc(pd.name)}</b><span class="cst">${rchip(pd.rarity)} ${RAB(pd.role)}${cur ? ' · ' + ITEMS[cur].icon + ' ' + esc(ITEMS[cur].name) : ''}</span></div><button class="cta mini">${cur === itemId ? '✓' : TX('Equipar')}</button>`);
+      row.querySelector('button').onclick = () => {
+        if (cur === itemId) return;
+        const prev = cur; if (prev) Items.unequip(id);
+        const r = Items.equip(id, itemId); if (!r.ok) { if (prev) Items.equip(id, prev); return UI.toast(r.msg, 1800); }
+        Sound.sfx('reveal'); UI.toast(ITEMS[itemId].icon + ' ' + esc(pd.name), 1400); ov.remove(); after && after();
+      };
+      $('pwL').appendChild(row);
+    });
+  }
+  function drawItemsTab(tabs) {
+    const I = Items.st(), owned = ITEM_IDS.filter(id => Items.count(id) > 0).sort((a, b) => Object.keys(ITEM_RAR).indexOf(ITEMS[b].rar) - Object.keys(ITEM_RAR).indexOf(ITEMS[a].rar));
+    const worn = Object.entries(I.eq).filter(([pid, id]) => PLAYER(+pid) && ITEMS[id]);
+    screen(`${top(TX('Plantilla'))}${tabs}${wallet()}
+      <div class="itx-sum"><span>🧲 +${Items.coinPct()}% ${TX('monedas')}</span><span>🍀 +${Items.luck()}% ${TX('objetos en el gacha')}</span><span>🎒 ${owned.reduce((a, id) => a + Items.count(id), 0)}</span></div>
+      <p class="note">${TX('Cada jugador lleva un objeto y sus estadísticas suben en tus partidos (Partido rápido, 11 contra 11, Historia y Equipos especiales). Los consigues en el gacha y en la Tienda.')}</p>
+      <h3>${TX('Mochila')}</h3>
+      <div class="itx-grid" id="itG">${owned.map(id => itemCard(id, `<u class="itx-n">${Items.free(id)}/${Items.count(id)}</u>`, Items.free(id) ? '' : 'used')).join('') || `<p class="note">${TX('Aún no tienes objetos. Salen al abrir sobres en el gacha y se compran en la Tienda.')}</p>`}</div>
+      ${owned.length ? '' : `<button class="cta" id="itShop">${TX('🛒 Ir a la Tienda')}</button>`}
+      <h3>${TX('Equipados')}</h3><div class="itx-list" id="itW">${worn.length ? '' : `<p class="note">${TX('Nadie lleva ningún objeto todavía.')}</p>`}</div>`);
+    body.querySelectorAll('#itG .itx').forEach(c => c.onclick = () => { if (!Items.free(c.dataset.item)) return UI.toast(TX('Todos los que tienes ya están puestos. Quita uno abajo.'), 2000); Sound.sfx('click'); pickWearer(c.dataset.item, () => drawItemsTab(tabs)); });
+    worn.forEach(([pid, id]) => {
+      const pd = PLAYER(+pid), row = document.createElement('div'); row.className = 'itx-prow';
+      row.appendChild(face(Sprites.refOf(pd), 40));
+      row.insertAdjacentHTML('beforeend', `<div class="cplb"><b>${esc(pd.name)}</b><span class="cst">${ITEMS[id].icon} ${esc(ITEMS[id].name)} · ${esc(Items.bonusText(id))}</span></div><button class="ghost mini">${TX('Quitar')}</button>`);
+      row.querySelector('button').onclick = () => { Items.unequip(+pid); Sound.sfx('click'); drawItemsTab(tabs); };
+      $('itW').appendChild(row);
+    });
+    if ($('itShop')) $('itShop').onclick = () => renderShop('objetos');
+    body.querySelectorAll('#tt button').forEach(b => b.onclick = () => { teamTab = b.dataset.t; renderTeam(); });
+    $('back').onclick = renderMenu;
+  }
+
   // Buscador y filtros de jugadores (plantilla y elegir jugador)
   const PF = { q: '', rar: '', elem: '', game: '' };
   const norm = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -14028,7 +14494,8 @@ const App = (() => {
 
   function renderTeam() {
     const myTechs = Object.keys(Profile.data.techs).map(Number).filter(t => TECH(t));
-    const tabs = `<div class="opts tmx-tabs" id="tt"><button data-t="equipo" aria-pressed="${teamTab === 'equipo'}">${TX('Mi equipo')}</button><button data-t="jug" aria-pressed="${teamTab === 'jug'}">${TX('Jugadores (')}${Profile.ids().length})</button><button data-t="tec" aria-pressed="${teamTab === 'tec'}">${TX('Técnicas (')}${myTechs.length})</button></div>`;
+    const tabs = `<div class="opts tmx-tabs" id="tt"><button data-t="equipo" aria-pressed="${teamTab === 'equipo'}">${TX('Mi equipo')}</button><button data-t="jug" aria-pressed="${teamTab === 'jug'}">${TX('Jugadores (')}${Profile.ids().length})</button><button data-t="tec" aria-pressed="${teamTab === 'tec'}">${TX('Técnicas (')}${myTechs.length})</button><button data-t="obj" aria-pressed="${teamTab === 'obj'}">🎒 ${TX('Objetos')}</button></div>`;
+    if (teamTab === 'obj') return drawItemsTab(tabs);
     if (teamTab === 'tec') {
       screen(`${top(TX('Plantilla'))}${tabs}<p class="note">${TX('Técnicas legendarias que has sacado en el gacha. Las puede equipar cualquier jugador de su elemento desde su ficha.')}</p><div class="cards" id="tk"></div>`);
       if (!myTechs.length) $('tk').innerHTML = '<p class="note">' + TX('Aún no tienes ninguna. Salen en el tramo legendario del gacha.') + '</p>';
@@ -16133,24 +16600,40 @@ const App = (() => {
     $('back').onclick = back; $('newsOk').onclick = back;
   }
   /* ---------- Tienda 🛒 (v0.35) ---------- */
-  let shopTab = 'sobres', shopTechType = '', shopTechQ = '', shopAlbumOpen = null;
+  let shopTab = 'destacado', shopTechType = '', shopTechQ = '', shopAlbumOpen = null;
   function renderShop(tab) {
     if (tab) shopTab = tab;
     Shop.st();
-    const P = Profile.data, TABS = [['sobres', TX('🎟️ Sobres')], ['equip', TX('👕 Equipación')], ['escudo', TX('🛡️ Escudo y campo')], ['tecnicas', TX('✨ Técnicas')], ['album', TX('📖 Álbum')], ['jugador', TX('✂️ Tu jugador')]];
+    const P = Profile.data, TABS = [['destacado', TX('⭐ Destacado')], ['objetos', TX('🎒 Objetos')], ['sobres', TX('🎟️ Sobres')], ['equip', TX('👕 Equipación')], ['escudo', TX('🛡️ Escudo y campo')], ['tecnicas', TX('✨ Técnicas')], ['album', TX('📖 Álbum')], ['jugador', TX('✂️ Tu jugador')]];
     const alN = Shop.albumPending();
     const tabs = `<div class="opts shoptabs" id="shT">${TABS.map(([k, n]) => `<button data-st="${k}" aria-pressed="${shopTab === k}">${n}${k === 'album' && alN ? ' <i class="newdot"></i>' : ''}</button>`).join('')}</div>`;
     const price = (c, ok = P.coins >= c) => `<button class="cta mini" data-buy ${ok ? '' : 'disabled'}>${c} 🪙</button>`;
     let html = '';
-    if (shopTab === 'sobres') {
+    if (shopTab === 'destacado') {
+      const deals = Items.deals(), now = new Date(), mid = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now, hh = Math.floor(mid / 36e5), mm = Math.floor(mid % 36e5 / 6e4);
+      const left = Shop.ticketsLeft(), legOk = Shop.legReady();
+      html = `<div class="shx-hero"><i class="nm-shine"></i><div class="shx-ht"><b>${TX('Ofertas del día')}</b><span>⏳ ${TX('se renuevan en {0} h {1} min', hh, mm)}</span></div>
+        <div class="shx-deals">${deals.map(d => itemCard(d.id, `<s class="itx-old">${Items.price(d.id)} 🪙</s><button class="cta mini" data-deal="${d.id}" ${d.bought || P.coins < d.price ? 'disabled' : ''}>${d.bought ? TX('✓ Comprado') : d.price + ' 🪙'}</button><span class="itx-off">-25%</span>`, d.bought ? 'used' : '')).join('')}</div></div>
+        <h3>${TX('Para ti hoy')}</h3>
+        <div class="shx-tiles">
+          <button class="shx-tile t1" data-go="sobres"><span>🎟️</span><b>${TX('Tickets')}</b><small>${TX('te quedan {0} hoy', left)}</small></button>
+          <button class="shx-tile t2" data-go="sobres"><span>🌟</span><b>${TX('Sobre legendario')}</b><small>${legOk ? TX('¡Disponible esta semana!') : TX('La semana que viene')}</small></button>
+          <button class="shx-tile t3" data-go="objetos"><span>🎒</span><b>${TX('Objetos')}</b><small>${TX('{0} en tu mochila', ITEM_IDS.reduce((a, id) => a + Items.count(id), 0))}</small></button>
+          <button class="shx-tile t4" data-go="album"><span>📖</span><b>${TX('Álbum')}</b><small>${alN ? TX('¡Premio por recoger!') : TX('Completa equipos')}</small></button>
+        </div>
+        <p class="note">${TX('Los objetos suben las estadísticas de tus jugadores y también caen al abrir sobres en el gacha.')}</p>`;
+    } else if (shopTab === 'objetos') {
+      html = `<p class="note">${TX('Cada jugador lleva un objeto. Equípalos en Plantilla › Objetos. Los comprados se suman a los que consigues en el gacha.')}</p>` +
+        Object.entries(ITEM_RAR).reverse().map(([rk, R]) => `<h3 style="color:${R.c}">${R.name} <small>${R.price} 🪙</small></h3><div class="itx-grid">${ITEM_IDS.filter(id => ITEMS[id].rar === rk).map(id => itemCard(id, `<u class="itx-n">×${Items.count(id)}</u><button class="cta mini" data-bi="${id}" ${P.coins >= R.price ? '' : 'disabled'}>${R.price} 🪙</button>`)).join('')}</div>`).join('');
+    } else if (shopTab === 'sobres') {
       const left = Shop.ticketsLeft();
       html = `<h3>${TX('Tickets')} <small>${TX('{0} 🪙 cada uno · te quedan {1} hoy', SHOP.ticket, left)}</small></h3>
         <div class="csquad">${[1, 5, 10].map(n => { const k = Math.min(n, left), c = k * SHOP.ticket;
           return `<div class="cpl fac"><span class="cicon">🎟️</span><div class="cplb"><b>${TXn(n, '{0} ticket', '{0} tickets')}</b>${n > left && left ? `<span class="cst">${TX('Solo te quedan {0} hoy', left)}</span>` : ''}</div><button class="cta mini" data-tk="${n}" ${left && P.coins >= c ? '' : 'disabled'}>${left ? (k * SHOP.ticket) + ' 🪙' : TX('Mañana')}</button></div>`; }).join('')}</div>
         <h3>${TX('Sobres de jugador')} <small>${TX('eliges 1 de 3')}</small></h3>
-        <div class="csquad">${Object.entries(SHOP.packs).map(([k, K]) => { const wk = K.weekly && !Shop.legReady();
-          return `<div class="cpl fac pack ${k}"><span class="cicon">${{ rara: '🔵', epica: '🟣', puesto: '🎯', legendaria: '🌟' }[k]}</span><div class="cplb"><b>${K.name}</b><span class="cst">${K.desc}</span>
-            ${K.role ? `<span class="opts small" id="pRole">${ROLES4.map(r => `<button data-prole="${r}" aria-pressed="${shopRole === r}">${RAB(r)}</button>`).join('')}</span>` : ''}</div>
+        <div class="shpks">${Object.entries(SHOP.packs).map(([k, K]) => { const wk = K.weekly && !Shop.legReady();
+          return `<div class="shpk ${k}"><div class="shpk-art"><i class="shpk-top"></i><em class="shpk-shine"></em><span>${{ rara: '🔵', epica: '🟣', puesto: '🎯', legendaria: '🌟' }[k]}</span><b>${K.name}</b></div><small>${K.desc}</small>
+            ${K.role ? `<span class="opts small" id="pRole">${ROLES4.map(r => `<button data-prole="${r}" aria-pressed="${shopRole === r}">${RAB(r)}</button>`).join('')}</span>` : ''}
             <button class="cta mini" data-pack="${k}" ${wk || P.coins < K.cost ? 'disabled' : ''}>${wk ? TX('La semana que viene') : K.cost + ' 🪙'}</button></div>`; }).join('')}</div>
         ${(P.giftPicks || []).length ? `<p class="note">${TXn(P.giftPicks.length, 'Tienes {0} «elige 1 de 3» sin abrir:', 'Tienes {0} «elige 1 de 3» sin abrir:')} <button class="ghost mini" id="shPicks">${TX('Elegir ahora')}</button></p>` : ''}`;
     } else if (shopTab === 'equip') {
@@ -16191,11 +16674,16 @@ const App = (() => {
           return `<div class="cpl fac alb${s.done ? ' done' : ''}${shopAlbumOpen === a.key ? ' sel' : ''}" data-al="${esc(a.key)}">${Sprites.crest(a.crest || 2)}<div class="cplb"><b>${esc(a.name)}</b><span class="cst">${s.have}/${s.total}${s.claimed ? ' · ' + TX('✓ Premio recogido') : ''}</span><span class="albar"><i style="width:${Math.round(100 * s.have / s.total)}%"></i></span></div>
             ${s.done && !s.claimed ? `<button class="cta mini" data-claim="${esc(a.key)}">${TX('¡Recoger!')}</button>` : ''}</div>${shopAlbumOpen === a.key ? `<div class="albfaces" id="alF"></div>` : ''}`; }).join('')}</div>`;
     }
-    screen(`${top(TX('🛒 Tienda'))}${wallet()}${tabs}${html}`, 'bg_green');
+    screen(`${top(TX('🛒 Tienda'))}${wallet()}${tabs}<div class="shx">${html}</div>`, 'bg_green');
     body.querySelectorAll('[data-st]').forEach(b => b.onclick = () => { Sound.sfx('click'); renderShop(b.dataset.st); });
     $('back').onclick = renderMenu;
     const res = (r, ok) => { if (!r.ok) { Sound.sfx('click'); return UI.toast(r.msg, 2000); } Sound.sfx('reveal'); if (ok) ok(r); else { if (r.msg) UI.toast(r.msg, 1600); renderShop(); } };
-    if (shopTab === 'sobres') {
+    if (shopTab === 'destacado') {
+      body.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { Sound.sfx('click'); renderShop(b.dataset.go); });
+      body.querySelectorAll('[data-deal]').forEach(b => b.onclick = e => { e.stopPropagation(); res(Items.buyDeal(b.dataset.deal), r => { Sound.sfx('reveal'); showDrops([r.id]); renderShop(); }); });
+    } else if (shopTab === 'objetos') {
+      body.querySelectorAll('[data-bi]').forEach(b => b.onclick = e => { e.stopPropagation(); res(Items.buy(b.dataset.bi), r => { showDrops([r.id]); renderShop(); }); });
+    } else if (shopTab === 'sobres') {
       body.querySelectorAll('[data-tk]').forEach(b => b.onclick = () => res(Shop.buyTickets(+b.dataset.tk)));
       body.querySelectorAll('[data-prole]').forEach(b => b.onclick = () => { shopRole = b.dataset.prole; body.querySelectorAll('[data-prole]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
       body.querySelectorAll('[data-pack]').forEach(b => b.onclick = () => {
