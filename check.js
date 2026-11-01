@@ -265,7 +265,6 @@ const EN_TEXT = {
   'Banda': 'Band',
   'Banda sonora original': 'Original soundtrack',
   'Banquillo': 'Bench',
-  'Bianchi Christmas (nota 105): solo {0} % por tirada, aparte de las demás. Asegurado a las {1} tiradas sin él (llevas {2}).': 'Bianchi Christmas (rating 105): only {0} % per pull, separate from the others. Guaranteed after {1} pulls without him ({2} so far).',
   'Bloq Mayús': 'Caps Lock',
   'Bloqueo': 'Block',
   'Bloqueos': 'Blocks',
@@ -311,6 +310,39 @@ const EN_TEXT = {
   'Cambio automático de jugador': 'Automatic player switching',
   'Cambio: entra {0}': 'Substitution: {0} comes on',
   'Cambios': 'Substitutions',
+  '11 contra 11': '11 vs 11',
+  'Campo grande · partido de verdad': 'Big pitch · a proper match',
+  'Te faltan {0} jugadores para el once: el club te presta refuerzos básicos.': 'You are {0} players short of a full eleven: the club lends you basic reinforcements.',
+  'Clásica': 'Classic',
+  'MEDIA': 'RATING',
+  'FORMACIÓN': 'FORMATION',
+  'Desliza el dedo sobre el sobre para abrirlo ➜': 'Swipe across the pack to open it ➜',
+  'Toca cada carta para girarla': 'Tap each card to flip it',
+  'Toca la carta para girarla': 'Tap the card to flip it',
+  'Girar todas': 'Flip all',
+  'CONSEJO': 'TIP',
+  'Preparando el partido': 'Getting the match ready',
+  'Los cambios solo se pueden hacer cuando el juego se para: falta, saque, córner o gol.': 'Substitutions can only be made when play stops: foul, throw-in, corner or goal.',
+  'Mantén Tiro para cargar la fuerza y suelta para chutar: cuanto más cargas, más potencia.': 'Hold Shoot to charge the power and release to kick: the longer you charge, the harder it goes.',
+  'Un pase al hueco con un compañero desmarcado vale más que tres regates.': 'A through pass to an open teammate is worth more than three dribbles.',
+  'Si un jugador se cansa, cámbialo: el suplente entra con la energía llena.': 'If a player gets tired, swap him: the substitute comes on with full energy.',
+  'Las supertécnicas se recargan solas: úsalas en el momento justo, no las guardes para siempre.': 'Super techniques recharge on their own: use them at the right moment, do not save them forever.',
+  'Con el portero puedes sacar largo o despejar: usa Despeje para mandar el balón lejos.': "With the goalkeeper you can launch long or clear: use Clear to send the ball far away.",
+  'Un portero con buenos reflejos vale tanto como un delantero estrella.': 'A goalkeeper with good reflexes is worth as much as a star striker.',
+  'La táctica ofensiva adelanta a tu equipo y la defensiva lo hace retroceder. Cámbiala en cada parada.': "The attacking tactic pushes your team forward and the defensive one drops it back. Change it at every stoppage.",
+  'Sube de estrellas a tus jugadores repetidos: cada ★ mejora sus estadísticas.': 'Star up your duplicate players: every ★ improves their stats.',
+  'En el gacha, cada 10 tiradas tienes una épica o mejor asegurada.': "In the gacha, every 10 pulls you get a guaranteed epic or better.",
+  'Las faltas por detrás son más probables: entra de frente al rival.': 'Fouls from behind are more likely: tackle the rival from the front.',
+  'El fuera de juego existe: no te adelantes a la defensa al recibir el pase.': 'Offside exists: do not get ahead of the defence when you receive the pass.',
+  'Prueba a rotar la formación: 3 atrás para defender, 3 arriba para atacar.': 'Try rotating your formation: more at the back to defend, more up front to attack.',
+  'Cuando te cansas, el esprint se acaba: reparte el esfuerzo entre tus jugadores.': 'When you get tired your sprint runs out: share the effort between your players.',
+  'Los equipos especiales tienen su propio modo: míralos en el menú principal.': "Special teams have their own mode: check them out in the main menu.",
+  'Cambio pedido: se abre en la próxima parada': 'Substitution requested: opens at the next stoppage',
+  'Cambios (solo en paradas)': 'Substitutions (only when play stops)',
+  '🔄 Cambio pedido: se abre en la próxima parada (falta, saque, córner…)': '🔄 Substitution requested: it opens at the next stoppage (foul, throw-in, corner…)',
+  'Cambio cancelado': 'Substitution cancelled',
+  'Ya has hecho todos los cambios': 'You have used all your substitutions',
+  '🔄 Los cambios se hacen con el botón de cambios, cuando el juego se para (falta, saque, córner, gol…).': '🔄 Substitutions are made with the substitution button when play stops (foul, throw-in, corner, goal…).',
   'Camino a Zeus': 'Road to Zeus',
   'Camiseta': 'Shirt',
   'Campeones': 'Champions',
@@ -935,7 +967,7 @@ const EN_TEXT = {
   'Jugadores': 'Players',
   'Jugadores (': 'Players (',
   'Jugadores de diseños raros (Mar de Árboles, Occult, aliens, demonios…) y 6 legendarios de evento con diseño «selva y oro». Los que consigas son tuyos para siempre.': 'Players with weird designs (Sea of Trees, Occult, aliens, demons…) and 6 event legendaries with a "jungle and gold" design. Whatever you get is yours forever.',
-  'Jugadores de nieve y hielo, 6 legendarios exclusivos de Navidad y un legendario súper difícil de conseguir.': 'Snow and ice players, 6 exclusive Christmas legendaries and one super hard to get legendary.',
+  'Jugadores de nieve y hielo y 6 legendarios exclusivos de Navidad.': 'Snow and ice players and 6 exclusive Christmas legendaries.',
   'Jugadores del sobre': 'Players in the pack',
   'Jugadores especiales': 'Special players',
   'Jugadores limitados': 'Limited players',
@@ -2995,6 +3027,8 @@ const Logic = (() => {
   // Minicampo para los retos 1 contra 1 (Carrera Jugador): settings.mini
   const F_NORMAL = Object.assign({}, F);
   const F_MINI = { w: 22, l: 30, margin: 4, goalW: 4.6, goalDepth: 1.5, barZ: 2.0, boxW: 12, boxD: 5, smallW: 7, smallD: 2, spot: 4.5, circleR: 4 };
+  // Campo grande para el 11 contra 11: settings.big
+  const F_BIG = { w: 52, l: 84, margin: 4, goalW: 7.3, goalDepth: 1.8, barZ: 2.4, boxW: 28, boxD: 11, smallW: 14, smallD: 4, spot: 9, circleR: 8 };
   let cx = F.w / 2;
   const rnd = Math.random;
   const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
@@ -3024,7 +3058,7 @@ const Logic = (() => {
 
   /* ---------- Creación ---------- */
   function createMatch(settings, teams) {
-    Object.assign(F, settings.mini ? F_MINI : F_NORMAL); cx = F.w / 2;
+    Object.assign(F, settings.mini ? F_MINI : settings.big ? F_BIG : F_NORMAL); cx = F.w / 2;
     const diff = DIFF[settings.difficulty] || DIFF.medio;
     const s = { tactic: { A: ['of', 'def'].includes(settings.tactic) ? settings.tactic : 'eq', B: 'eq' }, subs: 0, field: F, settings, diff, teams, players: [], score: { A: 0, B: 0 }, time: settings.minutes * 60, t: 0,
       pause: null, hitstop: 0, over: false, result: null, golden: false, controlledId: null, events: [], slow: 0, tech: null, effects: [],
@@ -4854,7 +4888,7 @@ function versionPickOptions(wave, n = 3) {
 const normCode = c => String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 
 // Jugadores retirados del juego (Arion Sherwind, Victor Blade, Riccardo Di Rigo y Bai Long) y su puesto: se quitan de las partidas guardadas
-const REMOVED_PLAYERS = { 998001: 'MED', 998002: 'MED', 998003: 'DEF', 998004: 'DEL' };
+const REMOVED_PLAYERS = { 998001: 'MED', 998002: 'MED', 998003: 'DEF', 998004: 'DEL', 997008: 'DEL' };   // 997008 = Bianchi Christmas (retirado)
 const Profile = {
   data: null,
   load() {
@@ -5275,6 +5309,65 @@ const Run = {
   load(kind) { return Run.repair(Run.all()[kind] || null); },
   clear(kind) { if (kind == null) return Run.write({}); const all = Run.all(); delete all[kind]; Run.write(all); },
 };
+
+/* =====================================================================
+   11 CONTRA 11: formaciones de 11, posiciones para el campo grande y equipo rival
+   completado con refuerzos (cada equipo del juego trae 5 jugadores propios).
+   ===================================================================== */
+const BIG_FORMATIONS = {
+  '4-4-2': { name: TX('Clásica'),     roles: ['POR', 'DEF', 'DEF', 'DEF', 'DEF', 'MED', 'MED', 'MED', 'MED', 'DEL', 'DEL'] },
+  '4-3-3': { name: TX('Ofensiva'),    roles: ['POR', 'DEF', 'DEF', 'DEF', 'DEF', 'MED', 'MED', 'MED', 'DEL', 'DEL', 'DEL'] },
+  '3-5-2': { name: TX('Control'),     roles: ['POR', 'DEF', 'DEF', 'DEF', 'MED', 'MED', 'MED', 'MED', 'MED', 'DEL', 'DEL'] },
+  '5-3-2': { name: TX('Muralla'),     roles: ['POR', 'DEF', 'DEF', 'DEF', 'DEF', 'DEF', 'MED', 'MED', 'MED', 'DEL', 'DEL'] },
+  '4-5-1': { name: TX('Defensiva'),   roles: ['POR', 'DEF', 'DEF', 'DEF', 'DEF', 'MED', 'MED', 'MED', 'MED', 'MED', 'DEL'] },
+  '3-4-3': { name: TX('Ataque total'), roles: ['POR', 'DEF', 'DEF', 'DEF', 'MED', 'MED', 'MED', 'MED', 'DEL', 'DEL', 'DEL'] },
+};
+const BIG_DEPTH = { POR: 1.5, DEF: 17, MED: 34, DEL: 52 }, BIG_KO = { POR: 1.5, DEF: 14, MED: 26, DEL: 34 };
+// Posición base (x, distancia a tu portería) de cada puesto: cada línea se reparte a lo ancho del campo
+function layoutBig(roles) {
+  const cnt = {}, idx = {};
+  roles.forEach(r => { cnt[r] = (cnt[r] || 0) + 1; });
+  return roles.map(r => {
+    const n = cnt[r], i = idx[r] = (idx[r] || 0); idx[r]++;
+    const sp = n === 1 ? 0 : Math.min(13, 36 / (n - 1)), x = r === 'POR' ? 0 : (i - (n - 1) / 2) * sp;
+    return { role: r, home: [x, BIG_DEPTH[r]], ko: [x * 0.85, BIG_KO[r]] };
+  });
+}
+// Rival de 11: sus 5 jugadores propios + refuerzos de equipos de su misma etapa. Elige la formación que más titulares suyos aprovecha
+function rivalTeamBig(teamKey, factor, progress) {
+  const t = TEAM(teamKey), nTech = progress < 0.5 ? 1 : TECH_SLOTS;
+  const want = {}; t.players.forEach(m => { want[m.role] = (want[m.role] || 0) + 1; });
+  let fKey = '4-4-2', bestUse = -1;
+  for (const k in BIG_FORMATIONS) {
+    const need = {}; BIG_FORMATIONS[k].roles.forEach(r => { need[r] = (need[r] || 0) + 1; });
+    const use = Object.keys(want).reduce((a, r) => a + Math.min(want[r], need[r] || 0), 0);
+    if (use > bestUse) { bestUse = use; fKey = k; }
+  }
+  const roles = BIG_FORMATIONS[fKey].roles, pos = layoutBig(roles);
+  const kindGroup = k => k === 'story' ? 'story' : k === 'story2' ? 'story2' : (k === 'story3' || k === 'story4') ? 'story3' : 'other';
+  const g = kindGroup(t.kind);
+  const pool = GAME.teams.filter(o => o.key !== t.key && kindGroup(o.kind) === g && o.kind !== 'chain').flatMap(o => o.players.map(m => Object.assign({ from: o }, m)));
+  const free = t.players.slice(), used = new Set();
+  const members = roles.map(role => {
+    let i = free.findIndex(m => m.role === role);
+    if (i >= 0) return { m: free.splice(i, 1)[0], star: true };
+    const cands = pool.filter(m => m.role === role && !used.has(m.id));
+    const m = cands[Math.floor(Math.random() * cands.length)] || pool.filter(x => !used.has(x.id))[0];
+    if (m) used.add(m.id);
+    return { m, star: false };
+  });
+  const n = roles.length;
+  return { name: t.name, key: t.key, formation: fKey, players: members.map(({ m, star }, i) => {
+    const pd = PLAYER(m.id), f = (typeof factor === 'function' ? factor(pd) : factor) * (star ? 1 : 0.88);
+    let techs = pd.moves.slice().sort((a, b) => a[1] - b[1]).map(x => x[0]).filter(id => TECH(id)).slice(0, nTech);
+    const sig = signatureTech(pd); if (sig != null && !techs.includes(sig)) techs[0] = sig;
+    const gkt = keeperTech(pd, techs); if (gkt != null) techs.unshift(gkt);
+    techs = techs.slice(0, TECH_SLOTS);
+    const kit = star ? t.kit : null;
+    return Object.assign(buildMatchPlayer(m.id, roles[i], k => Math.round(pd.ie[k] * f), techs, [], n + i, pos[i]),
+      { sprite: Object.assign(m.file ? { file: m.file, row: m.row } : pd.cs ? { file: 'c' + String(pd.cs[0]).padStart(2, '0') + '.png', row: pd.cs[1] } : { file: 'c00.png', row: 0 }, kit && roles[i] !== 'POR' ? { kit } : {}) });
+  }) };
+}
 
 /* =====================================================================
    MODO CARRERA (mánager): 3 divisiones de 10 equipos a una vuelta, playoffs
@@ -7645,8 +7738,6 @@ const Halloween = {
      6 legendarios exclusivos (versiones Navidad, nuevos ids 997001…).
      Legendario 3 % · épica 15 % · rara 32 % · común 50 %; legendario
      asegurado a las 40 tiradas sin uno.
-   - Bianchi Christmas (media 105): SOLO sale en este sobre y es súper difícil:
-     0,2 % por tirada, aparte de las demás, y asegurado a las 300 tiradas sin él.
    - 3 retos del evento + 4 retos del día; al completar los 3 del evento
      se regala Shawn Froste de Navidad (épico especial).
    - Premios por entrar: 5 días (no hace falta que sean seguidos).
@@ -7657,7 +7748,6 @@ const XM_START = '2026-12-12', XM_END = '2027-01-06';   // ambos incluidos (hora
 const XM_BANNER = 67;
 const XM_PRICE = 15, XM_PITY = 40;
 const XM_RATES = [['legendaria', 3], ['epica', 15], ['rara', 32], ['comun', 50]];
-const XM_BIANCHI_RATE = 0.2, XM_BIANCHI_PITY = 300;   // Bianchi Christmas: 0,2 % por tirada (aparte de las demás) y asegurado a las 300 tiradas sin él
 const XM_BOSS_AVG = 85, XM_BOSS_STAR = 93, XM_BOSS_TEAM = 'Alpino', XM_BOSS_STAR_ID = 21505;   // Alpino jefe; su estrella es Shawn Froste (IE2)
 const XM_DAILY = 20, XM_BOSS = 60, XM_MATCH = 5, XM_WIN = 10;
 
@@ -7672,9 +7762,6 @@ const XM_LEGENDS = [
 ];
 // Épico especial (premio del día 5 y del último reto): Shawn Froste (IE3) con la mejor media de los épicos
 const XM_EPIC = { id: 997007, base: 31170, mean: 86 };
-// Bianchi Christmas: delantero legendario de media 105 (por encima del tope normal de 99), con gorro de Papá Noel en el retrato (sprites/fxm.png, tools/xm_faces.py).
-// Solo sale en el Sobre Navideño (0,2 % por tirada, asegurado a las 300): no hay código ni sale en otro gacha.
-const XM_BIANCHI = { id: 997008, base: 31855, face: 0, ie: { tiro: 110, control: 103, defensa: 98, rapidez: 108, fisico: 106, aguante: 105 } };
 (function registerChristmas() {
   if (typeof GAME === 'undefined') return;
   const reg = (p, list) => { if (PBY[p.id]) return; if (list) GAME.players.push(p); PBY[p.id] = p; };
@@ -7689,10 +7776,6 @@ const XM_BIANCHI = { id: 997008, base: 31855, face: 0, ie: { tiro: 110, control:
     reg(Object.assign({}, b, { id: L.id, full: (b.full || b.name) + ' (Navidad)', rarity: 'legendaria', ie: scaled(b, 93), ie0: undefined,
       moves: (b.moves || []).map(m => m.slice()), gacha: false, banner: null, inf: false, xmas: true, xmBase: L.base }), true);
   });
-  { const b = PLAYER(XM_BIANCHI.base);
-    if (b) reg(Object.assign({}, b, { id: XM_BIANCHI.id, name: 'Bianchi Christmas', full: 'Bianchi Christmas', nick: undefined, rarity: 'legendaria', ie: Object.assign({}, XM_BIANCHI.ie), ie0: undefined,
-      moves: (b.moves || []).map(m => m.slice()), gacha: false, banner: null, inf: false, xmas: true, xmBase: XM_BIANCHI.base, xmFace: XM_BIANCHI.face }), true);
-  }
   { const b = PLAYER(XM_EPIC.base);
     if (b) reg(Object.assign({}, b, { id: XM_EPIC.id, full: (b.full || b.name).replace(/ \((IE2|IE3)\)$/, '') + ' (Navidad)', rarity: 'epica', ie: scaled(b, XM_EPIC.mean), ie0: undefined,
       moves: (b.moves || []).map(m => m.slice()), gacha: false, banner: null, inf: false, xmas: true, xmBase: XM_EPIC.base }), true);
@@ -7709,7 +7792,7 @@ const Navidad = {
   daysLeft() { const end = new Date(XM_END + 'T23:59:59'); return Math.max(0, Math.ceil((end - new Date()) / 86400000)); },
   data() {
     const P = Profile.data;
-    const D = { snow: 0, pulls: 0, pity: 0, bpity: 0, daily: null, boss: null, bossWins: 0, matches: 0, retos: {}, legends: 0, gift: false };
+    const D = { snow: 0, pulls: 0, pity: 0, daily: null, boss: null, bossWins: 0, matches: 0, retos: {}, legends: 0, gift: false };
     const H = P.xm = P.xm || {};
     for (const k in D) if (H[k] === undefined) H[k] = D[k];
     return H;
@@ -7755,11 +7838,6 @@ const Navidad = {
     if (H.snow < XM_PRICE * n) return null;
     H.snow -= XM_PRICE * n;
     for (let i = 0; i < n; i++) {
-      // Bianchi Christmas: súper difícil (0,2 % por tirada, asegurado a las 300 sin él)
-      if (PLAYER(XM_BIANCHI.id) && (H.bpity >= XM_BIANCHI_PITY - 1 || Math.random() * 100 < XM_BIANCHI_RATE)) {
-        H.bpity = 0; H.pity = 0; res.push({ id: XM_BIANCHI.id, tier: 'legendaria' }); continue;
-      }
-      H.bpity++;
       let tier = 'comun';
       if (H.pity >= XM_PITY - 1) tier = 'legendaria';
       else { let r = Math.random() * 100; for (const [t, w] of XM_RATES) { if (r < w) { tier = t; break; } r -= w; } }
@@ -7773,7 +7851,7 @@ const Navidad = {
       else if (o.stars < MAX_STARS) { o.stars++; r.star = o.stars; }
       else { const c = RARITY[r.tier].dupCoins; P.coins += c; r.coins = c; }
     }
-    H.pulls += n; this.dayData().pulls += n; H.legends = XM_LEGENDS.concat([XM_BIANCHI]).filter(L => P.coll[L.id]).length;
+    H.pulls += n; this.dayData().pulls += n; H.legends = XM_LEGENDS.filter(L => P.coll[L.id]).length;
     P.pulls = (P.pulls || 0) + n;
     Profile.save();
     return res;
@@ -9792,7 +9870,7 @@ class MatchScene extends Phaser.Scene {
     const s = App.match;
     if (!s || !this.views.size) return;
     if (App.running) Logic.update(s, Input.read(), Math.min(delta / 1000, 0.05)); else Input.read();
-    UI.pickSync(s); UI.menuSync(s);
+    UI.pickSync(s); UI.menuSync(s); App.subTick && App.subTick(s);
     if (this.views.size !== s.players.length) for (const [id, v] of this.views) if (!s.players.some(p => p.id === id)) v.root.setVisible(false);   // expulsados
     this.drawAura(s, time);
     this.drawLimited(s, time);
@@ -11705,6 +11783,7 @@ const App = (() => {
       <div class="modes">
         <button class="mode nm-hero nm-rise" style="--i:1" id="mCareer"><i class="nm-shine"></i><span class="cicon">🏆</span><span class="mt"><b>${TX('Modo Carrera')}</b><small>${Career.data && !Career.data.over ? TX('Temporada ') + Career.data.season + ' · ' + DIV_NAME[Career.myDiv()] + TX(' · semana ') + Career.data.week : TX('Eres el mánager: 3 divisiones y ascensos')}</small></span></button>
         <button class="mode nm-hero nm-rise" style="--i:2" id="mPlayer"><i class="nm-shine" style="--sd:1.4s"></i><span class="cicon">⭐</span><span class="mt"><b>${TX('Carrera Jugador')}</b><small>${pcSummary()}</small></span></button>
+        <button class="mode nm-big nm-rise" style="--i:3" id="mBig"><i class="nm-shine" style="--sd:2.2s"></i><span class="nm-bigico">⚽</span><div><b>${TX('11 contra 11')}</b><small>${TX('Campo grande · partido de verdad')}</small></div><em>NEW</em></button>
         <div class="nm-tiles">
         <button class="mode nm-tile nm-rise" style="--i:3" id="mStory">${Sprites.crest(1)}<span class="mt"><b>${TX('Historia')}</b><small>${P.story.s4.done ? TX('Etapas 1, 2 y 3 completadas ✓') : P.story.s3.done ? TX('Etapa 3 · Fase 2 abierta (mejor: ') + P.story.s4.best + ')' : P.story.s2.done ? TX('Etapa 3 abierta: el Inazuma 3') : done ? TX('Etapa 1 ✓ · Etapa 2 abierta (mejor: ') + P.story.s2.best + ')' : TX('Etapa 1 · mejor: ') + P.story.s1.best + TX(' victorias')}</small></span></button>
         <button class="mode nm-tile nm-rise" style="--i:4" id="mSpecial">${Sprites.crest(588)}<span class="mt"><b>${TX('Equipos especiales')}</b><small>${SPECIALS.filter(x => Profile.unlocked({ special: x })).length} ${TX('de')} ${SPECIALS.length} ${TX('abiertos')}</small></span></button>
@@ -11737,12 +11816,12 @@ const App = (() => {
       if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = TX('¿Seguro? Toca otra vez para abandonar'); return; }
       Run.clear(b.dataset.aband); if (api.run && api.run.kind === b.dataset.aband) api.run = null; renderMenu();
     });
-    $('mStory').onclick = () => { if (!resume('story')) renderStory(); };
-    $('mCareer').onclick = () => renderSlots('car');
-    $('mPlayer').onclick = () => renderSlots('pc');
+    $('mStory').onclick = () => Loading.go(TX('Historia'), () => { if (!resume('story')) renderStory(); });
+    $('mCareer').onclick = () => Loading.go(TX('Modo Carrera'), () => renderSlots('car'));
+    $('mPlayer').onclick = () => Loading.go(TX('Carrera Jugador'), () => renderSlots('pc'));
     $('mShop').onclick = () => renderShop('sobres'); $('mAlbum').onclick = () => renderShop('album');
     $('mAch').onclick = () => renderAch(renderMenu);
-    $('mSpecial').onclick = () => { if (!resume('special')) renderSpecials(); };
+    $('mSpecial').onclick = () => Loading.go(TX('Equipos especiales'), () => { if (!resume('special')) renderSpecials(); });
     $('mGacha').onclick = renderGacha; $('mTeam').onclick = () => renderTeam();
     $('mGift').onclick = renderGift;
     if ($('mNews')) $('mNews').onclick = () => renderPatchNotes(renderMenu);
@@ -11751,7 +11830,8 @@ const App = (() => {
     else if (NEWS.length && settings.seenNews !== VERSION && settings.newsShown !== VERSION) { settings.newsShown = VERSION; saveSettings(); setTimeout(() => { if ($('mNews')) renderPatchNotes(renderMenu); }, 400); }   // la primera vez tras actualizar
     $('mSaves').onclick = () => renderAccount(renderMenu);
     body.querySelector('[data-cloudline]').onclick = () => renderAccount(renderMenu);
-    $('mQuick').onclick = () => { Sound.sfx('click'); renderQuick(); }; $('mSound').onclick = renderSettings;
+    $('mQuick').onclick = () => { Sound.sfx('click'); renderQuick(); };
+    $('mBig').onclick = () => Loading.go(TX('11 contra 11'), () => renderQuick(null, true), 700); $('mSound').onclick = renderSettings;
     if ($('mHw')) $('mHw').onclick = renderHalloween;
     if ($('mPb')) $('mPb').onclick = () => renderPase();
     if ($('mLy')) $('mLy').onclick = () => { if (!resume('leyenda')) renderLeyenda(); };
@@ -12116,27 +12196,48 @@ const App = (() => {
     // pie
     g.fillStyle = '#10183a'; g.fillRect(16, 122, 64, 6);
   }
+  // Apertura de sobre: desliza para romper el sobre, salen las cartas boca abajo y las giras una a una
   function renderMachine(res, bannerId, done, title) {
     const B = BANNERS.find(b => b.id === bannerId) || (bannerId === HW_BANNER ? { name: TX('Sobre Calabaza'), crest: 3 } : bannerId === SV_BANNER ? { name: TX('Sobre Selva'), crest: 4104 } : bannerId === XM_BANNER ? { name: TX('Sobre Navideño'), crest: 36 } : bannerId === LM_BANNER ? { name: TX('Tormenta Celestial'), crest: 3021 } : BANNERS[0]);
+    const [c1, c2] = MACHINE_COLORS[bannerId] || MACHINE_COLORS[1];
     screen(`<h2>${esc(title || B.name)}</h2>
-      <div class="gmach"><canvas id="mc" width="96" height="128"></canvas><div class="gm-hint" id="mHint">${Controls.pc() ? TX('Arrastra la manivela en círculo (o pulsa Espacio)') : TX('Gira la manivela con el dedo ↻')}</div></div>
-      <div class="caps" id="caps"></div>
-      ${bottom('<div class="grid2"><button class="ghost" id="mSkip">' + TX('Saltar') + '</button><button class="cta" id="mAll" hidden>' + TX('Abrir todas') + '</button></div><button class="cta" id="mOk" hidden>' + TX('Continuar') + '</button>')}`, 'bg_whistle');
-    const cv = $('mc'), caps = $('caps');
-    const crest = new Image(); crest.src = `ui/crest${B.crest}.png`;
-    let seed = bannerId * 97; const rr = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    const ballCols = Object.values(CAP_COLORS);
-    const balls = Array.from({ length: 22 }, () => { const a = rr() * Math.PI * 2, d = Math.sqrt(rr()) * 26; return { x: 48 + Math.cos(a) * d, y: 40 + Math.abs(Math.sin(a)) * d * 0.9, c: ballCols[Math.floor(rr() * 4)] }; });
-    const st = { colors: MACHINE_COLORS[bannerId] || MACHINE_COLORS[1], crest, balls, crank: -Math.PI / 2, shake: false, t: 0 };
-    let raf = 0, dispensed = false, alive = true;
-    const loop = t => { if (!alive || !cv.isConnected) return; st.t = t; drawMachine(cv, st); raf = requestAnimationFrame(loop); };
-    raf = requestAnimationFrame(loop);
-    crest.onload = () => drawMachine(cv, st);
-    // Cápsulas: a veces una legendaria llega disfrazada de épica y sube al abrirla
+      <div class="pkstage" id="pkStage" style="--c1:${c1};--c2:${c2}">
+        <div class="pkglow"></div>
+        <div class="pkpack" id="pkPack"><div class="pktop"><i></i></div>
+          <div class="pkbody"><img src="ui/crest${B.crest}.png" alt=""><b>${esc(B.name)}</b><span>★ ★ ★</span><em class="pkshine"></em></div>
+          <div class="pkbot"></div></div>
+        <div class="pktear" id="pkTear"><i></i></div>
+      </div>
+      <div class="gm-hint" id="mHint">${TX('Desliza el dedo sobre el sobre para abrirlo ➜')}</div>
+      <div class="caps pkcaps" id="caps"></div>
+      ${bottom('<div class="grid2"><button class="ghost" id="mSkip">' + TX('Saltar') + '</button><button class="cta" id="mAll" hidden>' + TX('Girar todas') + '</button></div><button class="cta" id="mOk" hidden>' + TX('Continuar') + '</button>')}`, 'bg_whistle');
+    const stage = $('pkStage'), pack = $('pkPack'), caps = $('caps');
+    // Cartas: a veces una legendaria llega disfrazada de épica y sube al girarla
     const items = res.map(r => ({ r, shown: (r.tier === 'legendaria' || r.tier === 'limitada') && Math.random() < 0.5 ? 'epica' : r.tier, opened: false }));
-    let left = items.length;
+    let left = items.length, opened = false, prog = 0, drag = null, alive = true;
     const finish = () => { $('mHint').textContent = TX('¡Ya están todas abiertas!'); $('mAll').hidden = true; $('mSkip').hidden = true; $('mOk').hidden = false; };
-    function openCap(it, el) {
+    function flash(col) { const f = document.createElement('div'); f.className = 'gflash'; f.style.background = col; document.body.appendChild(f); setTimeout(() => f.remove(), 450); }
+    function paintTear() {
+      const top = pack.querySelector('.pktop');
+      top.style.transform = `translate(${prog * 46}%, ${-prog * 26}px) rotate(${prog * 16}deg)`;
+      pack.style.transform = `rotate(${(Math.sin(prog * 40) * prog * 2).toFixed(2)}deg) scale(${1 + prog * .06})`;
+      $('pkTear').firstChild.style.width = (prog * 100) + '%';
+    }
+    function burst() {
+      opened = true; Sound.sfx('reveal');
+      const best = items.some(i => i.r.tier === 'limitada') ? 'limitada' : items.some(i => i.r.tier === 'legendaria') ? 'legendaria' : items.some(i => i.r.tier === 'epica') ? 'epica' : 'rara';
+      flash(CAP_COLORS[best] || '#ffffff'); stage.classList.add('open');
+      for (let k = 0; k < 26; k++) { const sp = document.createElement('i'); sp.className = 'pkspark'; const a = Math.random() * 6.283, d = 70 + Math.random() * 120; sp.style.cssText = `--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d - 30}px;--cl:${['#ffe81a', '#fff', c2, '#ffb23a'][k % 4]};animation-delay:${Math.random() * .15}s`; stage.appendChild(sp); setTimeout(() => sp.remove(), 1100); }
+      $('mHint').textContent = items.length > 1 ? TX('Toca cada carta para girarla') : TX('Toca la carta para girarla');
+      setTimeout(() => { stage.classList.add('gone'); }, 520);
+      items.forEach((it, i) => setTimeout(() => {
+        const el = document.createElement('div'); el.className = 'pkc t-' + it.shown + (items.length === 1 ? ' solo' : '');
+        el.innerHTML = '<div class="pkc-in"><div class="pkc-back"><img src="ui/crest' + B.crest + '.png" alt=""><b>?</b></div><div class="pkc-front"></div></div>';
+        el.onclick = () => flip(it, el); caps.appendChild(el); Sound.sfx('pass');
+        if (i === items.length - 1 && items.length > 1) $('mAll').hidden = false;
+      }, 380 + i * 110));
+    }
+    function flip(it, el) {
       if (it.opened) return Promise.resolve(); it.opened = true;
       return new Promise(res2 => {
         const up = it.shown !== it.r.tier;
@@ -12144,47 +12245,29 @@ const App = (() => {
         setTimeout(() => {
           if (up) { el.classList.remove('t-' + it.shown); el.classList.add('t-' + it.r.tier, 'upgrade'); Sound.sfx('tech'); flash(CAP_COLORS[it.r.tier] || CAP_COLORS.legendaria); }
           setTimeout(() => {
-            el.classList.remove('shake'); el.classList.add('open');
+            el.classList.remove('shake', 'upgrade');
             if (it.r.tier === 'limitada') { lmBoom(); Sound.sfx('reveal'); } else if (it.r.tier === 'legendaria' || it.r.tier === 'epica') { flash(CAP_COLORS[it.r.tier]); Sound.sfx('reveal'); } else Sound.sfx('pass');
-            setTimeout(() => {
-              const card = makeCard(it.r); card.classList.add('fromcap'); if (items.length === 1) card.classList.add('solo'); el.replaceWith(card);
-              if (--left === 0) finish();
-              res2();
-            }, 260);
+            const card = makeCard(it.r); card.classList.add('pkfront'); if (items.length === 1) card.classList.add('solo');
+            el.querySelector('.pkc-front').appendChild(card); el.classList.add('flipped');
+            setTimeout(() => { if (--left === 0) finish(); res2(); }, 450);
           }, up ? 700 : 0);
-        }, up ? 900 : 380);
+        }, up ? 900 : 300);
       });
     }
-    function flash(col) { const f = document.createElement('div'); f.className = 'gflash'; f.style.background = col; document.body.appendChild(f); setTimeout(() => f.remove(), 450); }
-    function dispense() {
-      if (dispensed) return; dispensed = true; st.shake = true;
-      $('mHint').textContent = items.length > 1 ? TX('Toca cada cápsula para abrirla') : TX('Toca la cápsula para abrirla');
-      items.forEach((it, i) => setTimeout(() => {
-        const el = document.createElement('button');
-        el.className = 'cap t-' + it.shown + (items.length === 1 ? ' big' : '');
-        el.innerHTML = '<i class="ct"></i><i class="cb"></i>';
-        el.onclick = () => openCap(it, el);
-        caps.appendChild(el); Sound.sfx('pass');
-        if (i === items.length - 1) { st.shake = false; if (items.length > 1) $('mAll').hidden = false; }
-      }, 250 + i * 140));
-    }
-    // Manivela: arrastrar en círculo; un toque la hace girar sola
-    let drag = null, total = 0, lastTick = 0;
-    const center = () => { const b = cv.getBoundingClientRect(); return { x: b.left + 66 / 96 * b.width, y: b.top + 94 / 128 * b.height }; };
-    const turn = d => { st.crank += d; total += Math.abs(d); if (total - lastTick > Math.PI / 2) { lastTick = total; Sound.sfx('click'); } if (total >= Math.PI * 2) dispense(); };
-    const autoSpin = () => { if (dispensed || autoSpin.on) return; autoSpin.on = true; let k = 0; const iv = setInterval(() => { turn(Math.PI / 10); if (++k >= 20 || dispensed) { clearInterval(iv); dispense(); } }, 35); };
-    cv.addEventListener('pointerdown', e => { if (dispensed) return; const c = center(); drag = { a: Math.atan2(e.clientY - c.y, e.clientX - c.x), moved: 0, t: Date.now() }; try { cv.setPointerCapture(e.pointerId); } catch (_) {} });
-    cv.addEventListener('pointermove', e => {
-      if (!drag || dispensed) return; const c = center(), a = Math.atan2(e.clientY - c.y, e.clientX - c.x);
-      let d = a - drag.a; if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2;
-      drag.a = a; drag.moved += Math.abs(d); turn(Math.abs(d));
+    // Romper el sobre: arrastra el dedo (o el ratón) a lo largo del sobre; un toque lo rasga solo
+    function auto() { if (opened || auto.on) return; auto.on = true; const iv = setInterval(() => { prog = Math.min(1, prog + .07); paintTear(); if (prog % .25 < .07) Sound.sfx('click'); if (prog >= 1) { clearInterval(iv); burst(); } }, 28); }
+    stage.addEventListener('pointerdown', e => { if (opened) return; drag = { x: e.clientX, p0: prog, moved: 0 }; try { stage.setPointerCapture(e.pointerId); } catch (_) {} });
+    stage.addEventListener('pointermove', e => {
+      if (!drag || opened || auto.on) return; const w = stage.getBoundingClientRect().width * 0.7, d = e.clientX - drag.x; drag.moved = Math.max(drag.moved, Math.abs(d));
+      const np = Math.max(prog, Math.min(1, drag.p0 + Math.max(0, d) / w)); if (Math.floor(np * 5) > Math.floor(prog * 5)) Sound.sfx('click'); prog = np; paintTear(); if (prog >= 1) { drag = null; burst(); }
     });
-    cv.addEventListener('pointerup', () => { if (drag && drag.moved < 0.3) autoSpin(); drag = null; });
-    const key = e => { if (!cv.isConnected) return removeEventListener('keydown', key); if ((e.code === 'Space' || e.code === 'Enter') && !dispensed) { e.preventDefault(); autoSpin(); } };
+    stage.addEventListener('pointerup', () => { if (drag && drag.moved < 8) auto(); drag = null; });
+    const key = e => { if (!stage.isConnected) return removeEventListener('keydown', key); if ((e.code === 'Space' || e.code === 'Enter') && !opened) { e.preventDefault(); auto(); } };
     addEventListener('keydown', key);
-    $('mAll').onclick = async () => { $('mAll').hidden = true; for (const el of [...caps.querySelectorAll('.cap')]) { const it = items[[...caps.children].indexOf(el)]; await openCap(it, el); await new Promise(r => setTimeout(r, 120)); } };
-    $('mSkip').onclick = () => { alive = false; cancelAnimationFrame(raf); removeEventListener('keydown', key); renderReveal(res, done, title || TX('¡Nuevos jugadores!')); };
-    $('mOk').onclick = () => { alive = false; cancelAnimationFrame(raf); removeEventListener('keydown', key); done(); };
+    $('mAll').onclick = async () => { $('mAll').hidden = true; for (const el of [...caps.querySelectorAll('.pkc')]) { const it = items[[...caps.children].indexOf(el)]; await flip(it, el); await new Promise(r => setTimeout(r, 90)); } };
+    const leave = fn => { alive = false; removeEventListener('keydown', key); fn(); };
+    $('mSkip').onclick = () => leave(() => renderReveal(res, done, title || TX('¡Nuevos jugadores!')));
+    $('mOk').onclick = () => leave(done);
   }
 
   /* =====================================================================
@@ -12386,7 +12469,7 @@ const App = (() => {
       <div class="runbar xmbar"><span>🎁 ${TX('Se abrirá el 12 de diciembre')}</span><span>${TXn(d, 'Falta {0} día', 'Faltan {0} días')}</span></div>
       <h3>${TX('Sobre Navideño')}</h3>
       <div class="xmlegs" id="xmLegs"></div>
-      <p class="note">${TX('El gacha de Navidad se abrirá el 12 de diciembre y durará hasta el 6 de enero.')}<br>${TX('Jugadores de nieve y hielo, 6 legendarios exclusivos de Navidad y un legendario súper difícil de conseguir.')}</p>`, 'bg_title');
+      <p class="note">${TX('El gacha de Navidad se abrirá el 12 de diciembre y durará hasta el 6 de enero.')}<br>${TX('Jugadores de nieve y hielo y 6 legendarios exclusivos de Navidad.')}</p>`, 'bg_title');
     xmDecor();
     xmLegsRow(XM_LEGENDS.map(L => PLAYER(L.id)).filter(Boolean));
     $('back').onclick = renderGacha;
@@ -12404,7 +12487,7 @@ const App = (() => {
   function renderNavidad() {
     if (!Navidad.active()) return renderMenu();
     const gift = Navidad.daily(), H = Navidad.data(), d = Navidad.daysLeft();
-    const legs = XM_LEGENDS.concat([XM_BIANCHI]).map(L => PLAYER(L.id)).filter(Boolean);
+    const legs = XM_LEGENDS.map(L => PLAYER(L.id)).filter(Boolean);
     const row = (R, key, st, v) => `<div class="xmreto ${st}"><div><b>${R.name}</b><small>${R.desc} · ${v}/${R.goal}</small><small>${TX('Premio:')} ${R.reward.snow} ❄️ · ${R.reward.tickets} 🎟️</small></div>
         ${st === 'got' ? '<span class="xmok">✓</span>' : `<button class="cta" data-${key}="${R.id}" ${st === 'ready' ? '' : 'disabled'}>${TX('Recoger')}</button>`}</div>`;
     const retos = Navidad.RETOS.map(R => row(R, 'xreto', Navidad.retoState(R), Math.min(R.goal, R.val(H)))).join('');
@@ -12417,9 +12500,8 @@ const App = (() => {
       ${Navidad.loginReady() ? `<button class="cta" id="xmLogin">${TX('🎁 Recoger el premio del día {0}', Navidad.login().n + 1)}</button>` : Navidad.login().n < Navidad.LOGIN.length ? `<p class="note">${TX('Vuelve mañana a por el siguiente premio.')}</p>` : ''}
       <h3>${TX('Sobre Navideño')}</h3>
       <div class="xmlegs" id="xmLegs"></div>
-      <p class="note">${TX('Jugadores de nieve y hielo, 6 legendarios exclusivos de Navidad y un legendario súper difícil de conseguir.')}<br>
-        ${TX('Legendario 3 % · Épica 15 % · Rara 32 % · Común 50 %. Legendario asegurado a las')} ${XM_PITY} ${TX('tiradas (llevas')} ${H.pity}${TX(').')}<br>
-        ${TX('Bianchi Christmas (nota 105): solo {0} % por tirada, aparte de las demás. Asegurado a las {1} tiradas sin él (llevas {2}).', String(XM_BIANCHI_RATE).replace('.', I18N.en() ? '.' : ','), XM_BIANCHI_PITY, H.bpity)}</p>
+      <p class="note">${TX('Jugadores de nieve y hielo y 6 legendarios exclusivos de Navidad.')}<br>
+        ${TX('Legendario 3 % · Épica 15 % · Rara 32 % · Común 50 %. Legendario asegurado a las')} ${XM_PITY} ${TX('tiradas (llevas')} ${H.pity}${TX(').')}</p>
       <div class="grid2"><button class="cta" id="xm1" ${H.snow < XM_PRICE ? 'disabled' : ''}>${TX('Tirar ×1')}<small>${XM_PRICE} ❄️</small></button><button class="cta" id="xm10" ${H.snow < XM_PRICE * 10 ? 'disabled' : ''}>${TX('Tirar ×10')}<small>${XM_PRICE * 10} ❄️</small></button></div>
       <h3>${TX('Partido jefe')}</h3>
       <button class="mode xmmode" id="xmBoss">${Sprites.crest(36)}<span class="mt"><b>${TX('Alpino')}</b><small>${TX('Versión jefe · campo nevado')}<br>${Navidad.bossDone() ? TX('Premio de hoy ya cobrado (puedes repetir)') : TX('Gánale: +60 ❄️ (una vez al día)')}</small></span></button>
@@ -12715,7 +12797,7 @@ const App = (() => {
 
   function renderTeam() {
     const myTechs = Object.keys(Profile.data.techs).map(Number).filter(t => TECH(t));
-    const tabs = `<div class="opts" id="tt"><button data-t="equipo" aria-pressed="${teamTab === 'equipo'}">${TX('Mi equipo')}</button><button data-t="jug" aria-pressed="${teamTab === 'jug'}">${TX('Jugadores (')}${Profile.ids().length})</button><button data-t="tec" aria-pressed="${teamTab === 'tec'}">${TX('Técnicas (')}${myTechs.length})</button></div>`;
+    const tabs = `<div class="opts tmx-tabs" id="tt"><button data-t="equipo" aria-pressed="${teamTab === 'equipo'}">${TX('Mi equipo')}</button><button data-t="jug" aria-pressed="${teamTab === 'jug'}">${TX('Jugadores (')}${Profile.ids().length})</button><button data-t="tec" aria-pressed="${teamTab === 'tec'}">${TX('Técnicas (')}${myTechs.length})</button></div>`;
     if (teamTab === 'tec') {
       screen(`${top(TX('Plantilla'))}${tabs}<p class="note">${TX('Técnicas legendarias que has sacado en el gacha. Las puede equipar cualquier jugador de su elemento desde su ficha.')}</p><div class="cards" id="tk"></div>`);
       if (!myTechs.length) $('tk').innerHTML = '<p class="note">' + TX('Aún no tienes ninguna. Salen en el tramo legendario del gacha.') + '</p>';
@@ -12726,8 +12808,8 @@ const App = (() => {
         $('tk').appendChild(c);
       });
     } else if (teamTab === 'equipo') {
-      screen(`${top(TX('Plantilla'))}${tabs}<p class="note">${TX('Este es el equipo que sale en el partido rápido y al empezar cualquier modo. Se guarda solo.')}</p>
-        <h3>${TX('Equipación')} <small>${TX('la llevan tus jugadores de campo en todos los modos (menos en la Carrera)')}</small></h3><div id="kitEd"></div><div id="ed"></div>`);
+      screen(`${top(TX('Plantilla'))}${tabs}<div class="tmx-hero"><canvas id="tmCv"></canvas><div class="tmx-ovr"><small>${TX('MEDIA')}</small><b id="tmOvr">–</b></div><div class="tmx-form"><small>${TX('FORMACIÓN')}</small><b id="tmForm"></b></div></div><p class="note">${TX('Este es el equipo que sale en el partido rápido y al empezar cualquier modo. Se guarda solo.')}</p>
+        <div class="tmx" id="ed"></div><h3>${TX('Equipación')} <small>${TX('la llevan tus jugadores de campo en todos los modos (menos en la Carrera)')}</small></h3><div id="kitEd"></div>`);
       if (!api.myTeam) api.myTeam = savedTeam();
       const drawKits = () => {
         const k = myKit(), sw = (key, v) => `<div class="swatches">${Shop.kitColors().map(col => `<button class="sw" data-k="${key}" data-c="${col}" style="background:${col}" aria-pressed="${v === col}"></button>`).join('')}</div>`;
@@ -12743,13 +12825,24 @@ const App = (() => {
         if ($('kitReset')) $('kitReset').onclick = () => { Profile.data.kit = null; Profile.save(); Sound.sfx('click'); drawKits(); };
       };
       drawKits();
-      teamEditor($('ed'), api.myTeam, () => saveTeam(api.myTeam));
+      let tmFx = null;
+      const tmHero = () => {   // cabecera: tu equipo corriendo con el balón + media y formación
+        const t = api.myTeam, roles = FORMATIONS[t.formation].roles, full = t.ids.every(x => x != null);
+        $('tmOvr').textContent = full ? Math.round(t.ids.reduce((a, id, i) => a + rate(id, roles[i]), 0) / 5) : '–';
+        $('tmForm').textContent = t.formation;
+        if (tmFx) tmFx.destroy();
+        const mine = t.ids.map((id, i) => id == null ? null : mySprite(PLAYER(id), roles[i])).filter(Boolean);
+        tmFx = mine.length ? MenuFX.scene($('tmCv'), { mode: 'team', mine }) : null;
+      };
+      tmHero();
+      teamEditor($('ed'), api.myTeam, () => { saveTeam(api.myTeam); tmHero(); });
+      $('tmCv').onclick = () => { Sound.sfx('click'); if (tmFx) tmFx.poke(); };
     } else {
       const all = sortedIds(teamFilter); if (SORTS[teamSort]) all.sort(SORTS[teamSort]);
       screen(`${top(TX('Plantilla'))}${tabs}${wallet()}${pfBar()}
         <div class="opts" id="tf">${[['', TX('Todos')], ...ROLES4.map(r => [r, RAB(r)])].map(([v, t]) => `<button data-f="${v}" aria-pressed="${teamFilter === v}">${t}</button>`).join('')}</div>
         <div class="sortrow"><span id="tcount"></span><span class="opts small" id="ts">${Object.keys(SORTS).map(k => `<button data-s="${k}" aria-pressed="${teamSort === k}">${k[0].toUpperCase() + k.slice(1)}</button>`).join('')}</span></div>
-        <div class="pgrid" id="tl"></div>`);
+        <div class="pgrid tmx" id="tl"></div>`);
       body.querySelectorAll('#tf button').forEach(b => b.onclick = () => { teamFilter = b.dataset.f; renderTeam(); });
       body.querySelectorAll('#ts button').forEach(b => b.onclick = () => { teamSort = b.dataset.s; renderTeam(); });
       const drawList = () => {
@@ -12834,9 +12927,63 @@ const App = (() => {
     $('back').onclick = d.kind === 'leyenda' ? renderLeyenda : renderMenu;
   }
 
+
+  /* ---------- Pantalla de carga: tu equipo corriendo con el balón, barra de progreso y consejos ---------- */
+  const LOAD_TIPS = () => [
+    TX('Los cambios solo se pueden hacer cuando el juego se para: falta, saque, córner o gol.'),
+    TX('Mantén Tiro para cargar la fuerza y suelta para chutar: cuanto más cargas, más potencia.'),
+    TX('Un pase al hueco con un compañero desmarcado vale más que tres regates.'),
+    TX('Si un jugador se cansa, cámbialo: el suplente entra con la energía llena.'),
+    TX('Las supertécnicas se recargan solas: úsalas en el momento justo, no las guardes para siempre.'),
+    TX('Con el portero puedes sacar largo o despejar: usa Despeje para mandar el balón lejos.'),
+    TX('Un portero con buenos reflejos vale tanto como un delantero estrella.'),
+    TX('La táctica ofensiva adelanta a tu equipo y la defensiva lo hace retroceder. Cámbiala en cada parada.'),
+    TX('Sube de estrellas a tus jugadores repetidos: cada ★ mejora sus estadísticas.'),
+    TX('En el gacha, cada 10 tiradas tienes una épica o mejor asegurada.'),
+    TX('Las faltas por detrás son más probables: entra de frente al rival.'),
+    TX('El fuera de juego existe: no te adelantes a la defensa al recibir el pase.'),
+    TX('Prueba a rotar la formación: 3 atrás para defender, 3 arriba para atacar.'),
+    TX('Cuando te cansas, el esprint se acaba: reparte el esfuerzo entre tus jugadores.'),
+    TX('Los equipos especiales tienen su propio modo: míralos en el menú principal.'),
+  ];
+  const Loading = (() => {
+    let tipTimer = 0, fx = null;
+    function myRefs() {
+      try { const T = savedTeam(), roles = FORMATIONS[T.formation].roles; return T.ids.map((id, i) => id == null ? null : mySprite(PLAYER(id), roles[i])).filter(Boolean); } catch (_) { return []; }
+    }
+    // Enseña la pantalla y devuelve { set(pct), finish(): Promise } — la barra avanza sola hasta 90 % y se completa al terminar
+    function show(title, sub) {
+      const tips = LOAD_TIPS().sort(() => Math.random() - 0.5);
+      screen(`<div class="ld"><canvas id="ldCv" class="ld-cv"></canvas>
+        <div class="ld-top"><img class="logo" src="ui/logo_gold.png" alt=""></div>
+        <div class="ld-bot"><h2 class="ld-title">${esc(title || TX('Cargando…'))}</h2><div class="ld-sub">${esc(sub || '')}</div>
+          <div class="ld-bar"><i id="ldFill"></i><b class="ld-ball">⚽</b></div><div class="ld-pct" id="ldPct">0 %</div>
+          <div class="ld-tip"><small>${TX('CONSEJO')}</small><p id="ldTip"></p></div></div></div>`, 'bg_title');
+      const mine = myRefs(); fx = mine.length ? MenuFX.scene($('ldCv'), { mode: 'team', mine }) : null;
+      const fill = $('ldFill'), pct = $('ldPct'), tip = $('ldTip'); let ti = 0, cur = 0, goal = 0, done = false;
+      const setTip = () => { if (!tip) return; tip.classList.remove('in'); void tip.offsetWidth; tip.textContent = tips[ti++ % tips.length]; tip.classList.add('in'); };
+      setTip(); clearInterval(tipTimer); tipTimer = setInterval(() => { if (!$('ldTip')) return clearInterval(tipTimer); setTip(); }, 2600);
+      const paint = () => { if (!$('ldFill')) return; fill.style.width = cur + '%'; $('ldFill').nextElementSibling.style.left = cur + '%'; pct.textContent = Math.round(cur) + ' %'; };
+      const iv = setInterval(() => {
+        if (!$('ldFill')) return clearInterval(iv);
+        const cap = done ? 100 : Math.max(goal, Math.min(90, cur + 1));   // sin datos reales, avanza despacio hasta el 90 %
+        cur += Math.max(.4, (Math.min(cap, done ? 100 : Math.max(goal, cur + 1.2)) - cur) * .12); if (cur > cap) cur = cap; paint();
+      }, 40);
+      const t0 = Date.now();
+      return {
+        set(p) { goal = Math.max(goal, Math.min(95, p)); },
+        finish(min = 1400) {
+          return new Promise(res => { setTimeout(() => { done = true; goal = 100; const w = setInterval(() => { if (!$('ldFill') || cur >= 99.5) { clearInterval(w); clearInterval(iv); cur = 100; paint(); setTimeout(() => { clearInterval(tipTimer); res(); }, 260); } }, 30); }, Math.max(0, min - (Date.now() - t0))); });
+        },
+      };
+    }
+    // Pantalla de carga rápida antes de abrir una pantalla (menús grandes)
+    async function go(title, fn, min = 900) { const L = show(title); L.set(60); await L.finish(min); fn(); }
+    return { show, go };
+  })();
   /* ---------- Partidos ---------- */
   // Suplentes para los cambios en mitad del partido: Historia/Cadenas… (tu banquillo) y Partido rápido (tus mejores jugadores libres)
-  const MAX_SUBS = 3;
+  const maxSubs = () => api.big ? 5 : 3;   // 11 contra 11: hasta 5 cambios
   function benchFor(teams) {
     const out = [];
     try {
@@ -12868,33 +13015,102 @@ const App = (() => {
     } catch (e) { return []; }
     return out;
   }
-  // Cambio: el suplente `bi` entra por el jugador de campo `outId` (máx. MAX_SUBS por partido)
+  // Cambio: el suplente `bi` entra por el jugador de campo `outId` (máx. maxSubs() por partido)
   api.makeSub = (outId, bi) => {
     const m = api.match, b = (api.bench || [])[bi], old = m && m.players.find(p => p.id === outId);
-    if (!b || !old || old.team !== 'A' || (api.subsUsed || 0) >= MAX_SUBS) return false;
+    if (!b || !old || old.team !== 'A' || (api.subsUsed || 0) >= maxSubs()) return false;
     const d = b.build(old.role, old.home, b.row);
     if (!Logic.substitute(m, outId, d)) return false;
     api.subsUsed = (api.subsUsed || 0) + 1;
     api.bench.splice(bi, 1, Object.assign({}, b, { used: true }));   // se queda en la lista (apagado) para no cambiar las posiciones de fila
     return true;
   };
+
+  /* ---------- Cambios en el partido: solo cuando el juego se para (falta, saque, córner, gol…) ---------- */
+  // Estado del botón 🔄: none (no hay suplentes) · locked (se juega) · queued (se abre en la próxima parada) · ready (parada: toca para cambiar)
+  const stopped = m => !!m && !m.over && !m.tech && !m.penalty && !!(m.pause || m.pick || m.hold);
+  let subState = '', subQueued = false, subOpen = false;
+  function subsLeft() { return maxSubs() - (api.subsUsed || 0); }
+  function subsPossible() { const m = api.match; return !!m && !m.over && (api.bench || []).some(b => !b.used) && subsLeft() > 0 && m.players.some(p => p.team === 'A'); }
+  api.subTick = m => {
+    const btn = $('subBtn'); if (!btn) return;
+    let st = 'none';
+    if (api.match === m && !m.over && (api.bench || []).length && $('screen').hidden && $('pause').hidden && !subOpen) st = !subsPossible() ? 'none' : stopped(m) ? 'ready' : subQueued ? 'queued' : 'locked';
+    if (subOpen) st = subState;
+    if (st === 'ready' && subQueued && !subOpen && api.running) { subQueued = false; openSubs(); return; }   // pediste el cambio: se abre en cuanto se para
+    if (st === subState) return;
+    subState = st; btn.hidden = st === 'none'; btn.dataset.st = st;
+    btn.innerHTML = `<i>${st === 'queued' ? '⏳' : '🔄'}</i><em>${subsLeft()}</em>`;
+    btn.title = st === 'ready' ? TX('Cambios') : st === 'queued' ? TX('Cambio pedido: se abre en la próxima parada') : TX('Cambios (solo en paradas)');
+  };
+  api.subReset = () => { subState = ''; subQueued = false; subOpen = false; const o = $('subScreen'); if (o) o.remove(); const b = $('subBtn'); if (b) { b.hidden = true; b.dataset.st = ''; } };
+  function subPress() {
+    const m = api.match; if (!m || m.over || !api.running || !subsPossible()) return;
+    Sound.sfx('click');
+    if (stopped(m)) { subQueued = false; return openSubs(); }
+    subQueued = !subQueued; subState = '';
+    UI.toast(subQueued ? TX('🔄 Cambio pedido: se abre en la próxima parada (falta, saque, córner…)') : TX('Cambio cancelado'), 2200);
+    api.subTick(m);
+  }
+  function openSubs() {
+    const m = api.match; if (!m) return;
+    subOpen = true; subState = 'open'; api.running = false; $('subBtn').hidden = true;
+    let outId = null;
+    const ov = document.createElement('div'); ov.id = 'subScreen'; ov.className = 'sbx'; $('shell').appendChild(ov);
+    const nm = x => esc(String(x).split(' ').slice(0, 2).join(' '));
+    const close = () => { ov.remove(); subOpen = false; subState = ''; api.running = true; api.subTick(m); };
+    function draw() {
+      const field = m.players.filter(p => p.team === 'A'), bench = api.bench || [], left = subsLeft();
+      const sx = 38 / Math.max(6, ...field.map(p => Math.abs(p.home[0]))), md = Math.max(20, ...field.map(p => p.home[1])), sy = 62 / md;
+      const form = field.map(p => RAB(p.role)).join('-');
+      ov.innerHTML = `<div class="sbx-card">
+        <div class="sbx-top"><b>🔄 ${TX('Cambios')}</b><span class="sbx-left">${TX('te quedan {0}', left)}</span><button class="sbx-x" id="sbxClose">▶ ${TX('Seguir')}</button></div>
+        <div class="sbx-pitch"><i class="sbx-line mid"></i><i class="sbx-circle"></i><i class="sbx-box t"></i><i class="sbx-box b"></i><span class="sbx-form">${esc(FORMATIONS[settings.team && settings.team.formation] ? settings.team.formation : form)}</span>
+          ${field.map(p => `<button class="sbx-pl${outId === p.id ? ' sel' : ''}" data-o="${p.id}" style="left:${50 + p.home[0] * sx}%;top:${82 - p.home[1] * sy}%"><span class="f" data-f="${p.id}"></span><b>${nm(p.name)}</b><small>${RAB(p.role)}</small><em class="stm"><u style="width:${Math.round(p.stamina * 100)}%;background:${p.stamina > .6 ? '#4ed06a' : p.stamina > .3 ? '#f2c230' : '#e8402a'}"></u></em>${p.yellow ? '<s>🟨</s>' : ''}</button>`).join('')}
+        </div>
+        <div class="sbx-hint">${left ? (outId ? TX('▼ Elige quién entra') : TX('▲ Toca al jugador que sale')) : TX('Ya has hecho todos los cambios')}</div>
+        <div class="sbx-bench">${bench.map((b, i) => `<button class="sbx-bn ${b.rarity || ''}${b.used ? ' used' : ''}" data-i="${i}" ${b.used || !outId || !left ? 'disabled' : ''}><span class="f" data-b="${i}"></span><b>${nm(b.name)}</b><small>${RAB(b.role)} · ${chip(b.elem)}</small></button>`).join('')}</div>
+        <div class="sbx-tac"><label>${TX('Táctica')}</label>${TACTICS.map(([v, t]) => `<button data-t="${v}" aria-pressed="${m.tactic.A === v}">${t}</button>`).join('')}</div>
+      </div>`;
+      ov.querySelectorAll('[data-f]').forEach(e => { const p = m.players.find(q => q.id === e.dataset.f); try { e.appendChild(Sprites.face(p.sprite, 32)); } catch (_) {} });
+      ov.querySelectorAll('[data-b]').forEach(e => { try { e.appendChild(Sprites.face(bench[+e.dataset.b].sprite, 34)); } catch (_) {} });
+      ov.querySelectorAll('.sbx-pl').forEach(b => b.onclick = () => { if (!left) return; outId = outId === b.dataset.o ? null : b.dataset.o; Sound.sfx('click'); draw(); });
+      ov.querySelectorAll('.sbx-bn').forEach(b => b.onclick = () => {
+        if (!outId) return;
+        const who = (m.players.find(p => p.id === outId) || {}).name, inN = (bench[+b.dataset.i] || {}).name, oid = outId;
+        if (api.makeSub(oid, +b.dataset.i)) {
+          Sound.sfx('reveal'); UI.toast('🔁 ' + TX('Cambio: entra {0}', inN) + (who ? ' · ' + TX('sale {0}', who) : ''), 2200);
+          outId = null; draw();
+          const nb = ov.querySelector(`.sbx-pl[data-o="${oid}"]`); if (nb) nb.classList.add('swap');
+        }
+      });
+      ov.querySelectorAll('.sbx-tac button').forEach(b => b.onclick = () => { Logic.setTactic(m, 'A', b.dataset.t); settings.tactic = b.dataset.t; saveSettings(); Sound.sfx('click'); ov.querySelectorAll('.sbx-tac button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+      $('sbxClose').onclick = () => { Sound.sfx('click'); close(); };
+    }
+    draw();
+  }
+  api.openSubs = openSubs; api.subPress = subPress;
+  $('subBtn').addEventListener('click', subPress);
   async function startMatch(teams, golden, field, musicRole, rival) {
     GAME_SPEED = settings.dev && settings.speed ? +settings.speed : 0.75;
     const hasPad = [...(navigator.getGamepads ? navigator.getGamepads() : [])].some(Boolean);
     if (Controls.pc() && !hasPad && (settings.padTip || 0) < 3) { settings.padTip = (settings.padTip || 0) + 1; saveSettings(); setTimeout(() => UI.toast(TX('🎮 También puedes jugar con mando'), 2600), 1800); }
     const s = Object.assign({}, settings, { golden, field, difficulty: api.mode === 'run' ? Run.diffOf(api.run) : api.mode === 'career' || api.mode === 'wc' ? Career.matchDiff() : api.mode === 'pcareer' || api.mode === 'pduel' ? PC.matchDiff() : api.mode === 'pwc' ? 'dificil' : 'facil' });
-    const MO = api.matchOpts; api.matchOpts = null;
+    const MO = api.matchOpts; api.matchOpts = null; api.big = !!(MO && MO.extra && MO.extra.big);
     if (MO && MO.lockId) Object.assign(s, { lockId: MO.lockId, autoSwitch: 0 });
     if (MO && MO.extra) Object.assign(s, MO.extra);   // minicampo, límite de goles, amigos que te pasan…
     s.mercy = api.mode === 'run' ? 5 : 0;   // roguelite: con 5 goles de diferencia se acaba el partido
-    screen('<h2>' + TX('Cargando…') + '</h2>');
+    const LD = Loading.show(TX('Preparando el partido'), (teams.A.name || '') + ' vs ' + (teams.B.name || '')); LD.set(8);
     try {
       const nPl = teams.A.players.length + teams.B.players.length;
       api.bench = (s.mini || (MO && MO.lockId)) ? [] : benchFor(teams);   // suplentes para los cambios (su muñeco va al final de la hoja)
       api.bench.forEach((b, k) => { b.row = nPl + k; });
+      LD.set(25);
       api.matchSheet = await Sprites.matchSheet([...teams.A.players, ...teams.B.players].map(p => p.sprite).concat(api.bench.map(b => b.sprite)));
+      LD.set(80);
     } catch (e) { screen(`<h2>${TX('No se pudieron cargar los jugadores')}</h2><p class="note">${esc(e.message)}</p><button class="cta" id="back">${TX('Volver')}</button>`); $('back').onclick = renderMenu; return; }
-    api.match = Logic.createMatch(s, teams); api.subsUsed = 0;
+    api.match = Logic.createMatch(s, teams); api.subsUsed = 0; api.subReset(); LD.set(95);
+    await LD.finish(1700);
     if (MO && MO.preset) { api.match.score.A = MO.preset.A; api.match.score.B = MO.preset.B; api.match.time *= MO.preset.timeMul; }   // sales en la 2.ª parte
     $('cA').src = api.mode === 'wc' ? 'ui/crest3016.png' : api.mode === 'pwc' ? `ui/crest${PC.natCrest(PC.data.pwc.nat || PC.myNat())}.png` : api.mode === 'career' && Career.data ? (Career.data.crestImg ? `ui/crest${Career.data.crestImg}.png` : ClubCrest.url(Career.data.crest, Career.data.school)) : api.mode === 'pcareer' || api.mode === 'pduel' ? `ui/crest${PC.data.crestId}.png` : Shop.myCrest() ? ClubCrest.url(Shop.myCrest(), '') : 'ui/crest1.png';
     $('nA').textContent = api.mode === 'wc' ? TX('Japón') : api.mode === 'pwc' ? PC.natName(PC.data.pwc.nat || PC.myNat()) : api.mode === 'career' && Career.data ? Career.data.school.replace(/^Instituto\s+/i, '') : api.mode === 'pcareer' ? PC.data.school : api.mode === 'pduel' ? PLAYER(PC.data.me.id).name : TX('Tú');
@@ -12905,7 +13121,7 @@ const App = (() => {
     Sound.music(musicRole || 'match', rival);
     if (field && field !== 'normal') UI.toast(FIELD_LABEL[field] || '', 1600);
   }
-  let lastQuick = null, lastQuickTab = null;
+  let lastQuick = null, lastQuickTab = null, lastBig = false;
   function startQuick(key) {
     api.mode = 'quick';
     const T = savedTeam(), F = FORMATIONS[T.formation], pos = layout(F.roles), L = T.ids;
@@ -12915,25 +13131,55 @@ const App = (() => {
       return Shop.boost(Object.assign(buildMatchPlayer(id, F.roles[i], k => statOf(id, Profile.owned(id), k), runMember(id).techs, [], i, pos[i]), { sprite: mySprite(pd, F.roles[i]) }));
     }) };
     if (typeof key !== 'string' || !TEAM(key)) key = RIVAL_ORDER[Math.floor(Math.random() * RIVAL_ORDER.length)];
-    lastQuick = key;
+    lastQuick = key; lastBig = false;
     startMatch({ A, B: rivalTeam(key, 0.9, 0.5) }, false, TEAM_FIELD[key] || 'normal', 'match', key);
   }
+  // 11 contra 11: tus mejores 11 según la formación; si te faltan jugadores, el club te presta refuerzos básicos
+  function squadBig(fKey) {
+    const roles = BIG_FORMATIONS[fKey].roles, pos = layoutBig(roles);
+    const used = new Set(), ids = bestFor(roles, Profile.ids());
+    ids.forEach(x => x != null && used.add(x));
+    let loans = 0;
+    const full = ids.map((id, i) => {
+      if (id != null) return { id, loan: false };
+      const c = GAME.players.filter(p => p.gacha && p.role === roles[i] && !used.has(p.id) && !Profile.owned(p.id)).sort((a, b) => (b.ie.tiro + b.ie.control + b.ie.defensa) - (a.ie.tiro + a.ie.control + a.ie.defensa));
+      const pick = c[Math.min(c.length - 1, 6 + loans)] || GAME.players.find(p => p.role === roles[i] && !used.has(p.id));
+      used.add(pick.id); loans++; return { id: pick.id, loan: true };
+    });
+    return { roles, pos, full, loans };
+  }
+  function startBig(key, fKey) {
+    fKey = BIG_FORMATIONS[fKey] ? fKey : '4-4-2';
+    api.mode = 'quick';
+    const sq = squadBig(fKey);
+    const A = { name: TX('Tu equipo'), formation: fKey, players: sq.full.map(({ id, loan }, i) => {
+      const pd = PLAYER(id), mul = loan ? 0.8 : 1;
+      return Shop.boost(Object.assign(buildMatchPlayer(id, sq.roles[i], k => Math.round(statOf(id, Profile.owned(id), k) * mul), loan ? startingTechs(pd) : runMember(id).techs, [], i, sq.pos[i]), { sprite: mySprite(pd, sq.roles[i]) }));
+    }) };
+    if (typeof key !== 'string' || !TEAM(key)) key = RIVAL_ORDER[Math.floor(Math.random() * RIVAL_ORDER.length)];
+    lastQuick = key; lastBig = true; settings.bigForm = fKey; saveSettings();
+    api.matchOpts = { extra: { big: true, minutes: 5 } };
+    startMatch({ A, B: rivalTeamBig(key, 0.9, 0.5) }, false, TEAM_FIELD[key] || 'normal', 'match', key);
+  }
   // Partido rápido: eliges contra qué equipo jugar (con tus 5 de Plantilla corriendo y el rival entrando al campo)
-  function renderQuick(key) {
+  function renderQuick(key, big) {
     const T = savedTeam(), F = FORMATIONS[T.formation];
-    if (T.ids.some(x => x == null)) return UI.toast(TX('Completa tu equipo en Plantilla'));
+    if (!big && T.ids.some(x => x == null)) return UI.toast(TX('Completa tu equipo en Plantilla'));
+    let bigForm = BIG_FORMATIONS[settings.bigForm] ? settings.bigForm : '4-4-2', loans = 0;
+    if (big) loans = squadBig(bigForm).loans;
     const GROUPS = [['s1', TX('Etapa 1'), t => t.kind === 'story'], ['s2', TX('Etapa 2'), t => t.kind === 'story2'], ['s3', TX('Etapa 3'), t => t.kind === 'story3' || t.kind === 'story4'], ['sp', TX('Especiales'), t => t.kind === 'special' || t.kind === 'dark']];
     const all = GAME.teams.filter(t => GROUPS.some(g => g[2](t))), avgs = all.map(t => t.avg || 0), lo = Math.min(...avgs), hi = Math.max(...avgs);
     const power = t => Math.max(1, Math.min(5, Math.ceil(5 * ((t.avg || 0) - lo) / (hi - lo + 1e-9))));
     const groupOf = k => (GROUPS.find(g => g[2](TEAM(k))) || GROUPS[0])[0];
     if (!key || !TEAM(key) || !all.some(t => t.key === key)) key = lastQuick && all.some(t => t.key === lastQuick) ? lastQuick : all[Math.floor(Math.random() * all.length)].key;
     let sel = key, tab = groupOf(key), busy = false;
-    const mine = T.ids.map((id, i) => mySprite(PLAYER(id), F.roles[i]));
+    const mine = big ? squadBig(bigForm).full.filter((_, i) => [0, 2, 6, 9, 10].includes(i)).map(({ id }, i) => mySprite(PLAYER(id), ['POR', 'DEF', 'MED', 'DEL', 'DEL'][i])) : T.ids.map((id, i) => mySprite(PLAYER(id), F.roles[i]));
     const crest = k => `ui/crest${crestOf(k)}.png`;
-    screen(`${top(TX('Partido rápido'))}
+    screen(`${top(big ? TX('11 contra 11') : TX('Partido rápido'))}
       <div class="qm-stage"><canvas id="qmCv"></canvas>
         <div class="qm-side me"><img src="ui/crest1.png" alt=""><b>${TX('Tu equipo')}</b></div>
         <div class="qm-side rv" id="qmRv"></div><div class="qm-vs">VS</div></div>
+      ${big ? `<div class="qm-tabs" id="qmForms">${Object.keys(BIG_FORMATIONS).map(k => `<button class="qm-tab" data-f="${k}" aria-pressed="${k === bigForm}">${k}<small> ${BIG_FORMATIONS[k].name}</small></button>`).join('')}</div>${loans ? `<p class="note">${TX('Te faltan {0} jugadores para el once: el club te presta refuerzos básicos.', loans)}</p>` : ''}` : ''}
       <div class="qm-tabs" id="qmTabs">${GROUPS.map(g => `<button class="qm-tab" data-g="${g[0]}">${g[1]}</button>`).join('')}</div>
       <div class="qm-grid" id="qmGrid"></div>
       ${bottom(`<div class="qm-bar"><button class="ghost" id="qmRand">${TX('🎲 Al azar')}</button><button class="cta" id="qmGo">${TX('⚽ ¡A jugar!')}</button></div>`)}`, 'bg_title');
@@ -12963,7 +13209,8 @@ const App = (() => {
         if (n >= 12) { clearInterval(iv); busy = false; fx.poke(); }
       }, 75);
     };
-    $('qmGo').onclick = () => { if (busy) return; fx.destroy(); startQuick(sel); };
+    if (big) $('qmForms').querySelectorAll('.qm-tab').forEach(b => b.onclick = () => { Sound.sfx('click'); bigForm = b.dataset.f; $('qmForms').querySelectorAll('.qm-tab').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+    $('qmGo').onclick = () => { if (busy) return; fx.destroy(); big ? startBig(sel, bigForm) : startQuick(sel); };
     $('back').onclick = () => { fx.destroy(); renderMenu(); };
     paintLabel(); paintGrid();
     Sound.music('menu');
@@ -12971,15 +13218,12 @@ const App = (() => {
   const TACTICS = [['def', TX('🛡️ Defensivo')], ['eq', TX('⚖️ Equilibrado')], ['of', TX('⚔️ Ofensivo')]];
   let subOut = null;   // jugador de campo elegido para salir
   function fillPause() {
-    const m = api.match, bench = api.bench || [], left = MAX_SUBS - (api.subsUsed || 0), onField = m.players.filter(p => p.team === 'A');
+    const m = api.match, bench = api.bench || [], left = maxSubs() - (api.subsUsed || 0), onField = m.players.filter(p => p.team === 'A');
     const canSub = bench.some(b => !b.used) && onField.length;
     const nm = x => esc(String(x).split(' ').slice(0, 2).join(' '));
     $('pauseBody').innerHTML = `<h1>${TX('Pausa')}</h1><button class="cta" id="pResume">${TX('Seguir')}</button>
       <div class="group"><label>${TX('Táctica')}</label><div class="opts" id="pTac">${TACTICS.map(([v, t]) => `<button data-t="${v}" aria-pressed="${m.tactic.A === v}">${t}</button>`).join('')}</div></div>
-      ${bench.length ? `<div class="group"><label>${TX('Cambios')} · ${TX('te quedan {0}', left)}</label>
-        <div class="subrow" id="subOut">${onField.map(p => `<button class="subbtn${subOut === p.id ? ' sel' : ''}" data-o="${p.id}"><b>${nm(p.name)}</b><small>${RAB(p.role)} · ${Math.round(p.stamina * 100)}%</small></button>`).join('')}</div>
-        <small class="subarr">${subOut ? TX('▼ Elige quién entra') : TX('▲ Toca al jugador que sale')}</small>
-        <div class="subrow" id="subIn">${bench.map((b, i) => `<button class="subbtn in${b.used ? ' used' : ''}" data-i="${i}" ${b.used || !subOut || !left ? 'disabled' : ''}><b>${nm(b.name)}</b><small>${RAB(b.role)} · ${chip(b.elem)}</small></button>`).join('')}</div></div>` : `<p class="note">${TX('En este modo no hay cambios: solo puedes cambiar la táctica.')}</p>`}
+      ${bench.length ? `<p class="note">${TX('🔄 Los cambios se hacen con el botón de cambios, cuando el juego se para (falta, saque, córner, gol…).')}</p>` : ''}
       <div class="group"><label>${TX('Supertécnicas')}</label><div class="opts" id="pTech">${[['boton', TX('Con botón')], ['auto', TX('Automáticas')]].map(([v, t]) => `<button data-v="${v}" aria-pressed="${settings.techMode === v}">${t}</button>`).join('')}</div></div>
       ${settings.dev && settings.devWin ? '<button class="ghost" id="pWin">' + TX('🛠 Ganar ahora (desarrollador)') + '</button>' : ''}
       <button class="ghost" id="pGuide">${TX('🎮 Guía de controles')}</button>
@@ -12993,13 +13237,6 @@ const App = (() => {
       Logic.setTactic(m, 'A', b.dataset.t); settings.tactic = b.dataset.t; saveSettings(); Sound.sfx('click');
       b.parentNode.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
     }));
-    pb.querySelectorAll('#subOut button').forEach(b => b.onclick = () => { subOut = subOut === b.dataset.o ? null : b.dataset.o; Sound.sfx('click'); fillPause(); });
-    pb.querySelectorAll('#subIn button').forEach(b => b.onclick = () => {
-      if (!subOut) return;
-      const who = (m.players.find(p => p.id === subOut) || {}).name;
-      if (api.makeSub(subOut, +b.dataset.i)) { Sound.sfx('reveal'); UI.toast('🔁 ' + TX('Cambio: entra {0}', (api.bench[+b.dataset.i] || {}).name) + (who ? ' · ' + TX('sale {0}', who) : ''), 2200); }
-      subOut = null; fillPause();
-    });
     $('pResume').onclick = () => api.togglePause();
     if ($('pWin')) $('pWin').onclick = () => { m.score.A = m.score.B + 1; m.time = 0.01; m.golden = false; api.togglePause(); };
     $('pGuide').onclick = () => renderControlsGuide(() => show('pause'));
@@ -13217,7 +13454,7 @@ const App = (() => {
       ${scoreLine(s)}
       <p class="note">${TX('El partido rápido no da monedas ni tickets, pero las victorias cuentan para el Rayo Raimon.')}${rayo ? '<br><b>' + TX('⚡ ¡Has ganado un Rayo Raimon!') + '</b>' : ''}</p>
       <button class="cta" id="again">${TX('Otro partido rápido')}</button><button class="ghost" id="toMenu">${TX('Menú')}</button>`, a > b ? 'ill27' : a < b ? 'ill15' : 'ill28');
-    $('again').onclick = () => renderQuick(lastQuick); $('toMenu').onclick = renderMenu;
+    $('again').onclick = () => renderQuick(lastQuick, lastBig); $('toMenu').onclick = renderMenu;
   }
 
   /* =====================================================================
