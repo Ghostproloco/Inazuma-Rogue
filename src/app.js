@@ -1352,8 +1352,9 @@ const App = (() => {
       const paint = () => { if (!$('ldFill')) return; fill.style.width = cur + '%'; $('ldFill').nextElementSibling.style.left = cur + '%'; pct.textContent = Math.round(cur) + ' %'; };
       const iv = setInterval(() => {
         if (!$('ldFill')) return clearInterval(iv);
-        const cap = done ? 100 : Math.max(goal, Math.min(90, cur + 1));   // sin datos reales, avanza despacio hasta el 90 %
-        cur += Math.max(.4, (Math.min(cap, done ? 100 : Math.max(goal, cur + 1.2)) - cur) * .12); if (cur > cap) cur = cap; paint();
+        if (done) cur = Math.min(100, cur + Math.max(3, (100 - cur) * 0.35));   // ya cargó todo: cierra rápido
+        else cur += (Math.max(goal, 92) - cur) * 0.05 + 0.2;                       // mientras carga: avanza hacia el 90 %
+        paint();
       }, 40);
       const t0 = Date.now();
       return {
@@ -1486,6 +1487,7 @@ const App = (() => {
     if (MO && MO.lockId) Object.assign(s, { lockId: MO.lockId, autoSwitch: 0 });
     if (MO && MO.extra) Object.assign(s, MO.extra);   // minicampo, límite de goles, amigos que te pasan…
     s.mercy = api.mode === 'run' ? 5 : 0;   // roguelite: con 5 goles de diferencia se acaba el partido
+    api.running = false; api.match = null; api.subReset();   // mientras carga no hay partido: la vista aún tiene los muñecos del anterior
     const LD = Loading.show(TX('Preparando el partido'), (teams.A.name || '') + ' vs ' + (teams.B.name || '')); LD.set(8);
     try {
       const nPl = teams.A.players.length + teams.B.players.length;
@@ -1495,8 +1497,9 @@ const App = (() => {
       api.matchSheet = await Sprites.matchSheet([...teams.A.players, ...teams.B.players].map(p => p.sprite).concat(api.bench.map(b => b.sprite)));
       LD.set(80);
     } catch (e) { screen(`<h2>${TX('No se pudieron cargar los jugadores')}</h2><p class="note">${esc(e.message)}</p><button class="cta" id="back">${TX('Volver')}</button>`); $('back').onclick = renderMenu; return; }
-    api.match = Logic.createMatch(s, teams); api.subsUsed = 0; api.subReset(); LD.set(95);
+    LD.set(95);
     await LD.finish(1700);
+    api.match = Logic.createMatch(s, teams); api.subsUsed = 0; api.subReset();   // se crea justo antes de preparar el campo, sin esperas entre medias
     if (MO && MO.preset) { api.match.score.A = MO.preset.A; api.match.score.B = MO.preset.B; api.match.time *= MO.preset.timeMul; }   // sales en la 2.ª parte
     $('cA').src = api.mode === 'wc' ? 'ui/crest3016.png' : api.mode === 'pwc' ? `ui/crest${PC.natCrest(PC.data.pwc.nat || PC.myNat())}.png` : api.mode === 'career' && Career.data ? (Career.data.crestImg ? `ui/crest${Career.data.crestImg}.png` : ClubCrest.url(Career.data.crest, Career.data.school)) : api.mode === 'pcareer' || api.mode === 'pduel' ? `ui/crest${PC.data.crestId}.png` : Shop.myCrest() ? ClubCrest.url(Shop.myCrest(), '') : 'ui/crest1.png';
     $('nA').textContent = api.mode === 'wc' ? TX('Japón') : api.mode === 'pwc' ? PC.natName(PC.data.pwc.nat || PC.myNat()) : api.mode === 'career' && Career.data ? Career.data.school.replace(/^Instituto\s+/i, '') : api.mode === 'pcareer' ? PC.data.school : api.mode === 'pduel' ? PLAYER(PC.data.me.id).name : TX('Tú');

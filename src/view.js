@@ -722,6 +722,7 @@ class MatchScene extends Phaser.Scene {
     }
   }
   bind(s, sheet) {
+    this.boundFor = s;   // el partido para el que están hechos los muñecos de esta vista
     this.setField(s.settings.field || 'normal');
     { const F = Logic.FIELD, m = F.margin * PX; this.cameras.main.setBounds(-m, -m - 40, F.w * PX + 2 * m, F.l * PX + 2 * m + 80); }   // el minicampo es más pequeño
     if (sheet) {
@@ -747,7 +748,7 @@ class MatchScene extends Phaser.Scene {
 
   update(time, delta) {
     const s = App.match;
-    if (!s || !this.views.size) return;
+    if (!s || s !== this.boundFor || !this.views.size) return;   // no es el partido de estos muñecos (se está cargando otro)
     if (App.running) Logic.update(s, Input.read(), Math.min(delta / 1000, 0.05)); else Input.read();
     UI.pickSync(s); UI.menuSync(s); App.subTick && App.subTick(s);
     if (this.views.size !== s.players.length) for (const [id, v] of this.views) if (!s.players.some(p => p.id === id)) v.root.setVisible(false);   // expulsados
@@ -755,7 +756,7 @@ class MatchScene extends Phaser.Scene {
     this.drawLimited(s, time);
 
     for (const p of s.players) {
-      const v = this.views.get(p.id);
+      const v = this.views.get(p.id); if (!v) continue;
       v.root.setPosition(p.x * PX, p.y * PX).setDepth(p.y * PX);
       v.arrow.rotation = p.aim;
       if (v.nm !== p.name) { v.nm = p.name; v.tag.setText(p.name.split(' ')[0]); }   // tras un cambio de jugador
