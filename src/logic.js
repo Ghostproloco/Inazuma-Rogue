@@ -25,6 +25,8 @@ const Logic = (() => {
   // Minicampo para los retos 1 contra 1 (Carrera Jugador): settings.mini
   const F_NORMAL = Object.assign({}, F);
   const F_MINI = { w: 22, l: 30, margin: 4, goalW: 4.6, goalDepth: 1.5, barZ: 2.0, boxW: 12, boxD: 5, smallW: 7, smallD: 2, spot: 4.5, circleR: 4 };
+  // Campo grande para el 11 contra 11: settings.big
+  const F_BIG = { w: 52, l: 84, margin: 4, goalW: 7.3, goalDepth: 1.8, barZ: 2.4, boxW: 28, boxD: 11, smallW: 14, smallD: 4, spot: 9, circleR: 8 };
   let cx = F.w / 2;
   const rnd = Math.random;
   const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
@@ -54,7 +56,7 @@ const Logic = (() => {
 
   /* ---------- Creación ---------- */
   function createMatch(settings, teams) {
-    Object.assign(F, settings.mini ? F_MINI : F_NORMAL); cx = F.w / 2;
+    Object.assign(F, settings.mini ? F_MINI : settings.big ? F_BIG : F_NORMAL); cx = F.w / 2;
     const diff = DIFF[settings.difficulty] || DIFF.medio;
     const s = { tactic: { A: ['of', 'def'].includes(settings.tactic) ? settings.tactic : 'eq', B: 'eq' }, subs: 0, field: F, settings, diff, teams, players: [], score: { A: 0, B: 0 }, time: settings.minutes * 60, t: 0,
       pause: null, hitstop: 0, over: false, result: null, golden: false, controlledId: null, events: [], slow: 0, tech: null, effects: [],

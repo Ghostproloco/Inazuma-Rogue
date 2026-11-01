@@ -301,7 +301,7 @@ function versionPickOptions(wave, n = 3) {
 const normCode = c => String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 
 // Jugadores retirados del juego (Arion Sherwind, Victor Blade, Riccardo Di Rigo y Bai Long) y su puesto: se quitan de las partidas guardadas
-const REMOVED_PLAYERS = { 998001: 'MED', 998002: 'MED', 998003: 'DEF', 998004: 'DEL' };
+const REMOVED_PLAYERS = { 998001: 'MED', 998002: 'MED', 998003: 'DEF', 998004: 'DEL', 997008: 'DEL' };   // 997008 = Bianchi Christmas (retirado)
 const Profile = {
   data: null,
   load() {

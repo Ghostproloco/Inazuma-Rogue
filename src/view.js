@@ -749,7 +749,7 @@ class MatchScene extends Phaser.Scene {
     const s = App.match;
     if (!s || !this.views.size) return;
     if (App.running) Logic.update(s, Input.read(), Math.min(delta / 1000, 0.05)); else Input.read();
-    UI.pickSync(s); UI.menuSync(s);
+    UI.pickSync(s); UI.menuSync(s); App.subTick && App.subTick(s);
     if (this.views.size !== s.players.length) for (const [id, v] of this.views) if (!s.players.some(p => p.id === id)) v.root.setVisible(false);   // expulsados
     this.drawAura(s, time);
     this.drawLimited(s, time);
