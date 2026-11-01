@@ -153,6 +153,7 @@ const Shop = {
   // Aplica los niveles a las técnicas de un jugador de partido de tu equipo
   boost(m) {
     if (!m || !m.techs) return m;
+    if (typeof Items !== 'undefined') Items.apply(m);   // 🎒 el objeto que lleva puesto
     m.techs = m.techs.map(t => { const lv = this.techLevel(t.id); return lv > 1 ? Object.assign({}, t, { power: t.power + SHOP.LV_POWER * (lv - 1), lv }) : t; });
     return m;
   },

@@ -148,7 +148,7 @@ const App = (() => {
     $('mStory').onclick = () => Loading.go(TX('Historia'), () => { if (!resume('story')) renderStory(); });
     $('mCareer').onclick = () => Loading.go(TX('Modo Carrera'), () => renderSlots('car'));
     $('mPlayer').onclick = () => Loading.go(TX('Carrera Jugador'), () => renderSlots('pc'));
-    $('mShop').onclick = () => renderShop('sobres'); $('mAlbum').onclick = () => renderShop('album');
+    $('mShop').onclick = () => renderShop('destacado'); $('mAlbum').onclick = () => renderShop('album');
     $('mAch').onclick = () => renderAch(renderMenu);
     $('mSpecial').onclick = () => Loading.go(TX('Equipos especiales'), () => { if (!resume('special')) renderSpecials(); });
     $('mGacha').onclick = renderGacha; $('mTeam').onclick = () => renderTeam();
@@ -542,9 +542,10 @@ const App = (() => {
       ${bottom('<div class="grid2"><button class="ghost" id="mSkip">' + TX('Saltar') + '</button><button class="cta" id="mAll" hidden>' + TX('Girar todas') + '</button></div><button class="cta" id="mOk" hidden>' + TX('Continuar') + '</button>')}`, 'bg_whistle');
     const stage = $('pkStage'), pack = $('pkPack'), caps = $('caps');
     // Cartas: a veces una legendaria llega disfrazada de épica y sube al girarla
+    const drops = Items.rollDrops(res.length);   // 🎁 objetos que caen con el sobre
     const items = res.map(r => ({ r, shown: (r.tier === 'legendaria' || r.tier === 'limitada') && Math.random() < 0.5 ? 'epica' : r.tier, opened: false }));
     let left = items.length, opened = false, prog = 0, drag = null, alive = true;
-    const finish = () => { $('mHint').textContent = TX('¡Ya están todas abiertas!'); $('mAll').hidden = true; $('mSkip').hidden = true; $('mOk').hidden = false; };
+    const finish = () => { $('mHint').textContent = TX('¡Ya están todas abiertas!'); $('mAll').hidden = true; $('mSkip').hidden = true; $('mOk').hidden = false; setTimeout(() => showDrops(drops), 500); };
     function flash(col) { const f = document.createElement('div'); f.className = 'gflash'; f.style.background = col; document.body.appendChild(f); setTimeout(() => f.remove(), 450); }
     function paintTear() {
       const top = pack.querySelector('.pktop');
@@ -595,7 +596,7 @@ const App = (() => {
     addEventListener('keydown', key);
     $('mAll').onclick = async () => { $('mAll').hidden = true; for (const el of [...caps.querySelectorAll('.pkc')]) { const it = items[[...caps.children].indexOf(el)]; await flip(it, el); await new Promise(r => setTimeout(r, 90)); } };
     const leave = fn => { alive = false; removeEventListener('keydown', key); fn(); };
-    $('mSkip').onclick = () => leave(() => renderReveal(res, done, title || TX('¡Nuevos jugadores!')));
+    $('mSkip').onclick = () => leave(() => { renderReveal(res, done, title || TX('¡Nuevos jugadores!')); setTimeout(() => showDrops(drops), 400); });
     $('mOk').onclick = () => leave(done);
   }
 
@@ -995,6 +996,61 @@ const App = (() => {
     return el;
   }
   let teamFilter = '', teamSort = 'rareza', teamTab = 'equipo';
+  /* ---------- Objetos 🎒: tarjetas, mochila (Plantilla), objetos conseguidos y elegir a quién equipar ---------- */
+  const itemCard = (id, extra = '', cls = '', sty = '') => { const it = ITEMS[id], r = ITEM_RAR[it.rar];
+    return `<div class="itx r-${it.rar} ${cls}" style="--rc:${r.c};${sty}" data-item="${id}"><i class="itx-shine"></i><span class="itx-ic">${it.icon}</span><b>${esc(it.name)}</b><em>${r.name}</em><small>${esc(Items.bonusText(id))}</small>${extra}</div>`; };
+  function showDrops(ids) {
+    if (!ids || !ids.length) return;
+    const ov = document.createElement('div'); ov.className = 'sbx itx-drop'; $('shell').appendChild(ov);
+    ov.innerHTML = `<div class="sbx-card itx-pop"><h2>${TX('🎁 ¡Objetos conseguidos!')}</h2><div class="itx-row">${ids.map((id, i) => itemCard(id, '', 'pop', '--d:' + (i * 0.12) + 's')).join('')}</div>
+      <p class="note">${TX('Equípalos en Plantilla › Objetos: cada jugador lleva uno.')}</p><button class="cta" id="itxOk">${TX('¡Genial!')}</button></div>`;
+    Sound.sfx(ids.some(id => ITEMS[id].rar === 'legendaria') ? 'reveal' : 'pass');
+    $('itxOk').onclick = () => { Sound.sfx('click'); ov.remove(); };
+  }
+  // ¿A quién se lo pongo? Lista de tus jugadores (primero los de tu once)
+  function pickWearer(itemId, after) {
+    const ov = document.createElement('div'); ov.className = 'sbx'; $('shell').appendChild(ov);
+    const team = (api.myTeam || savedTeam()).ids.filter(x => x != null), mine = Profile.ids();
+    const ids = [...new Set([...team, ...sortedIds('')])];
+    ov.innerHTML = `<div class="sbx-card"><div class="sbx-top"><b>${ITEMS[itemId].icon} ${esc(ITEMS[itemId].name)}</b><span class="sbx-left">${esc(Items.bonusText(itemId))}</span><button class="sbx-x" id="pwX">✕</button></div>
+      <p class="note">${TX('Elige a quién se lo pones (si ya lleva otro, se cambia).')}</p><div class="itx-list" id="pwL"></div></div>`;
+    $('pwX').onclick = () => ov.remove();
+    ids.forEach(id => {
+      const pd = PLAYER(id), cur = Items.of(id), row = document.createElement('div'); row.className = 'itx-prow' + (team.includes(id) ? ' inteam' : '');
+      row.appendChild(face(Sprites.refOf(pd), 40));
+      row.insertAdjacentHTML('beforeend', `<div class="cplb"><b>${esc(pd.name)}</b><span class="cst">${rchip(pd.rarity)} ${RAB(pd.role)}${cur ? ' · ' + ITEMS[cur].icon + ' ' + esc(ITEMS[cur].name) : ''}</span></div><button class="cta mini">${cur === itemId ? '✓' : TX('Equipar')}</button>`);
+      row.querySelector('button').onclick = () => {
+        if (cur === itemId) return;
+        const prev = cur; if (prev) Items.unequip(id);
+        const r = Items.equip(id, itemId); if (!r.ok) { if (prev) Items.equip(id, prev); return UI.toast(r.msg, 1800); }
+        Sound.sfx('reveal'); UI.toast(ITEMS[itemId].icon + ' ' + esc(pd.name), 1400); ov.remove(); after && after();
+      };
+      $('pwL').appendChild(row);
+    });
+  }
+  function drawItemsTab(tabs) {
+    const I = Items.st(), owned = ITEM_IDS.filter(id => Items.count(id) > 0).sort((a, b) => Object.keys(ITEM_RAR).indexOf(ITEMS[b].rar) - Object.keys(ITEM_RAR).indexOf(ITEMS[a].rar));
+    const worn = Object.entries(I.eq).filter(([pid, id]) => PLAYER(+pid) && ITEMS[id]);
+    screen(`${top(TX('Plantilla'))}${tabs}${wallet()}
+      <div class="itx-sum"><span>🧲 +${Items.coinPct()}% ${TX('monedas')}</span><span>🍀 +${Items.luck()}% ${TX('objetos en el gacha')}</span><span>🎒 ${owned.reduce((a, id) => a + Items.count(id), 0)}</span></div>
+      <p class="note">${TX('Cada jugador lleva un objeto y sus estadísticas suben en tus partidos (Partido rápido, 11 contra 11, Historia y Equipos especiales). Los consigues en el gacha y en la Tienda.')}</p>
+      <h3>${TX('Mochila')}</h3>
+      <div class="itx-grid" id="itG">${owned.map(id => itemCard(id, `<u class="itx-n">${Items.free(id)}/${Items.count(id)}</u>`, Items.free(id) ? '' : 'used')).join('') || `<p class="note">${TX('Aún no tienes objetos. Salen al abrir sobres en el gacha y se compran en la Tienda.')}</p>`}</div>
+      ${owned.length ? '' : `<button class="cta" id="itShop">${TX('🛒 Ir a la Tienda')}</button>`}
+      <h3>${TX('Equipados')}</h3><div class="itx-list" id="itW">${worn.length ? '' : `<p class="note">${TX('Nadie lleva ningún objeto todavía.')}</p>`}</div>`);
+    body.querySelectorAll('#itG .itx').forEach(c => c.onclick = () => { if (!Items.free(c.dataset.item)) return UI.toast(TX('Todos los que tienes ya están puestos. Quita uno abajo.'), 2000); Sound.sfx('click'); pickWearer(c.dataset.item, () => drawItemsTab(tabs)); });
+    worn.forEach(([pid, id]) => {
+      const pd = PLAYER(+pid), row = document.createElement('div'); row.className = 'itx-prow';
+      row.appendChild(face(Sprites.refOf(pd), 40));
+      row.insertAdjacentHTML('beforeend', `<div class="cplb"><b>${esc(pd.name)}</b><span class="cst">${ITEMS[id].icon} ${esc(ITEMS[id].name)} · ${esc(Items.bonusText(id))}</span></div><button class="ghost mini">${TX('Quitar')}</button>`);
+      row.querySelector('button').onclick = () => { Items.unequip(+pid); Sound.sfx('click'); drawItemsTab(tabs); };
+      $('itW').appendChild(row);
+    });
+    if ($('itShop')) $('itShop').onclick = () => renderShop('objetos');
+    body.querySelectorAll('#tt button').forEach(b => b.onclick = () => { teamTab = b.dataset.t; renderTeam(); });
+    $('back').onclick = renderMenu;
+  }
+
   // Buscador y filtros de jugadores (plantilla y elegir jugador)
   const PF = { q: '', rar: '', elem: '', game: '' };
   const norm = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -1126,7 +1182,8 @@ const App = (() => {
 
   function renderTeam() {
     const myTechs = Object.keys(Profile.data.techs).map(Number).filter(t => TECH(t));
-    const tabs = `<div class="opts tmx-tabs" id="tt"><button data-t="equipo" aria-pressed="${teamTab === 'equipo'}">${TX('Mi equipo')}</button><button data-t="jug" aria-pressed="${teamTab === 'jug'}">${TX('Jugadores (')}${Profile.ids().length})</button><button data-t="tec" aria-pressed="${teamTab === 'tec'}">${TX('Técnicas (')}${myTechs.length})</button></div>`;
+    const tabs = `<div class="opts tmx-tabs" id="tt"><button data-t="equipo" aria-pressed="${teamTab === 'equipo'}">${TX('Mi equipo')}</button><button data-t="jug" aria-pressed="${teamTab === 'jug'}">${TX('Jugadores (')}${Profile.ids().length})</button><button data-t="tec" aria-pressed="${teamTab === 'tec'}">${TX('Técnicas (')}${myTechs.length})</button><button data-t="obj" aria-pressed="${teamTab === 'obj'}">🎒 ${TX('Objetos')}</button></div>`;
+    if (teamTab === 'obj') return drawItemsTab(tabs);
     if (teamTab === 'tec') {
       screen(`${top(TX('Plantilla'))}${tabs}<p class="note">${TX('Técnicas legendarias que has sacado en el gacha. Las puede equipar cualquier jugador de su elemento desde su ficha.')}</p><div class="cards" id="tk"></div>`);
       if (!myTechs.length) $('tk').innerHTML = '<p class="note">' + TX('Aún no tienes ninguna. Salen en el tramo legendario del gacha.') + '</p>';
@@ -3231,24 +3288,40 @@ const App = (() => {
     $('back').onclick = back; $('newsOk').onclick = back;
   }
   /* ---------- Tienda 🛒 (v0.35) ---------- */
-  let shopTab = 'sobres', shopTechType = '', shopTechQ = '', shopAlbumOpen = null;
+  let shopTab = 'destacado', shopTechType = '', shopTechQ = '', shopAlbumOpen = null;
   function renderShop(tab) {
     if (tab) shopTab = tab;
     Shop.st();
-    const P = Profile.data, TABS = [['sobres', TX('🎟️ Sobres')], ['equip', TX('👕 Equipación')], ['escudo', TX('🛡️ Escudo y campo')], ['tecnicas', TX('✨ Técnicas')], ['album', TX('📖 Álbum')], ['jugador', TX('✂️ Tu jugador')]];
+    const P = Profile.data, TABS = [['destacado', TX('⭐ Destacado')], ['objetos', TX('🎒 Objetos')], ['sobres', TX('🎟️ Sobres')], ['equip', TX('👕 Equipación')], ['escudo', TX('🛡️ Escudo y campo')], ['tecnicas', TX('✨ Técnicas')], ['album', TX('📖 Álbum')], ['jugador', TX('✂️ Tu jugador')]];
     const alN = Shop.albumPending();
     const tabs = `<div class="opts shoptabs" id="shT">${TABS.map(([k, n]) => `<button data-st="${k}" aria-pressed="${shopTab === k}">${n}${k === 'album' && alN ? ' <i class="newdot"></i>' : ''}</button>`).join('')}</div>`;
     const price = (c, ok = P.coins >= c) => `<button class="cta mini" data-buy ${ok ? '' : 'disabled'}>${c} 🪙</button>`;
     let html = '';
-    if (shopTab === 'sobres') {
+    if (shopTab === 'destacado') {
+      const deals = Items.deals(), now = new Date(), mid = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now, hh = Math.floor(mid / 36e5), mm = Math.floor(mid % 36e5 / 6e4);
+      const left = Shop.ticketsLeft(), legOk = Shop.legReady();
+      html = `<div class="shx-hero"><i class="nm-shine"></i><div class="shx-ht"><b>${TX('Ofertas del día')}</b><span>⏳ ${TX('se renuevan en {0} h {1} min', hh, mm)}</span></div>
+        <div class="shx-deals">${deals.map(d => itemCard(d.id, `<s class="itx-old">${Items.price(d.id)} 🪙</s><button class="cta mini" data-deal="${d.id}" ${d.bought || P.coins < d.price ? 'disabled' : ''}>${d.bought ? TX('✓ Comprado') : d.price + ' 🪙'}</button><span class="itx-off">-25%</span>`, d.bought ? 'used' : '')).join('')}</div></div>
+        <h3>${TX('Para ti hoy')}</h3>
+        <div class="shx-tiles">
+          <button class="shx-tile t1" data-go="sobres"><span>🎟️</span><b>${TX('Tickets')}</b><small>${TX('te quedan {0} hoy', left)}</small></button>
+          <button class="shx-tile t2" data-go="sobres"><span>🌟</span><b>${TX('Sobre legendario')}</b><small>${legOk ? TX('¡Disponible esta semana!') : TX('La semana que viene')}</small></button>
+          <button class="shx-tile t3" data-go="objetos"><span>🎒</span><b>${TX('Objetos')}</b><small>${TX('{0} en tu mochila', ITEM_IDS.reduce((a, id) => a + Items.count(id), 0))}</small></button>
+          <button class="shx-tile t4" data-go="album"><span>📖</span><b>${TX('Álbum')}</b><small>${alN ? TX('¡Premio por recoger!') : TX('Completa equipos')}</small></button>
+        </div>
+        <p class="note">${TX('Los objetos suben las estadísticas de tus jugadores y también caen al abrir sobres en el gacha.')}</p>`;
+    } else if (shopTab === 'objetos') {
+      html = `<p class="note">${TX('Cada jugador lleva un objeto. Equípalos en Plantilla › Objetos. Los comprados se suman a los que consigues en el gacha.')}</p>` +
+        Object.entries(ITEM_RAR).reverse().map(([rk, R]) => `<h3 style="color:${R.c}">${R.name} <small>${R.price} 🪙</small></h3><div class="itx-grid">${ITEM_IDS.filter(id => ITEMS[id].rar === rk).map(id => itemCard(id, `<u class="itx-n">×${Items.count(id)}</u><button class="cta mini" data-bi="${id}" ${P.coins >= R.price ? '' : 'disabled'}>${R.price} 🪙</button>`)).join('')}</div>`).join('');
+    } else if (shopTab === 'sobres') {
       const left = Shop.ticketsLeft();
       html = `<h3>${TX('Tickets')} <small>${TX('{0} 🪙 cada uno · te quedan {1} hoy', SHOP.ticket, left)}</small></h3>
         <div class="csquad">${[1, 5, 10].map(n => { const k = Math.min(n, left), c = k * SHOP.ticket;
           return `<div class="cpl fac"><span class="cicon">🎟️</span><div class="cplb"><b>${TXn(n, '{0} ticket', '{0} tickets')}</b>${n > left && left ? `<span class="cst">${TX('Solo te quedan {0} hoy', left)}</span>` : ''}</div><button class="cta mini" data-tk="${n}" ${left && P.coins >= c ? '' : 'disabled'}>${left ? (k * SHOP.ticket) + ' 🪙' : TX('Mañana')}</button></div>`; }).join('')}</div>
         <h3>${TX('Sobres de jugador')} <small>${TX('eliges 1 de 3')}</small></h3>
-        <div class="csquad">${Object.entries(SHOP.packs).map(([k, K]) => { const wk = K.weekly && !Shop.legReady();
-          return `<div class="cpl fac pack ${k}"><span class="cicon">${{ rara: '🔵', epica: '🟣', puesto: '🎯', legendaria: '🌟' }[k]}</span><div class="cplb"><b>${K.name}</b><span class="cst">${K.desc}</span>
-            ${K.role ? `<span class="opts small" id="pRole">${ROLES4.map(r => `<button data-prole="${r}" aria-pressed="${shopRole === r}">${RAB(r)}</button>`).join('')}</span>` : ''}</div>
+        <div class="shpks">${Object.entries(SHOP.packs).map(([k, K]) => { const wk = K.weekly && !Shop.legReady();
+          return `<div class="shpk ${k}"><div class="shpk-art"><i class="shpk-top"></i><em class="shpk-shine"></em><span>${{ rara: '🔵', epica: '🟣', puesto: '🎯', legendaria: '🌟' }[k]}</span><b>${K.name}</b></div><small>${K.desc}</small>
+            ${K.role ? `<span class="opts small" id="pRole">${ROLES4.map(r => `<button data-prole="${r}" aria-pressed="${shopRole === r}">${RAB(r)}</button>`).join('')}</span>` : ''}
             <button class="cta mini" data-pack="${k}" ${wk || P.coins < K.cost ? 'disabled' : ''}>${wk ? TX('La semana que viene') : K.cost + ' 🪙'}</button></div>`; }).join('')}</div>
         ${(P.giftPicks || []).length ? `<p class="note">${TXn(P.giftPicks.length, 'Tienes {0} «elige 1 de 3» sin abrir:', 'Tienes {0} «elige 1 de 3» sin abrir:')} <button class="ghost mini" id="shPicks">${TX('Elegir ahora')}</button></p>` : ''}`;
     } else if (shopTab === 'equip') {
@@ -3289,11 +3362,16 @@ const App = (() => {
           return `<div class="cpl fac alb${s.done ? ' done' : ''}${shopAlbumOpen === a.key ? ' sel' : ''}" data-al="${esc(a.key)}">${Sprites.crest(a.crest || 2)}<div class="cplb"><b>${esc(a.name)}</b><span class="cst">${s.have}/${s.total}${s.claimed ? ' · ' + TX('✓ Premio recogido') : ''}</span><span class="albar"><i style="width:${Math.round(100 * s.have / s.total)}%"></i></span></div>
             ${s.done && !s.claimed ? `<button class="cta mini" data-claim="${esc(a.key)}">${TX('¡Recoger!')}</button>` : ''}</div>${shopAlbumOpen === a.key ? `<div class="albfaces" id="alF"></div>` : ''}`; }).join('')}</div>`;
     }
-    screen(`${top(TX('🛒 Tienda'))}${wallet()}${tabs}${html}`, 'bg_green');
+    screen(`${top(TX('🛒 Tienda'))}${wallet()}${tabs}<div class="shx">${html}</div>`, 'bg_green');
     body.querySelectorAll('[data-st]').forEach(b => b.onclick = () => { Sound.sfx('click'); renderShop(b.dataset.st); });
     $('back').onclick = renderMenu;
     const res = (r, ok) => { if (!r.ok) { Sound.sfx('click'); return UI.toast(r.msg, 2000); } Sound.sfx('reveal'); if (ok) ok(r); else { if (r.msg) UI.toast(r.msg, 1600); renderShop(); } };
-    if (shopTab === 'sobres') {
+    if (shopTab === 'destacado') {
+      body.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { Sound.sfx('click'); renderShop(b.dataset.go); });
+      body.querySelectorAll('[data-deal]').forEach(b => b.onclick = e => { e.stopPropagation(); res(Items.buyDeal(b.dataset.deal), r => { Sound.sfx('reveal'); showDrops([r.id]); renderShop(); }); });
+    } else if (shopTab === 'objetos') {
+      body.querySelectorAll('[data-bi]').forEach(b => b.onclick = e => { e.stopPropagation(); res(Items.buy(b.dataset.bi), r => { showDrops([r.id]); renderShop(); }); });
+    } else if (shopTab === 'sobres') {
       body.querySelectorAll('[data-tk]').forEach(b => b.onclick = () => res(Shop.buyTickets(+b.dataset.tk)));
       body.querySelectorAll('[data-prole]').forEach(b => b.onclick = () => { shopRole = b.dataset.prole; body.querySelectorAll('[data-prole]').forEach(x => x.setAttribute('aria-pressed', x === b)); });
       body.querySelectorAll('[data-pack]').forEach(b => b.onclick = () => {

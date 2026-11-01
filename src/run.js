@@ -302,12 +302,13 @@ const normCode = c => String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 
 // Jugadores retirados del juego (Arion Sherwind, Victor Blade, Riccardo Di Rigo y Bai Long) y su puesto: se quitan de las partidas guardadas
 const REMOVED_PLAYERS = { 998001: 'MED', 998002: 'MED', 998003: 'DEF', 998004: 'DEL', 997008: 'DEL' };   // 997008 = Bianchi Christmas (retirado)
+const START_COINS = 500, START_TICKETS = 10;   // lo que recibe una cuenta o un invitado nuevo
 const Profile = {
   data: null,
   load() {
     let d = null;
     try { d = JSON.parse(localStorage.getItem('inazuma-perfil') || 'null'); } catch (_) {}
-    this.data = Object.assign({ coll: {}, coins: 99999, tickets: 99999, pity: 0, firstDone: false, pulls: 0,
+    this.data = Object.assign({ coll: {}, coins: START_COINS, tickets: START_TICKETS, pity: 0, firstDone: false, pulls: 0,
       rayos: 0, wins: 0, story: { s1: { best: 0, done: false } }, specials: {}, chains: {}, infBest: 0, techs: {}, banner: 1 }, d || {});
     this.data.techs = this.data.techs || {};
     (this.data.custom || []).forEach(registerCustom);   // tus jugadores creados (Modo Carrera Jugador)
@@ -636,6 +637,7 @@ const Run = {
       if (run.lives <= 0) { out.done = true; run.state = 'over'; }
       else run.state = 'map';
     }
+    if (out.coins > 0 && typeof Items !== 'undefined' && Items.coinPct()) out.coins = Math.round(out.coins * (1 + Items.coinPct() / 100));   // 🧲 Imán de monedas
     P.coins += out.coins; P.tickets += out.tickets; Profile.save();
     run.coinsEarned += out.coins; run.ticketsEarned += out.tickets;
     run.last = out;

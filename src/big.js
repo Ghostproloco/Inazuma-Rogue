@@ -51,8 +51,14 @@ function rivalTeamBig(teamKey, factor, progress) {
     const sig = signatureTech(pd); if (sig != null && !techs.includes(sig)) techs[0] = sig;
     const gkt = keeperTech(pd, techs); if (gkt != null) techs.unshift(gkt);
     techs = techs.slice(0, TECH_SLOTS);
-    const kit = star ? t.kit : null;
-    return Object.assign(buildMatchPlayer(m.id, roles[i], k => Math.round(pd.ie[k] * f), techs, [], n + i, pos[i]),
-      { sprite: Object.assign(m.file ? { file: m.file, row: m.row } : pd.cs ? { file: 'c' + String(pd.cs[0]).padStart(2, '0') + '.png', row: pd.cs[1] } : { file: 'c00.png', row: 0 }, kit && roles[i] !== 'POR' ? { kit } : {}) });
+    // Titulares: su muñeco propio. Refuerzos: muñeco base recoloreado con la equipación del equipo (si no, saldrían con camisas de otros equipos)
+    const base = pd.cs ? { file: 'c' + String(pd.cs[0]).padStart(2, '0') + '.png', row: pd.cs[1] } : { file: 'c00.png', row: 0 };
+    let sprite;
+    if (star) sprite = Object.assign(m.file ? { file: m.file, row: m.row } : base, t.kit && roles[i] !== 'POR' ? { kit: t.kit } : {});
+    else {
+      const col = t.kit || t.kitAuto;
+      sprite = Object.assign(base, col && roles[i] !== 'POR' ? { kit: Object.assign({ a: col.a, b: col.b }, pd.role === 'POR' ? { gk: true } : {}) } : {});
+    }
+    return Object.assign(buildMatchPlayer(m.id, roles[i], k => Math.round(pd.ie[k] * f), techs, [], n + i, pos[i]), { sprite });
   }) };
 }

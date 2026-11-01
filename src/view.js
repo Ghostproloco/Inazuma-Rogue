@@ -891,16 +891,9 @@ class MatchScene extends Phaser.Scene {
       const fx = typeof LM_FX !== 'undefined' && LM_FX[p.key]; if (!fx) continue;
       const v = this.views.get(p.id); if (!v || !v.root.visible) continue;
       const x = p.x * PX, y = p.y * PX - p.z * PX, spd = Math.hypot(p.vx, p.vy), k = 0.5 + 0.5 * Math.sin(time / 130 + p.row);
-      g.fillStyle(fx.a, 0.1 + 0.07 * k).fillEllipse(x, y - 26, 44 + 8 * k, 74 + 10 * k);
-      g.lineStyle(2, fx.b, 0.35 + 0.25 * k).strokeEllipse(x, y + 8, 40 + 6 * k, 14);
-      const seed = Math.floor(time / 90) * 7 + p.row * 13, rn = i => { const t = Math.sin(seed * 12.9898 + i * 78.233) * 43758.5453; return t - Math.floor(t); };
-      for (let b = 0, nb = spd > 0.6 ? 4 : 2; b < nb; b++) {   // rayos en zigzag
-        let bx = x + (rn(b * 9) - 0.5) * 38, by = y - 62 + rn(b * 9 + 1) * 10;
-        g.lineStyle(2, b % 2 ? fx.b : fx.a, 0.9).beginPath().moveTo(bx, by);
-        for (let i = 1; i <= 4; i++) { bx += (rn(b * 9 + i * 2) - 0.5) * 18; by += 12 + rn(b * 9 + i * 2 + 1) * 6; g.lineTo(bx, by); }
-        g.strokePath();
-      }
-      if (spd > 0.6) {   // al correr: rayo por el suelo detrás y chispas
+      LimFX.aura(g, x, y, fx, LimFX.styleOf(p.key), time, spd, p.row);   // aura propia de cada limitado (limfx.js)
+      if (spd > 0.6) {   // al correr: estela del color de su estilo detrás y chispas
+        const seed = Math.floor(time / 90) * 7 + p.row * 13, rn = i => { const t = Math.sin(seed * 12.9898 + i * 78.233) * 43758.5453; return t - Math.floor(t); };
         const bx = -p.vx / spd, by = -p.vy / spd; let cx = x, cy = y + 2;
         g.lineStyle(3, fx.a, 0.8).beginPath().moveTo(cx, cy);
         for (let i = 1; i <= 5; i++) { cx += bx * 8 + (rn(40 + i) - 0.5) * 8; cy += by * 4 + (rn(50 + i) - 0.5) * 6; g.lineTo(cx, cy); }

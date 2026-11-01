@@ -151,7 +151,10 @@ class TechFX {
     switch (e.type) {
       case 'techStart': {
         const p = P(e.id), t = p && p.techs.find(x => x.name === e.name);
-        UI.cutin(e.name, e.elem, e.team, e.kind, p && p.sprite, e.kind === 'tiro' || e.kind === 'parada' ? 1250 : 800, { lim: !!(t && t.lim) || !!(p && typeof LM_FX !== 'undefined' && LM_FX[p.key]), small: !!e.quick });
+        const lfx = p && typeof LM_FX !== 'undefined' && LM_FX[p.key];
+        if (lfx && (e.kind === 'tiro' || e.kind === 'parada')) {   // jugador limitado: escena de cámara propia (limfx.js)
+          LimFX.cine({ ref: p.sprite, style: LimFX.styleOf(p.key), name: e.name, a: lfx.a, b: lfx.b, team: e.team, ms: e.quick ? 950 : 1550 });
+        } else UI.cutin(e.name, e.elem, e.team, e.kind, p && p.sprite, e.kind === 'tiro' || e.kind === 'parada' ? 1250 : 800, { lim: !!(t && t.lim) || !!lfx, small: !!e.quick });
         if (p) UI.say(p.sprite, p.name, Dialog.shout(e.elem, e.kind), e.team, false, 1500);
         this.crewStart(s, p, e);
         if (t && (e.kind === 'tiro' || e.kind === 'parada')) { this.zoomBack = false; this.sc.cameras.main.zoomTo(1.3, 220, 'Sine.easeOut', true); }
